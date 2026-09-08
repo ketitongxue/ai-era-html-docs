@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 Claude Code 使用 | AI 纪元</title>
+<style>
+:root { color-scheme: light; --ink:#252b36; --blue:#265abf; --paper:#fffdf7; }
+* { box-sizing:border-box }
+html { scroll-padding-top:24px }
+body { margin:0; background:#faf8f1; color:var(--ink); font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif }
+main { width:min(1040px,100%); margin:auto; padding:40px 24px 80px }
+nav { display:flex; gap:24px; flex-wrap:wrap }
+a { color:var(--blue); text-underline-offset:4px }
+a:focus-visible { outline:2px solid var(--blue); outline-offset:4px }
+header { margin:32px 0 } h1 { font-size:clamp(28px,5vw,40px); line-height:1.3 }
+h2 { margin:48px 0 18px; padding-bottom:10px; border-bottom:1px solid #d7deea; font-size:26px; line-height:1.5 }
+h3,h4 { line-height:1.5 } p,li { overflow-wrap:anywhere }
+details { padding:16px 22px; border:1px solid #c8d5e7; border-radius:12px; background:var(--paper) }
+summary { cursor:pointer; font-weight:600 } details ul { columns:2; padding-left:22px }
+details li { break-inside:avoid; margin:6px 0 }
+pre { background:#192232; color:#edf1f7; padding:20px; border-radius:10px; overflow:auto; line-height:1.65; font-size:14px; tab-size:2 }
+code { font-family:"SFMono-Regular",Consolas,monospace } :not(pre)>code { background:#e9eef5; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere }
+img { display:block; max-width:100%; height:auto; margin:20px auto; border-radius:8px }
+table { border-collapse:collapse; display:block; max-width:100%; overflow-x:auto; background:var(--paper); font-size:14px; line-height:1.7 }
+th,td { padding:12px 14px; border:1px solid #ccd6e3; min-width:110px; text-align:left }
+th { background:#eaf0f7 } blockquote { margin:22px 0; border-left:3px solid #7ea2cd; padding:4px 20px; background:#f0f4f8 }
+li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px solid #d7deea }
+@media(max-width:600px) { main { padding:24px 16px 48px } details ul { columns:1 } h2 { font-size:23px } pre { padding:14px } ul,ol { padding-left:24px } }
+</style>
+</head>
+<body><main>
+<nav aria-label="网站导航"><a href="../index.html">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav>
+<header><h1>01 Claude Code 使用</h1></header>
+<details open><summary>文章目录</summary><ul><li><a href="#section-1">安装</a></li>
+<li><a href="#section-2">常用操作</a></li>
+<li><a href="#section-3">权限模式</a></li>
+<li><a href="#section-4">YOLO 模式</a></li>
+<li><a href="#section-5">安装 superpowers Skill</a></li>
+<li><a href="#section-6">当 Sub-Agents 和 Skills 成为通用语言</a></li>
+<li><a href="#section-7">Agent 协作常见的痛点拆解：</a></li>
+<li><a href="#section-8">Plugins：打包容器</a></li>
+<li><a href="#section-9">一份模板 CLAUDE.md</a></li></ul></details>
+<article><h2 id="section-1">安装</h2>
+<pre><code class="language-bash"># macOS / Linux / WSL（推荐，自动更新）
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Windows PowerShell
+irm https://claude.ai/install.ps1 | iex
+
+# 或使用 Homebrew（需手动更新）
+brew install --cask claude-code
+</code></pre>
+<p>然后进入操作系统的命令行，输入 claude 这个命令就可以开始对话了。</p>
+<pre><code class="language-bash">claude              # 首次运行会提示登录
+</code></pre>
+<p>Claude Code 是付费软件，需要在 Claude 网站开账户。它所支持的账户类型包括：</p>
+<ul>
+<li>
+<p>Claude Pro / Max / Teams / Enterprise（推荐）</p>
+</li>
+<li>
+<p>Claude Console（API 访问，需预付费）</p>
+</li>
+</ul>
+<p>Claude Code 支持自定义 API 端点：</p>
+<pre><code class="language-bash">export ANTHROPIC_BASE_URL=https://your-relay-service.com/v1
+export ANTHROPIC_API_KEY=sk-xxx
+</code></pre>
+<p>也可以使用 CC Switch（github.com/farion1231/cc-switch） 进行切换。跨平台桌面 + CLI 一体化，已迭代到 v3.x，腾讯云社区、知乎、CSDN 均有教程，是目前社区里最主流的 Claude Code 模型切换工具。</p>
+<p>命令行安装：</p>
+<pre><code class="language-bash">npx @songhe/cc-switch
+</code></pre>
+<p>它做了三件事：模型切换、MCP 管理和  Skills 管理。</p>
+<p>模型切换方面，内置了 Anthropic Claude、OpenAI GPT、DeepSeek、Qwen、GLM（智谱）、MiniMax、Kimi 等模型模板。点击 “Add Provider”添加配置，选中后点“Enable”就切换，本质上是帮你改写项目级  .claude/settings.json  中的 API 配置。支持 Claude Code、Codex CLI、OpenCode、Gemini CLI 多种终端 Agent。在 Claude API 和国产模型之间一键切换，不用手动改环境变量。</p>
+<p>MCP 管理方面，内置常用 MCP 服务器模板，交互式添加。还支持&quot;Shared Config Snippet&quot;在不同 Provider 间共享通用配置。</p>
+<h2 id="section-2">常用操作</h2>
+<table>
+<thead>
+<tr>
+<th>操作名称</th>
+<th>功能是什么</th>
+<th>什么时候用</th>
+<th>如何操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自动编辑模式</td>
+<td>让 Claude 自动修改代码，不用每次确认</td>
+<td>写代码、修 Bug、调逻辑等</td>
+<td>MAC：shift+Tab 一次</td>
+</tr>
+<tr>
+<td>@指定文件</td>
+<td>告诉 Cladue 只处理某个文件</td>
+<td>修改单个文件或定位错误</td>
+<td>在对话里输入 @文件名 即可</td>
+</tr>
+<tr>
+<td>粘贴图片</td>
+<td>让 Claude 看图调界面或排查错误</td>
+<td>前端调界面，查页面错误</td>
+<td>MAC：Ctrl+V（不是 Cmd+V）<br>Windows：Alt+V</td>
+</tr>
+<tr>
+<td>常用命令</td>
+<td>管理 Claude 的状态和上下文</td>
+<td>清空对话、切换模型、诊断问题</td>
+<td>/clear 清空上下文，重新开始；<br>/compact 清理但保留记忆</td>
+</tr>
+<tr>
+<td>Plan 模式</td>
+<td>Claude 先帮你想清楚方向再写代码</td>
+<td>项目刚开始、做方案设计或复杂功能时</td>
+<td>Shift+Tab 连按两次</td>
+</tr>
+<tr>
+<td>记忆文件（CLAUDE.md）</td>
+<td>让 Claude 记住你的使用习惯和项目环境</td>
+<td>希望长期保持同一风格或配置时</td>
+<td>全局：～/.claude/CLAUDE.md<br>项目：项目目录下创建CLAUDE.md</td>
+</tr>
+<tr>
+<td>打开思考模式</td>
+<td>普通思考模式<br>或者会使用思考模型</td>
+<td>基本常开</td>
+<td>tab 打开，右下角会提示</td>
+</tr>
+<tr>
+<td>深度思考（ultrathink）</td>
+<td>让 Claude 进入高强度思考模式</td>
+<td>遇到复杂问题、性能优化或大规划时</td>
+<td>提示词中加入“ultrathink”或“深度思考”</td>
+</tr>
+</tbody>
+</table>
+<h2 id="section-3">权限模式</h2>
+<p>Claude Code 支持多种权限模式，通过  Shift+Tab  循环切换。</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>行为</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td>首次使用工具时提示授权</td>
+<td>日常使用</td>
+</tr>
+<tr>
+<td>acceptEdits</td>
+<td>自动接受文件编辑，命令仍需确认</td>
+<td>信任度较高的修改任务</td>
+</tr>
+<tr>
+<td>plan</td>
+<td>只读模式，只能分析不能修改</td>
+<td>代码审查、方案设计</td>
+</tr>
+<tr>
+<td>delegate</td>
+<td>只能通过 Agent Teams 协调</td>
+<td>团队协作模式</td>
+</tr>
+<tr>
+<td>dontAsk</td>
+<td>自动拒绝未预授权的工具</td>
+<td>严格受控的自动化</td>
+</tr>
+<tr>
+<td>bypassPermissions</td>
+<td>跳过所有权限检查（危险！）</td>
+<td>隔离环境如容器/VM</td>
+</tr>
+</tbody>
+</table>
+<h2 id="section-4">YOLO 模式</h2>
+<p>YOLO 模式通过一行启动命令开启：</p>
+<pre><code>claude --dangerously-skip-permissions
+</code></pre>
+<p>如果我们发现 cc 左下角提示了一个 “bypass permissions on”，代表我们的 YOLO 模式已经成功启动了</p>
+<h2 id="section-5">安装 superpowers Skill</h2>
+<p>核心理念：让 AI 在动手写代码之前，先经历 头脑风暴 -&gt; 方案设计 -&gt; TDD 实现 -&gt; 代码评审 的完整工程闭环。</p>
+<p>现在我们使用 Claude Code 等 AI Coding 工具编码，其实你不再只是把自然语言翻译成代码， 而是在做设计，具体来说是做三件更高级的事情：</p>
+<ol>
+<li>
+<p>拆解问题</p>
+</li>
+<li>
+<p>分配任务</p>
+</li>
+<li>
+<p>组织多个智能体协作完成目标</p>
+</li>
+</ol>
+<h2 id="section-6">当 Sub-Agents 和 Skills 成为通用语言</h2>
+<ul>
+<li>
+<p>Sub-Agents（子代理）  的核心思想是：一个复杂任务可以拆解给多个专职角色。</p>
+<p><img src="assets/claude-code/sub-agents.png" alt="Sub-Agents 子代理示意图"></p>
+</li>
+<li>
+<p>Skills（技能）  的核心思想是：AI 应该知道什么时候用什么能力。</p>
+<p>传统工具需要用户手动触发——你输入  /review，它就审查代码。但 Skills 不同，你只需要说“帮我看看这段代码有没有安全问题”，AI 就能自动判断这是代码安全审查任务，并自动激活对应的 Skill，自动应用领域知识和检查清单。</p>
+<p>Skills 的渐进式披露架构——不是把所有知识一股脑灌给 AI，而是按需加载，用到什么加载什么。这解决了 LLM 上下文窗口的根本限制。</p>
+<p><img src="assets/claude-code/skills.png" alt="Skills 技能示意图"></p>
+</li>
+</ul>
+<h2 id="section-7">Agent 协作常见的痛点拆解：</h2>
+<ul>
+<li>
+<p>Memory： 解决 Agent 每次对话都“从零开始”、不理解项目背景的问题，让 AI 真正记住你的代码结构、约束和上下文。</p>
+<ul>
+<li>核心文件是 CLAUDE.md。</li>
+<li>Claude 每次开始对话时，都会读取这个文件。这样它就“记住”了你的项目规范，不需要每次重复说明。</li>
+<li>Claude Code 并不是只有一个CLAUDE.md记忆文件，全局、项目和项目的特定模块都可以拥有属于自己的记忆文件（或者也可以叫配置文件）。</li>
+<li>
+<pre><code>~/.claude/CLAUDE.md           # 全局（所有项目共用）
+↓
+项目根目录/CLAUDE.md          # 项目级（当前项目）
+↓
+项目根目录/.claude/rules/*.md # 模块级（特定目录）
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Sub-Agents： 解决单一 Agent 角色混乱、上下文污染、又写代码又做审查的问题，通过职责拆分实现关注点分离。</p>
+<ul>
+<li>子代理是除了 Skills 之外的另一个大杀器，用于独立完成专项任务。其触发方式可以由 Claude 决定或用户指定。</li>
+<li>
+<pre><code>主 Claude: 这个任务需要跑大量测试，让我创建一个子代理来处理。
+子代理（test-runner）: 执行测试，只把结果汇报给主 Claude
+</code></pre>
+</li>
+<li>SubAgents 适合隔离执行——高噪声任务（比如在大量日志中寻找出错信息，在大量文档中检索相关资源）、需要特定权限的任务。</li>
+</ul>
+</li>
+<li>
+<p>Skills： 解决 Prompt 不可复用、经验无法沉淀、团队能力难以传承的问题，把个人技巧变成可组合的工程资产。</p>
+</li>
+<li>
+<p>Hooks： 解决 Agent 执行过程不可控、缺乏检查点、容易“越权操作”的问题，在关键节点引入自动校验和人工兜底。</p>
+</li>
+<li>
+<p>Headless： 解决 Agent 只能在 IDE 里交互、无法进入自动化流程的问题，让 AI 能在 CI/CD 中无人值守地运行。</p>
+<ul>
+<li>
+<pre><code class="language-bash"># GitHub Actions 中
+- name: Auto-fix code issues
+  run: claude --headless &quot;Fix all linting errors in src/&quot;
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Agent SDK：解决只会用对话的方式使用 Agent，难以嵌入现有系统和工作流的问题，用代码驱动 Agent，构建可编排的工程流程。</p>
+</li>
+<li>
+<p>MCP（Model Context Protocol）：MCP 让 Claude 连接外部工具和服务，适合工具连接——可以把任何外部系统变成 Claude 可调用的工具。</p>
+</li>
+</ul>
+<h2 id="section-8">Plugins：打包容器</h2>
+<p>当你开发了一套好用的 Commands、Skills、Hooks 组合，想要分享给团队或社区时，就需要 Plugins。</p>
+<p>Plugins 不是一种新能力，而是打包机制——就像 npm 包把一堆 JavaScript 文件打包在一起，Plugin 把一组相关的 Claude Code 扩展打包在一起。</p>
+<pre><code>my-team-plugin/
+├── commands/           # 斜杠命令
+│   └── review.md
+├── skills/             # 技能
+│   └── security-check/
+│       └── SKILL.md
+├── agents/             # 子代理
+│   └── test-runner.md
+├── hooks/              # 钩子
+│   └── pre-edit.sh
+└── plugin.json         # 插件配置
+</code></pre>
+<p>下面是一个典型的 Plugins 使用场景：</p>
+<blockquote>
+<p>你是团队的技术 Lead，花了两周时间打磨出一套完美的代码审查流程：一个  /review  命令触发审查，一个  code-quality Skill 自动分析代码质量，一个  test-runner  子代理执行测试，还有一个 Hook 确保所有修改都有对应的测试。</p>
+<p>与其让团队成员手动复制这些文件，不如打包成一个 Plugin，新成员只需一条命令就能获得完整的工作流。</p>
+</blockquote>
+<p>Plugin 的价值在于可复用、可版本化、可分发。</p>
+<h2 id="section-9">一份模板 CLAUDE.md</h2>
+<pre><code class="language-Markdown"># CLAUDE.md
+
+This file provides comprehensive guidance to AI assistants (like Claude Code) when working with code in this repository.
+
+## Important Notes for AI Assistants
+
+### Coding Rules (CRITICAL - MUST FOLLOW)
+
+1. **不要自作聪明瞎写代码** - 写代码前要先确认方案再执行
+2. **不要添加冗余代码** - 只做必要的校验，不添加各种无关的校验
+3. **精简代码** - 如果已有功能/组件/函数，优先重构和抽象
+4. **不要瞎改之前的代码** - 确认改完不会影响其他功能
+5. **不要重复造轮子** - 优先使用已有的类似功能
+6. **严格按照示例文档** - 有参考文档时严格按照示例写代码
+7. **打印清晰的调试日志** - 每个步骤都要打印正确的上下文
+8. **不要硬编码可配置信息** - 写到环境变量文件 .env 中
+9. **首先考虑快速简单完成任务** - 别搞复杂的东西
+10. **不要做任何格式化代码的操作**
+11. **不准启动服务，不得占用 3006 端口**
+12. **每次写完功能后测试正确性** - 通过 API 调用或网页请求测试
+13. **测试正确后清理调试日志等信息**
+14. **通过 chrome devtools mcp 调试时禁止关闭用户正在使用的实例** - 启动新的 isolated 实例
+</code></pre>
+</article>
+<footer><a href="../index.html">返回知识库</a></footer>
+</main></body></html>
