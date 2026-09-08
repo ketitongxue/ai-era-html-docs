@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>知识库 | AI 纪元</title>
+  <style>
+    body { margin:0; background:#faf8f1; color:#252b36; font:16px/1.7 "PingFang SC","Microsoft YaHei",sans-serif }
+    main { max-width:860px; margin:0 auto; padding:48px 24px }
+    a { color:#265abf; text-underline-offset:4px }
+    a:focus-visible { outline:2px solid #315efb; outline-offset:4px }
+    h1 { font-size:32px } p { color:#596473 }
+    ul { padding:0; list-style:none } li { margin:12px 0 }
+    li a { display:block; padding:18px; background:#fffdf7; border:1px solid #c8d5e7; border-radius:12px; overflow-wrap:anywhere }
+    nav { display:flex; gap:24px; flex-wrap:wrap }
+  </style>
+</head>
+<body>
+  <main>
+    <nav><a href="https://juzxailab.com/">← AI 纪元</a><a href="https://github.com/ketitongxue/ai-era-html-docs/tree/main/docs">GitHub 文档目录</a></nav>
+    <h1>知识库</h1><p>AI 与实践的 HTML 文档</p>
+    <p id="status" role="status">正在读取文档目录…</p><ul id="documents"></ul>
+    <noscript>请启用 JavaScript 查看目录，或使用上方 GitHub 文档目录。</noscript>
+  </main>
+  <script type="module">
+    const status = document.querySelector('#status')
+    const list = document.querySelector('#documents')
+    try {
+      const response = await fetch('https://api.github.com/repos/ketitongxue/ai-era-html-docs/git/trees/main?recursive=1', { signal: AbortSignal.timeout(15000) })
+      if (!response.ok) throw new Error('Directory unavailable')
+      const data = await response.json()
+      if (!Array.isArray(data.tree) || data.truncated) throw new Error('Incomplete directory')
+      const documents = data.tree.filter(item => item.type === 'blob' && item.mode === '100644' && item.path.startsWith('docs/') && /\.html?$/i.test(item.path))
+      documents.sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
+      for (const item of documents) {
+        const row = document.createElement('li')
+        const link = document.createElement('a')
+        link.textContent = item.path.slice(5).replace(/\.html?$/i, '')
+        link.href = './' + item.path.split('/').map(encodeURIComponent).join('/')
+        row.append(link)
+        list.append(row)
+      }
+      status.textContent = documents.length ? `共 ${documents.length} 篇文档` : '目前还没有文档，内容正在准备中。'
+    } catch {
+      status.textContent = '暂时无法读取目录，请稍后刷新，或通过上方 GitHub 文档目录查看文件。'
+    }
+  </script>
+</body>
+</html>
