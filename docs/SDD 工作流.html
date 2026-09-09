@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDD 工作流 | AI 纪元</title>
+<style>
+:root { color-scheme: light; --ink:#252b36; --blue:#265abf; --paper:#fffdf7; }
+* { box-sizing:border-box }
+html { scroll-padding-top:24px }
+body { margin:0; background:#faf8f1; color:var(--ink); font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif }
+main { width:min(1040px,100%); margin:auto; padding:40px 24px 80px }
+nav { display:flex; gap:24px; flex-wrap:wrap }
+a { color:var(--blue); text-underline-offset:4px }
+a:focus-visible { outline:2px solid var(--blue); outline-offset:4px }
+header { margin:32px 0 } h1 { font-size:clamp(28px,5vw,40px); line-height:1.3 }
+h2 { margin:48px 0 18px; padding-bottom:10px; border-bottom:1px solid #d7deea; font-size:26px; line-height:1.5 }
+h3,h4 { line-height:1.5 } p,li { overflow-wrap:anywhere }
+details { padding:16px 22px; border:1px solid #c8d5e7; border-radius:12px; background:var(--paper) }
+summary { cursor:pointer; font-weight:600 } details ul { columns:2; padding-left:22px }
+details li { break-inside:avoid; margin:6px 0 }
+pre { background:#192232; color:#edf1f7; padding:20px; border-radius:10px; overflow:auto; line-height:1.65; font-size:14px; tab-size:2 }
+code { font-family:"SFMono-Regular",Consolas,monospace } :not(pre)>code { background:#e9eef5; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere }
+img { display:block; max-width:100%; height:auto; margin:20px auto; border-radius:8px }
+table { border-collapse:collapse; display:block; max-width:100%; overflow-x:auto; background:var(--paper); font-size:14px; line-height:1.7 }
+th,td { padding:12px 14px; border:1px solid #ccd6e3; min-width:110px; text-align:left }
+th { background:#eaf0f7 } blockquote { margin:22px 0; border-left:3px solid #7ea2cd; padding:4px 20px; background:#f0f4f8 }
+li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px solid #d7deea }
+@media(max-width:600px) { main { padding:24px 16px 48px } details ul { columns:1 } h2 { font-size:23px } pre { padding:14px } ul,ol { padding-left:24px } }
+</style>
+</head>
+<body><main>
+<nav aria-label="网站导航"><a href="../index.html">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav>
+<header><h1>SDD 工作流</h1></header>
+<details open><summary>文章目录</summary><ul><li><a href="#section-1">第一步：定规范</a></li>
+<li><a href="#section-2">第二步：AI 按规范执行</a></li>
+<li><a href="#section-3">第三步：人验证输出</a></li>
+<li><a href="#section-4">第四步：迭代规范</a></li></ul></details>
+<article><p>SDD 不是写个规范然后照着做，它是一个持续运转的闭环。四步，循环往复。</p>
+<h2 id="section-1">第一步：定规范</h2>
+<p>在写任何业务代码之前，先把基础规范定下来。</p>
+<p>第一版粗一点没关系，但一定要有。关键是覆盖 Claude Code 最容易跑偏的地方。它最容易跑偏的地方有四个：</p>
+<ul>
+<li>
+<p>命名风格。不约束它，每个模块的命名都不一样。实体类加不加前缀、字段用驼峰还是下划线、接口路径用单数还是复数……这些它每次都要“猜”，猜的结果每次都不同。</p>
+<pre><code># 命名规范
+实体类大驼峰，不加前缀后缀。例如 Provider、Agent、ChatMessage。
+字段小驼峰。例如 apiKey、baseUrl、modelName。
+接口路径：/api/v1/{资源复数名}。
+</code></pre>
+</li>
+<li>
+<p>返回格式。不约束它，有的接口返回 {&quot;code&quot;: 200, &quot;data&quot;: {...}}，有的返回 {&quot;error&quot;: &quot;not found&quot;}，有的直接返回 ResponseEntity。前端适配的时候会崩溃。</p>
+<pre><code># 接口规范
+所有接口统一返回 Result&lt;T&gt;：{ code, message, data }
+列表字段空时返回空数组 []，不返回 null。
+分页参数：page（从 1 开始）、pageSize（默认 20）。
+</code></pre>
+</li>
+<li>
+<p>错误码体系。不约束它，错误码满天飞。有用 HTTP 状态码的，有用自定义字符串的，有用随机数字的。更糟的是不同模块的错误码撞号，你分不清 2001 到底是 Provider 的“网络超时”还是 Agent 的“模型不存在”。</p>
+<pre><code># 错误码
+四位数字，按模块分段：
+1000-1999 通用 | 2000-2999 Provider | 3000-3999 Agent
+4000-4999 Chat | 5000-5999 MCP
+</code></pre>
+</li>
+<li>
+<p>设计原则。这是最关键的一条。Claude Code 训练数据里有大量“最佳实践”代码，它天然倾向于过度设计——工厂模式、策略模式、三层抽象、接口隔离。对一个几十人用的内部平台来说，大部分设计模式是负担不是资产。</p>
+<pre><code># 设计原则
+不引入不必要的设计模式，除非明确要求。
+不做过度抽象，一层能解决的不要拆成两层。
+不引入技术栈以外的依赖，需要时先确认。
+</code></pre>
+</li>
+</ul>
+<p>四块加在一起，一页纸。但有和没有之间的差距，就是完成和完美之间的差距。</p>
+<p>那这个规范从哪来？你可能已经有经验能写出大部分，但难免有遗漏。这里有个技巧：你也可以先让 Claude Code 帮你梳理“这个项目需要定哪些规范”，它帮你想，你来判断取舍。</p>
+<p>规范写好了放哪里？放在项目根目录的一个叫 CLAUDE.md 的文件里。Claude Code 每次启动新对话时自动读取这个文件，你不需要每次手动喂。</p>
+<h2 id="section-2">第二步：AI 按规范执行</h2>
+<p>下达任务时，明确引用规范。不是“帮我做个 Agent CRUD”，而是“按照 CLAUDE.md 中的规范，实现 Agent 的 CRUD 接口”。</p>
+<p>这句话的重点不在“按照规范”这四个字，CLAUDE.md 已经在上下文里了，Claude Code 看得到。重点在于它提醒 Claude Code 去关注那份规范，而不是按自己的“经验”来。</p>
+<p>有了 CLAUDE.md 之后，你回到做 Agent 模块那个场景：实体类就叫 Agent 不叫 AgentConfig（因为规范写了“不加前缀后缀”），返回格式走 Result（因为规范写了“统一返回”），错误码从 3000 开始（因为规范写了“按模块分段”），没有 Builder 模式（因为规范写了“不引入不必要的设计模式”）。</p>
+<h2 id="section-3">第三步：人验证输出</h2>
+<p>三步检查法，意图、质量、边界，检查 Claude Code 的输出是否符合规范。</p>
+<p>有了规范之后，review 的效率会大幅提升。因为你不再是漫无目的地看代码，而是“对着清单打勾”——命名是不是按规范来的？返回格式统一不统一？有没有引入我明确说了“不要用”的设计模式？错误码是不是在这个模块的分段范围内？</p>
+<p>规范把 review 从主观判断变成了客观核查。这个转变对效率的提升是巨大的，你不需要每次都重新思考“这里应该怎么写”，因为标准已经定好了。</p>
+<h2 id="section-4">第四步：迭代规范</h2>
+<p>你在验证输出时，一定会发现规范没覆盖到的地方。这太正常了，你不可能第一次就想到所有情况。关键是每次发现缺口，都要补上。</p>
+</article>
+<footer><a href="../index.html">返回知识库</a></footer>
+</main></body></html>
