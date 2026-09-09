@@ -227,9 +227,7 @@ model: sonnet
 </code></pre>
 <p>frontmatter 部分（---  之间）定义子代理的元数据和配置，下方的 Markdown 正文就是子代理的系统提示词（system prompt）。子代理只会收到这段系统提示词和基本环境信息（如工作目录），不会继承主对话的完整系统提示词。</p>
 <p>上述文件中出现的以及未出现的 frontmatter 字段详解如下。其中  name  和  description  是必填字段，其余均为可选：</p>
-<blockquote>
-<p>图片引用：<code>Pasted image 20260404114631.png</code>（原文引用的图片文件未随本文 Markdown 一同提供）</p>
-</blockquote>
+<p><img src="assets/claude-subagents/configuration-fields.png" alt="子代理配置字段、必填项与示例" width="3674" height="2430" loading="lazy" decoding="async"></p>
 <h3 id="section-11">description</h3>
 <p><code>description</code>  字段决定了 Claude 何时自动调用你的子代理——这是配置中最重要的设计决策。</p>
 <pre><code># 写的太模糊，Claude 不知道什么时候该用它
@@ -477,9 +475,7 @@ hooks:
 <p>综合 LangChain（这是下面 4 种多智能体模式的主要来源）、Anthropic、Google 和 OpenAI 等前沿公司的最佳实践，多 Agent 系统可以归纳为四种核心架构模式。它们不是互斥的——实际项目中经常组合使用。</p>
 <h4 id="section-25">模式一：Sub-Agents（子代理委派 / 集中式编排）</h4>
 <p>Sub-Agents 的核心设计思想是一个 Supervisor Agent 充当老板，将任务分解后委派给专门的 Sub-Agent。每个 Sub-Agent 解决一个特定的任务。</p>
-<blockquote>
-<p>图片引用：<code>Pasted image 20260404163902.png</code>（原文引用的图片文件未随本文 Markdown 一同提供）</p>
-</blockquote>
+<p><img src="assets/claude-subagents/supervisor-architecture.png" alt="Supervisor 主代理向搜索、分析和写作子代理分派任务" width="2940" height="1486" loading="lazy" decoding="async"></p>
 <p>在 Sub-Agent 架构中，上下文隔离能力非常强，每个 Sub-Agent 都拥有独立的上下文窗口，从根本上避免了信息相互污染。Sub-Agent 本身通常设计为无状态组件，专注于完成被委派的单次任务，而整体对话状态与流程控制则由 Supervisor 统一维护。</p>
 <p>这种结构天然支持并行执行，多个 Sub-Agent 可以同时展开工作，从而显著提升复杂任务的吞吐效率。用户并不直接与各个 Sub-Agent 交互，而是始终通过 Supervisor 间接沟通，由其负责任务拆解、结果汇总与最终输出。</p>
 <p>在调试和可控性层面，该模式的复杂度处于中等水平，工程上需要重点关注 Supervisor 的委派逻辑与决策路径，以便在出现偏差时能够准确定位问题来源。</p>
@@ -552,9 +548,7 @@ Skill：共享的上下文 → 适合需要连贯对话的场景
 <p>由于各阶段之间存在明确的先后依赖关系，该模式采用严格的顺序执行，不支持并行展开。对用户而言，Agent 的切换过程通常是透明的，用户可以像与单一 Agent 交互一样完成整个流程。</p>
 <p>在工程调试层面，这种模式的复杂度处于中等水平，需要重点关注状态在不同阶段之间的流转路径，以便在出现异常时准确定位问题发生的环节。</p>
 <p>Handoffs 的典型应用是客服工单流程：</p>
-<blockquote>
-<p>图片引用：<code>Pasted image 20260404173050.png</code>（原文引用的图片文件未随本文 Markdown 一同提供）</p>
-</blockquote>
+<p><img src="assets/claude-subagents/handoffs-workflow.png" alt="客服工单在前台接待、技术支持和高级工程师 Agent 之间交接" width="3702" height="1984" loading="lazy" decoding="async"></p>
 <p>此处你可能会问：Sub-Agent 和 Skills 这两种模式都是 Claude Code 原生的，很容易理解，但是 Hand-off 如何实现？</p>
 <p>的确，在 Claude Code 中并不存在一个底层 API 叫 handoff()， Handoffs 是通过 Prompt + 状态约束 + 工程结构模拟出来的。</p>
 <p>换句话说： Handoffs 是一种“工程模式”，不是一个“框架特性”。</p>
@@ -1060,13 +1054,9 @@ You are a senior code reviewer with expertise in security and software engineeri
 <h3 id="section-48">把工程经验翻译成子代理设计</h3>
 <p>创建子代理是有成本的——需要设计、维护、调试。我来给你提供一个实用的决策框架。</p>
 <p>该创建子代理的场景</p>
-<blockquote>
-<p>图片引用：<code>Pasted image 20260405003007.png</code>（原文引用的图片文件未随本文 Markdown 一同提供）</p>
-</blockquote>
+<p><img src="assets/claude-subagents/selection-decision-tree.png" alt="根据独立上下文、权限隔离和任务噪声判断是否使用子代理" width="3056" height="1710" loading="lazy" decoding="async"></p>
 <p>具体判断标准可以参考下表。</p>
-<blockquote>
-<p>图片引用：<code>Pasted image 20260405003046.png</code>（原文引用的图片文件未随本文 Markdown 一同提供）</p>
-</blockquote>
+<p><img src="assets/claude-subagents/selection-criteria.png" alt="子代理、Skill 和 Hook 的适用场景判断表" width="3840" height="1548" loading="lazy" decoding="async"></p>
 <h4 id="section-49">不该创建子代理的场景</h4>
 <ul>
 <li>一次性任务：直接在主对话中完成即可。</li>
