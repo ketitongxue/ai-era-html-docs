@@ -130,12 +130,12 @@ interface ApiResponse&lt;T&gt; {
 - 订单状态机日志: LOG_LEVEL=debug pnpm dev
 - 查看 Redis 缓存: redis-cli KEYS &quot;order:*&quot;
 </code></pre>
-<p>这里重点强调一下：记得把  <a href="http://CLAUDE.local.md">CLAUDE.local.md</a>  加入  .gitignore！</p>
+<p>这里重点强调一下：记得把  CLAUDE.local.md  加入  .gitignore！</p>
 <pre><code>echo &quot;CLAUDE.local.md&quot; &gt;&gt; .gitignore
 </code></pre>
 <p>当在项目越来越大，周期越来越长的时候，一个属于自己的本地记忆空间其实还蛮有用的。</p>
 <h2 id="section-4">规则目录：分类组织</h2>
-<p>Rules 是按主题组织的规则文件，支持条件作用域（也就是视情况来确定是否加载该记忆内容），适合场景包括 <a href="http://CLAUDE.md">CLAUDE.md</a> 变得太长时，不同文件类型需要不同规范时，以及前后端分离的项目。</p>
+<p>Rules 是按主题组织的规则文件，支持条件作用域（也就是视情况来确定是否加载该记忆内容），适合场景包括 CLAUDE.md 变得太长时，不同文件类型需要不同规范时，以及前后端分离的项目。</p>
 <p>位置：<code>.claude/rules/*.md</code></p>
 <p>目录结构：</p>
 <pre><code>.claude/
@@ -183,9 +183,9 @@ describe('OrderService', () =&gt; {
 - 路由/控制器: 可以较低
 </code></pre>
 <p>此处的关键特性是 <code>paths</code> 字段让这个规则只在编辑测试文件时生效，不会浪费其他场景的上下文空间。</p>
-<h2 id="section-5">编写高效的 <a href="http://CLAUDE.md">CLAUDE.md</a></h2>
+<h2 id="section-5">编写高效的 CLAUDE.md</h2>
 <h3 id="section-6">核心原则 1：Less is More</h3>
-<p><a href="http://CLAUDE.md">CLAUDE.md</a> 的每一行，都会在每一次对话开始时被自动注入上下文。这意味着一件事：冗余不是无害的，而是持续消耗的。所以保持精简不是建议，而是必须。</p>
+<p>CLAUDE.md 的每一行，都会在每一次对话开始时被自动注入上下文。这意味着一件事：冗余不是无害的，而是持续消耗的。所以保持精简不是建议，而是必须。</p>
 <h3 id="section-7">核心原则 2：具体优于泛泛</h3>
 <p>先来看一个非常常见、但几乎没有任何效果的写法。</p>
 <pre><code># 项目规范
@@ -194,7 +194,7 @@ describe('OrderService', () =&gt; {
 保持代码整洁。遵循最佳实践。不要写重复的代码。
 </code></pre>
 <p>这些话没有一句是错的，但问题在于——Claude 本来就知道这些。它们不会改变 Claude 的任何决策，只会白白占用上下文空间。这些话对人类尚且含糊，对模型来说，更是几乎等于什么都没说。</p>
-<p>真正有价值的 <a href="http://CLAUDE.md">CLAUDE.md</a>，应该长这样。</p>
+<p>真正有价值的 CLAUDE.md，应该长这样。</p>
 <pre><code># 项目规范
 
 ## TypeScript
@@ -244,8 +244,8 @@ const data = orderSchema.parse(input);
 示例参考: `src/routes/orders.ts`
 </code></pre>
 <p>当步骤清晰、路径明确、还有参考文件时，Claude 才会稳定复用同一套工作流，而不是每次自由发挥。</p>
-<h3 id="section-12">核心原则 4：渐进式披露：不要把一切都塞进 <a href="http://CLAUDE.md">CLAUDE.md</a></h3>
-<p><a href="http://CLAUDE.md">CLAUDE.md</a> 的职责是定义默认决策，而不是承载全部知识。对于非核心、但可能被用到的内容，正确的做法是引用，而不是复制。</p>
+<h3 id="section-12">核心原则 4：渐进式披露：不要把一切都塞进 CLAUDE.md</h3>
+<p>CLAUDE.md 的职责是定义默认决策，而不是承载全部知识。对于非核心、但可能被用到的内容，正确的做法是引用，而不是复制。</p>
 <pre><code># 项目规范
 
 ## 核心
@@ -259,15 +259,15 @@ const data = orderSchema.parse(input);
 <p>这样做有两个好处：</p>
 <ol>
 <li>
-<p><a href="http://CLAUDE.md">CLAUDE.md</a> 保持轻量，启动成本低 。</p>
+<p>CLAUDE.md 保持轻量，启动成本低 。</p>
 </li>
 <li>
 <p>当 Claude 需要进一步的细节信息时，可以按需读取引用文件。</p>
 </li>
 </ol>
 <p>这里补充一下，Claude code 团队对于 CC 关于Claude.md的一个最佳实践</p>
-<p>认真维护你的 <a href="http://CLAUDE.md">CLAUDE.md</a></p>
-<p>每次纠正完 Claude，都用这句话收尾：“更新你的 <a href="http://CLAUDE.md">CLAUDE.md</a>，这样你就不会再犯这个错误了。“Claude 在给自己写规则这件事上强得有点”诡异“。</p>
+<p>认真维护你的 CLAUDE.md</p>
+<p>每次纠正完 Claude，都用这句话收尾：“更新你的 CLAUDE.md，这样你就不会再犯这个错误了。“Claude 在给自己写规则这件事上强得有点”诡异“。</p>
 <p>随着时间推移，毫不留情地打磨你的 <a href="http://CLAUDE.md">CLAUDE.md</a>。持续迭代，直到你能明显量化地看到 Claude 的出错率下降。</p>
 <p>有位工程师会让 Claude 为每个任务/项目维护一个 notes 目录，每次 PR 后都更新，然后在 <a href="http://CLAUDE.md">CLAUDE.md</a> 里指向这个目录。</p>
 <p>原文：<a href="https://x.com/bcherny/status/2017742752566632544">https://x.com/bcherny/status/2017742752566632544</a></p>
