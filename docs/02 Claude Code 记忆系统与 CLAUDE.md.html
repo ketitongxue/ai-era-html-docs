@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 Claude Code 记忆系统与 CLAUDE.md | AI 纪元</title>
+<style>
+:root { color-scheme: light; --ink:#252b36; --blue:#265abf; --paper:#fffdf7; }
+* { box-sizing:border-box }
+html { scroll-padding-top:24px }
+body { margin:0; background:#faf8f1; color:var(--ink); font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif }
+main { width:min(1040px,100%); margin:auto; padding:40px 24px 80px }
+nav { display:flex; gap:24px; flex-wrap:wrap }
+a { color:var(--blue); text-underline-offset:4px }
+a:focus-visible { outline:2px solid var(--blue); outline-offset:4px }
+header { margin:32px 0 } h1 { font-size:clamp(28px,5vw,40px); line-height:1.3 }
+h2 { margin:48px 0 18px; padding-bottom:10px; border-bottom:1px solid #d7deea; font-size:26px; line-height:1.5 }
+h3,h4 { line-height:1.5 } p,li { overflow-wrap:anywhere }
+details { padding:16px 22px; border:1px solid #c8d5e7; border-radius:12px; background:var(--paper) }
+summary { cursor:pointer; font-weight:600 } details ul { columns:2; padding-left:22px }
+details li { break-inside:avoid; margin:6px 0 }
+pre { background:#192232; color:#edf1f7; padding:20px; border-radius:10px; overflow:auto; line-height:1.65; font-size:14px; tab-size:2 }
+code { font-family:"SFMono-Regular",Consolas,monospace } :not(pre)>code { background:#e9eef5; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere }
+img { display:block; max-width:100%; height:auto; margin:20px auto; border-radius:8px }
+table { border-collapse:collapse; display:block; max-width:100%; overflow-x:auto; background:var(--paper); font-size:14px; line-height:1.7 }
+th,td { padding:12px 14px; border:1px solid #ccd6e3; min-width:110px; text-align:left }
+th { background:#eaf0f7 } blockquote { margin:22px 0; border-left:3px solid #7ea2cd; padding:4px 20px; background:#f0f4f8 }
+li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px solid #d7deea }
+@media(max-width:600px) { main { padding:24px 16px 48px } details ul { columns:1 } h2 { font-size:23px } pre { padding:14px } ul,ol { padding-left:24px } }
+</style>
+</head>
+<body><main>
+<nav aria-label="网站导航"><a href="../index.html">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav>
+<header><h1>02 Claude Code 记忆系统与 CLAUDE.md</h1></header>
+<details open><summary>文章目录</summary><ul><li><a href="#section-1">用户级内容设定</a></li>
+<li><a href="#section-2">项目级团队共享规范</a></li>
+<li><a href="#section-3">本地级个人工作空间</a></li>
+<li><a href="#section-4">规则目录：分类组织</a></li>
+<li><a href="#section-5">编写高效的 CLAUDE.md</a></li>
+<li><a href="#section-6">核心原则 1：Less is More</a></li>
+<li><a href="#section-7">核心原则 2：具体优于泛泛</a></li>
+<li><a href="#section-8">核心原则 3：关键三问题 WHY / WHAT / HOW</a></li>
+<li><a href="#section-9">WHY —— 为什么要这样做？</a></li>
+<li><a href="#section-10">WHAT —— 具体要做什么，不要做什么？</a></li>
+<li><a href="#section-11">HOW —— 按什么步骤去做？</a></li>
+<li><a href="#section-12">核心原则 4：渐进式披露：不要把一切都塞进 CLAUDE.md</a></li>
+<li><a href="#section-13">相关资源</a></li></ul></details>
+<article><h2 id="section-1">用户级内容设定</h2>
+<p>用户级内容设定承载的是你的全局偏好，即跨所有项目生效的个人偏好，如个人代码风格，沟通语言设置，通用工作习惯等。比如说我希望所有的 PPT 都是 16:9，黑体字。这种设置就应该放在此处。</p>
+<p>位置：<code>~/.claude/CLAUDE.md</code></p>
+<p>示例：</p>
+<pre><code># 个人偏好
+
+## 沟通方式
+- 使用中文回复
+- 代码注释使用英文
+- 解释简洁直接，不要过多铺垫
+
+## 通用代码风格
+- 缩进使用 2 空格
+- 优先使用 async/await
+- 变量命名使用 camelCase
+- 常量命名使用 UPPER_SNAKE_CASE
+
+## 我的常用工具
+- 包管理器: uv
+- 编辑器: VS Code
+- 终端: zsh
+</code></pre>
+<p>用户级记忆会被项目级覆盖。如果你个人喜欢 2 空格缩进，但项目要求 4 空格，那就用 4 空格。</p>
+<h2 id="section-2">项目级团队共享规范</h2>
+<p>团队共享规范是团队共享的项目知识，应该提交到 Git。适合存放的内容包括项目架构和技术栈、团队编码规范、重要的设计决策和常用命令。</p>
+<p>位置：项目根目录的  <code>./CLAUDE.md</code></p>
+<p>示例（一个后端 API 项目）：</p>
+<pre><code># 项目：订单服务 API
+
+## 技术栈
+- Node.js 20 + TypeScript
+- Fastify（Web 框架）
+- Prisma（ORM）
+- PostgreSQL + Redis
+- Zod（数据验证）
+
+## 目录结构
+src/ 
+├── routes/ # 路由定义 
+├── controllers/ # 请求处理 
+├── services/ # 业务逻辑 
+├── repositories/ # 数据访问 
+├── schemas/ # Zod schemas 
+└── types/ # 类型定义
+
+## API 响应格式
+```typescript
+interface ApiResponse&lt;T&gt; {
+  success: boolean;
+  data?: T;
+  error?: { code: string; message: string };
+}
+编码规范
+- TypeScript strict 模式
+- 禁止使用 any，使用 unknown + 类型守卫
+- 所有 API 端点必须有 Zod schema 验证
+- 业务错误使用自定义 Error 类
+常用命令
+- pnpm dev - 启动开发服务器
+- pnpm test - 运行测试
+- pnpm prisma migrate dev - 运行数据库迁移
+</code></pre>
+<h2 id="section-3">本地级个人工作空间</h2>
+<p>个人工作空间用于记载个人工作笔记，不提交到 Git，适合内容包括本地环境配置、个人调试技巧、当前工作备注，敏感信息（测试账号等）。</p>
+<p>位置：项目根目录的<code>./CLAUDE.local.md</code></p>
+<p>示例如下。</p>
+<pre><code># 本地开发笔记
+
+## 我的环境
+- 本地 API: http://localhost:3000
+- 测试数据库: order_service_dev
+- Redis: localhost:6379
+
+## 测试账号
+- admin@test.com / test123
+- user@test.com / test123
+
+## 当前工作
+- 正在重构支付模块
+- 参考 PR #234 的讨论
+- 周五前完成
+
+## 调试技巧
+- 订单状态机日志: LOG_LEVEL=debug pnpm dev
+- 查看 Redis 缓存: redis-cli KEYS &quot;order:*&quot;
+</code></pre>
+<p>这里重点强调一下：记得把  <a href="http://CLAUDE.local.md">CLAUDE.local.md</a>  加入  .gitignore！</p>
+<pre><code>echo &quot;CLAUDE.local.md&quot; &gt;&gt; .gitignore
+</code></pre>
+<p>当在项目越来越大，周期越来越长的时候，一个属于自己的本地记忆空间其实还蛮有用的。</p>
+<h2 id="section-4">规则目录：分类组织</h2>
+<p>Rules 是按主题组织的规则文件，支持条件作用域（也就是视情况来确定是否加载该记忆内容），适合场景包括 <a href="http://CLAUDE.md">CLAUDE.md</a> 变得太长时，不同文件类型需要不同规范时，以及前后端分离的项目。</p>
+<p>位置：<code>.claude/rules/*.md</code></p>
+<p>目录结构：</p>
+<pre><code>.claude/
+└── rules/
+    ├── typescript.md      # TypeScript 规范
+    ├── testing.md         # 测试规范
+    ├── api-design.md      # API 设计规范
+    └── security.md        # 安全规范
+</code></pre>
+<p>条件作用域示例：<code>.claude/rules/testing.md</code></p>
+<pre><code>---
+paths:
+  - &quot;src/**/*.test.ts&quot;
+  - &quot;tests/**/*.ts&quot;
+---
+
+# 测试规范
+
+## 命名
+- 单元测试: `*.test.ts`
+- 集成测试: `*.integration.test.ts`
+
+## 结构
+使用 Arrange-Act-Assert 模式：
+
+```typescript
+describe('OrderService', () =&gt; {
+  describe('createOrder', () =&gt; {
+    it('should create order when stock is available', async () =&gt; {
+      // Arrange
+      const mockProduct = createMockProduct({ stock: 10 });
+
+      // Act
+      const order = await orderService.createOrder(mockProduct.id, 1);
+
+      // Assert
+      expect(order.status).toBe('created');
+    });
+  });
+});
+
+## 覆盖率要求
+- 业务逻辑: &gt; 80%
+- 工具函数: &gt; 90%
+- 路由/控制器: 可以较低
+</code></pre>
+<p>此处的关键特性是 <code>paths</code> 字段让这个规则只在编辑测试文件时生效，不会浪费其他场景的上下文空间。</p>
+<h2 id="section-5">编写高效的 <a href="http://CLAUDE.md">CLAUDE.md</a></h2>
+<h3 id="section-6">核心原则 1：Less is More</h3>
+<p><a href="http://CLAUDE.md">CLAUDE.md</a> 的每一行，都会在每一次对话开始时被自动注入上下文。这意味着一件事：冗余不是无害的，而是持续消耗的。所以保持精简不是建议，而是必须。</p>
+<h3 id="section-7">核心原则 2：具体优于泛泛</h3>
+<p>先来看一个非常常见、但几乎没有任何效果的写法。</p>
+<pre><code># 项目规范
+## 代码质量
+请写出高质量的代码。代码应该是可读的。使用有意义的变量名。
+保持代码整洁。遵循最佳实践。不要写重复的代码。
+</code></pre>
+<p>这些话没有一句是错的，但问题在于——Claude 本来就知道这些。它们不会改变 Claude 的任何决策，只会白白占用上下文空间。这些话对人类尚且含糊，对模型来说，更是几乎等于什么都没说。</p>
+<p>真正有价值的 <a href="http://CLAUDE.md">CLAUDE.md</a>，应该长这样。</p>
+<pre><code># 项目规范
+
+## TypeScript
+- 使用 `interface` 定义对象结构，`type` 用于联合类型
+- 禁止 `any`，使用 `unknown` + 类型守卫
+- 函数参数 &gt; 3 个时，使用对象参数
+
+## 错误处理
+```typescript
+// 业务错误
+throw new BusinessError('ORDER_NOT_FOUND', '订单不存在');
+
+// 验证错误（Zod 自动抛出）
+const data = orderSchema.parse(input);
+
+// controller 中不要 try-catch
+// 由全局错误中间件统一处理
+</code></pre>
+<p>两者的差异非常明确。后者不是模糊要求“要高质量”，而是给出了如何做才算高质量；不是“注意错误处理”，而是具体的错误模型；不是抽象描述，而是可直接模仿的代码形态。</p>
+<p>这里有个简单的判断标准——如果你不写，Claude 也大概率会做对，那就不要写。</p>
+<h3 id="section-8">核心原则 3：关键三问题 WHY / WHAT / HOW</h3>
+<h4 id="section-9">WHY —— 为什么要这样做？</h4>
+<pre><code>## 为什么使用 Zod？
+- TypeScript 只有编译时类型检查
+- API 输入需要运行时验证
+- Zod 可以同时生成 TS 类型和验证逻辑
+- 错误信息自动生成，对用户友好
+</code></pre>
+<p>这一部分的作用，不是让 Claude “记住一个库”，而是让它理解背后的决策逻辑。当 Claude 明白了为什么，它在面对相似但不完全相同的场景时，才更可能做出一致的判断。</p>
+<h4 id="section-10">WHAT —— 具体要做什么，不要做什么？</h4>
+<pre><code>## 数据库操作规范
+- 所有查询通过 Prisma ORM
+- 复杂查询封装在 `src/repositories/`
+- 禁止在 controller/service 中直接写 SQL
+- 事务使用 `prisma.$transaction()`
+</code></pre>
+<p>这一部分的重点是边界。什么是允许的，什么是禁止的，决策应该发生在哪一层？对 Claude 来说，这比“最佳实践”四个字重要得多。</p>
+<h4 id="section-11">HOW —— 按什么步骤去做？</h4>
+<pre><code>## 创建新 API 端点
+
+1. 在 `src/schemas/` 创建请求/响应 Zod schema
+2. 在 `src/routes/` 添加路由定义
+3. 在 `src/controllers/` 实现请求处理
+4. 在 `src/services/` 实现业务逻辑
+5. 在 `tests/` 添加测试用例
+
+示例参考: `src/routes/orders.ts`
+</code></pre>
+<p>当步骤清晰、路径明确、还有参考文件时，Claude 才会稳定复用同一套工作流，而不是每次自由发挥。</p>
+<h3 id="section-12">核心原则 4：渐进式披露：不要把一切都塞进 <a href="http://CLAUDE.md">CLAUDE.md</a></h3>
+<p><a href="http://CLAUDE.md">CLAUDE.md</a> 的职责是定义默认决策，而不是承载全部知识。对于非核心、但可能被用到的内容，正确的做法是引用，而不是复制。</p>
+<pre><code># 项目规范
+
+## 核心
+[精简的核心规范]
+
+## 详细文档
+- 数据库设计: 见 `docs/database.md`
+- API 规范: 见 `docs/api-spec.md`
+- 部署流程: 见 `docs/deployment.md`
+</code></pre>
+<p>这样做有两个好处：</p>
+<ol>
+<li>
+<p><a href="http://CLAUDE.md">CLAUDE.md</a> 保持轻量，启动成本低 。</p>
+</li>
+<li>
+<p>当 Claude 需要进一步的细节信息时，可以按需读取引用文件。</p>
+</li>
+</ol>
+<p>这里补充一下，Claude code 团队对于 CC 关于Claude.md的一个最佳实践</p>
+<p>认真维护你的 <a href="http://CLAUDE.md">CLAUDE.md</a></p>
+<p>每次纠正完 Claude，都用这句话收尾：“更新你的 <a href="http://CLAUDE.md">CLAUDE.md</a>，这样你就不会再犯这个错误了。“Claude 在给自己写规则这件事上强得有点”诡异“。</p>
+<p>随着时间推移，毫不留情地打磨你的 <a href="http://CLAUDE.md">CLAUDE.md</a>。持续迭代，直到你能明显量化地看到 Claude 的出错率下降。</p>
+<p>有位工程师会让 Claude 为每个任务/项目维护一个 notes 目录，每次 PR 后都更新，然后在 <a href="http://CLAUDE.md">CLAUDE.md</a> 里指向这个目录。</p>
+<p>原文：<a href="https://x.com/bcherny/status/2017742752566632544">https://x.com/bcherny/status/2017742752566632544</a></p>
+<h3 id="section-13">相关资源</h3>
+<ul>
+<li><a href="01%20Claude%20Code%20%E4%BD%BF%E7%94%A8.html">01 Claude Code 使用</a> - 本目录下的 Claude Code 使用指南，涵盖核心概念和实际应用</li>
+</ul>
+</article>
+<footer><a href="../index.html">返回知识库</a></footer>
+</main></body></html>
