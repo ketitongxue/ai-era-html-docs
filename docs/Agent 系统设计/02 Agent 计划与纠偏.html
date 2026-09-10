@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>为什么 Agent 写了计划，还是会跑偏？ | AI 纪元</title><style>:root{color-scheme:light;--ink:#252b36;--blue:#265abf;--paper:#fffdf7}
+*{box-sizing:border-box}
+html{scroll-padding-top:24px}
+body{margin:0;background:#faf8f1;color:var(--ink);font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+main{width:min(980px,100%);margin:auto;padding:32px 28px 72px}
+nav{display:flex;gap:24px;flex-wrap:wrap;align-items:center;font-size:14px;border-bottom:1px solid #d7deea;padding-bottom:16px}
+nav span{color:#69717e}
+a{color:var(--blue);text-underline-offset:4px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+.skip{position:absolute;top:-80px;background:var(--paper);padding:10px}.skip:focus{top:8px}
+header{margin:44px 0 28px}h1{font-size:clamp(28px,5vw,40px);line-height:1.4;overflow-wrap:anywhere}
+h2{margin:42px 0 16px;padding-bottom:8px;border-bottom:1px solid #d7deea;font-size:25px;line-height:1.5}
+h3,h4{line-height:1.5}p,li,td,th{overflow-wrap:anywhere}
+.eyebrow{font:12px/1.5 Consolas,monospace;letter-spacing:.06em;color:var(--blue);margin-top:28px}
+.notice{margin:18px 0 22px;padding:12px 16px;border-left:3px solid #d8bf65;background:#fff9df;color:#4b5059;font-size:14px}
+details{padding:12px 18px;border:1px solid #c8d5e7;border-radius:10px;background:var(--paper);margin:24px 0}
+summary{cursor:pointer;font-weight:600}details ol{padding-left:24px}
+pre{background:#192232;color:#edf1f7;padding:20px;border-radius:10px;max-width:100%;overflow:auto;line-height:1.65;font-size:14px;tab-size:2}
+code{font-family:"SFMono-Regular",Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+img{display:block;max-width:100%;height:auto;margin:20px auto}
+table{border-collapse:collapse;display:block;max-width:100%;overflow-x:auto;background:var(--paper);font-size:14px;line-height:1.7}
+th,td{padding:12px 14px;border:1px solid #ccd6e3;min-width:105px;text-align:left}th{background:#eaf0f7}
+blockquote{margin:22px 0;border-left:3px solid #7ea2cd;padding:4px 20px;background:#f0f4f8}
+li{margin:7px 0}.articles{padding-left:24px}.articles li{padding:12px 0}.articles a{font-size:19px}.articles small{display:block;color:#69717e}.articles small a{font-size:13px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:13px;color:#69717e}
+@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre{padding:14px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Agent 系统设计</p><h1>为什么 Agent 写了计划，还是会跑偏？</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">1. 把“优化一下”换成明确的交付物</a></li><li><a href="#section-2">2. 用 G4C 检查计划缺了什么</a></li><li><a href="#section-3">3. 先保存边界，再选择路径</a></li><li><a href="#section-4">4. 一份小计划可以长这样</a></li><li><a href="#section-5">5. 检查点要留下证据，不只是一个勾</a></li><li><a href="#section-6">6. 失败后，不要一律“再试一次”</a></li><li><a href="#section-7">7. 修复根因，并重新验证受影响的产物</a></li><li><a href="#section-8">8. 计划也需要保持轻量</a></li></ol></details><article id="content"><p>“先分析需求，再修改代码，最后运行测试。”这句话看起来很像计划，但当 Agent 改错了方向，它几乎帮不上忙：需求是否明确？哪些代码不能动？测试失败后该重试还是换方案？都没有答案。</p>
+<p>计划的价值不在于列出多少步，而在于让执行过程有可以检查和修正的依据。</p>
+<p>本文用一个原创教学情境展开：<strong>为个人网站增加文章分类，但保留所有旧文章链接，只交付本地预览。</strong> 这不是本次网站修改的实施记录；文中的验证结果都是预期要求，不是已经获得的测试成绩。</p>
+<h2 id="section-1">1. 把“优化一下”换成明确的交付物</h2>
+<p>一个含糊的计划可能是：</p>
+<pre><code class="language-text">1. 整理文章。
+2. 优化知识库结构。
+3. 修改页面。
+4. 发布上线。
+</code></pre>
+<p>其中“整理”可能被理解为改名、移动文件甚至重写正文；最后一步还凭空增加了发布。Agent 即使严格按这个列表完成，也可能违反最重要的要求。</p>
+<p>更好的起点是先写清结果：分类视图能列出当前文章，未分类文章仍可访问，旧链接逐一保持不变；变更仅在本地，禁止部署。成功标准要来自任务和确认过的事实，不能由 Agent 为了方便验收自行降低。</p>
+<h2 id="section-2">2. 用 G4C 检查计划缺了什么</h2>
+<p>《AI Agent 系统设计面试现场》第 05 讲用 G4C 组织计划：Goal、Context、Choice、Checkpoint、Correction。这里把它作为一份实用检查表，而不是行业统一接口或所有任务必须采用的标准。<a href="https://time.geekbang.org/column/article/994431">课程来源</a></p>
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>本文情境中需要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Goal：目标</td>
+<td>交付分类预览；哪些行为说明功能可用？</td>
+</tr>
+<tr>
+<td>Context：上下文</td>
+<td>文章和链接从哪来？哪些已确认，哪些仍未知？</td>
+</tr>
+<tr>
+<td>Choice：选择</td>
+<td>为什么增加展示层分类，而不是移动现有文件？</td>
+</tr>
+<tr>
+<td>Checkpoint：检查点</td>
+<td>在哪个产物出现后，用什么证据判断方向没错？</td>
+</tr>
+<tr>
+<td>Correction：纠偏</td>
+<td>取数失败、分错类或旧链接改变时，分别怎么办？</td>
+</tr>
+</tbody>
+</table>
+<p>关键不是把五个英文单词写进 Prompt，而是每个位置有具体内容。“测试一下”并不是检查点；“比较修改前后文章链接集合，差集必须为空”才是可执行的检查要求。</p>
+<h2 id="section-3">3. 先保存边界，再选择路径</h2>
+<p>在本例中，文章是否已有分类元数据还不确定。计划不能把“应该有”写成“已经有”。先查看目录和数据结构，记录哪些字段确实存在，再决定复用字段还是增加独立映射。</p>
+<p>可以考虑两条路径：</p>
+<ul>
+<li>移动文章到分类文件夹：目录直观，但可能改变链接。</li>
+<li>在展示层分组：保留原地址，新增少量分类信息。</li>
+</ul>
+<p>因为“旧链接不变”是硬约束，第二条通常更值得先验证。但这仍是待验证的设计选择；如果展示层数据源不支持，应停下来重新评估，而不是悄悄移动文件。</p>
+<p>选择理由只需记录证据、权衡与约束，不必保存模型全部内部推理。后续排错时要知道的是“为什么这条路径当时可行”，而不是一段无法复查的长篇解释。</p>
+<h2 id="section-4">4. 一份小计划可以长这样</h2>
+<p>下面是本文设计的记录模板，不是某个 Agent 框架的必填结构：</p>
+<pre><code class="language-yaml">goal: 交付文章分类的本地预览
+hard_constraints:
+  - 所有旧文章地址保持不变
+  - 不改文章正文
+  - 不提交远端，不部署
+unknowns:
+  - 当前目录数据是否包含分类
+steps:
+  - id: inventory
+    output: 当前文章地址清单与数据字段说明
+    check: 与原始目录逐项核对，无遗漏
+  - id: group
+    depends_on: inventory
+    output: 展示层分组方案与本地预览
+    check: 每篇文章出现一次；未知分类进入未分类
+  - id: verify
+    depends_on: group
+    output: 链接差异、构建和移动端检查记录
+    check: 链接集合不变；构建通过；页面无横向溢出
+recovery_budget:
+  transient_read_retries: 2
+  replan_attempts: 1
+stop_when: 验证完成，或缺少新授权，或恢复预算耗尽
+</code></pre>
+<p>数字只是示例预算，需要按任务成本调整。超时重试也不保证恰好在预算内恢复；它提供的是停止边界，防止 Agent 无限重复。</p>
+<p>每一步的状态至少区分“待做”“执行中”“验证通过”“失败/受阻”。生成了一个页面不等于完成；测试命令没有运行，就不能把验证步骤标成通过。</p>
+<h2 id="section-5">5. 检查点要留下证据，不只是一个勾</h2>
+<p>在修改前保留旧链接清单；分类实现后检查重复与遗漏；交付前记录实际构建输出、视口尺寸和链接差异。证据需要关联到正在验证的那一版文件，昨天通过的构建不能证明今天的修改也通过。</p>
+<p>如果预览看起来正确，但某篇旧文章被改名，视觉检查和链接检查会得出不同结果。应报告具体失败项，而不是用“整体正常”覆盖它。</p>
+<p>检查点不必每个动作都调用模型。地址差集、重复项和命令退出码可以由程序判断；分类含义是否合理、说明是否易懂，则适合人工或模型辅助审阅。越接近明确规则，越容易做成低成本、可复验的检查。</p>
+<h2 id="section-6">6. 失败后，不要一律“再试一次”</h2>
+<table>
+<thead>
+<tr>
+<th>观察到的情况</th>
+<th>合理的恢复方向</th>
+<th>不该做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只读目录请求短暂超时</td>
+<td>有限重试，并记录尝试次数</td>
+<td>直接重写数据层</td>
+</tr>
+<tr>
+<td>数据源没有计划假设的分类字段</td>
+<td>重规划，选择映射或其他可行路径</td>
+<td>重复同一条无效查询</td>
+</tr>
+<tr>
+<td>同一篇文章应该属于哪类无法判断</td>
+<td>澄清，或按约定进入未分类</td>
+<td>编造用户偏好</td>
+</tr>
+<tr>
+<td>修改使旧链接发生变化</td>
+<td>恢复受影响变更，重新核对地址</td>
+<td>为追求完成而降低验收标准</td>
+</tr>
+<tr>
+<td>需要新增发布权限才能继续</td>
+<td>停止并说明缺口</td>
+<td>把实施计划当作发布授权</td>
+</tr>
+</tbody>
+</table>
+<p>先看失败证据，再决定恢复方向。相同报错重复出现时，继续重试的价值通常会降低；换路径也不是逃避检查，新的路径仍须满足原来的硬约束。</p>
+<h2 id="section-7">7. 修复根因，并重新验证受影响的产物</h2>
+<p>假设分类视图漏了一篇文章。问题可能不在组件，而在最初的清单只扫描了顶层目录。只修改显示逻辑，不能补回从未读取的数据。</p>
+<p>此时需要回到清单生成处纠正扫描范围，并重做依赖这份清单的分组和链接检查。已经独立确认的页面样式不一定全部推倒，但也不能为了“复用成果”保留受错误输入影响的结论。</p>
+<p>可以把过程记成：错误输入是什么、哪些结果依赖它、哪些仍可信、哪部分要重做。恢复状态不等于抹掉失败记录；保留记录才能解释为什么重规划。</p>
+<p>对有外部副作用的任务尤其要谨慎。本例仅做本地预览，但发送邮件、支付或发布不能机械地重复执行；响应超时也不能证明操作没有成功。应先查询实际状态，再使用幂等或补偿机制。恢复一份本地计划文件，并不会自动撤销现实中的动作。</p>
+<h2 id="section-8">8. 计划也需要保持轻量</h2>
+<p>修改一个确定的标题，可能只需要“确认位置、修改、检查显示”三步。任务存在多条路径、长时间执行、多个依赖或高风险动作时，才值得增加更完整的状态和恢复设计。</p>
+<p>如果计划的维护成本已经超过任务本身，说明粒度可能过细。判断一份计划好不好，不看它有多长，而看执行者能否回答：<strong>现在依据什么继续？哪里证明做对了？出错后从哪里恢复？</strong></p>
+</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main></body></html>

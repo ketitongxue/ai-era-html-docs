@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MCP、Skills、Hooks、Sub-Agents 到底怎么选？ | AI 纪元</title><style>:root{color-scheme:light;--ink:#252b36;--blue:#265abf;--paper:#fffdf7}
+*{box-sizing:border-box}
+html{scroll-padding-top:24px}
+body{margin:0;background:#faf8f1;color:var(--ink);font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+main{width:min(980px,100%);margin:auto;padding:32px 28px 72px}
+nav{display:flex;gap:24px;flex-wrap:wrap;align-items:center;font-size:14px;border-bottom:1px solid #d7deea;padding-bottom:16px}
+nav span{color:#69717e}
+a{color:var(--blue);text-underline-offset:4px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+.skip{position:absolute;top:-80px;background:var(--paper);padding:10px}.skip:focus{top:8px}
+header{margin:44px 0 28px}h1{font-size:clamp(28px,5vw,40px);line-height:1.4;overflow-wrap:anywhere}
+h2{margin:42px 0 16px;padding-bottom:8px;border-bottom:1px solid #d7deea;font-size:25px;line-height:1.5}
+h3,h4{line-height:1.5}p,li,td,th{overflow-wrap:anywhere}
+.eyebrow{font:12px/1.5 Consolas,monospace;letter-spacing:.06em;color:var(--blue);margin-top:28px}
+.notice{margin:18px 0 22px;padding:12px 16px;border-left:3px solid #d8bf65;background:#fff9df;color:#4b5059;font-size:14px}
+details{padding:12px 18px;border:1px solid #c8d5e7;border-radius:10px;background:var(--paper);margin:24px 0}
+summary{cursor:pointer;font-weight:600}details ol{padding-left:24px}
+pre{background:#192232;color:#edf1f7;padding:20px;border-radius:10px;max-width:100%;overflow:auto;line-height:1.65;font-size:14px;tab-size:2}
+code{font-family:"SFMono-Regular",Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+img{display:block;max-width:100%;height:auto;margin:20px auto}
+table{border-collapse:collapse;display:block;max-width:100%;overflow-x:auto;background:var(--paper);font-size:14px;line-height:1.7}
+th,td{padding:12px 14px;border:1px solid #ccd6e3;min-width:105px;text-align:left}th{background:#eaf0f7}
+blockquote{margin:22px 0;border-left:3px solid #7ea2cd;padding:4px 20px;background:#f0f4f8}
+li{margin:7px 0}.articles{padding-left:24px}.articles li{padding:12px 0}.articles a{font-size:19px}.articles small{display:block;color:#69717e}.articles small a{font-size:13px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:13px;color:#69717e}
+@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre{padding:14px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Claude Code</p><h1>MCP、Skills、Hooks、Sub-Agents 到底怎么选？</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">用一次文章发布任务来理解</a></li><li><a href="#section-2">四种机制，各补一块</a></li><li><a href="#section-3">MCP：连接已经存在的能力</a></li><li><a href="#section-4">Skills：把反复解释的步骤沉淀下来</a></li><li><a href="#section-5">Hooks：把检查放到正确的时机</a></li><li><a href="#section-6">Sub-Agents：隔离工作上下文，不是复制万能助手</a></li><li><a href="#section-7">怎样组合，而不是一次装齐</a></li><li><a href="#section-8">权限和成本，必须单独算</a></li></ol></details><article id="content"><p>接触 AI 编码工具时，很容易遇到一种困惑：同样是“让 AI 多做一点事”，为什么有时要装 MCP，有时要写 Skill，有时又要创建子代理？</p>
+<p>不妨先换一个问题：<strong>现在卡住的，是没有连接、没有方法、没有检查，还是没有合适的分工？</strong> 这四种缺口，对应着四种不同机制。它们可以组合，不是同一个功能的四个等级。</p>
+<h2 id="section-1">用一次文章发布任务来理解</h2>
+<p>假设我们要把一篇本地 Markdown 整理成网站文章：保留图片，统一排版，检查链接，生成预览，最后经本人确认再提交。下面是原创设计情境，不代表已经部署或实测的系统。</p>
+<p>这个任务中有几种截然不同的失败：</p>
+<ul>
+<li>AI 看不到远端仓库，无法对照已发布文章。</li>
+<li>AI 能读取文件，却每次采用不同的转换步骤。</li>
+<li>AI 知道要检查图片，但偶尔漏做。</li>
+<li>大量附件查找和验证日志挤满对话，写作目标反而丢了。</li>
+</ul>
+<p>如果把它们都归结为“提示词不够长”，最后可能得到一份很长的说明书，却仍然没有解决任何接口或执行问题。</p>
+<h2 id="section-2">四种机制，各补一块</h2>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>首先回答的问题</th>
+<th>在文章任务中的角色</th>
+<th>不应期待它自动解决什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MCP</td>
+<td>如何访问外部系统？</td>
+<td>读取远端文章目录、查询资源</td>
+<td>不负责制定编辑标准，也不自动获得账号权限</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td>这类工作怎样做？</td>
+<td>提供转换步骤、模板、检查清单</td>
+<td>不是每条规则必然执行的保证</td>
+</tr>
+<tr>
+<td>Hooks</td>
+<td>在哪个事件发生时执行动作？</td>
+<td>文件修改后触发检查，返回具体问题</td>
+<td>不等于所有检查都准确，也不代替系统权限</td>
+</tr>
+<tr>
+<td>Sub-Agents</td>
+<td>哪部分工作值得交给独立工作者？</td>
+<td>单独查找附件、审阅引用，返回结论</td>
+<td>不意味着总成本更低或结论必然正确</td>
+</tr>
+</tbody>
+</table>
+<p>这张表是选择入口，而不是严格的产品边界。比如 Skill 可以指导代理调用工具或委派任务，子代理也可以使用 Skill；关键是先说清各自承担什么责任。</p>
+<h2 id="section-3">MCP：连接已经存在的能力</h2>
+<p>MCP 是连接 AI 应用与外部系统的开放标准，可承载工具、数据等能力。它解决的是接口如何接入，不是替你决定业务流程。<a href="https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro">MCP 官方介绍</a></p>
+<p>在例子里，远端仓库是一个需要查询的外部系统。但“使用 GitHub”不等于“必须用 MCP”：如果现有 CLI 或 API 已能稳定列出文章，继续使用即可。只有希望复用统一连接、让代理按任务选择能力时，新增 MCP 才可能值得。</p>
+<p>建议先把接口收窄到只读目录和指定文件。核对重复文章不需要删除仓库；整理草稿也不需要发布权限。工具越多并不代表流程越完整，有时只是多了几条容易走错的岔路。</p>
+<h2 id="section-4">Skills：把反复解释的步骤沉淀下来</h2>
+<p>Skill 可以由 <code>SKILL.md</code> 加上脚本、模板与参考资料组成，并按配置由用户或 Claude 调用。它提供任务相关知识和程序，而不是凭空新增一个外部服务。<a href="https://code.claude.com/docs/en/skills">Skills 官方文档</a></p>
+<p>我们可以将“文章整理”写成一份短流程：先列出引用图片，再检查本地附件；生成 HTML 时保留代码；发现缺图就列出缺失清单，不虚构图片；最后交付预览与检查结果。</p>
+<p>这里最有价值的不是把指令写得气势十足，而是明确输入、产物和停止条件。尤其要写清：“生成预览”与“上传公开仓库”是两个阶段。即便方法允许下一步，当前任务没有授权发布，也不能自动继续。</p>
+<p>如果只是偶尔转换一个很简单的文件，直接说明需求通常足够。重复发生、容易漏项、输出有稳定格式，才是沉淀 Skill 的好信号。</p>
+<h2 id="section-5">Hooks：把检查放到正确的时机</h2>
+<p>Hook 将处理器绑定到会话事件上。要特别区分：<strong>自动触发不等于判断必然确定。</strong> 检查本地文件是否存在的脚本，与让模型评判“文章是否讲清楚”的 prompt 型 Hook，可靠性和成本不是一回事。Claude Code 也支持模型参与的 Hook 类型。<a href="https://code.claude.com/docs/en/hooks">Hooks 官方参考</a></p>
+<p>在文章流程里，缺图、失效的本地路径、遗漏标题，可以交给明确的校验脚本。Hook 负责在合适时机调用它，并把“第几处引用、缺什么文件”反馈给工作者。至于叙述是否自然、案例是否贴切，仍然需要编辑判断。</p>
+<p>先写一个能单独运行的检查器，再接事件，比直接写一大段复杂 Hook 更容易排错。构建过程也应能调用同一个检查器，避免所有质量保障都依赖某次交互会话。具体配置可接着看<a href="05%20Claude%20Code%20Hooks.html">第一篇 Hooks 文章</a>。</p>
+<h2 id="section-6">Sub-Agents：隔离工作上下文，不是复制万能助手</h2>
+<p>子代理适合有明确边界、会产生大量中间信息的工作。Claude Code 的子代理拥有自己的上下文和可配置工具访问；也可以预加载所需 Skills。<a href="https://code.claude.com/docs/en/sub-agents">Sub-Agents 官方文档</a></p>
+<p>例如安排附件检查者只返回四项：引用总数、找到的图片、缺失清单、歧义位置。主代理保留编辑目标，不必反复阅读整段目录扫描结果。</p>
+<p>但是，如果每一小段都需要和本人讨论，拆成多个工作者可能只会增加来回解释。并行前还要分配文件责任：一个负责报告，另一个负责正文，不要让两个代理同时改同一段。上下文分开，不代表文件系统自动隔离。</p>
+<h2 id="section-7">怎样组合，而不是一次装齐</h2>
+<p>针对这次文章任务，我会按下面的顺序逐步增加机制：</p>
+<ol>
+<li><strong>先跑通单代理流程。</strong> 明确输入文件、允许修改的目录和交付物。</li>
+<li><strong>步骤开始重复，再提取 Skill。</strong> 把易忘事项写成可检查要求。</li>
+<li><strong>客观错误反复出现，再增加检查器与 Hook。</strong> 先验证它能正确识别好坏样本。</li>
+<li><strong>中间信息过多，再拆附件检查子代理。</strong> 要求带证据的简短报告。</li>
+<li><strong>已有工具无法满足远端查询时，再评估 MCP。</strong> 不为凑齐架构替换正常工作的接口。</li>
+</ol>
+<p>这样每增加一个组件，都能回答“它减少了哪种具体失败”。如果说不清，先不加。</p>
+<h2 id="section-8">权限和成本，必须单独算</h2>
+<p>“只生成草稿”应该同时体现在任务说明与实际工具权限中；写在 Skill 里的禁令不能代替权限配置。<a href="https://code.claude.com/docs/en/permissions">权限官方文档</a></p>
+<p>还要审阅 Hook 脚本本身。官方明确指出 command Hook 按用户权限执行，不能因为它叫“检查器”，就默认它没有删除文件或访问敏感数据的能力。<a href="https://code.claude.com/docs/en/hooks#security-considerations">Hooks 安全说明</a></p>
+<p>成本也不只是当前对话用了多少 token。额外工作者可能重复读取材料；模型型检查会增加调用；外部服务可能限额或收费。建议记录一次任务的耗时、模型调用、返工次数与检查发现，而不是只统计安装了多少插件。这里没有给出节省百分比，因为需要真实任务数据才能判断。</p>
+<p>选择的结论很简单：<strong>连接交给接口，方法写进流程，客观问题交给检查，独立工作再分出去。</strong> 先补最明显的缺口，比先搭一个庞大的“全能 Agent 系统”更容易验证价值。</p>
+</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main></body></html>
