@@ -1,0 +1,340 @@
+/* Shared by VitePress articles and independently hosted HTML articles.
+   Add .reading-content to the article wrapper; no global element styles. */
+.reading-content {
+  --reading-ink: #1e2430;
+  --reading-muted: #596579;
+  --reading-brand: #275dad;
+  --reading-surface: #fffdf7;
+  --reading-soft: #edf3fa;
+  --reading-border: #cfd6df;
+  --reading-highlight: #f4d758;
+  --reading-highlight-ink: #1e2430;
+  --reading-warning: #fff1cb;
+  --reading-code-bg: #edf1f5;
+  min-width: 0;
+  container-type: inline-size;
+  overflow-wrap: anywhere;
+  color: var(--reading-ink);
+}
+
+.dark .reading-content,
+.reading-content[data-reading-theme='dark'] {
+  --reading-ink: #e7eaf3;
+  --reading-muted: #aab3c5;
+  --reading-brand: #a6bbff;
+  --reading-surface: #11192b;
+  --reading-soft: #162138;
+  --reading-border: #344565;
+  --reading-highlight: #6c570d;
+  --reading-highlight-ink: #fff2b3;
+  --reading-warning: #302916;
+  --reading-code-bg: #10182a;
+}
+
+/* The desktop's cream reader keeps a light palette even when the independent
+   VitePress pages use dark mode. Explicit light is also available to HTML. */
+.factory-home .reading-content,
+.reading-content[data-reading-theme='light'] {
+  --reading-ink: #1e2430;
+  --reading-muted: #596579;
+  --reading-brand: #275dad;
+  --reading-surface: #fffdf7;
+  --reading-soft: #edf3fa;
+  --reading-border: #cfd6df;
+  --reading-highlight: #f4d758;
+  --reading-highlight-ink: #1e2430;
+  --reading-warning: #fff1cb;
+  --reading-code-bg: #edf1f5;
+}
+
+.reading-content :where(h2) {
+  padding-block-start: 22px;
+  border-block-start: 1px solid var(--reading-border);
+  scroll-margin-block-start: 88px;
+}
+
+.reading-content :where(.reading-insight, .reading-comparison, .reading-code, .reading-steps) {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 24px 0;
+  color: var(--reading-ink);
+}
+
+.reading-content .reading-insight {
+  padding: 18px 20px;
+  border: 1px solid var(--reading-border);
+  border-inline-start: 4px solid var(--reading-brand);
+  border-radius: 4px 12px 12px 4px;
+  background: var(--reading-soft);
+}
+
+.reading-content .reading-insight[data-tone='warning'] {
+  border-inline-start-color: #b77900;
+  background: var(--reading-warning);
+}
+
+.reading-content .reading-insight__title {
+  margin: 0 0 8px;
+  color: var(--reading-brand);
+  font-size: .85em;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.reading-content .reading-insight :where(p, ul, ol):last-child {
+  margin-block-end: 0;
+}
+
+.reading-content .reading-insight > div > :first-child {
+  margin-block-start: 0;
+}
+
+.reading-content .reading-mark {
+  padding: .05em .2em;
+  border-radius: 3px;
+  background: var(--reading-highlight);
+  color: var(--reading-highlight-ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.reading-content .reading-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+  counter-reset: reading-step;
+}
+
+.reading-content .reading-steps > li {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--reading-border);
+  border-radius: 10px;
+  background: var(--reading-surface);
+  counter-increment: reading-step;
+}
+
+.reading-content .reading-steps > li::before {
+  display: block;
+  width: 28px;
+  margin-block-end: 12px;
+  border-radius: 7px;
+  background: var(--reading-soft);
+  color: var(--reading-brand);
+  font: 700 12px/28px ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-align: center;
+  content: counter(reading-step, decimal-leading-zero);
+}
+
+.reading-content .reading-steps > li > strong {
+  display: block;
+  margin-block-end: 6px;
+}
+
+.reading-content .reading-steps > li > p {
+  margin: 0;
+  color: var(--reading-muted);
+  font-size: .9em;
+  line-height: 1.7;
+}
+
+.reading-content .reading-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.reading-content .reading-comparison__panel {
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--reading-border);
+  border-radius: 10px;
+  background: var(--reading-surface);
+}
+
+.reading-content .reading-comparison__panel--after {
+  border-block-start: 3px solid var(--reading-brand);
+  padding-block-start: 16px;
+  background: var(--reading-soft);
+}
+
+.reading-content .reading-comparison__label {
+  margin: 0 0 12px;
+  color: var(--reading-brand);
+  font-weight: 700;
+}
+
+.reading-content .reading-comparison__panel :where(p, ul, ol):last-child {
+  margin-block-end: 0;
+}
+
+.reading-content .reading-comparison__panel ul {
+  padding-inline-start: 20px;
+}
+
+.reading-content .reading-comparison--table,
+.reading-content .reading-table-wrapper {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--reading-border);
+  border-radius: 10px;
+}
+
+.reading-content :where(.reading-comparison--table, .reading-table-wrapper) table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-size: .92em;
+}
+
+.reading-content :where(.reading-comparison--table, .reading-table-wrapper) :where(th, td) {
+  min-width: 120px;
+  padding: 12px 16px;
+  border: 0;
+  border-block-end: 1px solid var(--reading-border);
+  color: var(--reading-ink);
+  text-align: start;
+  vertical-align: top;
+}
+
+.reading-content :where(.reading-comparison--table, .reading-table-wrapper) th {
+  background: var(--reading-soft);
+  font-weight: 700;
+}
+
+.reading-content :where(.reading-comparison--table, .reading-table-wrapper) tr:last-child td {
+  border-block-end: 0;
+}
+
+.reading-content .reading-code {
+  --vp-code-copy-copied-text-content: '已复制';
+  --vp-code-copy-code-border-color: var(--reading-border);
+  --vp-code-copy-code-bg: var(--reading-surface);
+  --vp-code-copy-code-hover-border-color: var(--reading-brand);
+  --vp-code-copy-code-hover-bg: var(--reading-soft);
+  --vp-code-copy-code-active-text: var(--reading-ink);
+  overflow: hidden;
+  border: 1px solid var(--reading-border);
+  border-radius: 12px;
+  background: var(--reading-code-bg);
+}
+
+.reading-content .reading-code__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--reading-border);
+  background: var(--reading-surface);
+  color: var(--reading-ink);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.reading-content .reading-code__file {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-weight: 600;
+}
+
+.reading-content .reading-code__language {
+  color: var(--reading-muted);
+}
+
+.reading-content .reading-code__copy {
+  padding: 4px 10px;
+  border: 1px solid var(--reading-border);
+  border-radius: 6px;
+  background: var(--reading-soft);
+  color: var(--reading-brand);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reading-content .reading-code__status {
+  color: var(--reading-muted);
+  font-size: 12px;
+}
+
+.reading-content .reading-code pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  background: var(--reading-code-bg);
+  color: var(--reading-ink);
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.reading-content .reading-code pre code {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.reading-content .reading-code > div[class*='language-'] {
+  margin: 0;
+  border-radius: 0;
+  background: var(--reading-code-bg);
+}
+
+.reading-content .reading-code > div[class*='language-'] > span.lang {
+  display: none;
+}
+
+.reading-content .reading-code > div[class*='language-'] > button.copy {
+  opacity: 1;
+}
+
+.reading-content .reading-code > div[class*='language-'] pre {
+  padding-inline-end: 64px;
+}
+
+.factory-home .reading-content .vp-code span,
+.reading-content[data-reading-theme='light'] .vp-code span {
+  color: var(--shiki-light, inherit);
+}
+
+.reading-content :where(.reading-code__copy, .reading-code button.copy):focus-visible {
+  outline: 3px solid var(--reading-brand);
+  outline-offset: 3px;
+}
+
+.reading-content .reading-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@container (max-width: 420px) {
+  .reading-content :where(.reading-insight, .reading-comparison__panel) {
+    padding: 16px;
+  }
+
+  .reading-content .reading-steps {
+    grid-template-columns: 1fr;
+  }
+}

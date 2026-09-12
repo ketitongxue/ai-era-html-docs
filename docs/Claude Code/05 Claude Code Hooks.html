@@ -26,20 +26,31 @@ li{margin:7px 0}.articles{padding-left:24px}.articles li{padding:12px 0}.article
 footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:13px;color:#69717e}
 @media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre{padding:14px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-</style></head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Claude Code</p><h1>Claude Code Hooks：把提醒变成自动检查</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">1. 先区分：提醒、检查和权限</a></li><li><a href="#section-2">2. 先有检查器，再连接 Hook</a></li><li><a href="#section-3">3. 连接一个范围明确的编辑后检查</a></li><li><a href="#section-4">4. 实际核验到哪一层？</a></li><li><a href="#section-5">5. 必须知道的几个缺口</a></li><li><a href="#section-6">6. 从一个反复出现的错误开始</a></li></ol></details><article id="content"><p>你可能已经在项目规则里写过：“修改文章目录后，检查分类和链接。”但过了几轮对话，AI 还是可能忘记执行。</p>
-<p>这不一定需要再加一段更强硬的提示词。另一种办法是把检查写成程序，在合适的事件发生后调用它。<strong>规则解释要求，检查器判断具体条件，Hook 把检查放进工作过程。</strong></p>
+</style>
+<link rel="stylesheet" href="../../assets/reading-components/reading-components.css">
+<script src="../../assets/reading-components/reading-components.js" defer></script>
+</head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Claude Code</p><h1>Claude Code Hooks：把提醒变成自动检查</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">1. 先区分：提醒、检查和权限</a></li><li><a href="#section-2">2. 先有检查器，再连接 Hook</a></li><li><a href="#section-3">3. 连接一个范围明确的编辑后检查</a></li><li><a href="#section-4">4. 实际核验到哪一层？</a></li><li><a href="#section-5">5. 必须知道的几个缺口</a></li><li><a href="#section-6">6. 从一个反复出现的错误开始</a></li></ol></details><article id="content" class="reading-content"><p>你可能已经在项目规则里写过：“修改文章目录后，检查分类和链接。”但过了几轮对话，AI 还是可能忘记执行。</p>
+<aside class="reading-insight" data-tone="note">
+<p class="reading-insight__title" data-reading-ui>核心思路</p>
+<div><p>这不一定需要再加一段更强硬的提示词。另一种办法是把检查写成程序，在合适的事件发生后调用它。<strong><mark class="reading-mark">规则解释要求，检查器判断具体条件，Hook 把检查放进工作过程。</mark></strong></p></div>
+</aside>
 <p>本文用“检查文章目录”说明这个思路。目录格式、代码和测试数据均为原创教学示例，不是网站当前的真实数据接口，也不会自动配置你的 Claude Code。</p>
 <h2 id="section-1">1. 先区分：提醒、检查和权限</h2>
 <p>假设一份目录中的每篇文章必须具有标题、分类和地址。我们可以做三件不同的事：</p>
-<ul>
+<ol class="reading-steps" role="list">
 <li>在项目规则中说明为什么需要分类，让 AI 理解要求。</li>
 <li>用脚本检查字段是否缺失，给出明确的错误位置。</li>
 <li>把脚本接到编辑后的事件，减少依赖临时记忆。</li>
-</ul>
+</ol>
 <p>但这三件事都不能证明文章观点正确，也不能代替发布权限。一个检查器完全可能有 Bug，或只检查了部分文件。因此，适合先自动化的是边界清楚、能构造好坏样本的条件，而不是“内容必须精彩”这样的综合判断。</p>
 <p>Hook 也不全部是确定性的程序：Claude Code 支持 command 以及模型参与的处理器类型。这里仅使用不调用模型的 command Hook；不要把本例的可重复校验等同于所有 Hooks 的性质。<a href="https://code.claude.com/docs/en/hooks">官方 Hooks 参考</a></p>
 <h2 id="section-2">2. 先有检查器，再连接 Hook</h2>
 <p>本例的目录叫 <code>catalog.json</code>，每项使用下面的格式：</p>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">catalog.json</span>
+<span class="reading-code__language">JSON</span>
+</figcaption>
 <pre><code class="language-json">[
   {
     &quot;title&quot;: &quot;理解 Hooks&quot;,
@@ -48,6 +59,7 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
   }
 ]
 </code></pre>
+</figure>
 <p>检查目标只有三项：</p>
 <ol>
 <li>根节点是数组，每项是对象；空目录允许存在。</li>
@@ -57,6 +69,11 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
 <p>第三项是<strong>本示例刻意收窄的规则</strong>，不是 HTML 标准。中文文件名、子目录和外部链接并非天然错误；如果你的产品支持它们，就需要重新设计校验。此脚本也没有检查对应 HTML 是否存在，更没有验证文章事实。</p>
 <p>完整代码可查看：<a href="../assets/batch-01/hooks/catalog-check.mjs">目录检查器</a>、<a href="../assets/batch-01/hooks/catalog.json">示例目录</a>、<a href="../assets/batch-01/hooks/catalog-check.test.mjs">自动测试</a>。它只读取指定目录文件，不修改内容，不联网，不执行从目录文本中提取的命令。</p>
 <p>将示例放到一个独立练习目录：</p>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">demo/ 目录结构</span>
+<span class="reading-code__language">TEXT</span>
+</figcaption>
 <pre><code class="language-text">demo/
 ├── catalog.json
 ├── scripts/
@@ -64,15 +81,36 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
 └── .claude/
     └── settings.json
 </code></pre>
+</figure>
 <p>先在 <code>demo</code> 目录里手动运行：</p>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">终端 · demo</span>
+<span class="reading-code__language">SHELL</span>
+</figcaption>
 <pre><code class="language-sh">node scripts/catalog-check.mjs catalog.json
 </code></pre>
+</figure>
 <p>正常数据会输出“目录检查通过”。如果把第一项的 <code>category</code> 改成空字符串，检查器会报告：</p>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">检查器错误输出</span>
+<span class="reading-code__language">TEXT</span>
+</figcaption>
 <pre><code class="language-text">items[0].category 必须是非空字符串
 </code></pre>
+</figure>
 <p>错误信息指出对象和字段，AI 才能进行有针对性的修复。这里不替它猜一个分类，也不顺手改写整个目录。</p>
 <h2 id="section-3">3. 连接一个范围明确的编辑后检查</h2>
-<p>下面的示例配置适用于 macOS/Linux 命令环境。将它与练习项目已有 <code>.claude/settings.json</code> 合并，<strong>不要直接覆盖已有配置</strong>；完整示例也保存在<a href="../assets/batch-01/hooks/settings.example.json">配置文件</a>中。</p>
+<aside class="reading-insight" data-tone="warning">
+<p class="reading-insight__title" data-reading-ui>合并配置前</p>
+<div><p>下面的示例配置适用于 macOS/Linux 命令环境。将它与练习项目已有 <code>.claude/settings.json</code> 合并，<strong>不要直接覆盖已有配置</strong>；完整示例也保存在<a href="../assets/batch-01/hooks/settings.example.json">配置文件</a>中。</p></div>
+</aside>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">.claude/settings.json</span>
+<span class="reading-code__language">JSON</span>
+</figcaption>
 <pre><code class="language-json">{
   &quot;hooks&quot;: {
     &quot;PostToolUse&quot;: [
@@ -90,18 +128,25 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
   }
 }
 </code></pre>
+</figure>
 <p>命令 Hook 从标准输入接收事件 JSON。脚本只处理 <code>PostToolUse</code>、<code>Write</code>/<code>Edit</code>，并核对被改文件是否为项目根目录下的 <code>catalog.json</code>；无关文件直接忽略。请对照所用版本确认配置已加载，操作入口可参考<a href="https://code.claude.com/docs/en/hooks-guide">官方入门指南</a>。</p>
-<p><strong>这是“写完后报告问题”，不是“写入前阻止错误”。</strong> 本例在发现问题时输出：</p>
+<p><strong><mark class="reading-mark">这是“写完后报告问题”，不是“写入前阻止错误”。</mark></strong> 本例在发现问题时输出：</p>
+<figure class="reading-code">
+<figcaption class="reading-code__caption" data-reading-ui>
+<span class="reading-code__file">Hook 反馈示例</span>
+<span class="reading-code__language">JSON</span>
+</figcaption>
 <pre><code class="language-json">{
   &quot;decision&quot;: &quot;block&quot;,
   &quot;reason&quot;: &quot;目录检查失败（文件已经写入，并未回滚）：\nitems[0].category 必须是非空字符串&quot;
 }
 </code></pre>
+</figure>
 <p>这里的 <code>block</code> 会向 Claude 反馈原因，不能撤销已经完成的工具操作。若目标是执行前拒绝操作，应研究 <code>PreToolUse</code> 与权限配置，而不是误用编辑后检查。<a href="https://code.claude.com/docs/en/hooks#posttooluse-decision-control">PostToolUse 决策说明</a></p>
 <h2 id="section-4">4. 实际核验到哪一层？</h2>
 <p>本稿配套自动测试覆盖：合法目录、空目录、缺字段、空白值、错误类型、重复地址、路径规则、无关事件、目录读取失败及标准输入格式错误。测试通过进程传入模拟事件，检查返回 JSON；不需要消耗模型调用。</p>
 <p>但应把三层验证分开看：</p>
-<table>
+<div class="reading-table-wrapper" tabindex="0" role="region" aria-label="三层验证对比表"><table>
 <thead>
 <tr>
 <th>层次</th>
@@ -123,14 +168,17 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
 <tr>
 <td>Claude Code 会话</td>
 <td>配置被加载、真实编辑触发、反馈被模型使用</td>
-<td>尚未做端到端实测</td>
+<td><mark class="reading-mark">尚未做端到端实测</mark></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>写教程时，“脚本能运行”和“真实客户端已跑通”必须分开。你可以先在练习目录验证一次错误数据和一次修复，再决定是否接入实际项目。</p>
 <h2 id="section-5">5. 必须知道的几个缺口</h2>
 <p>第一，<code>Write|Edit</code> 不会覆盖 Bash 或外部编辑器对同一文件的修改。第二，脚本没有追踪一份写入结果与一次并发修改之间的版本关系。第三，损坏的事件输入、缺少运行环境等属于检查器自身失败，不应被当成“内容通过”。这些都是将教学示例用于实际工程前需要补齐的边界。</p>
-<p>因此，在构建或发布前还应调用独立检查器，并把非零退出码设为流水线失败条件。不要让一次 Hook 的成功成为唯一发布依据；按项目需要扩展到文件存在性、锚点和外链检查时，也要分别定义超时与失败策略。</p>
+<aside class="reading-insight" data-tone="warning">
+<p class="reading-insight__title" data-reading-ui>发布前仍需独立检查</p>
+<div><p>因此，在构建或发布前还应调用独立检查器，并把非零退出码设为流水线失败条件。不要让一次 Hook 的成功成为唯一发布依据；按项目需要扩展到文件存在性、锚点和外链检查时，也要分别定义超时与失败策略。</p></div>
+</aside>
 <p>最后，检查脚本仍按执行用户的权限运行。不要安装来源不明的脚本，不要让目录正文变成 shell 命令，也不要将密钥写入日志。<code>PostToolUse</code> 的反馈不构成操作系统沙箱或发布授权。</p>
 <h2 id="section-6">6. 从一个反复出现的错误开始</h2>
 <p>不必先设计一整套自动化。先选一个你已经遇到几次、又能够明确判定的问题：遗漏分类、重复地址、代码格式不合规。写一个小检查器，用好坏样本证明它确实有用，再接入事件。</p>
