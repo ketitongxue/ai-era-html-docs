@@ -16,18 +16,29 @@ h3,h4{line-height:1.5}p,li,td,th{overflow-wrap:anywhere}
 .notice{margin:18px 0 22px;padding:12px 16px;border-left:3px solid #d8bf65;background:#fff9df;color:#4b5059;font-size:14px}
 details{padding:12px 18px;border:1px solid #c8d5e7;border-radius:10px;background:var(--paper);margin:24px 0}
 summary{cursor:pointer;font-weight:600}details ol{padding-left:24px}
-pre{background:#192232;color:#edf1f7;padding:20px;border-radius:10px;max-width:100%;overflow:auto;line-height:1.65;font-size:14px;tab-size:2}
-code{font-family:"SFMono-Regular",Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{position:relative;margin:26px 0;border-radius:12px;background:#1a1b26;box-shadow:0 12px 48px rgba(0,0,0,.15);overflow:hidden;font-size:0;line-height:0;tab-size:2}
+pre::before{content:"";display:block;height:36px;background-color:#2d2d3a;background-image:radial-gradient(circle at 22px 18px,#ff5f56 6px,transparent 6.5px),radial-gradient(circle at 40px 18px,#ffbd2e 6px,transparent 6.5px),radial-gradient(circle at 58px 18px,#27c93f 6px,transparent 6.5px);background-repeat:no-repeat}
+pre[data-lang]::after{content:attr(data-lang);position:absolute;top:0;left:0;right:0;height:36px;line-height:36px;text-align:center;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#868cbb;pointer-events:none}
+pre code{display:block;overflow-x:auto;padding:22px 24px;font-size:13px;line-height:1.9;color:#a9b1d6}
+code{font-family:"Fira Code",ui-monospace,"SF Mono",Menlo,Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre .cm{color:#8791b5}pre .st{color:#9ece6a}pre .kw{color:#bb9af7}
 img{display:block;max-width:100%;height:auto;margin:20px auto}
 table{border-collapse:collapse;display:block;max-width:100%;overflow-x:auto;background:var(--paper);font-size:14px;line-height:1.7}
 th,td{padding:12px 14px;border:1px solid #ccd6e3;min-width:105px;text-align:left}th{background:#eaf0f7}
 blockquote{margin:22px 0;border-left:3px solid #7ea2cd;padding:4px 20px;background:#f0f4f8}
 li{margin:7px 0}.articles{padding-left:24px}.articles li{padding:12px 0}.articles a{font-size:19px}.articles small{display:block;color:#69717e}.articles small a{font-size:13px}
 footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:13px;color:#69717e}
-@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre{padding:14px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
+@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre code{padding:16px 18px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <link rel="stylesheet" href="../../assets/reading-components/reading-components.css">
+<style>
+/* Keep the published filename captions and copy buttons with the dark code body. */
+.reading-content .reading-code pre{padding:0;overflow:hidden;background:#1a1b26;color:#a9b1d6;font-size:0;line-height:0;border-radius:0;box-shadow:none}
+.reading-content .reading-code pre::before,.reading-content .reading-code pre::after{display:none}
+.reading-content .reading-code pre code{padding:22px 24px;overflow-x:auto;color:#a9b1d6;font-size:13px;line-height:1.9}
+@media(max-width:600px){.reading-content .reading-code pre code{padding:16px 18px}}
+</style>
 <script src="../../assets/reading-components/reading-components.js" defer></script>
 </head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Claude Code</p><h1>Claude Code Hooks：把提醒变成自动检查</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">1. 先区分：提醒、检查和权限</a></li><li><a href="#section-2">2. 先有检查器，再连接 Hook</a></li><li><a href="#section-3">3. 连接一个范围明确的编辑后检查</a></li><li><a href="#section-4">4. 实际核验到哪一层？</a></li><li><a href="#section-5">5. 必须知道的几个缺口</a></li><li><a href="#section-6">6. 从一个反复出现的错误开始</a></li></ol></details><article id="content" class="reading-content"><p>你可能已经在项目规则里写过：“修改文章目录后，检查分类和链接。”但过了几轮对话，AI 还是可能忘记执行。</p>
 <aside class="reading-insight" data-tone="note">
@@ -183,4 +194,34 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
 <h2 id="section-6">6. 从一个反复出现的错误开始</h2>
 <p>不必先设计一整套自动化。先选一个你已经遇到几次、又能够明确判定的问题：遗漏分类、重复地址、代码格式不合规。写一个小检查器，用好坏样本证明它确实有用，再接入事件。</p>
 <p>比“再也不许出错”更有用的要求，是“这里错了，依据是什么，下一步怎样验证修复”。这也是 Hooks 能融入工程闭环的地方。</p>
-</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main></body></html>
+</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main><script>
+(function(){
+var KW="const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+document.querySelectorAll("pre>code").forEach(function(c){
+var lm=c.className.match(/language-([\w#+.-]+)/);
+if(lm&&!/^(text|plaintext|txt)$/i.test(lm[1]))c.parentElement.setAttribute("data-lang",lm[1]);
+var w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),ts=[],n;
+while(w.nextNode())ts.push(w.currentNode);
+ts.forEach(function(t){
+var s=t.nodeValue;
+if(!s||!/[#'"]/.test(s))return;
+var re=new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b('+KW+')\\b|((#|//)[^\\n]*)','g');
+var f=document.createDocumentFragment(),last=0,m;
+while((m=re.exec(s))){
+var cls=m[1]?"st":(m[2]?"kw":null);
+if(!cls){
+var p=m.index>0?s.charAt(m.index-1):" ";
+if(/\s/.test(p))cls="cm";
+else{re.lastIndex=m.index+1;continue}
+}
+if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
+var el=document.createElement("span");el.className=cls;el.textContent=m[0];f.appendChild(el);
+last=m.index+m[0].length;
+}
+if(!last)return;
+if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
+t.parentNode.replaceChild(f,t);
+});
+});
+})();
+</script></body></html>

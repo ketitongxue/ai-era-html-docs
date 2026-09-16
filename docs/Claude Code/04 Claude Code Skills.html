@@ -18,18 +18,22 @@ h3,h4 { line-height:1.5 } p,li { overflow-wrap:anywhere }
 details { padding:16px 22px; border:1px solid #c8d5e7; border-radius:12px; background:var(--paper) }
 summary { cursor:pointer; font-weight:600 } details ul { columns:2; padding-left:22px }
 details li { break-inside:avoid; margin:6px 0 }
-pre { background:#192232; color:#edf1f7; padding:20px; border-radius:10px; overflow:auto; line-height:1.65; font-size:14px; tab-size:2 }
-code { font-family:"SFMono-Regular",Consolas,monospace } :not(pre)>code { background:#e9eef5; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere }
+pre { position:relative; margin:26px 0; border-radius:12px; background:#1a1b26; box-shadow:0 12px 48px rgba(0,0,0,.15); overflow:hidden; font-size:0; line-height:0; tab-size:2 }
+pre::before { content:""; display:block; height:36px; background-color:#2d2d3a; background-image:radial-gradient(circle at 22px 18px,#ff5f56 6px,transparent 6.5px),radial-gradient(circle at 40px 18px,#ffbd2e 6px,transparent 6.5px),radial-gradient(circle at 58px 18px,#27c93f 6px,transparent 6.5px); background-repeat:no-repeat }
+pre[data-lang]::after { content:attr(data-lang); position:absolute; top:0; left:0; right:0; height:36px; line-height:36px; text-align:center; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#868cbb; pointer-events:none }
+pre code { display:block; overflow-x:auto; padding:22px 24px; font-size:13px; line-height:1.9; color:#a9b1d6 }
+code { font-family:"Fira Code",ui-monospace,"SF Mono",Menlo,Consolas,monospace } :not(pre)>code { background:#e9eef5; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere }
+pre .cm { color:#8791b5 } pre .st { color:#9ece6a } pre .kw { color:#bb9af7 }
 img { display:block; max-width:100%; height:auto; margin:20px auto; border-radius:8px }
 table { border-collapse:collapse; display:block; max-width:100%; overflow-x:auto; background:var(--paper); font-size:14px; line-height:1.7 }
 th,td { padding:12px 14px; border:1px solid #ccd6e3; min-width:110px; text-align:left }
 th { background:#eaf0f7 } blockquote { margin:22px 0; border-left:3px solid #7ea2cd; padding:4px 20px; background:#f0f4f8 }
 li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px solid #d7deea }
-@media(max-width:600px) { main { padding:24px 16px 48px } details ul { columns:1 } h2 { font-size:23px } pre { padding:14px } ul,ol { padding-left:24px } }
+@media(max-width:600px) { main { padding:24px 16px 48px } details ul { columns:1 } h2 { font-size:23px } pre code { padding:16px 18px } ul,ol { padding-left:24px } }
 </style>
 </head>
 <body><main>
-<nav aria-label="网站导航"><a href="../index.html">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav>
+<nav aria-label="网站导航"><a href="../../index.html">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav>
 <header><h1>04 Claude Code Skills</h1></header>
 <details open><summary>文章目录</summary><ul><li><a href="#section-1">从第一性原理来理解什么是 Skills</a></li>
 <li><a href="#section-2">Skills 的结构</a></li>
@@ -78,7 +82,7 @@ li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px s
 <p>Skills 并不是简单的“能力扩展机制”，它本质上是一种按需加载的认知结构。与其把所有知识常驻在上下文中，不如把它们封装成可独立触发的能力单元。当模型判断当前任务涉及某个特定领域时，再加载对应的知识与操作流程。</p>
 <p>因此，我们可以给 Skills 一个更精确的定义：Skills 是一种可被语义触发的能力包，它包含领域知识、执行步骤、输出规范与约束条件，并在需要时渐进式加载到主 Agent 的认知空间中。</p>
 <p>如果我们把 Agent 生态整体展开来看，会发现 Skills 并不是孤立存在的。Agent 生态中有四大支柱，每个都解决了一个根本性问题。</p>
-<p><img src="assets/claude-skills/agent-ecosystem.png" alt="Agent 生态中的 Tools、SubAgents、Hooks 与 Skills" width="1600" height="936" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/agent-ecosystem.png" alt="Agent 生态中的 Tools、SubAgents、Hooks 与 Skills" width="1600" height="936" loading="lazy" decoding="async"></p>
 <ul>
 <li>Tools 是行动原语。它回答的是能做什么。读文件、改代码、执行 Bash 命令……这些是操作层面的能力，类似人的双手。</li>
 <li>SubAgents 是执行分工。它回答的是谁来做。当任务复杂到需要独立上下文时，子代理承担专职职责，类似团队中的同事。</li>
@@ -294,7 +298,7 @@ description: 描述这个 skill 是做什么的，在什么场景和情况会被
 <p>这是 Skills 最重要的设计特性——同一个 Skill 既可以作为斜杠命令使用，也可以让 Claude 自动判断何时需要。</p>
 <p>为什么要这样设计？  用户有时知道自己要什么（/review），有时只是描述需求（“帮我看看代码“）。Skills 的双向触发机制让两种场景都能被满足，同时保持能力定义的统一。</p>
 <p>当用户发送消息时，Claude 的处理流程如下图所示：</p>
-<p><img src="assets/claude-skills/progressive-loading.png" alt="用户消息触发 Skill 匹配与渐进式加载的流程" width="2256" height="2378" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/progressive-loading.png" alt="用户消息触发 Skill 匹配与渐进式加载的流程" width="2256" height="2378" loading="lazy" decoding="async"></p>
 <p>渐进式加载时 Token 的节省比例高达 78% ~ 98%。这就是为什么 Skills 采用“渐进式披露”而非“一次性加载”。</p>
 <p>当用户请求可能匹配多个 Skills 时，Claude 会：</p>
 <ol>
@@ -626,7 +630,7 @@ description: Deploy the application to production
 disable-model-invocation: true
 </code></pre>
 <p>有两种类型的命令。内置命令是 Claude Code 自带的，用于控制会话和工具，你无法修改。 自定义命令是你创建的任务型 Skill，用于执行特定的工作流程，完全由你掌控。</p>
-<p><img src="assets/claude-skills/command-types.png" alt="内置命令与自定义任务型 Skill" width="3414" height="1958" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/command-types.png" alt="内置命令与自定义任务型 Skill" width="3414" height="1958" loading="lazy" decoding="async"></p>
 <p>任务型 Skill 可以放在两个目录下：</p>
 <pre><code>.claude/skills/&lt;name&gt;/SKILL.md      # 推荐：Skills 目录（完整能力）
 .claude/commands/&lt;name&gt;.md           # 兼容：Commands 目录（简单命令）
@@ -1134,7 +1138,7 @@ This creates `codebase-map.html` and opens it in your default browser.
 <p>这体现了渐进式披露的极致——Claude 只需要知道“运行什么命令”（10 tokens），而非“如何生成 HTML”（2000+ tokens）。</p>
 <h2 id="section-31">内容拆分的工程方法论</h2>
 <p>面对一坨知识，怎么决定什么放 SKILL.md、什么放引用文件、什么放脚本？</p>
-<p><img src="assets/claude-skills/content-splitting.png" alt="Skill 内容拆分决策树" width="3948" height="1170" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/content-splitting.png" alt="Skill 内容拆分决策树" width="3948" height="1170" loading="lazy" decoding="async"></p>
 <p>这棵树背后真正体现的，是核心语义内联，确定逻辑外包，结构独立，数据延迟，示例分离等大原则。</p>
 <p>当你按照这个思路拆分 Skill，你构建的就不再是一份长文档，而是一套有层级的能力结构。这也是渐进式加载能够真正发挥作用的前提。</p>
 <p>官方建议 SKILL.md 控制在  500 行以内。为什么是 500 行？</p>
@@ -1178,7 +1182,7 @@ This creates `codebase-map.html` and opens it in your default browser.
 </tr>
 </tbody>
 </table>
-<p><img src="assets/claude-skills/knowledge-management.png" alt="Skill 目录与企业知识管理的对应关系" width="3318" height="2472" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/knowledge-management.png" alt="Skill 目录与企业知识管理的对应关系" width="3318" height="2472" loading="lazy" decoding="async"></p>
 <ol>
 <li>SKILL.md = 部门 SOP 首页。好的 SOP 首页不会把所有操作细节都列出来——它提供概览和导航，让使用者快速找到需要的章节。SKILL.md 的 Quick Reference 表格就是这个导航。</li>
 <li>reference/ = 知识库。企业知识库的特点是内容丰富但使用频率低，按需查阅而非每次通读。Skill 的 reference 文件同理——只有 Claude 判断需要时才加载。</li>
@@ -1226,7 +1230,7 @@ description: Summarize changes in a pull request
 </code></pre>
 <p>这是 Tools 反哺 Skills 的预处理模式：Shell 命令在 Skill 加载之前执行，输出直接注入 SKILL.md 内容，Claude 收到的是已经包含实时数据的知识。</p>
 <p>把上述三层关系做个总结我们可以得到下面的 Skills × Tools 共生公式。</p>
-<p><img src="assets/claude-skills/skills-tools.png" alt="Skills 与 Tools 的协作关系" width="2830" height="2344" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/skills-tools.png" alt="Skills 与 Tools 的协作关系" width="2830" height="2344" loading="lazy" decoding="async"></p>
 <h2 id="section-33">Skills 在 Claude Code 架构中的位置</h2>
 <p>如果把 Claude Code 五层架构看作一栋工程化系统大厦，可以按“能力分层解耦”的方式理解。</p>
 <ul>
@@ -1238,7 +1242,7 @@ description: Summarize changes in a pull request
 <li>第五层 Distribution Layer 是能力封装与交付层，Plugins 将前述能力模块化、版本化，实现跨项目与跨组织复用。</li>
 </ul>
 <p>Skills 处于知识层这个“承上启下”的位置——工具层（能做什么）之上，智能体层（谁来做）之下。这个位置不是偶然的，它揭示了 Skills 的本质角色：</p>
-<p><img src="assets/claude-skills/architecture-position.png" alt="Skills 在 Claude Code 架构中的位置" width="2302" height="2312" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/architecture-position.png" alt="Skills 在 Claude Code 架构中的位置" width="2302" height="2312" loading="lazy" decoding="async"></p>
 <p>Skills 在系统中呈现出三种结构方向。</p>
 <p>向下，它通过 allowed-tools 和 scripts/ 对 Tools 进行约束与编排，本质上是用知识来规范行动边界，相当于“知识约束行动”。向上，它为 SubAgents 提供预加载的专业知识，使子代理在决策前就具备特定领域能力，本质上是“知识服务决策”。</p>
 <p>在平行维度上，Skills 与 CLAUDE.md 形成互补关系：Skills 是按需加载的专业知识模块，而 CLAUDE.md 是常驻的通识背景，两者分别承担“专业能力增强”和“基础认知框架”的角色。</p>
@@ -1331,9 +1335,39 @@ allowed-tools: [Read, Bash(npm test:*), Bash(pytest:*)]
 <li>这个 Skill 在什么边界内运行？</li>
 </ul>
 <p>这三问，构成了完整的 Skill 三层权限体系。</p>
-<p><img src="assets/claude-skills/permission-layers.png" alt="Skill 三层权限体系" width="3242" height="1938" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/permission-layers.png" alt="Skill 三层权限体系" width="3242" height="1938" loading="lazy" decoding="async"></p>
 <p>设计一个生产级 Skill 时，建议按照 Skill 安全设计清单逐项检查。</p>
-<p><img src="assets/claude-skills/security-checklist.png" alt="Skill 安全设计清单" width="3054" height="1454" loading="lazy" decoding="async"></p>
+<p><img src="../assets/claude-skills/security-checklist.png" alt="Skill 安全设计清单" width="3054" height="1454" loading="lazy" decoding="async"></p>
 </article>
-<footer><a href="../index.html">返回知识库</a></footer>
-</main></body></html>
+<footer><a href="../../index.html">返回知识库</a></footer>
+</main><script>
+(function(){
+var KW="const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+document.querySelectorAll("pre>code").forEach(function(c){
+var lm=c.className.match(/language-([\w#+.-]+)/);
+if(lm&&!/^(text|plaintext|txt)$/i.test(lm[1]))c.parentElement.setAttribute("data-lang",lm[1]);
+var w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),ts=[],n;
+while(w.nextNode())ts.push(w.currentNode);
+ts.forEach(function(t){
+var s=t.nodeValue;
+if(!s||!/[#'"]/.test(s))return;
+var re=new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b('+KW+')\\b|((#|//)[^\\n]*)','g');
+var f=document.createDocumentFragment(),last=0,m;
+while((m=re.exec(s))){
+var cls=m[1]?"st":(m[2]?"kw":null);
+if(!cls){
+var p=m.index>0?s.charAt(m.index-1):" ";
+if(/\s/.test(p))cls="cm";
+else{re.lastIndex=m.index+1;continue}
+}
+if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
+var el=document.createElement("span");el.className=cls;el.textContent=m[0];f.appendChild(el);
+last=m.index+m[0].length;
+}
+if(!last)return;
+if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
+t.parentNode.replaceChild(f,t);
+});
+});
+})();
+</script></body></html>

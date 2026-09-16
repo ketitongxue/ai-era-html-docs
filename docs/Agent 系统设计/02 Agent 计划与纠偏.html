@@ -16,15 +16,19 @@ h3,h4{line-height:1.5}p,li,td,th{overflow-wrap:anywhere}
 .notice{margin:18px 0 22px;padding:12px 16px;border-left:3px solid #d8bf65;background:#fff9df;color:#4b5059;font-size:14px}
 details{padding:12px 18px;border:1px solid #c8d5e7;border-radius:10px;background:var(--paper);margin:24px 0}
 summary{cursor:pointer;font-weight:600}details ol{padding-left:24px}
-pre{background:#192232;color:#edf1f7;padding:20px;border-radius:10px;max-width:100%;overflow:auto;line-height:1.65;font-size:14px;tab-size:2}
-code{font-family:"SFMono-Regular",Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{position:relative;margin:26px 0;border-radius:12px;background:#1a1b26;box-shadow:0 12px 48px rgba(0,0,0,.15);overflow:hidden;font-size:0;line-height:0;tab-size:2}
+pre::before{content:"";display:block;height:36px;background-color:#2d2d3a;background-image:radial-gradient(circle at 22px 18px,#ff5f56 6px,transparent 6.5px),radial-gradient(circle at 40px 18px,#ffbd2e 6px,transparent 6.5px),radial-gradient(circle at 58px 18px,#27c93f 6px,transparent 6.5px);background-repeat:no-repeat}
+pre[data-lang]::after{content:attr(data-lang);position:absolute;top:0;left:0;right:0;height:36px;line-height:36px;text-align:center;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#868cbb;pointer-events:none}
+pre code{display:block;overflow-x:auto;padding:22px 24px;font-size:13px;line-height:1.9;color:#a9b1d6}
+code{font-family:"Fira Code",ui-monospace,"SF Mono",Menlo,Consolas,monospace}:not(pre)>code{background:#e9eef5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre .cm{color:#8791b5}pre .st{color:#9ece6a}pre .kw{color:#bb9af7}
 img{display:block;max-width:100%;height:auto;margin:20px auto}
 table{border-collapse:collapse;display:block;max-width:100%;overflow-x:auto;background:var(--paper);font-size:14px;line-height:1.7}
 th,td{padding:12px 14px;border:1px solid #ccd6e3;min-width:105px;text-align:left}th{background:#eaf0f7}
 blockquote{margin:22px 0;border-left:3px solid #7ea2cd;padding:4px 20px;background:#f0f4f8}
 li{margin:7px 0}.articles{padding-left:24px}.articles li{padding:12px 0}.articles a{font-size:19px}.articles small{display:block;color:#69717e}.articles small a{font-size:13px}
 footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:13px;color:#69717e}
-@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre{padding:14px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
+@media(max-width:600px){main{padding:20px 16px 40px}h2{font-size:22px}pre code{padding:16px 18px}ul,ol{padding-left:24px}nav{gap:10px}header{margin-top:32px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style></head><body><main><a class="skip" href="#content">跳到正文</a><nav aria-label="网站导航"><a href="https://ketitongxue.github.io/ai-era-html-docs/">← 知识库</a><a href="https://juzxailab.com/">AI 纪元</a></nav><header><p class="eyebrow">Agent 系统设计</p><h1>为什么 Agent 写了计划，还是会跑偏？</h1><p>2026-09-10</p></header><details><summary>文章目录</summary><ol><li><a href="#section-1">1. 把“优化一下”换成明确的交付物</a></li><li><a href="#section-2">2. 用 G4C 检查计划缺了什么</a></li><li><a href="#section-3">3. 先保存边界，再选择路径</a></li><li><a href="#section-4">4. 一份小计划可以长这样</a></li><li><a href="#section-5">5. 检查点要留下证据，不只是一个勾</a></li><li><a href="#section-6">6. 失败后，不要一律“再试一次”</a></li><li><a href="#section-7">7. 修复根因，并重新验证受影响的产物</a></li><li><a href="#section-8">8. 计划也需要保持轻量</a></li></ol></details><article id="content"><p>“先分析需求，再修改代码，最后运行测试。”这句话看起来很像计划，但当 Agent 改错了方向，它几乎帮不上忙：需求是否明确？哪些代码不能动？测试失败后该重试还是换方案？都没有答案。</p>
 <p>计划的价值不在于列出多少步，而在于让执行过程有可以检查和修正的依据。</p>
@@ -158,4 +162,34 @@ stop_when: 验证完成，或缺少新授权，或恢复预算耗尽
 <h2 id="section-8">8. 计划也需要保持轻量</h2>
 <p>修改一个确定的标题，可能只需要“确认位置、修改、检查显示”三步。任务存在多条路径、长时间执行、多个依赖或高风险动作时，才值得增加更完整的状态和恢复设计。</p>
 <p>如果计划的维护成本已经超过任务本身，说明粒度可能过细。判断一份计划好不好，不看它有多长，而看执行者能否回答：<strong>现在依据什么继续？哪里证明做对了？出错后从哪里恢复？</strong></p>
-</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main></body></html>
+</article><footer>AI 纪元 · AI 编码实践与 Agent 系统设计</footer></main><script>
+(function(){
+var KW="const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+document.querySelectorAll("pre>code").forEach(function(c){
+var lm=c.className.match(/language-([\w#+.-]+)/);
+if(lm&&!/^(text|plaintext|txt)$/i.test(lm[1]))c.parentElement.setAttribute("data-lang",lm[1]);
+var w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),ts=[],n;
+while(w.nextNode())ts.push(w.currentNode);
+ts.forEach(function(t){
+var s=t.nodeValue;
+if(!s||!/[#'"]/.test(s))return;
+var re=new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b('+KW+')\\b|((#|//)[^\\n]*)','g');
+var f=document.createDocumentFragment(),last=0,m;
+while((m=re.exec(s))){
+var cls=m[1]?"st":(m[2]?"kw":null);
+if(!cls){
+var p=m.index>0?s.charAt(m.index-1):" ";
+if(/\s/.test(p))cls="cm";
+else{re.lastIndex=m.index+1;continue}
+}
+if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
+var el=document.createElement("span");el.className=cls;el.textContent=m[0];f.appendChild(el);
+last=m.index+m[0].length;
+}
+if(!last)return;
+if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
+t.parentNode.replaceChild(f,t);
+});
+});
+})();
+</script></body></html>
