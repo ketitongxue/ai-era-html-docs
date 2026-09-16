@@ -94,7 +94,6 @@ src/
 └── types/ # 类型定义
 
 ## API 响应格式
-```typescript
 interface ApiResponse&lt;T&gt; {
   success: boolean;
   data?: T;
@@ -165,7 +164,6 @@ paths:
 ## 结构
 使用 Arrange-Act-Assert 模式：
 
-```typescript
 describe('OrderService', () =&gt; {
   describe('createOrder', () =&gt; {
     it('should create order when stock is available', async () =&gt; {
@@ -207,7 +205,6 @@ describe('OrderService', () =&gt; {
 - 函数参数 &gt; 3 个时，使用对象参数
 
 ## 错误处理
-```typescript
 // 业务错误
 throw new BusinessError('ORDER_NOT_FOUND', '订单不存在');
 

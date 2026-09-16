@@ -118,7 +118,6 @@ li { margin:7px 0 } footer { margin-top:48px; padding-top:20px; border-top:1px s
 <p>隔离，解决的是上下文污染问题——大量对当前执行有用、但对后续决策毫无价值的日志、搜索结果和中间推理，不应该进入主对话的长期记忆；子代理天然拥有独立上下文，执行完即丢弃，只把结论带回来，让 Claude 记得更少、但记得对。</p>
 <p>约束，解决的是行为不可控问题——通过工具权限边界，把“我希望你别这么做”变成“你物理上做不到”，让代码审查只能读、修 bug 才能写，角色职责不再依赖提示词自觉。</p>
 <pre><code>子代理可以有精确的工具权限控制。
-```
 # 只读型子代理（代码审查）
 tools: Read, Grep, Glob
 # 它只能看，不能改任何东西
@@ -130,7 +129,6 @@ tools: Read, Write, Edit, Bash
 # 研究型子代理（技术调研）
 tools: Read, WebFetch, WebSearch
 # 它可以读本地文件和搜索网络
-```
 </code></pre>
 <p>复用，解决的是经验无法沉淀的问题——当子代理被定义成文件、放进版本控制后，好的使用方式就从一次性对话，变成了可共享、可迭代的工程资产。</p>
 <p>子代理的配置保存在文件中，有这样几个好处。</p>
@@ -873,7 +871,6 @@ You are a senior code reviewer with expertise in security and software engineeri
 
 ## Output Format
 
-```markdown
 ## Code Review Report
 
 ### Critical Issues
