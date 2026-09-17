@@ -92,7 +92,7 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #d7deea;font-size:1
 <h2 id="section-5">Hooks：把检查放到正确的时机</h2>
 <p>Hook 将处理器绑定到会话事件上。要特别区分：<strong>自动触发不等于判断必然确定。</strong> 检查本地文件是否存在的脚本，与让模型评判“文章是否讲清楚”的 prompt 型 Hook，可靠性和成本不是一回事。Claude Code 也支持模型参与的 Hook 类型。<a href="https://code.claude.com/docs/en/hooks">Hooks 官方参考</a></p>
 <p>在文章流程里，缺图、失效的本地路径、遗漏标题，可以交给明确的校验脚本。Hook 负责在合适时机调用它，并把“第几处引用、缺什么文件”反馈给工作者。至于叙述是否自然、案例是否贴切，仍然需要编辑判断。</p>
-<p>先写一个能单独运行的检查器，再接事件，比直接写一大段复杂 Hook 更容易排错。构建过程也应能调用同一个检查器，避免所有质量保障都依赖某次交互会话。具体配置可接着看<a href="05%20Claude%20Code%20Hooks.html">第一篇 Hooks 文章</a>。</p>
+<p>先写一个能单独运行的检查器，再接事件，比直接写一大段复杂 Hook 更容易排错。构建过程也应能调用同一个检查器，避免所有质量保障都依赖某次交互会话。具体配置可接着看<a href="Claude%20Code%20Hooks%EF%BC%9A%E6%8A%8A%E6%8F%90%E9%86%92%E5%8F%98%E6%88%90%E8%87%AA%E5%8A%A8%E6%A3%80%E6%9F%A5.html">第一篇 Hooks 文章</a>。</p>
 <h2 id="section-6">Sub-Agents：隔离工作上下文，不是复制万能助手</h2>
 <p>子代理适合有明确边界、会产生大量中间信息的工作。Claude Code 的子代理拥有自己的上下文和可配置工具访问；也可以预加载所需 Skills。<a href="https://code.claude.com/docs/en/sub-agents">Sub-Agents 官方文档</a></p>
 <p>例如安排附件检查者只返回四项：引用总数、找到的图片、缺失清单、歧义位置。主代理保留编辑目标，不必反复阅读整段目录扫描结果。</p>
