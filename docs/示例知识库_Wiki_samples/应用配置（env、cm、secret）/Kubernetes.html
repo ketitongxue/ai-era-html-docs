@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>前言</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="前言">前言</h1>
+<p>我们要想让业务应用能在容器里读取到配置文件，容易想到的最简单的方式是，构建镜像时一并将配置文件拷贝到镜像里。这样在 Pod 启动后，容器里自然会有一份配置文件以供载入业务进程。例如，我们可以在 Dockerfile 中使用 COPY ，将 config.conf 配置文件复制到镜像内：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># syntax=docker/dockerfile:1
+
+FROM python:3.8-slim-buster
+......
+WORKDIR /app
+......
+COPY config.conf config.conf  # 复制配置文件到镜像
+......
+CMD [ &quot;python3&quot;, &quot;-m&quot; , &quot;flask&quot;, &quot;run&quot;, &quot;--host=0.0.0.0&quot;]
+</code></pre>
+<p>因为所有 Pod 都使用同一个镜像，所以它们自然都能读取到配置文件。但这是最佳实践吗？答案是否定的，为什么不建议这么做呢？我认为有三个原因。</p>
+<p>首先，镜像往往代表的是一个业务进程，也就是说，只有当我们修改了业务的源码后，才有必要重新构建镜像。而配置文件一般并不会经常变更，所以我们也没必要将相对固定的配置文件一并复制到容器里。</p>
+<p>其次，当配置文件被修改后，我们往往会希望配置能够尽快生效，而重新构建镜像、推送镜像以及更新 Pod 镜像版本的过程较长，很难满足我们对配置文件更新时效上的诉求。</p>
+<p>最后，也是最重要的一点，配置文件里面记录的一般是和运维相关的机密信息，这些信息不应该向开发者暴露，这很容易导致安全问题。</p>
+<p>所以， <strong>我们非常有必要将镜像和配置信息进行解耦。</strong></p>
+<p>Kubernetes 为我们提供了 <strong>环境变量、ConfigMap 和 Secret</strong> 来帮助我们解决业务应用的配置问题。同时，这也是管理应用配置信息最常用的方式。为了帮助你理解，我们把它们都比作是 Kubernetes 的“应用配置中心”。</p>
+<h1 id="简介">简介</h1>
+<ul>
+<li>
+<p>ConfigMap和Secret是Kubernetes系统上两种特殊类型的存储卷</p>
+<ul>
+<li>ConfigMap用于为容器中的应用提供配置数据以定制程序的行为，而敏感的配置信息，例如密钥、证书等则通常由Secret来配置</li>
+<li>ConfigMap和Secret将相应的配置信息保存于资源对象中，而后在Pod对象上支持以存储卷的形式将其挂载并加载相关的配置，从而降低了配置与镜像文件的耦合关系，提高了镜像复用能力</li>
+<li>Kubernetes借助于ConfigMap对象实现了将配置文件从容器镜像中解耦，从而增强了工作负载的可移植性，使其配置更易于更改和管理，并避免了将配置数据硬编码到Pod配置清单中</li>
+</ul>
+</li>
+<li>
+<p>此二者都属于名称空间级别，只能被同一名称空间中的Pod引用</p>
+</li>
+<li>
+<p>ConfigMap和Secret资源都是数据承载类的组件（这类组件一般不需要Controller），是Kubernetes API的标准资源类型，是一等公民.</p>
+<ul>
+<li>
+<p>主要负责提供key-value格式的数据项，其值支持</p>
+<ul>
+<li>单行字符串：常用于保存环境变量值</li>
+<li>多行字串：常用于保存配置文件的内容</li>
+</ul>
+</li>
+<li>
+<p>资源规范中不使用spec字段，而是直接使用特定的字段嵌套定义key-value数据</p>
+</li>
+<li>
+<p>ConfigMap支持使用data或binaryData字段嵌套一至多个键值数据项</p>
+</li>
+<li>
+<p>Secret支持使用data或stringData（非base64编码的明文格式）字段嵌套一至多个键值数据项</p>
+</li>
+<li>
+<p>从Kubernetes v1.19版本开始，ConfigMap和Secret支持使用immutable字段创建不可变实例</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="env">Env</h1>
+<p>环境变量是一种很常见的应用读取配置的方式，在非容器化应用的场景下，我们一般会为虚拟机配置环境变量以便业务程序进行读取。在 Kubernetes 环境下，业务进程是运行在容器里的，所以我们需要为容器设置环境变量，这样就可以实现同样的效果了。</p>
+<p>此外，由于容器是由 Pod 管理的，而我们在实际项目中又不会直接使用到 Pod ，我们使用的是更上层的工作负载，例如 Deployment。所以，要为 Pod 配置环境变量，就变成了为上层的工作负载例如 Deployment 配置环境变量。</p>
+<p><a href="https://feishu.cn/wiki/ApKNwbHLHiIu6Vkg8nHcsUkwnAg">Env</a></p>
+<h1 id="configmap">ConfigMap</h1>
+<p>虽然 Env 可以为 Pod 配置环境变量，但在实际的场景中，有一些业务应用并不是从环境变量读取配置信息，而是以文件的形式载入配置。在这种场景下，环境变量显然是不适用的。</p>
+<p>这时，用 ConfigMap 就非常适合了。</p>
+<p><a href="https://feishu.cn/wiki/POuYw7u6dizdHpk7hhTcHJTFnfe">ConfigMaps</a></p>
+<h1 id="secret">Secret</h1>
+<p>Secret 顾名思义是密钥的意思，它主要用来保存一些应用的机密信息。Secret 和 ConfigMap 非常相似，它也能够以文件的形式挂载到容器内部，为业务应用提供配置文件。但它在内容形式上与 ConfigMap 有所不同，ConfigMap 是明文保存，Secret 是 base64 编码的。</p>
+<p><a href="https://feishu.cn/wiki/S4dTwPhLUilOvkkRvXLcJmMXnDc">Secret</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

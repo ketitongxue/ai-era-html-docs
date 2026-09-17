@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nginx 文件结构</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="nginx-文件结构">Nginx 文件结构</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">...              #全局块
+
+events {         #events块
+   ...
+}
+
+http      #http块
+{
+    ...   #http全局块
+    server        #server块
+    { 
+        ...       #server全局块
+        location [PATTERN]   #location块
+        {
+            ...
+        }
+        location [PATTERN] 
+        {
+            ...
+        }
+    }
+    server
+    {
+      ...
+    }
+    ...     #http全局块
+}
+</code></pre>
+<p>1、全局块：配置影响nginx全局的指令。一般有运行nginx服务器的用户组，nginx 进程 pid 存放路径，日志存放路径，配置文件引入，允许生成 worker process 数等。</p>
+<p>2、events 块：配置影响 nginx 服务器或与用户的网络连接。有每个进程的最大连接数，选取哪种事件驱动模型处理连接请求，是否允许同时接受多个网路连接，开启多个网络连接序列化等。</p>
+<p>3、http 块：可以嵌套多个 server，配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置。如文件引入，mime-type 定义，日志自定义，是否使用sendfile传输文件，连接超时时间，单连接请求数等。</p>
+<p>4、server 块：配置虚拟主机的相关参数，一个 http 中可以有多个server。</p>
+<p>5、location 块：配置请求的路由，以及各种页面的处理情况。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server {
+    #监听端口号 
+    listen 80; 
+    #主机名 
+    server_name localhost; 
+    #匹配路径 
+    #文件根目录 
+    location / { 
+        root html; 
+        #默认页名称 
+        index index.html index.htm; 
+    }
+    #报错编码对应页面 
+    error_page 500 502 503 504 /50x.html; 
+    location = /50x.html { 
+        root html; 
+    } 
+} 
+</code></pre>
+<ul>
+<li>server : 用于定义服务，http中可以有多个server块</li>
+<li>listen : 指定服务器侦听请求的IP地址和端口，如果省略地址，服务器将侦听所有地址，如果省略端口，则使用标准端口</li>
+<li>server_name : 服务名称，用于配置域名</li>
+<li>location : 用于配置映射路径uri对应的配置，一个server中可以有多个location, location后面跟一个uri,可以是一个正则表达式, / 表示匹配任意路径, 当客户端访问的路径满足这个uri时就会执行location块里面的代码</li>
+<li>root : 根路径</li>
+</ul>
+<h1 id="虚拟主机-多域名servername">虚拟主机-多域名servername</h1>
+<p>原本一台服务器只能对应一个站点，通过虚拟主机技术可以虚拟化成多个站点同时对外提供服务</p>
+<p><strong>servername 匹配规则</strong></p>
+<p>我们需要注意的是 servername 匹配分先后顺序，写在前面的匹配上就不会继续往下匹配了。</p>
+<p><strong>完整匹配</strong></p>
+<p>我们可以在同一 servername 中匹配多个域名</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server_name vod.coding3min.com www1.coding3min.com;
+</code></pre>
+<p><strong>通配符匹配</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server_name *.coding3min.com
+</code></pre>
+<p><strong>通配符结束匹配</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server_name vod.*; 
+</code></pre>
+<p><strong>正则匹配</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server_name ~^[0-9]+\.coding3min\.com$
+</code></pre>
+<h1 id="路由转发-location">路由转发 location</h1>
+<p><strong>增加多个location</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location /css { 
+    root /usr/local/nginx/static; 
+    index index.html index.htm; 
+} 
+location /images { 
+    root /usr/local/nginx/static; 
+    index index.html index.htm; 
+} 
+location /js { 
+    root /usr/local/nginx/static; 
+    index index.html index.htm; 
+} 
+</code></pre>
+<p><strong>location 前缀</strong></p>
+<ul>
+<li>/ 通用匹配，任何请求都会匹配到。</li>
+<li>=  精准匹配，不是以指定模式开头 。</li>
+<li>~  正则匹配，区分大小写 。</li>
+<li>\* 正则匹配，不区分大小写。</li>
+<li>^~ 非正则匹配，匹配以指定模式开头的location。</li>
+</ul>
+<p><strong>location匹配顺序</strong></p>
+<p>多个正则location直接按书写顺序匹配，成功后就不会继续往后面匹配</p>
+<p>普通（非正则）location会一直往下，直到找到匹配度最高的（最大前缀匹配）</p>
+<p>当普通location与正则location同时存在，如果正则匹配成功,则不会再执行普通匹配</p>
+<p>所有类型location存在时，=匹配 &gt; ^~匹配 &gt; 正则匹配 &gt; 普通（最大前缀匹配）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location ~*/(css|img|js) { 
+    root /usr/local/nginx/static; 
+    index index.html index.htm; 
+}
+</code></pre>
+<p>正则</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">. ：匹配除换行符以外的任意字符
+? ：重复0次或1次
++ ：重复1次或更多次
+* ：重复0次或更多次
+\d ：匹配数字
+^ ：匹配字符串的开始
+$ ：匹配字符串的结束
+{n} ：重复n次
+{n,} ：重复n次或更多次
+[c] ：匹配单个字符c
+[a-z] ：匹配a-z小写字母的任意一个
+(a|b|c) : 属线表示匹配任意一种情况，每种情况使用竖线分隔，一般使用小括号括括住，匹配符合a字符 或是b字符 或是c字符的字符串
+\ 反斜杠：用于转义特殊字符
+</code></pre>
+<p>小括号()之间匹配的内容，可以在后面通过$1来引用，$2表示的是前面第二个()里的内容。</p>
+<p><strong>alias与root</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location /css { 
+    alias /usr/local/nginx/static/css; 
+    index index.html index.htm; 
+} 
+</code></pre>
+<p><strong>root用来设置根目录，而alias在接受请求的时候在路径上不会加上location。</strong></p>
+<p>比如上面如果是root 则会变成 /usr/local/nginx/static/css/css ，如果是alias则不会有变化。</p>
+<ul>
+<li>alias指定的目录是准确的，即location匹配访问的path目录下的文件直接是在alias目录下查找的；</li>
+<li>root指定的目录是location匹配访问的path目录的上一级目录,这个path目录一定要是真实存在root指定目录下的；</li>
+</ul>
+<h1 id="反向代理">反向代理</h1>
+<p>最简单的反向代理</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location / { 
+    proxy_pass http://coding3min.com/; 
+}
+</code></pre>
+<p>代表访问/的时候是访问 http://coding3min.com/</p>
+<p>这里是反向代理到另一个网站，也可以写成upstream转发到多个不同的网站/服务器。</p>
+<h1 id="动静分离">动静分离</h1>
+<p>动静分离是让动态网站里的动态网页根据一定规则把不变的资源和经常变的资源区分开来，动静资源做好了拆分以后，我们就可以根据静态资源的特点将其做缓存操作，这就是网站静态化处理的核心思路。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">upstream web_servers {  
+       server localhost:8081;  
+       server localhost:8082;  
+}
+
+server {
+    listen       80;
+    server_name  localhost;
+
+    set $doc_root /usr/local/var/www;
+
+    location ~* \.(gif|jpg|jpeg|png|bmp|ico|swf|css|js)$ {
+       root $doc_root/img;
+    }
+
+    location / {
+        proxy_pass http://web_servers;
+        # 指定Header Host后端才能拿到域名，不指定则拿不到Host
+        proxy_set_header Host $host:$server_port;
+    }
+
+    error_page 500 502 503 504  /50x.html;  
+    location = /50x.html {  
+        root $doc_root;
+    }
+
+ }
+</code></pre>
+<h1 id="负载均衡">负载均衡</h1>
+<p><strong>轮询</strong> <strong>Round Robin</strong></p>
+<p>默认情况下使用轮询方式，逐一转发，这种方式适用于无状态请求。</p>
+<p><strong>weight(权重)</strong></p>
+<p>指定轮询几率，weight和访问比率成正比，用于后端服务器性能不均的情况。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">upstream httpd { 
+    server 127.0.0.1:8050 weight=10 down; 
+    server 127.0.0.1:8060 weight=1; 
+    server 127.0.0.1:8060 weight=1 backup; 
+}
+</code></pre>
+<ul>
+<li>down：表示当前的server暂时不参与负载</li>
+<li>weight：默认为1 weight越大，负载的权重就越大。</li>
+<li>backup： 其它所有的非backup机器down或者忙的时候，请求backup机器。</li>
+</ul>
+<p>下面是比较常用的例子：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">upstream web_servers {  
+   server localhost:8081;  
+   server localhost:8082;  
+}
+
+server {
+    listen       80;
+    server_name  localhost;
+    #access_log  logs/host.access.log  main;
+
+
+    location / {
+        proxy_pass http://web_servers;
+        # 必须指定Header Host
+        proxy_set_header Host $host:$server_port;
+    }
+ }
+</code></pre>
+<p><strong>ip_hash</strong></p>
+<p>根据客户端的ip地址转发同一台服务器，可以保持回话。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">upstream test {
+    ip_hash;
+    server localhost:8080;
+    server localhost:8081;
+}
+</code></pre>
+<p><strong>least_conn</strong></p>
+<p>最少连接访问</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">http{ 
+  upstream sampleapp { 
+    least_conn; 
+    server localhost:8080;
+    server localhost:8081;
+  } 
+  .... 
+  server{ 
+    listen 80; 
+    ... 
+    location / { 
+     proxy_pass http://sampleapp; 
+    }  
+  } 
+</code></pre>
+<h1 id="rewrite-url重写">rewrite URL重写</h1>
+<p>rewrite是实现URL重写的关键指令，根据regex (正则表达式)部分内容， 重定向到replacement，结尾是flag标记。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">rewrite &lt;regex&gt; &lt;replacement&gt; [flag]; 
+关键字   正则     替代内容       flag标记 
+</code></pre>
+<p>例如下面内容，正则^/([0-9]+).html$匹配到的内容替换成替代内容/index.jsp?pageNum=$1，注意括号里的内容取出，替换到$1 位置。下面内容应该是一个翻页请求：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">rewrite ^/([0-9]+).html$ /index.jsp?pageNum=$1 break;
+</code></pre>
+<p>flag标记：rewrite支持的flag标记</p>
+<ul>
+<li>last 本条规则匹配完成后，继续向下匹配新的location URI规则</li>
+<li>break 本条规则匹配完成即终止，不再匹配后面的任何规则</li>
+<li>redirect 返回302临时重定向，浏览器地址会显示跳转后的URL地址</li>
+<li>permanent 返回301永久重定向，浏览器地址栏会显示跳转后的URL地址</li>
+</ul>
+<p>rewrite参数的标签段位</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server,location,if 
+</code></pre>
+<p>虚拟主机、路由、判断</p>
+<h1 id="速记">速记</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">########### 每个指令必须有分号结束。#################
+#user administrator administrators;  #配置用户或者组，默认为nobody nobody。
+#worker_processes 2;  #允许生成的进程数，默认为1
+#pid /nginx/pid/nginx.pid;   #指定nginx进程运行文件存放地址
+error_log log/error.log debug;  #制定日志路径，级别。这个设置可以放入全局块，http块，server块，级别以此为：debug|info|notice|warn|error|crit|alert|emerg
+events {
+    accept_mutex on;   #设置网路连接序列化，防止惊群现象发生，默认为on
+    multi_accept on;  #设置一个进程是否同时接受多个网络连接，默认为off
+    #use epoll;      #事件驱动模型，select|poll|kqueue|epoll|resig|/dev/poll|eventport
+    worker_connections  1024;    #最大连接数，默认为512
+}
+http {
+    include       mime.types;   #文件扩展名与文件类型映射表
+    default_type  application/octet-stream; #默认文件类型，默认为text/plain
+    #access_log off; #取消服务日志
+    log_format myFormat '$remote_addr–$remote_user [$time_local] $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for'; #自定义格式
+    access_log log/access.log myFormat;  #combined为日志格式的默认值
+    sendfile on;   #允许sendfile方式传输文件，默认为off，可以在http块，server块，location块。
+    sendfile_max_chunk 100k;  #每个进程每次调用传输数量不能大于设定的值，默认为0，即不设上限。
+    keepalive_timeout 65;  #连接超时时间，默认为75s，可以在http，server，location块。
+
+    upstream mysvr {   
+      server 127.0.0.1:7878;
+      server 192.168.10.121:3333 backup;  #热备
+    }
+    error_page 404 https://www.baidu.com; #错误页
+    server {
+        keepalive_requests 120; #单连接请求上限次数。
+        listen       4545;   #监听端口
+        server_name  127.0.0.1;   #监听地址
+        location  ~*^.+$ {       #请求的url过滤，正则匹配，~为区分大小写，~*为不区分大小写。
+           #root path;  #根目录
+           #index vv.txt;  #设置默认页
+           proxy_pass  http://mysvr;  #请求转向mysvr 定义的服务器列表
+           deny 127.0.0.1;  #拒绝的ip
+           allow 172.18.5.54; #允许的ip
+        } 
+    }
+}
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

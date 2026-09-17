@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>探针的检查方式</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="探针的检查方式">探针的检查方式</h1>
+<p>kubernetes 探针一共有三种方式来向 Pod 发起健康检查。</p>
+<ul>
+<li>HTTP 请求，通过向容器发起 HTTP 请求，并识别请求响应代码来判断业务状态。</li>
+<li>在容器内运行命令，通过在容器里运行一条命令并检查命令的退出状态码来判断业务健康状态。</li>
+<li>TCP 端口状态判断，通过是否能够和指定端口建立连接来判断业务健康状态。</li>
+</ul>
+<p>三种 kubernetes 探针（Readiness、Liveness、StartupProbe），以及怎么配置 HTTP 的健康状态检查。</p>
+<h2 id="readiness">Readiness</h2>
+<p>Readiness 又称为就绪探针，它用来确定 Pod 是否为就绪（Ready）状态，以及是否能够接收外部流量。例如，当某一些 Pod 出现短暂的延迟或不可用时，我们希望它不接收外部流量，这时候 Readiness 就非常有用。</p>
+<p>示例</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  ......
+spec:
+  ......
+    spec:
+      containers:
+      - name: flask-backend
+        image: lyzhang1999/backend:latest
+        ......
+        readinessProbe:
+          httpGet:
+            path: /healthy
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          failureThreshold: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+</code></pre>
+<p>重点关注 readinessProbe 字段，它为 kubernetes Readiness 探针提供了必要的信息。</p>
+<p>我们先来看第 14 行的 httpGet 下的几个字段，path 字段的含义是“通过请求 healthy 接口来判断”，Port 字段指定了 Python 后端服务的监听端口 5000，scheme 字段代表协议。探针请求的完整路径为： <a href="http://PodIP:5000/healthy">http://PodIP:5000/healthy</a>，相当于以 Get 的方式主动访问业务接口，当接口返回 200-399 状态码时，则视为本次探针请求成功。</p>
+<p>initialDelaySeconds 的含义是在容器启动之后，延迟 10 秒钟再进行第一次探针检查。</p>
+<p>failureThreshold 的含义是，如果连续 5 次探针失败则代表 Readiness 探针失败，Pod 状态为 NotReady，此时 Pod 不会接收外部请求。</p>
+<p>periodSeconds 的含义是探针每 10 秒钟轮询检测 1 次。</p>
+<p>successThreshold 的含义是只要探针成功 1 次就代表探针成功了，Pod 状态为 Ready 表示可以接收外部请求。</p>
+<p>timeoutSeconds 代表探针的超时时间为 1 秒。</p>
+<p>综合这些配置信息，我们可以得出几个重要的数字。在 Pod 启动之后，如果在 60秒内（initialDelaySeconds + failureThreshold * periodSeconds） 不能通过健康检查， Pod 将处于非就绪状态。</p>
+<p>当 Pod 处于正常的运行状态时，如果业务突然产生故障，健康检查会在50秒内（failureThreshold * periodSeconds） 识别出业务的不健康状态；当 Pod 业务恢复健康时，健康检查会在 10秒内（successThreshold * periodSeconds） 识别出业务已恢复。</p>
+<p>Readiness 探针的一个非常重要的作用是，它负责找出业务状态不健康的 Pod，并且将它从 Service EndPoints 列表移除，使它无法接收到外部请求。如果 Pod 的 Readiness 探针一直无法通过，那么 Pod 将一直无法接收外部请求。</p>
+<p>注意，当 Readiness 探针向业务应用发出请求时，如果在超时时间内没有收到回复，或者收到的回复的状态码大于 400，那么认为本次探测失败。</p>
+<p>试想一下，如果这时候业务已经无法自行恢复了，比如产生了死锁，此时 Readiness 探针也已经感知到业务不可用了，那我们能否更进一步，让 kubernetes 帮我们自动重启 Pod 来恢复业务呢？这就是我接下来要介绍的 Liveness 探针。</p>
+<h2 id="liveness">Liveness</h2>
+<p>Liveness 又称为存活探针，相比 Readiness 探针，它还能够在检测到 Pod 处于不健康状态时自动将 Pod 重启。</p>
+<p>示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">spec:
+  ......
+    spec:
+      containers:
+      - name: flask-backend
+        image: lyzhang1999/backend:latest
+        ......
+        livenessProbe:
+          httpGet:
+            path: /healthy
+            port: 5000
+            scheme: HTTP
+          failureThreshold: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+</code></pre>
+<p>Liveness 探针和 Readiness 探针非常类似，Liveness 探针是通过 livenessProbe 字段来配置的，livenessProbe 字段下面的每个字段的作用和 Readiness 探针都几乎一致。</p>
+<p>当 Liveness 探针失败时，它将自动重启业务不健康的 Pod，需要注意的是，Liveness 和 Readiness 探针是 <strong>独立并行</strong> 的，它们之间并没有相互等待关系。</p>
+<h2 id="startupprobe">StartupProbe</h2>
+<p>相比较 Liveness 和 Readiness 探针在运行阶段的探测特性，StartupProbe 是一种专门针对业务在启动阶段设计的探针。对于一些大型的 Java 应用来说，往往需要数分钟时间才能够完成启动。</p>
+<p>这意味着，对于启动非常慢的大型应用，如果我们按照上面的例子来配置 Readiness 和 Liveness 探针，Pod 将因为探针失败而永远无法启动。</p>
+<p>那么，怎么解决这个问题呢？你可能首先会想到，是不是调整探针第一次探测的延迟时间就可以了？比如将 initialDelaySeconds 字段的值从 10 秒钟修改到 120 秒。这当然是可以的，但如果启动时间不是 120 秒，或者你不太确定呢？那似乎可以在修改了 initialDelaySeconds 的基础上再将失败次数 failureThreshold 或者探测间隔 periodSeconds 加大。</p>
+<p>这种做法虽然能解决问题，但缺点也是明显的，为了兼容应用启动慢的问题，我们主动降低了 kubernetes 检测 Pod 健康状态的频率，这会延迟 kubernetes 感知故障的速度。</p>
+<p>其实，Readiness 和 Liveness 主要用来检查的是处于运行过程中业务，因为启动过慢的问题而去调整 Readiness 和 Liveness 参数并不是最佳实践。这类问题我们可以通过 StartupProbe 来解决。</p>
+<p>StartupProbe 探针特别适用于业务应用启动慢的场景。当 Pod 启动时，如果配置了 StartupProbe，那么 Readiness 和 Liveness 探针都将被临时禁用，直到 StartupProbe 探针返回成功才会启用 Readiness 和 Liveness 探针，这也就避免了 Readiness 和 Liveness 在应用启动阶段造成的干扰。也就是说，我们只要为业务配置合理的 StartupProbe 探针，就可以解决应用启动慢导致其他探针认为 Pod 不健康的问题。</p>
+<p>StartupProbe 探针的配置方法和 Readiness、Liveness 探针也非常类似。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">spec:
+  ......
+    spec:
+      containers:
+      - name: flask-backend
+        image: lyzhang1999/backend:latest
+        ......
+        startupProbe:
+          httpGet:
+            path: /healthy
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          failureThreshold: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+</code></pre>
+<p>StartupProbe 是通过 startupProbe 字段来配置的。在这个例子中，Pod 启动之后 10 秒会开始第一次探测，如果至少有 1 次探测成功，那么 StartupProbe 探针就成功，接下来才会继续启动 Readiness 和 Liveness 探针。</p>
+<p>在刚才提到的 Java 应用的例子中，我们可以为 StartupProbe 配置足够大的 initialDelaySeconds 来让业务有足够的时间完成启动过程。</p>
+<p>Pod 启动时，三种探针的执行顺序主要可以分成三个阶段。</p>
+<ul>
+<li>第一阶段：Pod 已启动，容器已启动，业务进程正在启动中，此时 StartupProbe 开始工作，由于 StartupProbe 还未成功，当前 Pod 的容器处于 Not Ready(0/1) 的状态。</li>
+<li>第二阶段：随着时间推移，StartupProbe 探针成功，Readine 和 Liveness 探针开始并行工作，此时由于 Readine 探针还未成功，当前 Pod 的容器仍然处于 Not Ready(0/1) 的状态。</li>
+<li>第三阶段：随着 Readiness 和 Liveness 的探测成功，当前 Pod 的容器转为 Ready(1/1) 的状态，Service EndPoints 将 Pod 加入到列表当中，Pod 开始接收外部请求。</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>安装简介：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="安装简介">安装简介：</h1>
+<ul>
+<li>Prometheus 可以通过不同的方式安装部署prometheus监控环境，但是实际生产环境只需要根据实际需求选择其中一种方式部署即可，而且无论是使用哪一种方式安装部署的prometheus server，以后的使用都是一样的：</li>
+</ul>
+<h2 id="联网直接安装">联网直接安装</h2>
+<p>使用apt或者yum安装</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">~# apt install prometheus
+</code></pre>
+<h2 id="基于二进制文件安装">基于二进制文件安装</h2>
+<h3 id="下载安装文件">下载安装文件</h3>
+<p>因为生产环境大概率是Linux的，所以我们选择Linux下的发布包，把Prometheus 和 Alertmanager 两个包都下载下来。</p>
+<p>注：Prometheus 的下载地址：<a href="https://prometheus.io/download">https://prometheus.io/download</a></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">root@prometheus-server1:~# mkdir /apps
+root@prometheus-server1:~# wget https://github.com/prometheus/prometheus/releases/download/v3.0.1/prometheus-3.0.1.linux-amd64.tar.gz
+root@prometheus-server1:~# cd /apps/
+root@prometheus-server1:~# tar xvf prometheus-3.0.1.linux-amd64.tar.gz
+root@prometheus-server1:~# ln -sv /apps/prometheus-3.0.1.linux-amd64 /apps/prometheus
+'/apps/prometheus' -&gt; '/apps/prometheus-3.0.1.linux-amd64'
+root@prometheus-server1:~# cd /apps/prometheus
+root@prometheus-server1:~# ll
+total 196072
+drwxr-xr-x 2 3434 3434 38 Feb 12 04:58 console_libraries
+drwxr-xr-x 2 3434 3434 173 Feb 12 04:58 consoles
+-rw-r--r-- 1 3434 3434 11357 Feb 12 04:58 LICENSE
+-rw-r--r-- 1 3434 3434 3773 Feb 12 04:58 NOTICE
+-rwxr-xr-x 1 3434 3434 104427627 Feb 12 04:51 prometheus #prometheus服务可执行程序
+-rw-r--r-- 1 3434 3434 934 Feb 12 04:58 prometheus.yml #prometheus配置文件
+-rwxr-xr-x 1 3434 3434 96322328 Feb 12 04:54 promtool #测试工具，用于检测配置prometheus配置文件、检测metrics数据等
+# ./promtool check config prometheus.yml
+Checking prometheus.yml
+SUCCESS: prometheus.yml is valid prometheus config file syntax
+</code></pre>
+<h3 id="创建-service-启动文件">创建 service 启动文件</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">root@prometheus-server1:~# cat &lt;&lt;EOF &gt;/etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus Server
+Documentation=https://prometheus.io/docs/introduction/overview/
+After=network.target
+
+[Service]
+Type=simple
+
+WorkingDirectory=/apps/prometheus/
+ExecStart=/apps/prometheus/prometheus --config.file=/apps/prometheus/prometheus.yml --storage.tsdb.path=/apps/prometheus/data --web.enable-lifecycle --enable-feature=remote-write-receiver --query.lookback-delta=2m --web.enable-admin-api
+
+Restart=on-failure
+SuccessExitStatus=0
+LimitNOFILE=65536
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=prometheus
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+root@prometheus-server1:~# systemctl daemon-reload &amp;&amp; systemctl restart prometheus &amp;&amp; systemctl enable prometheus.service
+root@prometheus-server1:~# systemctl status prometheus
+</code></pre>
+<h2 id="基于-docker">基于 docker</h2>
+<p>基于docker镜像直接启动或通过docker-compose编排</p>
+<p><a href="https://prometheus.io/docs/prometheus/latest/installation">https://prometheus.io/docs/prometheus/latest/installation</a></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 官网
+docker run \
+  -p 9090:9090 \
+  -v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 修改某些配置
+docker run -d -p 9090:9090 -v /apps/prometheus/:/etc/prometheus/ quay.io/prometheus/prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle
+      
+# 热更新配置
+curl -X POST http://localhost:9090/-/reload
+# 日志显示以下内容即表示配置文件热加载成功：
+... msg=&quot;Loading configuration file&quot; filename=prometheus.yml ...
+</code></pre>
+<h2 id="基于operator部署在kubernetes环境部署">基于operator部署在kubernetes环境部署</h2>
+<p><a href="https://github.com/prometheus-operator/kube-prometheus">https://github.com/prometheus-operator/kube-prometheus</a></p>
+<h1 id="prometheus-进程的启动参数">Prometheus 进程的启动参数</h1>
+<p>这里需要重点关注的是 Prometheus 进程的启动参数，我在每个参数下面都做出了解释，你可以看一下。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 指定配置文件
+--config.file=/apps/prometheus/prometheus.yml
+
+# 指定 Prometheus 时序数据的硬盘存储路径
+--storage.tsdb.path=/apps/prometheus/data
+
+# 启用生命周期管理相关的 API，比如调用 /-/reload 接口就需要启用该项
+--web.enable-lifecycle
+
+# 启用 remote write 接收数据的接口，启用该项之后，categraf、grafana-agent 等 agent 就可以通过 /api/v1/write 接口推送数据给 Prometheus
+--enable-feature=remote-write-receiver
+
+# 即时查询在查询当前最新值的时候，只要发现这个参数指定的时间段内有数据，就取最新的那个点返回，这个时间段内没数据，就不返回了
+--query.lookback-delta=2m
+
+# 启用管理性 API，比如删除时间序列数据的 /api/v1/admin/tsdb/delete_series 接口
+--web.enable-admin-api
+
+# 指定监听地址
+--web.listen-address=&quot;0.0.0.0:9090&quot;
+
+# 指定chunk大小，默认512MB
+--storage.tsdb.retention.size=B, KB, MB, GB, TB, PB, EB
+
+# 数据保存时长，默认15天
+--storage.tsdb.retention.time=
+
+# 最大查询超时时间
+--query.timeout=2m
+
+# 最大查询并发数
+-query.max-concurrency=20
+
+# 最大空闲超时时间
+--web.read-timeout=5m
+
+#最大并发连接数
+--web.max-connections=512
+</code></pre>
+<p>如果正常启动，Prometheus 默认会在 9090 端口监听，访问这个端口就可以看到 Prometheus 的 Web 页面，输入下面的 PromQL 可以查到一些监控数据。</p>
+<p><img src="../../../../assets/wiki-img/CRRqb4ySOoVe0Qxr5dOc6xdwnCd.png" alt="图片展示的是Prometheus的Web页面，用于查询监控数据。页面上方有“Prometheus”等导航栏，下方查询框输入了“{instance=&quot;localhost:9090&quot;, name=&quot;go_gc_...&quot;}”的PromQL语句，执行后显示了多个go_gc_duration_seconds指标的数据，如0.000028764、0.000067593等，还列出了go_gc_duration_seconds_count和go_gc_duration_seconds_sum等指标。该图与文档中介绍Prometheus Web页面查询监控数据的内容相关，直观呈现了查询结果。"></p>
+<p>这个数据是从哪里来的呢？其实是 Prometheus 自己抓取自己的，Prometheus 会在 <code>/metrics</code> 接口暴露监控数据，你可以访问这个接口看一下输出。同时Prometheus在配置文件里配置了抓取规则，打开 prometheus.yml 就可以看到了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+</code></pre>
+<p>localhost:9090是暴露监控数据的地址，没有指定接口路径，默认使用 <code>/metrics</code>，没有指定 scheme，默认使用 HTTP，所以实际请求的是 <code>http://localhost:9090/metrics</code>。</p>
+<h1 id="配置告警规则">配置告警规则</h1>
+<p>Prometheus 进程内置了告警判断引擎，prometheus.yml 中可以指定告警规则配置文件，默认配置中有个例子。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">rule_files:
+  # - &quot;first_rules.yml&quot;
+  # - &quot;second_rules.yml&quot;
+</code></pre>
+<p>我们可以把不同类型的告警规则拆分到不同的配置文件中，然后在 prometheus.yml 中引用。比如 Node-Exporter 相关的规则，我们命名为 node_exporter.yml，最终这个rule_files就变成了如下配置。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">rule_files:
+  - &quot;node_exporter.yml&quot;
+</code></pre>
+<p>我设计了一个例子，监控 Node-Exporter 挂掉以及内存使用率超过1%这两种情况。这里我故意设置了一个很小的阈值，确保能够触发告警。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">groups:
+- name: node_exporter
+  rules:
+  - alert: HostDown
+    expr: up{job=&quot;node_exporter&quot;} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: Host down {{ $labels.instance }}
+  - alert: MemUtil
+    expr: 100 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 &gt; 1
+    for: 1m
+    labels:
+      severity: warn
+    annotations:
+      summary: Mem usage larger than 1%, instance:{{ $labels.instance }}
+</code></pre>
+<p>最后，给 Prometheus 进程发个 HUP 信号，让它重新加载配置文件。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kill -HUP `pidof prometheus`
+</code></pre>
+<p>之后，我们就可以去 Prometheus 的 Web 上（Alerts菜单）查看告警规则的判定结果了。</p>
+<p><img src="../../../../assets/wiki-img/X69ebDD7AozPtbxUP46crH88n2f.png" alt="图片展示的是Prometheus的Web界面，呈现告警规则判定结果。上方有“Alerting”选项卡，下方列表中“HostDown”规则状态为Inactive，无触发事件；“MemUtil”规则状态为Pending，触发了一个事件，自2024 - 12 - 08 01:30:22.9740772582起，Value为55.05163714964522。该图与上文提到的查看告警规则判定结果相呼应，直观呈现了告警状态及事件信息。"></p>
+<p>我们从图中可以看出，告警分成3个状态，Inactive、Pending、Firing。HostDown这个规则当前是Inactive状态，表示没有触发相关的告警事件，MemUtil这个规则触发了一个事件，处于Firing状态。那什么是Pending状态呢？触发过阈值但是还没有满足持续时长（ for 关键字后面指定的时间段）的要求，就是Pending状态。比如 for 1m，就表示触发阈值的时间持续1分钟才算满足条件，如果规则判定执行频率是10秒，就相当于连续6次都触发阈值才可以。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

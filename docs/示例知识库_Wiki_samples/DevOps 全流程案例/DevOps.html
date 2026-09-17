@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevOps 全流程案例</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="devops-全流程案例">DevOps 全流程案例</h1>
+<p><img src="../../../assets/wiki-img/Q2zlbrLa3oBOwlxaKONcdYCUnTb.png" alt="图片展示了DevOps全流程案例，分为源码、持续集成、持续部署、持续监控四个阶段。源码阶段有App Source Code、PR、Unit Test；持续集成阶段有Jenkins、sonarqube、Kaniko、Tarball、Grype；持续部署阶段有argo、Helm、Crane；持续监控阶段有Prometheus、Grafana。该图与文档中介绍的DevOps全流程案例上下文对应，直观呈现了各阶段涉及的工具及流程。"></p>
+<ul>
+<li>unit test 单元测试</li>
+<li>Pr 合并请求（pull request）</li>
+<li>sonarQube 代码扫描（质量门禁）</li>
+<li>Kaniko 构建镜像（DinD 方式不安全）</li>
+<li>Tarball 导出镜像tar包</li>
+<li>Grype 镜像安全扫描</li>
+<li>Crane 将Tarball 转换为标准镜像格式并推送到Harbor</li>
+<li>Harbor 镜像仓库</li>
+<li>cosign 签名，识别镜像来源，防止直接本地推送仓库（必须经过CI）</li>
+</ul>
+<h2 id="如何拉起全流程-demo">如何拉起全流程 Demo</h2>
+<ol>
+<li>clone git@github.com:devops-advanced-camp/code.git</li>
+<li>进入 iac/week-1/devops-overview 目录，按照 README.md 指引</li>
+<li>获得运行输出</li>
+</ol>
+<h2 id="demo">Demo</h2>
+<ol>
+<li>
+<p>多环境管理和环境晋升</p>
+<ol>
+<li>Dev</li>
+<li>Prod</li>
+</ol>
+</li>
+<li>
+<p>PR 触发流水线</p>
+</li>
+<li>
+<p>Sonarqube 代码质量门禁</p>
+<ol>
+<li>重复代码</li>
+</ol>
+</li>
+<li>
+<p>Trigger on Image Update</p>
+</li>
+<li>
+<p>创建一个新环境</p>
+</li>
+<li>
+<p>开启签名校验，阻止未经签名的镜像部署</p>
+<ol>
+<li>本地构建未签名镜像</li>
+</ol>
+</li>
+<li>
+<p>开启漏洞校验，阻止包含漏洞的镜像部署</p>
+</li>
+<li>
+<p>Grafana 面板</p>
+<ol>
+<li>K8s Dashboard</li>
+<li>Jenkins Dashboard</li>
+<li>Argo CD Dashboard</li>
+<li>Harbor Dashboard</li>
+<li>SonarQube Dashboard</li>
+</ol>
+</li>
+<li>
+<p>飞书通知</p>
+</li>
+</ol>
+<h3 id="iac-云资源管理">IaC 云资源管理</h3>
+<h3 id="k3s-高可用部署">K3s 高可用部署</h3>
+<p>使用远端 PostgreSQL 替代 SQLite 存储</p>
+<p>避免集群工作负载过高导致 SQLite 宕机</p>
+<h3 id="cloudflare-自动域名解析">Cloudflare 自动域名解析</h3>
+<h3 id="ssl-证书">SSL 证书</h3>
+<p>cert-manager 自动申请 SSL 证书</p>
+<p>自动续期</p>
+<h3 id="pr-触发流水线">PR 触发流水线</h3>
+<h3 id="镜像管理">镜像管理</h3>
+<p>前缀 + commit id 作为镜像 tag</p>
+<p>每个 commit 对应一个镜像</p>
+<p>遵循“不可变制品”原则，且不使用 latest Tag 作为更新镜像的版本</p>
+<h3 id="sonarqube-代码扫描和质量门禁">Sonarqube 代码扫描和质量门禁</h3>
+<h3 id="sonarqube-质量门禁-重复率">Sonarqube 质量门禁-重复率</h3>
+<p>camp-go-example/cmd/podinfo/main.go</p>
+<p>copy function main and rename</p>
+<h3 id="更新-dev-环境">更新 Dev 环境</h3>
+<p>修改 ui/vue.html#L34，构建并推送镜像，触发环境更新</p>
+<p>配置 Hosts：ip dev.podinfo.local</p>
+<h3 id="强制镜像签名检查">强制镜像签名检查</h3>
+<p>Harbor 开启签名校验，阻止未经签名的镜像部署，推送一个未签名的镜像测试</p>
+<p>docker pull lyzhang1999/camp-go-example:dev-no-sign</p>
+<p>docker tag lyzhang1999/camp-go-example:dev-no-sign</p>
+<p>harbor.wei4.gkdevopscamp.com/example/camp-go-example:dev-no-sign</p>
+<p>docker push harbor.wei4.gkdevopscamp.com/example/camp-go-example:dev-no-sign</p>
+<p>查看 argocd image updater 阻止部署日志，本地签名：cosign sign --key /root/cosign.key $BUILD_IMAGE</p>
+<h3 id="镜像漏洞扫描阻止部署">镜像漏洞扫描、阻止部署</h3>
+<p>方法 1：Harbor 开启漏洞校验，阻止包含严重漏洞的镜像部署</p>
+<p>方法 2：Grype cli 启用扫描漏洞异常退出</p>
+<p>grype $BUILD_IMAGE --fail-on high</p>
+<p>修改 dev 分支 Dockerfile #23 FROM golang:1.16-alpine</p>
+<h3 id="应用定义-helm">应用定义-Helm</h3>
+<h3 id="代码镜像环境晋升">代码、镜像、环境晋升</h3>
+<p>将 dev 合并到 main 分支，演示环境晋升</p>
+<h3 id="查看业务日志">查看业务日志</h3>
+<h3 id="基于-cpu-的弹性伸缩">基于 CPU 的弹性伸缩</h3>
+<h3 id="grafana-面板">Grafana 面板</h3>
+<ul>
+<li>K8s Dashboard</li>
+<li>Pods 资源用量</li>
+<li>工作负载资源用量</li>
+<li>Jenkins Dashboard</li>
+<li>Argo CD Dashboard</li>
+<li>Harbor Dashboard</li>
+<li>SonarQube Dashboard</li>
+</ul>
+<h3 id="如何阅读全流程案例的源码">如何阅读全流程案例的源码</h3>
+<ol>
+<li>k3s.tf 作为入口阅读</li>
+<li>init.sh.tpl 是核心逻辑</li>
+</ol>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

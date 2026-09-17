@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service 资源基础</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="service-资源基础">Service 资源基础</h1>
+<ul>
+<li>
+<p>Service是Kubernetes标准的API资源类型之一</p>
+<ul>
+<li>
+<p>为动态的Pod资源提供近似静态的流量入口</p>
+<ul>
+<li>
+<p>服务发现：通过标签选择器筛选同一名称空间下的Pod资源的标签，完成Pod筛选</p>
+<ul>
+<li>实际上是由与Service同名的Endpoint或EndpointSlice资源及控制器完成</li>
+</ul>
+</li>
+<li>
+<p>流量调度：由运行各工作节点的kube-proxy根据配置的模式生成相应的流量调度规则</p>
+<ul>
+<li>iptables</li>
+<li>ipvs</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>持续监视着相关Pod资源的变动，并实时反映至相应的流量调度规则之上</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/UwR6b9dRloEEarx5HCvcFRvZnDg.png" alt="图片展示了Kubernetes中Service资源的流量调度示例。图中有Service A和Service B，分别对应10.10.9.1和10.10.9.2的Cluster IP。每个Service关联着Pod，如Service A关联Pod A，Service B关联Pod B。Pod A和Pod B分别有标签app=A和app=B。图中还标注了Label Selector，表明通过标签选择器筛选同一名称空间下的Pod资源。此图与上下文介绍的Service资源基础内容相关，直观呈现了Service通过标签选择器筛选Pod完成流量调度的过程。"></p>
+<h1 id="动态可配置负载均衡">动态可配置负载均衡</h1>
+<ul>
+<li>
+<p>从Service的视角来看，Kubernetes集群的每个工作节点都是动态可配置的负载均衡器</p>
+</li>
+<li>
+<p>对于隶属某Service的一组Pod资源，该Service资源能够将集群中的每个工作节点配置为该组Pod的负载均衡器</p>
+</li>
+<li>
+<p>客户端可以是来自集群之上的Pod，也可以是集群外部的其它端点</p>
+</li>
+<li>
+<p>对于一个特定的工作节点上的某Service来说，其客户端通常有两类</p>
+<ul>
+<li>
+<p>该节点之上的进程，可通过该Service的Cluster IP进入</p>
+<ul>
+<li>Service_IP:Service_Port</li>
+</ul>
+</li>
+<li>
+<p>该节点之外的端点，可经由该Service的NodePort进入</p>
+<ul>
+<li>Node_IP:Node_Port</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>显然，若客户端进入的节点，并非目标Pod所在的节点时，<strong>报文转发的路径中必然存在跃点</strong></p>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/UPBMbUMv9oEFmdxQ7CCcYTyinGh.png" alt="图片展示了Kubernetes集群中Service的流量调度机制。左侧Node X上有kube-proxy、Client Pod 1、Server Pod 1，右侧Node Y上有kube-proxy、Server Pod 2。Service位于kernel space，有NodePort标识。外部客户端可经由Node_IP:Node_Port访问Service。该图与上下文紧密相关，直观呈现了Service视角下，集群中工作节点作为负载均衡器，客户端可从集群外部或集群内部访问Pod资源的流量调度过程。"></p>
+<h1 id="service-的4种类型">Service 的4种类型</h1>
+<ul>
+<li>
+<p>Service根据其所支持的客户端接入的方式，可以分为4种类型</p>
+<ul>
+<li>
+<p><strong>ClusterIP</strong>：默认，它是K8S系统自动分配的虚拟IP，ClusterIP 类型会为 Service 创建一个 VIP，只能在集群内部访问；</p>
+</li>
+<li>
+<p><strong>NodePort</strong>：将Service通过指定的Node上的端口暴露给外部，通过此方法，就可以在集群外部访问服务；不过，由于这种暴露方式会侵入到节点，并且还需要配置的端口在节点上没有被占用，所以我并不推荐这种 Service 暴露方式，我们在实际工作中也一般不会使用这种方式。</p>
+</li>
+<li>
+<p><strong>LoadBalancer</strong>：使用外接负载均衡器完成到服务的负载分发，注意此模式需要外部云环境支持；</p>
+<ul>
+<li>
+<p>Kubernetes集群外部的LoadBalancer负责将接入的流量转发至工作节点上的NodePort</p>
+</li>
+<li>
+<p>LoadBalancer需与相关的NodePort的Service生命周期联动</p>
+<ul>
+<li>LoadBalancer应该是由软件定义</li>
+<li>Kubernetes需要同LoadBalancer所属的管理API联动</li>
+</ul>
+</li>
+<li>
+<p>对于业务服务，我不推荐你直接使用 Loadbalancer 来暴露服务。首先，因为 Loadbalancer 具备独立的 IP 地址，所以云厂商通常会按照“时长+流量”的方式计费，这会带来高昂的成本。其次，一个 K8s 集群内通常会有多个业务 Service 需要暴露，所以这种方式会开通多个负载均衡器实例，这是没有必要的。</p>
+</li>
+<li>
+<p>在实际的业务中，我们通常会在集群内安装一个入口网关，例如 Ingress-nginx，它会自带一个 Loadbalancer 类型的 Service，然后由 Ingress-nginx 来统一接收外部请求，并将请求转发到集群内部。我们只需要配置域名或路径规则即可实现一个 Loadbalancer IP 暴露集群所有 Service 的效果。</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>ExternalName</strong>：把集群外部的服务引入到集群内部直接使用</p>
+<ul>
+<li>负责将集群外部的服务引入到集群中</li>
+<li>需要借助于ClusterDNS上的CNAME资源记录完成</li>
+<li>特殊类型，无需ClusterIP和NodePort</li>
+<li>无须定义标签选择器发现Pod对象</li>
+<li>ClusterIP、NodePort 和 Loadbalancer 类型都是通过 Pod 选择器将 Service 和 Pod 关联起来，然后将请求转发到对应的 Pod 中的。而 ExternalName 类型非常特殊，它不通过 Pod 选择器关联 Pod ，而是将 Service 和另外一个域名关联起来。下面是一个 ExternalName 类型的Service Manifest 的例子：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: backend-service.example.svc.cluster.local
+</code></pre>
+<ul>
+<li>当将上面的 Service 应用到集群之后，在 default 命名空间下访问 <a href="http://backend-serivce:5000">http://backend-serivce:5000</a> 时，请求将会被转发到 example 命名空间下的 backend-service。我们会发现虽然目标 Service 和请求发起方不在同一个命名空间下，但可以通过这种方法屏蔽它们在不同命名空间的调用差异，使得两个服务看起来像是在同一个命名空间下。</li>
+<li>此外，当我们需要通过 Service 名称的方式请求外部服务时，例如请求在集群外的数据库服务，也可以使用这种方法。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/R8FOb4V6EorDtpxdJNtcTbnOntd.png" alt="图片展示了Kubernetes集群中Service的架构。左侧Node X上有Client Pod 1、Server Pod 1及kube-proxy，右侧Node Y上有Server Pod 2及kube-proxy。Server Pod 1和Server Pod 2分别通过Service（iptables OR ipvs）和NodePort与外部客户端通信，外部客户端通过LoadBalancer（External）访问。该图与上下文介绍的Service类型相关，直观呈现了ClusterIP、NodePort、LoadBalancer三种类型Service的架构。"></p>
+<h1 id="创建service资源">创建Service资源</h1>
+<ul>
+<li>
+<p>由Service表示的负载均衡器，主要定义如下内容</p>
+<ul>
+<li>
+<p>负载均衡器入口：ClusterIP及相关的Service Port、NodePort（每个节点的Node IP都可用）</p>
+<ul>
+<li>根据通信需求，确定选择的类型</li>
+</ul>
+</li>
+<li>
+<p>标签选择器：用于筛选Pod，并基于筛选出的Pod的IP生成后端端点列表（被调度的上游端点）</p>
+</li>
+<li>
+<p>Service类型的专有配置</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/H41lbE8hxo3s4dxZczRcqbnAnvb.png" alt="图片展示了Kubernetes集群中Service X的架构。左侧为Kubernetes Cluster，右侧是namespace Y。Service X有ClusterIP - ServicePort和NodePort两种入口，集群内客户端通过ClusterIP - ServicePort访问，集群外客户端通过NodePort访问。Service X基于标签选择器（selector）筛选Pod，筛选出的Pod的IP生成后端端点列表，最终指向targetPort。此图与上下文介绍的Service资源相关，直观呈现了Service的入口、标签选择器及后端端点等关键信息。"></p>
+<h1 id="标签和标签选择器">标签和标签选择器</h1>
+<ul>
+<li>
+<p>标签：附加在资源对象上的键值型元数据</p>
+<ul>
+<li>
+<p>键标识：由“键前缀（可选）”和“键名”组成，格式为“key_prefix/key_name”</p>
+<ul>
+<li>键前缀必须使用DNS域名格式</li>
+<li>键名的命名格式：支持字母、数字、连接号、下划线和点号，且只能以字母或数字开头；最长63个字符；</li>
+</ul>
+</li>
+<li>
+<p>“kubectl label”命令可管理对象的标签</p>
+</li>
+</ul>
+</li>
+<li>
+<p>标签选择器：基于标签筛选对象的过滤条件，支持两种类型</p>
+<ul>
+<li>
+<p>基于等值关系的选择器</p>
+<ul>
+<li>操作符：=或==、!=</li>
+</ul>
+</li>
+<li>
+<p>基于集合关系的选择器</p>
+<ul>
+<li>操作符：in、notin和exists</li>
+<li>使用格式：KEY in (VALUE1, VALUE2, …)、 KEY notin (VALUE1, VALUE2, …)、KEY 和 !KEY</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="service资源规范">Service资源规范</h1>
+<p>Kubernetes上标准的API资源类型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Service
+metadata:
+  name: &lt;string&gt;
+  namespace: &lt;string&gt;
+spec:
+  type: &lt;string&gt;          # Service类型，默认为ClusterIP
+  selector: &lt;map[string]string&gt;      # 等值类型的标签选择器，内含“与”逻辑
+  ports:                  # Service的端口对象列表
+  - name: &lt;string&gt;        # 端口名称
+    protocol: &lt;string&gt;    # 协议，目前仅支持TCP、UDP和SCTP，默认为TCP
+    port: &lt;integer&gt;       # Service的端口号
+    targetPort: &lt;string&gt;  # 后端目标进程的端口号或名称，名称需由Pod规范定义
+    nodePort: &lt;integer&gt;   # 节点端口号，仅适用于NodePort和LoadBalancer类型
+  clusterIP: &lt;string&gt;     # Service的集群IP，建议由系统自动分配
+  externalTrafficPolicy: &lt;string&gt;     # 外部流量策略处理方式，Local表示由当前节点处理，Cluster表示向集群范围调度
+  loadBalancerIP: &lt;string&gt;      # 外部负载均衡器使用的IP地址，仅适用于LoadBalancer
+  externalName: &lt;string&gt;         # 外部服务名称，该名称将作为Service的DNS CNAME值
+</code></pre>
+<h1 id="service资源示例">Service资源示例</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp
+spec:
+  type: ClusterIP     # 类型标识，默认即为ClusterIP；
+  selector:
+    app: demoapp
+  ports:
+  - name: http       # 端口名称标识
+    protocol: TCP    # 协议，支持TCP、UDP和SCTP
+    port: 80         # Service的端口号
+    targetPort: 80   # 目标端口号，即后端端点提供服务的监听端口号
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp
+spec:
+  type: NodePort     # 必须明确给出Service类型
+  selector:
+    app: demoapp
+  ports:
+  - name: http       # 端口名称标识
+    protocol: TCP    # 协议，支持TCP、UDP和SCTP
+    port: 80         # Service的端口号
+    targetPort: 30080   # 可选，为避免冲突，建议由系统动态分配
+</code></pre>
+<h1 id="endpoint"><strong>EndPoint</strong></h1>
+<p>从上面的信息中我们看到有个字段叫<code>Endpoints</code>，<code>Endpoints</code> 是Kubernetes中的一个资源对象，存储在etcd中，用来记录一个service对应的所有Pod的访问地址，它是根据service配置文件中的selector描述产生的。当我们在 Service 里使用 Pod 选择器时，我们并不需要主动去创建 Endpoints 对象。在创建 Service 之后，K8s 会自动帮助我们创建 Endpoint。</p>
+<p>一个service由一组Pod组成，这些Pod通过Endpoints暴露出来，Endpoints是实现实际服务的端点集合。换言之，service和Pod之间的联系是通过Endpoints实现的。</p>
+<p><img src="../../../../assets/wiki-img/OVE2b5lbmo5uQnxihJMcz5uPnwe.png" alt="图片展示了Service的ClusterIP类型示例。左侧为黄色的servie-clusterip，中间是绿色的service-clusterip，其IP为10.244.1.39:80和10.244.1.40:80。右侧有两个红色椭圆，分别标注10.244.1.39和10.244.1.40，各配有一个白色圆圈，内有数字80。该图与上下文介绍Service的ClusterIP类型相关，直观呈现了ClusterIP服务的IP地址和端口信息。"></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">[root@master service]# kubectl get endpoints -n dev -o wide
+NAME                ENDPOINTS                                        AGE
+service-clusterip   10.244.1.120:80,10.244.1.121:80,10.244.2.45:80   5m7s
+</code></pre>
+<h1 id="nodeport-service流量策略">NodePort Service流量策略</h1>
+<ul>
+<li>
+<p>流量策略一：Cluster，表示在整个Kubernetes集群范围内调度；</p>
+<ul>
+<li>该流量策略下，请求报文从某个节点上的NodePort进入，该节点上的Service会将其调度至任何一个可用后端Pod之上，而不关心Pod运行于哪个节点；</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/P82RbZ10Bo9Xk6xIzJ6cFj7snHe.png" alt="图片展示了NodePort类型的Service工作原理。外部客户端通过NodePort访问Service M，NodePort位于各节点的cni0网卡上。Service M在各节点的Pod网络中，Pod通过X、Y等端口与Service M通信。Service M在Service网络中，Service M通过X、Y等端口与Pod通信。该图直观呈现了NodePort从外部客户端到Pod的流量调度过程，与上下文介绍的NodePort流量策略相呼应。"></p>
+<ul>
+<li>
+<p>流量策略二：Local，表示仅将请求调度至当前节点上运行的可用后端端点；</p>
+<ul>
+<li>该流量策略下，请求报文从某节点NodePort进入后，该节点上的Service仅会将请求调度至当前节点上适配到该Service的后端端点</li>
+<li>仅应该从运行有目标Service对象后端Pod对象的节点的NodePort发起访问</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/MF3Bb51A0odlDXxhTwIc3k64neg.png" alt="图片展示了Kubernetes集群中Service M的网络架构。左侧Node01、中间Node02、右侧Node03上分别运行着Service M的Pod，每个Pod通过cni0网络连接。Service M的NodePort与Pod网络相连，外部客户端可通过NodePort访问Service M。图中用红色圆圈标识出Node02与Node03之间的节点网络，表明该部分网络不可用，影响了Service M的访问。此图与上下文介绍NodePort Service流量策略中Local策略下请求调度至当前节点上适配到该Service的后端端点的内容相关，直观呈现了流量调度的网络环境。"></p>
+<h1 id="loadbalancer类型的service">LoadBalancer类型的Service</h1>
+<ul>
+<li>在接入外部流量方面，NodePort存在着几个方面的问题</li>
+<li>非知名端口、私网IP地址、节点故障转移、节点间负载均衡、识别能适配到某Service的Local流量策略的节点等</li>
+<li>外置的Cloud Load Balancer可以解决以上诸问题</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/AnQbb4y0roLNcWxmPptcYvtknif.png" alt="图片展示了NodePort类型的Service接入外部流量的网络架构。左侧Node01、中间Node02、右侧Node03上分别有Service M、M server pod 1、M server pod 2等，每个节点都有NodePort。外部客户端通过Cloud Load Balancer访问Service M，其流量经Pod网络、节点网络到达相应节点的NodePort，再由NodePort调度至Service M。该图与文档中介绍NodePort Service流量策略的内容相关，直观呈现了流量从外部客户端到Service M的路径。"></p>
+<h1 id="service和cluster-dns">Service和Cluster DNS</h1>
+<ul>
+<li>
+<p>Cluster DNS（CoreDNS）是Kubernetes集群的必备附件，负责为Kubernetes提供名称解析和服务发现</p>
+</li>
+<li>
+<p>每个Service资源对象，在CoreDNS上都会自动生成一个遵循 <code>&lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;</code> 格式的名称</p>
+<ul>
+<li>&lt;service&gt;：当前Service对象的名称</li>
+<li>&lt;ns&gt;：当前Service对象所属的名称空间</li>
+<li>&lt;zone&gt;：当前Kubernetes集群使用的域名后缀，默认为“cluster.local”</li>
+</ul>
+</li>
+<li>
+<p>围绕该名称会生成一些DNS格式的资源记录</p>
+</li>
+<li>
+<p>CoreDNS会持续监视API Server上的Service资源对象的变动，并实时反映到相关的DNS资源记录中</p>
+</li>
+<li>
+<p>Pod中各容器默认会在/etc/resolv.conf中，将nameserver指向CoreDNS相关的Service的ClusterIP</p>
+</li>
+<li>
+<p>由kubelet创建Pod时根据指定的配置自动注入</p>
+</li>
+</ul>
+<h1 id="service在cluster-dns上的资源记录">Service在Cluster DNS上的资源记录</h1>
+<ul>
+<li>
+<p>每个Service，在CoreDNS上都会有A/AAAA、SRV和PTR资源记录</p>
+<ul>
+<li>
+<p>A/AAAA资源记录</p>
+<ul>
+<li>&lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;. &lt;ttl&gt; IN A &lt;cluster-ip&gt;</li>
+<li>&lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;. &lt;ttl&gt; IN AAAA &lt;cluster-ip&gt;</li>
+</ul>
+</li>
+<li>
+<p>为每个定义了名称的端口生成一个SRV记录，以支持服务发现</p>
+<ul>
+<li><em>&lt;port&gt;.</em>&lt;proto&gt;.&lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;. &lt;ttl&gt; IN SRV &lt;weight&gt; &lt;priority&gt; &lt;port-number&gt; &lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;.</li>
+</ul>
+</li>
+<li>
+<p>为每个A记录（例如a.b.c.d）或AAAA记录生成对应的PTR记录，例如</p>
+<ul>
+<li>&lt;d&gt;.&lt;c&gt;.&lt;b&gt;.&lt;a&gt;.in-addr.arpa. &lt;ttl&gt; IN PTR &lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;.</li>
+<li>h4.h3.h2.h1.g4.g3.g2.g1.f4.f3.f2.f1.e4.e3.e2.e1.d4.d3.d2.d1.c4.c3.c2.c1.b4.b3.b2.b1.a4.a3.a2.a1.ip6.arpa &lt;ttl&gt; IN PTR &lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Pod可基于Service的DNS名称向其发起服务访问请求</p>
+</li>
+</ul>
+<h1 id="pod上的dns解析策略">Pod上的DNS解析策略</h1>
+<ul>
+<li>
+<p>Kubernetes支持在单个Pod资源规范上自定义DNS解析策略和配置，并组合生效</p>
+<ul>
+<li>spec.dnsPolicy：解析策略</li>
+<li>spec.dnsConfig：名称解析机制</li>
+</ul>
+</li>
+<li>
+<p>DNS解析策略</p>
+<ul>
+<li>Default：从运行在的节点继承DNS名称解析相关的配置</li>
+<li>ClusterFirst：于集群DNS服务上解析集群域内的名称，其他域名的解析则交由从节点继承而来的上游名称服务器</li>
+<li>ClusterFirstWithHostNet：专用于在设置了hostNetwork的Pod对象上使用的ClusterFirst策略</li>
+<li>None：用于忽略Kubernetes集群的默认设定，而仅使用由dnsConfig自定义的配置</li>
+</ul>
+</li>
+<li>
+<p>DNS解析机制</p>
+<ul>
+<li>nameservers &lt;[]string&gt;：DNS名称服务器列表，附加于由dnsPolicy生成的DNS名称服务器之后</li>
+<li>searches &lt;[]string&gt;：DNS名称解析时的搜索域，附加由于dnsPolicy生成的搜索域之后</li>
+<li>options &lt;[]Object&gt;：DNS解析选项列表，同dnsPolicy生成的解析选项合并成最终生效的定义</li>
+</ul>
+</li>
+</ul>
+<h1 id="headless-service">Headless Service</h1>
+<ul>
+<li>
+<p>Service的各类型中，ClusterIP、NodePort和LoadBalancer都为其Service配置一个ClusterIP，CoreDNS上，这些Service对象的A记录也解析为它的ClusterIP；</p>
+</li>
+<li>
+<p>广义上，那些没有 ClusterIP 的 Service 则称为 Headless Service，它们又可以为分两种情形</p>
+<ul>
+<li>
+<p>有标签选择器，或者没有标签选择器，但有着与Service对象同名的Endpoint资源</p>
+<ul>
+<li>Service的DNS名称直接解析为后端各就绪状态的Pod的IP地址</li>
+<li>调度功能也将由DNS完成</li>
+<li>各Pod IP相关PTR记录将解析至Pod自身的名称，假设Pod IP为a.b.c.d，则其名称为a-b-c-d.&lt;service&gt;.&lt;ns&gt;.svc.&lt;zone&gt;</li>
+<li>这种类型也就是狭义上的Headless Service</li>
+</ul>
+</li>
+<li>
+<p>无标签选择器且也没有与Service对象同名的Endpoint资源</p>
+<ul>
+<li>Service的DNS名称将会生成一条CNAME记录，对应值由Service对象上的spec.externalName字段指定</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="external-service示例">External Service示例</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kind: Service
+apiVersion: v1
+metadata:
+  name: externalname-mageedu
+spec:
+  type: ExternalName
+  externalName: www.magedu.com
+  ports:
+  - protocol: TCP
+    port: 80 target
+    Port: 80
+  selector: {}
+</code></pre>
+<h2 id="headless-service示例">Headless Service示例</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp-headless-svc
+spec:
+  clusterIP: None
+  selector:
+    app: demoapp
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+</code></pre>
+<h1 id="service流量转发机制">Service流量转发机制</h1>
+<ul>
+<li>
+<p>ClusterIP类型</p>
+<ul>
+<li>
+<p>源自Pod</p>
+<ul>
+<li>
+<p>没启动masquerade-all：请求报文的目标IP和目标端口由Service转为挑选出的后端Pod的IP和端口，并由后端Pod直接响应给客户端Pod</p>
+<ul>
+<li>发夹问题：Pod访问自身所属的Service后，由Service又调度回该Pod</li>
+<li>存在发夹问题（haripin）的场景中，需要启用源IP地址转换</li>
+</ul>
+</li>
+<li>
+<p>启用masquerade-all：请求报文的源IP和目标IP都将由Service进行转换，原IP将转为客户端Pod所在节点在Pod网络中的IP地址</p>
+</li>
+</ul>
+</li>
+<li>
+<p>源自非Pod网络中的请求流量</p>
+<ul>
+<li>接入流量的节点充当NAT网关，请求报文的源IP和目标IP都将由Service进行转换</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>NodePort和LoadBalancer类型</p>
+<ul>
+<li>流量来自集群外部，节点扮演网关的角色，请求报文的源IP和目标IP都将由Service进行转换，原IP将转为客户端Pod所在节点的IP地址，以确保响应报文能正确送达</li>
+</ul>
+</li>
+<li>
+<p>流量转发示意图：请求报文，目标地址转换都会进行，未启用masquerade-all时，源地址转换将视情况进行</p>
+<ul>
+<li>Pod网络是虚拟网络，最终还是要通过节点网络完成报文传送，因此，SNAT通常会使用节点网络中的地址</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/OetLbfAthoPgShxpC6scy8AGn0e.png" alt="图片展示了Service流量转发机制中ClusterIP、NodePort和LoadBalancer类型流量转发示意图。左侧ClusterIP请求报文经Service转发至Pod，响应报文经Pod返回；中间NodePort请求报文经Service转发至Pod，响应报文经Pod返回；右侧LoadBalancer请求报文经Service转发至Pod，响应报文经Pod返回。箭头标注了请求报文和响应报文的路径，还标注了不同类型的请求报文。该图与上下文介绍的流量转发机制相呼应，直观呈现了不同类型的流量转发过程。"></p>
+<p>你也可以再尝试一下使用“ping”来测试Service的IP地址：</p>
+<p>会发现根本ping不通，因为Service的IP地址是“虚”的，只用于转发流量，所以ping无法得到回应数据包，也就失败了。(测试发下能ping 通？</p>
+<h1 id="如何以域名的方式使用service">如何以域名的方式使用Service</h1>
+<p>DNS是一种层次结构，为了避免太多的域名导致冲突，Kubernetes就把名字空间作为域名的一部分，减少了重名的可能性。</p>
+<p>Service对象的域名完全形式是“ **对象.命名空间.svc.cluster.local**”，但很多时候也可以省略后面的部分，直接写“ **对象.名字空间**”甚至“ **对象名**”就足够了，默认会使用对象所在的名字空间。</p>
+<p>（顺便说一下，Kubernetes也为每个Pod分配了域名，形式是“ **IP地址.名字空间.pod.cluster.local**”，但需要把IP地址里的 <code>.</code> 改成 <code>-</code> 。比如地址 <code>10.10.1.87</code>，它对应的域名就是 <code>10-10-1-87.default.pod</code>。）</p>
+<h1 id="statefulset-的-service">Statefulset 的 Service</h1>
+<p>Service发现这些Pod不是一般的应用，而是有状态应用，需要有稳定的网络标识，所以就会为Pod再多创建出一个新的域名，格式是“ **Pod名.服务名.命名空间.svc.cluster.local**”。当然，这个域名也可以简写成“ **Pod名.服务名**”。</p>
+<p>我们还是用 <code>kubectl exec</code> 进入Pod内部，用ping命令来验证一下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl exec -it redis-sts-0 -- sh
+</code></pre>
+<p><img src="../../../../assets/wiki-img/V63ab6zH5o9lISxoSlacCbu0n2f.png" alt="图片展示的是在Kubernetes环境中，使用kubectl exec进入Pod内部，通过ping命令验证StatefulSet中Pod网络标识的命令行操作结果。在Pod内部执行ping命令，分别对redis-sts-0和redis-sts-1的域名进行测试，显示了响应数据、时间等信息，如ping redis-sts-0.redis-svc的响应时间为0.016 ms等。该图片与上文提到的用kubectl exec进入Pod内部验证StatefulSet里Pod有各自域名的内容相关，直观呈现了验证过程及结果。"></p>
+<p>显然，在StatefulSet里的这两个Pod都有了各自的域名，也就是稳定的网络标识。那么接下来，外部的客户端只要知道了StatefulSet对象，就可以用固定的编号去访问某个具体的实例了，虽然Pod的IP地址可能会变，但这个有编号的域名由Service对象维护，是稳定不变的。</p>
+<p>到这里，通过StatefulSet和Service的联合使用，Kubernetes就解决了“有状态应用”的依赖关系、启动顺序和网络标识这三个问题，剩下的多实例之间内部沟通协调等事情就需要应用自己去想办法处理了。</p>
+<p>关于Service，有一点值得再多提一下。</p>
+<p>Service原本的目的是负载均衡，应该由它在Pod前面来转发流量，但是对StatefulSet来说，这项功能反而是不必要的，因为Pod已经有了稳定的域名，外界访问服务就不应该再通过Service这一层了。所以，从安全和节约系统资源的角度考虑， **我们可以在Service里添加一个字段 **<code>**clusterIP: None**</code>** ，告诉Kubernetes不必再为这个对象分配IP地址**。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

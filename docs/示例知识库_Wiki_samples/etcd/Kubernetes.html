@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>服务注册与服务发现</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>etcd 是 CoreOs 基于 Raft 开发的分布式 key-value 存储，可用于服务发现、共享配置以及一致性保障（如数据库选主、分布式锁等）。</p>
+<p>在分布式系统中，如何管理节点间的状态一直是一个难题，etcd 像是专门为集群环境的服务发现和注册而设计它提供了数据 TTL失效、数据改变监视、多值、目录监听、分布式锁原子操作等功能，可以方便的跟踪并管理集群节点的状态。</p>
+<ul>
+<li>基本的 kay-value 存储：将数据存储在分层组织的目录中，如同在标准文件系统中；</li>
+<li>监测变更：监测特定的键或目录以进行更改，并对值的更改做出反应；</li>
+<li>简单：curl 可访问的用户的 API（HTTP+JSON）；</li>
+<li>安全：可选的 SLL 客户端证书认证；</li>
+<li>Key 的过期及续约机制，用于监控和服务发现</li>
+<li>原子CAS（Compare And Swap）和CAD（Compare And Delete），用于分布式锁和 leader 选举。</li>
+</ul>
+<h1 id="服务注册与服务发现">服务注册与服务发现</h1>
+<ul>
+<li>
+<p>强一致性、高可用的服务存储目录。</p>
+<ul>
+<li>基于 Raft 算法的 etcd 天生就是这样一个强一致性、高可用的服务存储目录。</li>
+</ul>
+</li>
+<li>
+<p>一种注册服务和服务健康状况的机制。</p>
+<ul>
+<li>用户可以在 etcd 中注册服务，并且对注册的服务配置 key TTL，定时保持服务的心跳以达到监控健康状态的效果。</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/wiki-img/SoxdbpeMfoSGOjxJsQvcZDH7nUh.png" alt="图片展示了etcd服务注册与服务发现的流程。服务提供者向etcd注册服务，etcd记录服务信息；服务消费者通过etcd发现服务提供者，二者进行绑定。etcd作为服务注册中心，连接服务提供者和消费者，实现服务注册、发现及绑定。该图与上下文紧密相关，直观呈现了etcd在服务注册与服务发现中的作用，帮助理解其作为强一致性、高可用服务存储目录的功能。"></p>
+<hr>
+<h1 id="基础篇">基础篇</h1>
+<h2 id="etcd-起源">Etcd 起源</h2>
+<p><a href="https://feishu.cn/wiki/SiuawFzSXiZ9bHk18m3cr4NonIb">etcd 起源</a></p>
+<h2 id="etcd-基础架构">etcd 基础架构</h2>
+<p><a href="https://feishu.cn/wiki/HiyNwMAaBit7aKkjgytcAL2gnWh">etcd 基础架构</a></p>
+<h3 id="日志复制">日志复制</h3>
+<p>当 Leader 接收到客户端的日志(事务请求)后先把该日志追加到本地的 Log 中，然后通过heartbeat 把该 Entry同步给其他 Follower，Follower 接收到日志后记录日志然后向 Leader发送 ACK，当Leader收到大多数(n/2+1)Follower的 ACK 信息后将该日志设置为已提交并追加到本地磁盘中，通知客户端并在下个heartbeat中Leader将通知所有的 Follower将该日志存储在自己的本地磁盘中。</p>
+<h3 id="安全性">安全性</h3>
+<p>安全性:是用于保证每个节点都执行相同序列的安全机制。</p>
+<p>如当某个 Follower 在当前 Leader commit Log 时变得不可用了，稍后可能该 Follower 又会被选举为 Leader，这时新 Leader 可能会用新的 Log 覆盖先前已 committed 的Log，这就会导致节点执行不同序列;Safety 就是用于保证选举出来的Leader一定包含先前committedLog 的机制。</p>
+<p>选举安全性(Election Safety):每个任期(Term)只能选举出一个Leader。</p>
+<p>Leader 完整性(Leader Completeness):指Leader日志的完整性，当 Log 在任期Term1被 Commit 后，那么以后任期Term2、Term3...等的 Leader必须包含该 Log;Raft 在选举阶段就使用 Term 的判断用于保证完整性:当请求投票的该Candidate的 Term 较大或 Term 相同Index 更大则投票，否则拒绝该请求。</p>
+<h3 id="失效处理">失效处理</h3>
+<ol>
+<li>Leader 失效:其他没有收到 heartbeat 的节点会发起新的选举，而当 Leader 恢复后由于步进数小会自动成为 Follower(日志也会被新 Leader的日志覆盖)。</li>
+<li>Follower 节点不可用:Follower 节点不可用的情况相对容易解决。因为集群中的日志内容始’终是从 Leader节点同步的，只要这一节点再次加入集群时重新从 Leader 节点处复制日志即可。</li>
+<li>多个 candidate:冲突后 candidate 将随机选择一个等待间隔(150ms~300ms)再次发起投票，得到集群中半数以上Follower 接受的 candidate 将成为 Leader。</li>
+</ol>
+<h3 id="wal-日志write-ahead-log">wal 日志（Write ahead log）</h3>
+<p><img src="../../../assets/wiki-img/X3VzbInzgoqiEpxQJdOcSukInCb.png" alt="图片展示了etcd wal日志中Entry的数据结构。表格标题为“Entry”，包含四个字段：type、term、index、data。type字段用于标识日志类型，0表示Normal，1表示ConfChange；term字段表示日志的任期；index字段是日志的索引；data字段存储实际数据。该图片与上下文紧密相关，上下文介绍了wal日志是二进制的，解析后为LogEntry数据结构，此图直观呈现了LogEntry的字段组成。"></p>
+<ul>
+<li>
+<p>Wal 日志是二进制的，解析出来后是以上数据结构 LogEntry。</p>
+<ul>
+<li>其中第一个字段type，0表示 Normal，1表示ConfChange(Confchange 表示etcd 本身的配置变更同步，比如有新的节点加入等)。</li>
+<li>第二个字段是 term，每个 term 代表一个主节点的任期，每次主节点变更term 就会变化。</li>
+<li>第三个字段是index，这个序号是严格有序递增的，代表变更序号。</li>
+<li>第四个字段是二进制的 data，将raft request 对象的 pb 结构整个保存下。</li>
+<li>etcd 源码下有个 tools/etcd-dump-logs，可以将 wal 日志 dump 成文本查看，可以协助分析 Raft 协议。</li>
+<li>Raft 协议本身不关心应用数据，也就是 data 中的部分，一致性都通过同步 wal 日志来实现每个节点将从主节点收到的 data apply 到本地的存储，Raft 只关心日志的同步状态，如果本地存储实现的有 bug，比如没有正确地将 data apply 到本地，也可能会导致数据不一致。</li>
+</ul>
+</li>
+</ul>
+<h2 id="安装-etcd-集群">安装 etcd 集群</h2>
+<p><a href="https://feishu.cn/wiki/PMDCwlnXOi5IX7kfjFOcLNAmnTb">安装 etcd 集群</a></p>
+<h2 id="读原理">读原理</h2>
+<p><a href="https://feishu.cn/wiki/QJqdwLBirizml0kIimAc5hNCnRg">读原理</a></p>
+<h2 id="歇原理">歇原理</h2>
+<p><a href="https://feishu.cn/wiki/Yc6Qwl48timLR9kx3zacVQYIn3d">写原理</a></p>
+<h2 id="raft-协议">Raft 协议</h2>
+<p><a href="https://feishu.cn/wiki/ZmCXwkjcBiqFvlkjWmlcy4WpnTf">Raft 协议</a></p>
+<h3 id="etcd-基于-raft-协议的一致性">Etcd 基于 Raft 协议的一致性</h3>
+<p>选举方法</p>
+<ul>
+<li>初始启动时，节点处于 Follower 状态并被设定一个 election timeout，如果在这一时间周期内没有收到来自 Leader 的 heartbeat，节点将发起选举:将自己切换为 candidate 之后向集群中其它 Follower节点发送请求，询问其是否选举自己成为 Leader。</li>
+<li>当收到来自集群中过半数节点的接受投票后，节点即成为 Leader，开始接收保存 client 的数据并向其它的 Follower 节点同步日志。如果没有达成一致，则 candidate 随机选择一个等待间隔(150ms~300ms)再次发起投票，得到集群中半数以上Follower接受的candidate将成为 Leader。</li>
+<li>Leader节点依靠定时向 Follower 发送 heartbeat 来保持其地位</li>
+<li>任何时候如果其它 Follower在 election timeout 期间都没有收到来自 Leader 的 heartbeat 同样会将自己的状态切换为 candidate 并发起选举。每成功选举一次，新Leader的任期(Term)都会比之前 Leader 的任期大1。</li>
+</ul>
+<h2 id="鉴权">鉴权</h2>
+<p><a href="https://feishu.cn/wiki/N26zwefSoiISGokrUUDcZuounKd">鉴权模块</a></p>
+<h2 id="lease-模块">Lease 模块</h2>
+<p><a href="https://feishu.cn/wiki/FbeMw52Oqi9QXckSvTxcPNuInBb">租约(Lease)模块</a></p>
+<h3 id="ttl">TTL</h3>
+<p>TTL(Time To Live)指的是给一个 key设置一个有效期，到期后这个 key 就会被自动删掉，这在很多分布式锁的实现上都会用到，可以保证锁的实时有效性。</p>
+<h2 id="mvcc-模块">MVCC 模块</h2>
+<p><a href="https://feishu.cn/wiki/WAkcwFaMPiwViXkCCbhcKQBVnle">MVCC 模块</a></p>
+<h2 id="watch-机制">Watch 机制</h2>
+<p><a href="https://feishu.cn/wiki/Oyfawi298iJzWykGsAlcQKNdncT">Watch 机制</a></p>
+<h2 id="cas">CAS</h2>
+<p>Atomic Compare-and-Swap(CAS)指的是在对key 进行赋值的时候，客户端需要提供一些条件，当这些条件满足后，才能赋值成功。</p>
+<p>这些条件包括:</p>
+<ul>
+<li>prevExist:key 当前赋值前是否存在</li>
+<li>prevValue:key当前赋值前的值</li>
+<li>previndex:key当前赋值前的Index</li>
+</ul>
+<p>这样的话，key的设置是有前提的，需要知道这个key当前的具体情况才可以对其设置</p>
+<h2 id="事务">事务</h2>
+<p><a href="https://feishu.cn/wiki/YyTAwrj2iinUSbkbPJVcaqa1nde">事务</a></p>
+<h2 id="etcd-v3-存储watch-以及过期机制">Etcd v3 存储，Watch 以及过期机制</h2>
+<p><img src="../../../assets/wiki-img/P4kAbtbNfoKxymxWimiczb9dnNg.jpg" alt="图片展示了etcd v3存储架构。上方为“Etcd V3 Store”。左侧有“WatchableStore”和“watcherGroup”，后者包含“keyWatchers”和“rangeWatchers”。右侧是“KVStore”，包含“currentRev”“kvindex(btree)”“change”“lessor”“backend”等。下方是“backend”和“leaseMap”，“backend”指向“blotdb”。该图与上下文介绍etcd v3 store分为内存中的索引和后端存储，后端存储可对接多种存储，当前使用boltdb的内容相关，直观呈现了存储架构。"></p>
+<h3 id="存储机制">存储机制</h3>
+<p>etcd v3 store 分为两部分:一部分是内存中的索引，kvindex，是基于 Google 开源的一个Golang的 Btree 实现的，是一个 inmemory 的kvstore，用于快速查找；另外一部分是后端存储。按照它的设计，backend 可以对接多种存储，当前使用的是 boltdb。</p>
+<p>boltdb 是一个单机的支持事务的 KV 存储，etcd 的事务是基于boltdb 的事务实现的。etcd 在boltdb 中存储的 key是reversion，value 是etcd 自己的 key-value 组合，也就是说 etcd 会在 boltdb 中把每个版本都保存下，从而实现了多版本机制。</p>
+<p>raft 本身不关心数据怎么存储。</p>
+<p>reversion 主要由两部分组成，第一部分 main rev，每次事务进行加一，第二部分 subrev，同一个事务中的每次操作加一。</p>
+<p>etcd 提供了命令和设置选项来控制compact，同时支持put操作的参数来精确控制某个key的历史版本数。</p>
+<p>内存 kvindex 保存的就是 key和reversion 之前的映射关系，用来加速查询。</p>
+<h3 id="数据存储流程">数据存储流程</h3>
+<p><img src="../../../assets/wiki-img/PfzGbqqijoZTyDxfIVAcrJVInef.png" alt="图片展示了etcd v3存储的数据存储流程。客户端发起写请求，先进行预检查，如配额、限速、鉴权、包大小检查。预检查通过后，请求被转到KVserver，KVserver识别写请求，通过Propose方法发到一致性模块。一致性模块在memory中构建raftLog，请求同步写入本地wal，wal落盘由fsync完成，同时有goroutine将msg发到follower。流程还涉及MVCC模块，包括treeIndex和BoltDB，用于存储数据。"></p>
+<p>客户端发起写请求，请求会被转到一致性模块，一致性模块会检查自己是不是Leader，如果是Leader就直接处理，如果不是就会被转到Leader。</p>
+<p>客户端发起写请求到Leader，首先进行预检查，配额、限速、鉴权、包大小检查（限制数据包超过1.5M无法写入）。</p>
+<p>预检查完成后，请求被转到KVserver，KVserver识别写请求，通过 Propose 方法发到一致性模块。一致性模块负责选主和日志复制，先在memory里面构建 raftLog，然后请求会被同步写入本地 wal，wal落盘是由 fsync，写wal log同时有另外的goroutine，把同样的msg发到其他所有follower。所有的follower会同步写入自己的wallog，并且回MsgAppResp，回到Leader，当超过半数，Leader会认为已写入，Leader 更新 MatchIndex。</p>
+<h2 id="boltdb">boltdb</h2>
+<p><a href="https://feishu.cn/wiki/OvyUwY1QXiVbeZkcNeicWjwpn8e">boltdb</a></p>
+<h2 id="压缩如何回收旧版本数据">压缩：如何回收旧版本数据？</h2>
+<p><a href="https://feishu.cn/wiki/EOHrwGG2OinG1QkU1ancLGxHnmh">压缩：如何回收旧版本数据？</a></p>
+<hr>
+<h1 id="实战篇">实战篇</h1>
+<h2 id="一致性">一致性</h2>
+<p><a href="https://feishu.cn/wiki/Gg8kwLm4Gi3k68kWEIocG5W4n1f">一致性</a></p>
+<h2 id="db-大小">db 大小</h2>
+<p><a href="https://feishu.cn/wiki/NDPbwBOSbi281XkzFxxc0pBPnph">db 大小</a></p>
+<h2 id="内存">内存</h2>
+<p><a href="https://feishu.cn/wiki/TofuwbyaniJ13UkkD1TcqTKZn9g">内存</a></p>
+<h2 id="qps延时为什么etcd请求会出现超时">QPS延时：为什么etcd请求会出现超时？</h2>
+<p><a href="https://feishu.cn/wiki/EJd0wG2f4iEI0akXn9yck0a5nQf">QPS 延时：为什么 etcd 请求会出现超时？</a></p>
+<h2 id="性能及稳定性">性能及稳定性</h2>
+<p><a href="https://feishu.cn/wiki/ZDwcwEZjIi9gxmkux9Hc1WMznwb">性能及稳定性</a></p>
+<h2 id="故障诊断">故障诊断</h2>
+<p><a href="https://feishu.cn/wiki/L8OfwQWt7ix7elk55nHc6nl8nQb">故障诊断</a></p>
+<h2 id="实战及应用">实战及应用</h2>
+<p><a href="https://feishu.cn/wiki/N0J1wXezNi5VrJkIRBHchA2Inbg">实战及应用</a></p>
+<hr>
+<p><a href="https://feishu.cn/wiki/PVQlw2Agki8trOk2bSxc0FWgnJe">高可用集群管理</a></p>
+<p><a href="https://feishu.cn/wiki/UVZJwXHgkiCYdQkrHdhcvEiQnFb">etcd 典型问题</a></p>
+<p><a href="https://feishu.cn/wiki/RuWhwUgRqiuN3ckXn6FcVM8hncc">思考题</a></p>
+<p><img src="../../../assets/wiki-img/G2VVbMMfFoNF32xGOvEcEDWQnWf.png" alt="图片展示了分布式核心技术点的思维导图。左侧分支为存储引擎，包含bolt/b+ - Tree、bitcask、leveldb/LSM Tree、rocksdb/LSM Tree等；数据分区有范围分片、哈希分片、一致性哈希、哈希槽；事务/Transaction涵盖CAS、TXN、二阶段提交、三阶段提交、TCC事务、Percolator事务；读一致性涉及quorum read、stale。右侧分支为API、数据模型、复制、共识，分别列出HTTP/λx、gRPC、自定义协议等；基于目录的层次模型、扁平的key-value、关系模型、文档模型、图状数据模型；主备同步复制、主备异步复制、去中心化复制；Paxos、Raft、Zab。该图与文档中分布式核心概念相关，直观呈现技术点。"></p>
+<h2 id="补充资料">补充资料</h2>
+<p><a href="https://learnk8s.io/etcd-kubernetes">How etcd works with and without Kubernetes</a></p>
+<p>raft算法: <a href="https://raft.github.io/">https://raft.github.io/</a></p>
+<p>etcd的raft实现: <a href="https://github.com/etcd-io/etcd*">https://github.com/etcd-io/etcd*</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

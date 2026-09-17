@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>部分镜像仓库：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>Docker Registry和harbor镜像仓库简介、高可用机制、部署自签名的harbor镜像仓库并实现镜像统一分发</p>
+<h3 id="部分镜像仓库">部分镜像仓库：</h3>
+<h3 id="常见的公有镜像仓库">常见的公有镜像仓库：</h3>
+<p>Docker官方的镜像仓库：<a href="https://hub.docker.com">https://hub.docker.com</a></p>
+<p>实际上，Docker Hub 也是一个收费的服务，对于免费用户来说，它限制每 6 小时最多拉取 200 次镜像，显然，这对团队来说是完全不够用的。</p>
+<p>阿里云镜像仓库： <a href="https://cr.console.aliyun.com">https://cr.console.aliyun.com</a></p>
+<p>Google镜像仓库： <a href="https://console.cloud.google.com/gcr/images/google-containers/GLOBAL">https://console.cloud.google.com/gcr/images/google-containers/GLOBAL</a></p>
+<p>红帽镜像仓库：<a href="https://quay.io/search">https://quay.io/search</a></p>
+<h3 id="商业镜像仓库">商业镜像仓库：</h3>
+<p>AWS: <a href="https://aws.amazon.com/cn/ecr/#">https://aws.amazon.com/cn/ecr/#</a></p>
+<p>阿里云: <a href="https://cr.console.aliyun.com">https://cr.console.aliyun.com</a></p>
+<p>Google镜像仓库： <a href="https://console.cloud.google.com/gcr/images/google-containers/GLOBAL">https://console.cloud.google.com/gcr/images/google-containers/GLOBAL</a></p>
+<h3 id="常见的私有自建镜像仓库">常见的私有自建镜像仓库：</h3>
+<p>Docker Registry：<a href="https://github.com/distribution/distribution">https://github.com/distribution/distribution</a></p>
+<p>harbor：</p>
+<p><a href="https://github.com/goharbor/harbor">https://github.com/goharbor/harbor</a></p>
+<p><a href="https://goharbor.io/">https://goharbor.io/</a></p>
+<h1 id="harbor">harbor</h1>
+<h3 id="harbor-简介">harbor 简介：</h3>
+<p>Harbor是一个用于存储和分发Docker镜像的企业级Registry服务器，由vmware开源，在Docker Registry的基础至上添加了一些企业必需的功能特性，例如安全认证、镜像扫描和镜像管理、远程镜像复制等，扩展了开源的Docker Distribution的功能，作为一个企业级的私有Registry服务器，Harbor提供了更好的性能和安全，提升了用户使用Registry分发镜像镜像的效率，Harbor支持安装在多个Registry节点以实现镜像资源夸主机复制、从而实现镜像服务的高可用和镜像数据的安全，另外将镜像全部保存在私有网络的Registry中， 也可以确保代码数据和密码配置等信息仅在公司内部网络中传输，从而保证核心数据的安全性。</p>
+<ul>
+<li>harbor官方网址：</li>
+<li><a href="https://goharbor.io/">https://goharbor.io/</a></li>
+<li>arbor官方github地址：</li>
+<li><a href="https://github.com/vmware/harbor">https://github.com/vmware/harbor</a></li>
+<li>vmware官方开源服务列表地址：</li>
+<li><a href="https://vmware.github.io/harbor/cn">https://vmware.github.io/harbor/cn</a></li>
+</ul>
+<h3 id="harbor-的优势">harbor 的优势：</h3>
+<ul>
+<li>基于角色的访问控制：用户与Docker镜像仓库通过“项目”进行项目管理，可以对不同的账户设置不同的权限，以实现权限的精细管控。</li>
+<li>镜像复制：镜像可以在多个 Registry 实例中复制（同步），可以实现高性能、高可用的镜像服务。</li>
+<li>图形化用户界面：用户可以通过浏览器来浏览，管理当前Docker镜像仓库，管理项目和镜像等。</li>
+<li>AD/LDAP 支：Harbor可以集成企业内部已有的AD/LDAP，用于鉴权认证管理。</li>
+<li>审计管理：所有针对镜像仓库的操作都可以被记录追溯，用于审计管理。</li>
+<li>国际化：已拥有英文、中文、德文、日文和俄文等多语言支持版本。</li>
+<li>RESTful API：提供给管理员对于Harbor更多的操控, 使得与其它管理软件集成变得更容易。</li>
+<li>部署简单：提供在线和离线两种安装工具， 也可以安装到vSphere平台(OVA方式)虚拟设备。</li>
+</ul>
+<h3 id="harbor-组件简介">harbor 组件简介：</h3>
+<ul>
+<li>Core Service：基于nginx实现的harbor反向代理组件，用于接受客户端请求，代理会转发harbor web和docker client的各种请求到后端服务上。</li>
+<li>Admin Service：harbor系统管理接口，可以修改系统配置以及获取系统信息。</li>
+<li>Job Service：harbor里面主要是为了镜像仓库之前同步使用的。</li>
+<li>SQL Database：存储项目的元数据、用户、规则、复制策略等信息。</li>
+<li>Image Registry：存储docker images的服务，提供镜像读写请求服务。</li>
+<li>Redis：存储缓存信息。</li>
+<li>vulnerability scanning: 镜像漏洞扫描服务(基于红帽的clair实现，<a href="https://github.com/quay/clair?utm_source=thenewstack&amp;utm_medium=website&amp;utm_content=inlinemention&amp;utm_campaign=platform">https://github.com/quay/clair?utm_source=thenewstack&amp;utm_medium=website&amp;utm_content=inlinemention&amp;utm_campaign=platform</a>)。</li>
+<li>trusted content：可信服务，用于验证镜像的数字签名信息，保证镜像的一致性(依赖于ssl实现)。</li>
+</ul>
+<p><img src="../../../assets/wiki-img/SAdAbOIQCogzzPxxRQdcjQBKncc.png" alt="图片展示了Harbor组件架构图。上方标注“Consumers”等，下方有“LDAP/Active Directory”等。中间核心部分为“Core Service (API/Auth/GUI)”，包含“Job Service”“Admin Service”“Vulnerability Scanning”等。下方有“KeyValue Storage”“SQL Database”等。右侧有“Trusted Content”“Container Schedulers/Runtimes”等。该图与文档中Harbor组件简介相关，直观呈现了Harbor的架构组成及各部分功能。"></p>
+<h3 id="harbor-部署-http">harbor 部署-http：</h3>
+<p>harbor 是通过 docker-compose 部署的，因此需要 docker 环境</p>
+<p>http镜像仓库：</p>
+<p>1、安装docker：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@keti:~# cd /usr/local/src/
+root@keti:/usr/local/src# tar xvf docker-20.10.18-binary-install.tar.gz
+root@keti:/usr/local/src# bash docker-install.sh
+</code></pre>
+<p>2、安装harbor：</p>
+<p>先下载离线安装包 <a href="https://github.com/goharbor/harbor/releases">https://github.com/goharbor/harbor/releases</a></p>
+<p>上传到要安装 harbor 的服务器中</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@keti:~# mkdir /apps
+root@keti:~# cd /apps/
+root@keti:/apps# tar xvf harbor-offline-installer-v2.8.2.tgz
+root@keti:/apps# cd harbor/
+root@keti:/apps# cp harbor.yml.tmpl harbor.yml
+root@keti:/apps/harbor# vim harbor.yml
+</code></pre>
+<p>修改域名</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">hostname: harbor.ketitx.com
+</code></pre>
+<p>修改端口和密码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">  http:
+          port: 5000 #因为跟gitlab冲突了，会提示
+  harbor_admin_password: Harbor12345
+</code></pre>
+<p>注释掉https的部分，或者添加证书<br>
+生成证书参考：<a href="https://blog.csdn.net/netconer/article/details/130888371">https://blog.csdn.net/netconer/article/details/130888371</a></p>
+<p>The default data volume<br>
+data_volume: /data  # 修改了一下，但是有问题又改回来了。。</p>
+<p>需要自己安装docker-compose</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">sudo curl -L &quot;&lt;https://github.com/docker/compose/releases/download/2.26.0/docker-compose-linux-$&gt;(uname -m)&quot; -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+</code></pre>
+<p>如果安装报错需要删除所有已经创建的容器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">docker rm -f $(docker ps -aq)
+root@keti:/apps/harbor# ./install.sh --with-trivy
+[Step 0]: checking if docker is installed ...
+Note: docker version: 20.10.19
+[Step 1]: checking docker-compose is installed ...
+Note: docker-compose version: 1.28.6
+[Step 2]: loading Harbor images ...
+Loaded image: goharbor/harbor-log:v2.8.2
+Loaded image: goharbor/harbor-db:v2.8.2
+Loaded image: goharbor/registry-photon:v2.8.2
+Loaded image: goharbor/harbor-core:v2.8.2
+Loaded image: goharbor/harbor-jobservice:v2.8.2
+Loaded image: goharbor/harbor-registryctl:v2.8.2
+Loaded image: goharbor/notary-signer-photon:v2.8.2
+Loaded image: goharbor/trivy-adapter-photon:v2.8.2
+Loaded image: goharbor/prepare:v2.8.2
+Loaded image: goharbor/harbor-portal:v2.8.2
+Loaded image: goharbor/redis-photon:v2.8.2
+Loaded image: goharbor/harbor-exporter:v2.8.2
+Loaded image: goharbor/nginx-photon:v2.8.2
+Loaded image: goharbor/notary-server-photon:v2.8.2
+[Step 3]: preparing environment ...
+[Step 4]: preparing harbor configs ...
+prepare base dir is set to /apps/harbor
+WARNING:root:WARNING: HTTP protocol is insecure. Harbor will deprecate http protocol in the future. Please make sure to upgrade to https
+Clearing the configuration file: /config/db/env
+Clearing the configuration file: /config/core/env
+Clearing the configuration file: /config/core/app.conf
+Clearing the configuration file: /config/registry/passwd
+Clearing the configuration file: /config/registry/config.yml
+Clearing the configuration file: /config/registry/root.crt
+Clearing the configuration file: /config/registryctl/env
+Clearing the configuration file: /config/registryctl/config.yml
+Clearing the configuration file: /config/portal/nginx.conf
+Clearing the configuration file: /config/nginx/nginx.conf
+Clearing the configuration file: /config/log/rsyslog_docker.conf
+Clearing the configuration file: /config/log/logrotate.conf
+Clearing the configuration file: /config/jobservice/env
+Clearing the configuration file: /config/jobservice/config.yml
+Clearing the configuration file: /config/trivy-adapter/env
+Generated configuration file: /config/portal/nginx.conf
+Generated configuration file: /config/log/logrotate.conf
+Generated configuration file: /config/log/rsyslog_docker.conf
+Generated configuration file: /config/nginx/nginx.conf
+Generated configuration file: /config/core/env
+Generated configuration file: /config/core/app.conf
+Generated configuration file: /config/registry/config.yml
+Generated configuration file: /config/registryctl/env
+Generated configuration file: /config/registryctl/config.yml
+Generated configuration file: /config/db/env
+Generated configuration file: /config/jobservice/env
+Generated configuration file: /config/jobservice/config.yml
+loaded secret from file: /data/secret/keys/secretkey
+Generated configuration file: /config/trivy-adapter/env
+Generated configuration file: /compose_location/docker-compose.yml
+Clean up the input dir
+Note: stopping existing Harbor instance ...
+Removing network harbor_harbor
+[Step 5]: starting Harbor ...
+Creating network &quot;harbor_harbor&quot; with the default driver
+Creating harbor-log ... done
+Creating registryctl   ... done
+Creating harbor-db     ... done
+Creating harbor-portal ... done
+Creating registry      ... done
+Creating redis         ... done
+Creating harbor-core   ... done
+Creating trivy-adapter     ... done
+Creating harbor-jobservice ... done
+Creating nginx             ... done
+✔ ----Harbor has been installed and started successfully.----
+root@keti:/apps/harbor#
+root@keti:/apps/harbor# docker ps
+CONTAINER ID   IMAGE                                  COMMAND                  CREATED          STATUS                    PORTS                                       NAMES
+cf96ed2664e7   goharbor/nginx-photon:v2.8.2           &quot;nginx -g 'daemon of…&quot;   55 seconds ago   Up 54 seconds (healthy)   0.0.0.0:5000-&gt;8080/tcp, :::5000-&gt;8080/tcp   nginx
+4947c43b26c7   goharbor/harbor-jobservice:v2.8.2      &quot;/harbor/entrypoint.…&quot;   55 seconds ago   Up 50 seconds (healthy)                                               harbor-jobservice
+182ae23f6d14   goharbor/trivy-adapter-photon:v2.8.2   &quot;/home/scanner/entry…&quot;   57 seconds ago   Up 55 seconds (healthy)                                               trivy-adapter
+dcc240535ade   goharbor/harbor-core:v2.8.2            &quot;/harbor/entrypoint.…&quot;   57 seconds ago   Up 55 seconds (healthy)                                               harbor-core
+cc71b0d89e24   goharbor/redis-photon:v2.8.2           &quot;redis-server /etc/r…&quot;   58 seconds ago   Up 56 seconds (healthy)                                               redis
+578cf008e3b0   goharbor/harbor-db:v2.8.2              &quot;/docker-entrypoint.…&quot;   58 seconds ago   Up 56 seconds (healthy)                                               harbor-db
+931359baa26d   goharbor/registry-photon:v2.8.2        &quot;/home/harbor/entryp…&quot;   58 seconds ago   Up 56 seconds (healthy)                                               registry
+fd3a8fc2f170   goharbor/harbor-registryctl:v2.8.2     &quot;/home/harbor/start.…&quot;   58 seconds ago   Up 57 seconds (healthy)                                               registryctl
+b58654a67f9b   goharbor/harbor-portal:v2.8.2          &quot;nginx -g 'daemon of…&quot;   58 seconds ago   Up 56 seconds (healthy)                                               harbor-portal
+afdb8f8084f9   goharbor/harbor-log:v2.8.2             &quot;/bin/sh -c /usr/loc…&quot;   59 seconds ago   Up 58 seconds (healthy)   127.0.0.1:1514-&gt;10514/tcp                   harbor-log
+root@keti:/apps/harbor#
+</code></pre>
+<h3 id="helm-安装-harbor">helm 安装 Harbor</h3>
+<p>前提：安装 cert-manager</p>
+<p>首先添加 Harbor 官方仓库。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">$ helm repo add harbor https://helm.goharbor.io
+&quot;harbor&quot; has been added to your repositories
+</code></pre>
+<p>然后，更新本地 Helm 缓存。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ helm repo update
+...Successfully got an update from the &quot;jetstack&quot; chart repository
+...Successfully got an update from the &quot;harbor&quot; chart repository
+</code></pre>
+<p>接下来，由于我们需要定制化安装 Harbor，所以需要修改 Harbor 的安装参数，将下面的内容保存为 values.yaml。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: secret
+    secret:
+      secretName: &quot;harbor-secret-tls&quot;
+      notarySecretName: &quot;notary-secret-tls&quot;
+  ingress:
+    hosts:
+      core: harbor.n7t.dev
+      notary: notary.n7t.dev
+    className: nginx
+    annotations:
+      kubernetes.io/tls-acme: &quot;true&quot;
+persistence:
+  persistentVolumeClaim:
+    registry:
+      size: 20Gi
+    chartmuseum:
+      size: 10Gi
+    jobservice:
+      jobLog:
+        size: 10Gi
+      scanDataExports:
+        size: 10Gi
+    database:
+      size: 10Gi
+    redis:
+      size: 10Gi
+    trivy:
+      size: 10Gi
+</code></pre>
+<p>注意，由于腾讯云的 PVC 最小 10G 起售，所以，除了 registry 的容量以外，我将安装参数中其他的持久化卷容量都配置为了 10G，你可以根据安装集群的实际情况做调整。</p>
+<p>另外，我还为 Harbor 配置了 ingress 访问域名，分别是 harbor.n7t.dev 和 notary.n7t.dev， <strong>你需要将它们分别替换成你的真实域名。</strong></p>
+<p>然后，再通过 helm install 命令来安装 Harbor， **并指定参数配置文件 values.yaml**。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">$ helm install harbor harbor/harbor -f values.yaml --namespace harbor --create-namespace
+NAME: harbor
+LAST DEPLOYED: Mon Oct 17 21:53:28 2022
+NAMESPACE: harbor
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+Please wait for several minutes for Harbor deployment to complete.
+Then you should be able to visit the Harbor portal at https://core.harbor.domain
+For more details, please visit https://github.com/goharbor/harbor
+</code></pre>
+<p>等待所有 Pod 处于就绪状态。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ kubectl wait --for=condition=Ready pods --all -n harbor --timeout 600s
+pod/cm-acme-http-solver-4v4zz condition met
+pod/harbor-chartmuseum-79f49f5b4-8f4mb condition met
+pod/harbor-core-6c6bc7fb4f-4822f condition met
+pod/harbor-database-0 condition met
+pod/harbor-jobservice-85d448d5c9-gn5pk condition met
+pod/harbor-notary-server-848bcc7ccd-m5m5v condition met
+pod/harbor-notary-signer-6897444589-6vssq condition met
+pod/harbor-portal-588b64cbdb-gqlbn condition met
+pod/harbor-redis-0 condition met
+pod/harbor-registry-5c7d58c87c-6bgsj condition met
+pod/harbor-trivy-0 condition met
+</code></pre>
+<p>到这里，Harbor 就已经安装完成了。</p>
+<h3 id="docker-使用-http-harbor">docker 使用 http harbor：</h3>
+<p>docker主机登录</p>
+<p>1.配置主机名解析</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@keti:~# vim /etc/hosts
+        192.168.50.20 harbor.ketitx.com
+</code></pre>
+<p>2.docker 服务器配置仓库信任：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@keti:~# vim /etc/docker/daemon.json
+&quot;insecure-registries&quot;: [&quot;harbor.ketitx.com:端口号&quot;,&quot;harbor.myserver.com:端口号&quot;,&quot;192.168.0.102:端口号&quot;],
+root@docker-server1:~# systemctl restart docker
+root@docker-server1:~# docker login harbor.ketitx.com:端口号
+  Username: admin
+  Password: xxxxxxxx # 输入 harbor 的密码
+  WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+  Configure a credential helper to remove this warning. See
+  &lt;https://docs.docker.com/engine/reference/commandline/login/#credentials-store&gt;
+  Login Succeeded
+</code></pre>
+<p>3.上传镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@keti:~# docker tag alpine:3.16.2 harbor.ketitx.com:端口号/pythonlearning/alpine:3.16.2
+root@keti:~# docker push harbor.ketitx.com:端口号/pythonlearning/alpine:3.16.2
+</code></pre>
+<p>4.验证镜像下载:</p>
+<p>配置域名解析及仓库信任</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@keti:~# docker pull harbor.ketitx.com:端口号/pythonlearning/alpine:3.16.2
+</code></pre>
+<h3 id="harbor-部署-https">harbor 部署-https：</h3>
+<p>见部署https的 harbor 服务器</p>
+<h3 id="开启自动镜像扫描和阻止漏洞镜像">开启自动镜像扫描和阻止漏洞镜像</h3>
+<p>由于Harbor 自带 Trivy 镜像扫描功能，可以帮助我们发现镜像的漏洞，并提供修复建议。因此在生产环境下，我推荐你开启“自动镜像扫描”和“阻止潜在漏洞镜像”功能，你可以进入项目的“配置管理”菜单开启它们。</p>
+<p><img src="../../../assets/wiki-img/UWtVbfWYFoXEeHxZly2cZLtun3d.png" alt="图片展示的是Harbor部署HTTPS服务器时的配置管理页面。页面左侧有多个菜单选项，当前选中“配置管理”。在“项目仓库”中，有“公开”选项。在“部署安全”部分，有“阻止潜在漏洞镜像”选项被勾选。在“漏洞扫描”中，“自动扫描镜像”选项被勾选。在“CVE特赦名单”部分，有“启用系统特赦名单”和“启用项目特赦名单”两个选项。该图片与文档中开启自动镜像扫描和阻止漏洞镜像的内容相关，直观呈现了相关配置选项。"></p>
+<p>开启“自动扫描镜像”功能后，所有推送到 Harbor 的镜像都会自动执行扫描，你可以进入镜像详情查看镜像漏洞数量。</p>
+<p><img src="../../../assets/wiki-img/IiHXbQRyfoQuZDx1lmOc62Fvn2b.png" alt="图片展示的是Harbor中frontend镜像的Artifacts详情页面。页面显示了两个镜像记录，分别为sha256:0f033f58和sha256:0f992052，其拉取命令、Tags、Cosign签名、大小、漏洞数量（均为14）等信息。页面右上角有搜索和筛选功能，下方有分页显示记录数。该图片与上文提到的进入“Artifacts”详情查看漏洞详情和修复建议的内容相关，直观呈现了镜像详情页面。"></p>
+<p>进入“Artifacts”详情可以查看漏洞详情和修复建议。</p>
+<p><img src="../../../assets/wiki-img/TiUobpRwuoXGQPx0jPTcqoqnnob.png" alt="图片展示了Harbor平台的漏洞详情页面。页面左侧为导航栏，有项目管理等选项。右侧上方显示“漏洞”标签，下方列表呈现多个漏洞信息，包括漏洞编号、产品、CVE、版本、影响等级、修复版本、漏洞描述等。部分漏洞描述中提到存在安全风险，如Node.js的corked-queue漏洞。该图片与文档中介绍在Harbor开启“阻止潜在漏洞镜像”功能后，尝试拉取frontend镜像时会被阻止的内容相关，直观呈现了漏洞详情。"></p>
+<p>开启“阻止潜在漏洞镜像”功能之后，接下来我们尝试在本地拉取 frontend 镜像，会发现 Harbor 阻止了这个行为。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-PowerShell">$ docker pull harbor.n7t.dev/library/frontend:8d64515
+Error response from daemon: unknown: current image with 14 vulnerabilities cannot be pulled due to configured policy in 'Prevent images with vulnerability severity of &quot;Low&quot; or higher from running.' To continue with pull, please contact your project administrator to exempt matched vulnerabilities through configuring the CVE allowlist.
+</code></pre>
+<h1 id="阿里云镜像仓库">阿里云镜像仓库</h1>
+<h3 id="阿里云镜像仓库的使用">阿里云镜像仓库的使用：</h3>
+<ul>
+<li>注册账户</li>
+<li><a href="https://cr.console.aliyun.com/">https://cr.console.aliyun.com/</a></li>
+<li>创建镜像仓库</li>
+<li>构建镜像</li>
+<li>指定镜像tag</li>
+<li>登录镜像仓库</li>
+<li>上传镜像</li>
+<li>下载镜像</li>
+<li>实现镜像分发</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

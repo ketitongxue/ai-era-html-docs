@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>容器的核心技术：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="容器的核心技术">容器的核心技术：</h1>
+<p>容器技术除了 docker 之外，还有其它不同的容器技术，为了保证容器生态的标准性和健康可持续发展，包括Linux 基金会、 Docker、微软、红帽谷歌和、IBM、华为等公司在2015年6月共同成立了一个叫open container（OCI）的组织，其目的就是制定开放的标准的容器规范，目前OCI发布了runtime spec(运行时规范)（最核心规范之一）、image format spec(镜像格式规范)、distribution-spec(镜像分发规范)，这样不同的容器公司开发的容器只要兼容以上规范，就可以保证容器的可移植性和相互可操作性。</p>
+<p><a href="https://github.com/opencontainers">https://github.com/opencontainers</a></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">docker info
+
+Default Runtime: runc
+</code></pre>
+<h2 id="容器-runtimeruntime-spec">容器 runtime(runtime spec)：</h2>
+<ul>
+<li>
+<p>常见的runtime：</p>
+<ul>
+<li>runc：目前 Docker 和 containerd 默认的 runtime，基于 go 语言开发，遵循 OCI 规范。</li>
+<li>crun： redhat 推出的运行时，基于 c 语言开发，集成在 podman 内部，遵循 OCI 规范。</li>
+<li>gVisor：google 推出的运行时，基于 go 语言开发，遵循 OCI 规范。</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/wiki-img/SMEibYmX6oTpSLxb0nBczgTOnDh.png" alt="图片展示了容器运行时的流程。用户通过docker命令创建和运行容器，containerd负责拉取镜像、管理网络和存储，并使用runc运行容器，runc执行创建和运行容器化进程的低级操作。图片与上下文紧密相关，直观呈现了docker、containerd、runc三者在容器运行时中的作用及关系，帮助理解容器运行时的运作机制。"></p>
+<p><strong>client 发送指令到 dockerd 调用 containerd(创建容器) 通过 runc 运行 container</strong></p>
+<p>docekrd 仅作为和外界客户端连接的一个通道，由containerd创建容器</p>
+<p><strong>k8s 1.24 省略 docker 作为默认运行时，直接使用 containerd，kubelet 接受 k8s server 端指令，然后直接传给 containerd。</strong></p>
+<h2 id="低级容器运行时与高级容器运行时">低级容器运行时与高级容器运行时：</h2>
+<p>High-Level：高级运行时提供基于 API 的远程管理操作，客户端可以通过高级别运行时管理容器的整个生命周期(创建、删除、重启、 停止)，高级别运行时并不真正直接运行容器，而是调用低级别运行时运行，比如 dockerd、containerd 都是高级别运行时。</p>
+<p>Low-Level ：接受高级别运行时的指令，按照响应的指令运行容器，因此低级别运行时真是运行容器的地方，例如 runc。</p>
+<p><img src="../../../assets/wiki-img/HFV4bQp92o41akxrSqhcHTpinsb.png" alt="图片展示了高级别运行时与低级别运行时的关系。左侧为docker-cli，向dockerd发送指令，dockerd再向containerd发送指令。右侧是低级别运行时，包括容器1、容器2、容器3。该图与上下文紧密相关，直观呈现了高级别运行时（dockerd、containerd）与低级别运行时（runc等）的指令传递关系，以及高级别运行时调用低级别运行时运行容器的原理。"></p>
+<p><img src="../../../assets/wiki-img/T6BfbVvLsoZD3gxlWyTc0uJ2ndc.png" alt="图片展示了Kubernetes中容器运行时的工作原理。左侧显示用户通过kubectl run和kubectl apply指令，经REST API与Kubernetes交互。Kubernetes通过CRI（gRPC）与containerd（高级运行时）和runC（低级运行时）通信。containerd调用runC运行容器，runC执行带有OCI容器JSON规范的OCI运行时二进制文件，以CPU/Mem等配置启动容器。该图直观呈现了Kubernetes系统组件间指令传递及容器运行机制，与上下文介绍的容器运行时技术相呼应。"></p>
+<h1 id="容器运行时-containerd">容器运行时 Containerd</h1>
+<p>容器运行时Docker与Containerd对比、优缺点，Containerd安装、常用客户端及命令使用简介</p>
+<h2 id="运行时简介">运行时简介：</h2>
+<p><img src="../../../assets/wiki-img/IKmIbdRCyoN69axCbeLcqmHHnnc.png" alt="图片展示了Kubernetes与容器运行时的架构关系。左侧为Kubernetes组件，包括kubectl、api-server、kube-controller-manager、kube-scheduler、etcd cluster及kublet。右侧是容器运行时，有containerd、dockerd、cri-dockerd等，还涉及OCI、runc、pod、镜像等内容。图中用箭头表示组件间交互关系，如kubectl与api-server交互，kublet与containerd、dockerd、cri-dockerd交互等，直观呈现了Kubernetes与容器运行时的运行机制。"></p>
+<h2 id="containerd简介">Containerd简介：</h2>
+<p>2016年12月Docker公司宣布将 containerd 并捐赠给CNCF(2017年3月份加入CNCF)。</p>
+<p>2019年2月28成为CNCF的毕业项目。</p>
+<p>Containerd与kubernetes的结合可实现更快速的pod生命周期管理(创建、更新、删除等)，对内存及CPU资源限制更严格，系统IO性能也远高于docker.</p>
+<p>Containerd基于插件化设计，方便后期配置变更与功能扩展。</p>
+<p><img src="../../../assets/wiki-img/GfDtb8wmWoXp9axV8K3cBNFfnsd.png" alt="图片展示了Containerd架构图。Client层有kubelet、Container Engine、BuildKit等；API层有GRPC、CRI、containerd等；Core层包含Services、Backend等；system层有arm、intel、windows、linux等。图中还标注了containerd、containerd client、containerd runtime等关键组件，以及与之相关的containerd client、containerd runtime等。该图与上下文介绍的Containerd架构相关，直观呈现了其各部分组成及关系。"></p>
+<p>Containerd在v1.0及以前版本(目前最新v1.6.8)将dockershim和docker daemon替换为cri-containerd+containerd，而在1.1版本时直接将cri-containerd内置在Containerd中，简化为一个CRI插件，用于实现和kubelet的对接。</p>
+<p><img src="../../../assets/wiki-img/ICw4bQbjBo7zz7x37QwcQ6VVnfb.png" alt="图片展示了Containerd 1.0与1.1版本的架构对比。上方为Containerd 1.0，kubelet通过CRI与CRI-Containerd交互，后者与containerd通信，containerd管理容器。下方为Containerd 1.1，kubelet同样通过CRI与CRI插件交互，CRI插件与containerd通信，containerd管理容器。箭头和文字清晰标注了各组件及交互关系，直观呈现了Containerd版本迭代对架构的影响。"></p>
+<p>Containerd内置的CRI(container runtime interface)插件实现了Kubelet CRI接口中的Image Service和Runtime Service，通过内部接口管理容器和镜像，并通过CNI(container network interface)插件给Pod配置网络。</p>
+<p><img src="../../../assets/wiki-img/T8Dfb2fWXo1OgcxcCUecr4ginUc.png" alt="图片展示了Containerd与Kubelet、CNI等组件的交互关系。Kubelet通过CRI插件与Containerd交互，Containerd内部有image service和runtime service，ocicni插件与CNI交互。Containerd客户端与containerd shim、sandbox container、container A等组件通信，containerd shim与Pod A Namespaces、Pod A Cgroups相关。右侧有Pod B。该图直观呈现了Containerd在容器运行时中与Kubelet等组件的交互流程及内部结构。"></p>
+<h2 id="ubuntu安装containerd">Ubuntu安装containerd：</h2>
+<p>更新镜像仓库并安装依赖包：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~# apt update
+root@ubuntu2204:~# sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+</code></pre>
+<p>导入docker的公钥：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~# curl -fsSL &lt;https://download.docker.com/linux/ubuntu/gpg&gt; | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+</code></pre>
+<p>添加镜像源：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~#echo \\&quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] &lt;https://mirrors.tuna.tsinghua.edu.cn/dockerce/&gt;
+linux/ubuntu \\$(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+</code></pre>
+<p>更新镜像仓库：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~# apt update
+</code></pre>
+<p>验证containerd版本：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~# apt-cache madison containerd.io
+containerd.io | 1.6.8-1 | &lt;https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu&gt; jammy/stable amd64 Packages
+containerd.io | 1.6.7-1 | &lt;https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu&gt; jammy/stable amd64 Packages
+</code></pre>
+<p>安装containerd：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">root@ubuntu2204:~# apt install containerd.io=1.6.8-1
+root@ubuntu2204:~# containerd --version
+containerd containerd.io 1.6.8 9cd3357b7fd7218e4aec3eae239db1f68a5a6ec6
+</code></pre>
+<p>centos安装containerd：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># yum install -y yum-utils device-mapper-persistent-data lvm2
+# yum-config-manager --add-repo &lt;https://download.docker.com/linux/centos/docker-ce.repo&gt;
+# sudo sed -i 's+download.docker.com+mirrors.tuna.tsinghua.edu.cn/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+# yum list containerd.io --showduplicates | sort –r
+# yum install containerd.io-1.6.8
+</code></pre>
+<h2 id="containerd配置文件">containerd配置文件：</h2>
+<p>默认配置参数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">~# containerd config default
+</code></pre>
+<p>自定义配置：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-javascript">~]# containerd config default &gt; /etc/containerd/config.toml
+61 sandbox_image = &quot;registry.aliyuncs.com/google_containers/pause:3.7”
+153 [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors]
+154 [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;docker.io&quot;]
+155 endpoint = [&quot;&lt;https://9916w1ow.mirror.aliyuncs.com&gt;&quot;]
+~]# systemctl restart containerd &amp;&amp; systemctl enable containerd
+</code></pre>
+<p>更新runc：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># wget &lt;https://github.com/opencontainers/runc/releases/download/v1.1.4/runc.amd64&gt;
+# cp runc.amd64 /usr/bin/runc
+# chmod a+x /usr/bin/runc
+# runc -v
+runc version 1.1.4
+</code></pre>
+<h2 id="客户端使用">客户端使用：</h2>
+<p>containerd相比docker多了一个命名空间的逻辑概念，ctr命令默认是在default命名空间里，当使用crictl命令的时候，都是在k8s.io这个命名空间里的，所以不指定namespace会发现看到的镜像、容器等内容不一样。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">ctr：
+~]# ctr images pull docker.io/library/nginx:1.20.2
+~]# ctr -n k8s.io images ls
+~]# ctr images ls
+运行容器并使用宿主机网络：
+~]# ctr run -t --net-host docker.io/library/nginx:1.20.2 test-container1
+</code></pre>
+<p>nerdctl-是一个兼容docker的containerd的客户端,<a href="https://github.com/containerd/nerdctl">https://github.com/containerd/nerdctl</a></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">~]# wget &lt;https://github.com/containerd/nerdctl/releases/download/v0.23.0/nerdctl-0.23.0-linux-amd64.tar.gz&gt;
+~]# tar xvf nerdctl-0.23.0-linux-amd64.tar.gz -C /usr/bin/
+
+</code></pre>
+<p>cni:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">~]# wget &lt;https://github.com/containernetworking/plugins/releases/download/v1.1.1/cni-plugins-linux-amd64-v1.1.1.tgz&gt;
+~]# mkdir /opt/cni/bin -pv
+# tar xvf cni-plugins-linux-amd64-v1.1.1.tgz -C /opt/cni/bin/
+
+</code></pre>
+<p>创建容器并指定端口:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">~]# nerdctl run -d -p 80:80 --name=nginx-web1 --restart=always nginx:1.22.0-alpine
+~]# nerdctl ps
+~]# nerdctl exec -it 858730bb0492 sh
+~]# nerdctl run -d -p 8080:8080 --name=tomcat-web1 --restart=always tomcat:7.0.88-alpine
+
+</code></pre>
+<h1 id="qgrpc自己查一下">Q：grpc自己查一下</h1>
+<p><img src="../../../assets/wiki-img/GTvbbrRxuoajoGx0qxqcmBhhnad.png" alt="图片展示了CRI和runC在容器运行时中的作用。左侧有CRI（Container Runtime Interface）和runC，CRI负责管理容器镜像，runC扩展文件系统并初始化进程。右侧是容器、Linux内核和主机机器。CRI和runC通过箭头指向容器，表明它们与容器相关，runC还与Linux内核和主机机器有联系，整体呈现了容器运行时中CRI和runC的职责及与系统各部分的关系。"></p>
+<p>kubernetes环境中由kubelet接受指令通过CRI等标准调用运行时实现容器的生命周期管理。</p>
+<h1 id="k8s废弃docker是怎么回事"><strong>K8S废弃Docker是怎么回事</strong></h1>
+<p><strong>1）CRI</strong></p>
+<p>K8s在1.5版本里，引入了一个新的接口标准：CRI（Container Runtime Interface），它主要用来规定如何调用容器运行时来管理容器和镜像，但这个接口标准和之前的Docker调用标准有不少差异，所以两者完全不兼容。这意味着，K8s可以撇开Docker，使用其它容器运行时（如rkt）。</p>
+<p>由于Docker用户非常庞大，K8s也意识到了直接不兼容Docker会有许多不确定风险，当时，K8s用了一个临时方案，在K8s和Docker中间开发了一个Dockershim，主要用来将Docker的接口标准转换成CRI标准。</p>
+<p><strong>2）Containerd</strong></p>
+<p>Docker意识到K8s的改变，为了迎合K8s，将Docker Engine拆分成多个模块，其中Docker Daemon部分捐献给了CNCF，也就是containerd。</p>
+<p>Containerd 作为 CNCF 的托管项目，自然是要符合 CRI 标准的。但 Docker 出于自己诸多原因的考虑，它只是在 Docker Engine 里调用了 containerd，外部的接口仍然保持不变，也就是说还不与 CRI 兼容。</p>
+<p>在当时的K8s版本里，实际上有两种方法调用容器：</p>
+<p>第一种是用 CRI 接口调用 dockershim，然后 dockershim 调用 Docker，Docker 再走 containerd 去操作容器。</p>
+<p>第二种是用 CRI 接口直接调用 containerd 去操作容器。</p>
+<p><img src="../../../assets/wiki-img/U5Tmbq849onxGtxJ89KcAIL4ncd.png" alt="图片展示了Kubernetes容器运行时两种调用容器的方法。上方为原方法，kubelet通过CRI调用dockershim，dockershim再调用Docker，Docker通过containerd操作容器；下方为新方法，kubelet通过CRI直接调用containerd，containerd操作容器。箭头和文字标注清晰地呈现了两种方法的调用流程，直观地说明了Kubernetes决定移除dockershim后，外界看来像是K8s弃用了Docker的情况。"></p>
+<p>很明显，第一种方法多了两层调用，性能明显不如第二种方法。所以K8s决定将dockershim移除，所以也就不能直接使用Docker了，在外界看来就像是K8s弃用了Docker。</p>
+<p><strong>3）弃用dockershim</strong></p>
+<p>2020年K8s发布1.20版本时，对外声明将在后续版本里（实际上是在22年的1.24版本里）移除dockershim，也就是取消对Docker的支持。当时，众多吃瓜群众理解错了意思，认为成了K8s弃用Docker。它实际上只是“弃用了 dockershim”这个小组件，也就是说把 dockershim 移出了 kubelet，并不是“弃用了 Docker”这个软件产品。</p>
+<p>这个举措对K8s 和 Docker 来说都不会有什么太大的影响，因为他们两个都早已经把下层都改成了开源的 containerd，原来的 Docker 镜像和容器仍然会正常运行，唯一的变化就是 K8s绕过了 Docker，直接调用 Docker 内部的 containerd 而已。</p>
+<p><strong>4）K8s移除dockershim后对Docker的影响</strong></p>
+<p>虽然现在 Kubernetes 不再默认绑定 Docker，但 Docker 还是能够以其他的形式与 Kubernetes 共存的。</p>
+<p>首先，因为容器镜像格式已经被标准化了（OCI 规范，Open Container Initiative），Docker 镜像仍然可以在 Kubernetes 里正常使用，原来的开发测试、CI/CD 流程都不需要改动，我们仍然可以拉取 Docker Hub 上的镜像，或者编写 Dockerfile 来打包应用。</p>
+<p>其次，Docker 是一个完整的软件产品线，不止是 containerd，它还包括了镜像构建、分发、测试等许多服务，甚至在 Docker Desktop 里还内置了 Kubernetes。单就容器开发的便利性来讲，Docker 还是暂时难以被替代的，广大云原生开发者可以在这个熟悉的环境里继续工作，利用 Docker 来开发运行在 Kubernetes 里的应用。</p>
+<p>再次，虽然 Kubernetes 已经不再包含 dockershim，但 Docker 公司却把这部分代码接管了过来，另建了一个叫 cri-dockerd的项目，作用也是一样的，把 Docker Engine 适配成 CRI 接口，这样 kubelet 就又可以通过它来操作 Docker 了，就仿佛是一切从未发生过。</p>
+<p>综合来看，Docker 虽然在容器编排战争里落败，被 Kubernetes 排挤到了角落，但它仍然具有强韧的生命力，多年来积累的众多忠实用户和数量庞大的应用镜像是它的最大资本和后盾，足以支持它在另一条不与 Kubernetes 正面交锋的道路上走下去。而对于我们这些初学者来说，Docker 方便易用，具有完善的工具链和友好的交互界面，市面上很难找到能够与它媲美的软件了，应该说是入门学习容器技术和云原生的“不二之选”。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

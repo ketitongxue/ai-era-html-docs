@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client-go 简介</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="client-go-简介">Client-go 简介</h1>
+<h2 id="什么是-client-go">什么是 Client-go？</h2>
+<p>Client-go 是 Kubernetes 官方提供的 Go 语言的客户端库， 使用该库可以访问 Kubernetes API Server，实现对 Kubernetes 资源（包括 CRD）的增删改查操作。</p>
+<h2 id="kubernetes-api-group">Kubernetes API Group</h2>
+<p>K8s API 分为核心 API（Core） 和命名 API 组（named），对资源的增删改查可以理解为是对 K8s API 的请求</p>
+<p>Client-go 封装了请求 API 所需的鉴权、请求参数以及将返回 JSON 转化为 Go 结构体（Unmarshaling）</p>
+<p><img src="../../../assets/wiki-img/Bm0pbJVYXoTlK0xslHycIj6Jntg.jpg" alt="图片展示了Kubernetes API Group的分类。上方标题为“API Groups Categories”，中间是一个带有船舵图案的六边形图标。下方分为两个蓝色按钮，左侧按钮上标有“Core”及“/api”，右侧按钮上标有“Named”及“/apis”。该图与文档中介绍Kubernetes API Group的内容相关，直观呈现了K8s API分为核心API（Core）和命名API组（named）这一分类情况。"></p>
+<h3 id="kubernetes-core-api">Kubernetes Core API</h3>
+<p>包括 namespace、 service、pods、nodes、configmap、secrets、pv 等对象</p>
+<p><img src="../../../assets/wiki-img/B4BPbdZBuobRlVx7TXZcaEPznLe.jpg" alt="图片展示了Kubernetes Core API的资源层级结构。最上方是“core”标签，其下有“/api”和“/v1”两个节点，其中“/v1”节点下有“namespaces”“pods”“rc”“events”“endpoints”“nodes”“bindings”“PV”“PVC”“configmaps”“secrets”“services”等资源类别。该图与文档中介绍Kubernetes Core API的内容相关，直观呈现了Core API中各资源的层级关系。"></p>
+<h3 id="kubernetes-named-api-groups">Kubernetes Named API Groups</h3>
+<p>包括 apps/v1/deployments、 apps/v1/replicasets 等对象</p>
+<p><img src="../../../assets/wiki-img/T95SbQdXDoUML4xmr6NcupLdnUb.jpg" alt="图片展示了Kubernetes API Group的结构。最上方是“named”和“/apis”。下方有多个API Group，如“/apps”“/extensions”等。再往下是“/v1”“/v1beta1”等版本，每个版本下有“/deployments”“/replicasets”等资源，如“/deployments”下有“list”“get”“create”等动词。该图与文档中介绍Kubernetes API Group的内容相关，直观呈现了API Group的层级关系及资源、动词等信息。"></p>
+<h2 id="验证-k8s-api-请求">验证 K8s API 请求</h2>
+<p>获取 namespaces(core API)：https://127.0.0.1:56025/api/v1/namespaces?limit=500</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% kubectl get ns -v6
+I0117 22:36:27.288963   90078 loader.go:395] Config loaded from file:  /Users/keti/.kube/config
+I0117 22:36:27.311197   90078 round_trippers.go:553] GET https://127.0.0.1:56025/api/v1/namespaces?limit=500 200 OK in 14 milliseconds
+NAME                 STATUS   AGE
+default              Active   38s
+kube-node-lease      Active   38s
+kube-public          Active   38s
+kube-system          Active   38s
+local-path-storage   Active   35s
+</code></pre>
+<p>获取 deployment(named API)：https://127.0.0.1:56025/apis/apps/v1/namespaces/default/deployments?limit=500</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% kubectl get deployment -v6
+I0117 22:38:24.330110   90146 loader.go:395] Config loaded from file:  /Users/keti/.kube/config
+I0117 22:38:24.349347   90146 round_trippers.go:553] GET https://127.0.0.1:56025/apis/apps/v1/namespaces/default/deployments?limit=500 200 OK in 14 milliseconds
+No resources found in default namespace.
+</code></pre>
+<h2 id="理解-gvk-和-gvr">理解 GVK 和 GVR</h2>
+<p>在Kubernetes中，GVK和GVR是两个重要的概念，用于唯一标识和操作不同的资源类型和实例。</p>
+<h3 id="gvkgroup-version-kind">GVK（Group Version Kind）</h3>
+<ul>
+<li>
+<p><strong>定义</strong>：GVK由Group、Version和Kind三个部分组成。</p>
+<ul>
+<li><strong>Group</strong>：API组的名称。例如，“apps”组包含Deployment资源，“batch”组包含Job资源。核心组的资源（如Pod、Service等）没有组名，默认使用空字符串。</li>
+<li><strong>Version</strong>：资源的版本，例如“v1”、“v1beta1”等。</li>
+<li><strong>Kind</strong>：资源的种类，通常是单数形式。例如，Pod、Deployment、Service等。</li>
+<li>例如 ：{Group: &quot;apps&quot;, Version: &quot;v1&quot;, Kind: &quot;Deployment&quot;}</li>
+</ul>
+</li>
+<li>
+<p><strong>特点</strong>：GVK用于唯一标识Kubernetes中的某种资源类型，特别是在描述资源的元数据和处理特定类型的资源时使用。</p>
+</li>
+<li>
+<p><strong>应用场景</strong>：</p>
+<ul>
+<li><strong>资源定义和描述</strong>：使用GVK在代码中定义和描述特定类型的资源。例如，定义一个Unstructured对象并设置其GVK。</li>
+<li><strong>资源转换和处理</strong>：使用GVK在不同版本的API之间进行资源转换和处理。例如，在控制器或操作器中，根据资源的GVK进行特定处理。</li>
+<li><strong>元数据操作</strong>：使用GVK操作资源的元数据，例如通过GVK获取资源的schema或进行元数据验证。</li>
+</ul>
+</li>
+</ul>
+<h3 id="gvrgroup-version-resource">GVR（Group Version Resource）</h3>
+<ul>
+<li>
+<p><strong>定义</strong>：GVR由Group、Version和Resource三个部分组成。</p>
+<ul>
+<li><strong>Group</strong>：API组的名称。与GVK中的Group相同。</li>
+<li><strong>Version</strong>：资源的版本。与GVK中的Version相同。</li>
+<li><strong>Resource</strong>：资源的名称，通常是复数形式。例如，Pods的资源名称是“pods”，Deployments的资源名称是“deployments”。</li>
+</ul>
+</li>
+<li>
+<p><strong>特点</strong>：GVR用于唯一标识Kubernetes中的某种资源类型，特别是在动态客户端和操作工具中，以便精确指定和访问资源。</p>
+</li>
+<li>
+<p><strong>应用场景</strong>：</p>
+<ul>
+<li><strong>动态客户端操作</strong>：使用GVR在动态客户端中进行CRUD（创建、读取、更新、删除）操作。例如，通过动态客户端获取一个特定命名空间中的所有Deployments。</li>
+<li><strong>资源操作工具</strong>：使用GVR开发操作Kubernetes资源的工具，例如kubectl插件。</li>
+</ul>
+</li>
+<li>
+<p>GVR：Group、Version、Resource</p>
+<ul>
+<li>{Group: &quot;apps&quot;, Version: &quot;v1&quot;, Resource: &quot;deployments&quot;}</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: nginx-deploymnt
+  labels: 
+    app: nginx
+</code></pre>
+<p>每个资源的 GVK 都可以转换成对应的 Rest API 请求（GVR）。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">https://127.0.0.1:56025/apis/apps/v1/namespaces/default/deployments?limit=500
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<p>以获取 Pod 和 Deployment 为例介绍 Client-go 的用法</p>
+<p>创建 Deployment 对象</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27.3
+        ports:
+        - containerPort: 80
+</code></pre>
+<p>Client-go 核心代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">kubeconfig := flag.String(&quot;kubeconfig&quot;, filepath.Join(home, &quot;.kube&quot;, &quot;config&quot;), &quot;[可选] kubeconfig 绝对路径&quot;)
+
+config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+
+clientset, err := kubernetes.NewForConfig(config)
+
+pods, err := clientset.CoreV1().Pods(&quot;default&quot;).List(context.Background(), metav1.ListOptions{})
+
+for _, pod := range pods.Items {
+        fmt.Printf(&quot;Pod name %s\n&quot;, pod.Name)
+}
+</code></pre>
+<p>详细代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/client-go/kubernetes&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 clientset
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 获取 pod 列表
+    pods, err := clientset.CoreV1().Pods(&quot;default&quot;).List(context.Background(), metav1.ListOptions{})
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    for _, pod := range pods.Items {
+        fmt.Printf(&quot;Pod name %s\n&quot;, pod.Name)
+    }
+
+    // 获取 deployment 列表
+    deployments, err := clientset.AppsV1().Deployments(&quot;default&quot;).List(context.Background(), metav1.ListOptions{})
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    for _, deployment := range deployments.Items {
+        fmt.Println((deployment.Name))
+    }
+
+    // 获取 namespace 列表
+    ns, err := clientset.CoreV1().Namespaces().Get(context.Background(), &quot;default&quot;, metav1.GetOptions{})
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    fmt.Printf(&quot;Namespace name %s\n&quot;, ns.Name)
+}
+
+</code></pre>
+<p>编译并执行代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% go mod tidy
+% go build main.go
+
+% ./main 
+Pod name nginx-deployment-5c7dff4cf7-4ksf5
+Pod name nginx-deployment-5c7dff4cf7-vc9jg
+Pod name nginx-deployment-5c7dff4cf7-znl2s
+Namespace name default
+
+% kubectl get pod   
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-5c7dff4cf7-4ksf5   1/1     Running   0          99s
+nginx-deployment-5c7dff4cf7-vc9jg   1/1     Running   0          99s
+nginx-deployment-5c7dff4cf7-znl2s   1/1     Running   0          99s
+</code></pre>
+<h1 id="client-go-in-cluster-configuration生产环境推荐使用-">Client-go In Cluster Configuration（生产环境推荐使用 ）</h1>
+<p>在 Kubernetes 集群中使用 <code>client-go</code> 进行集群内配置（In-Cluster Configuration）时，通常需要使用 <code>rest.InClusterConfig()</code> 方法来创建配置对象。</p>
+<h2 id="in-cluster-configuration">In Cluster Configuration</h2>
+<p>借助 InClusterConfig 方法来获取请求 K8s API 的 Token。在集群内部运行的应用程序可以通过挂载到 Pod 的 Service Account Token 来进行认证。<code>client-go</code> 会自动从 <code>/var/run/secrets/kubernetes.io/serviceaccount</code> 路径读取相关凭据。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import &quot;k8s.io/client-go/rest&quot;
+import &quot;k8s.io/client-go/kubernetes&quot;
+
+config, err := rest.InClusterConfig()
+if err != nil {
+    fmt.Printf(&quot;error %s&quot;, err.Error())
+}
+
+clientset, err := kubernetes.NewForConfig(config)
+if err != nil {
+    fmt.Printf(&quot;error %s&quot;, err.Error())
+}
+</code></pre>
+<p>需要注意给 Service Account 授权，否则无对应权限。默认使用 default service account</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl create role demo --resource pods,deployment --verb list
+kubectl  reate rolebinding demo --role demo --serviceaccount default:default
+</code></pre>
+<h2 id="in-cluster-configuration-原理">In Cluster Configuration 原理</h2>
+<ul>
+<li>
+<p>K8s 会给每个 Pod 注入 Service Account 配置文件，包括 token 和 ca 证书</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- /var/run/secrets/kubernetes.io/serviceaccount/token
+
+\- /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+</code></pre>
+</li>
+<li>
+<p>K8s 默认会给所有 Pod 注入 KUBERNETES_SERVICE_HOST 和 KUBERNETES_SERVICE_PORT 变量</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% kubectl exec -it nginx-deployment-5c7dff4cf7-znl2s -- bash
+root@nginx-deployment-5c7dff4cf7-znl2s:/# cd /var/run/secrets/kubernetes.io/serviceaccount
+root@nginx-deployment-5c7dff4cf7-znl2s:/var/run/secrets/kubernetes.io/serviceaccount# ls
+ca.crt  namespace  token
+</code></pre>
+<ol>
+<li><code>ca.crt</code>：Kubernetes 集群的 CA（证书颁发机构）证书，用于对 Kubernetes API Server 的 TLS 证书进行验证。</li>
+<li><code>namespace</code>：Pod 所在的命名空间名称，存储为一个文本文件。</li>
+<li><code>token</code>：ServiceAccount 的认证令牌，用于 Pod 访问 Kubernetes API Server 的身份验证。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">root@nginx-deployment-5c7dff4cf7-znl2s:/var/run/secrets/kubernetes.io/serviceaccount# env | grep KUBERNETES
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PORT=443
+</code></pre>
+<h3 id="示例代码">示例代码</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;fmt&quot;
+
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/client-go/kubernetes&quot;
+    &quot;k8s.io/client-go/rest&quot;
+)
+
+func main() {
+    config, err := rest.InClusterConfig()
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 获取 pod 列表
+    pods, err := clientset.CoreV1().Pods(&quot;default&quot;).List(context.Background(), metav1.ListOptions{})
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    for _, pod := range pods.Items {
+        fmt.Printf(&quot;Pod name %s\n&quot;, pod.Name)
+    }
+
+    // 获取 deployment 列表
+    deployments, err := clientset.AppsV1().Deployments(&quot;default&quot;).List(context.Background(), metav1.ListOptions{})
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    for _, deployment := range deployments.Items {
+        fmt.Println((deployment.Name))
+    }
+}
+
+</code></pre>
+<p>需要提前创建 rolebinding</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl create role incluster --resource pods,deployment --verb list
+kubectl create rolebinding incluster --role incluster --serviceaccount default:default
+</code></pre>
+<h1 id="clientsetdynamicclientrestclientdiscoveryclient">ClientSet、DynamicClient、RESTClient、DiscoveryClient</h1>
+<h2 id="client-go-四种-client">Client-go 四种 Client</h2>
+<ol>
+<li>RestClient：最基础的客户端，直接与 API Server 交互，剩下三种都是基于 RestClient 实现的。</li>
+<li>ClientSet</li>
+<li>DynamicClient</li>
+<li>DiscoveryClient</li>
+</ol>
+<p>ClientSet 和 DynamicClient 用的会多一些。</p>
+<p><img src="../../../assets/wiki-img/KNofbYYhaodWIAxR8NfcwoAyn5d.png" alt="图片展示了Client-go四种Client的关系图。ClientSet、DynamicClient、DiscoveryClient三个Client位于上方，下方是RestClient，最下方是API Server。ClientSet、DynamicClient、DiscoveryClient与RestClient之间有虚线连接，RestClient与API Server之间有实线连接。该图与文档中介绍Client-go四种Client的内容相关，直观呈现了ClientSet、DynamicClient、DiscoveryClient与RestClient的关系，以及RestClient与API Server的交互情况。"></p>
+<h2 id="restclient">RestClient</h2>
+<p>源码：https://github.com/kubernetes/client-go/blob/master/rest/client.go</p>
+<p>最底层的客户端，直接跟 Rest API 交互</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type Interface interface {
+        GetRateLimiter() flowcontrol.RateLimiter
+        Verb(verb string) *Request
+        Post() *Request
+        Put() *Request
+        Patch(pt types.PatchType) *Request
+        Get() *Request
+        Delete() *Request
+        APIVersion() schema.GroupVersion
+}
+</code></pre>
+<h3 id="使用-restclient-获取-ns-下的-pod">使用 RestClient 获取 ns 下的 pod</h3>
+<p>lesson/module_6/demo_2/main.go</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;os/user&quot;
+    &quot;path/filepath&quot;
+
+    corev1 &quot;k8s.io/api/core/v1&quot;
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/client-go/kubernetes/scheme&quot;
+    &quot;k8s.io/client-go/rest&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    
+    // 指定Kubernetes API路径
+    config.APIPath = &quot;api&quot;
+    // 指定要使用的API组和版本
+    config.GroupVersion = &amp;corev1.SchemeGroupVersion
+    // 指定编解码器
+    config.NegotiatedSerializer = scheme.Codecs
+
+    // 生成RESTClient实例
+    restClient, err := rest.RESTClientFor(config)
+    if err != nil {
+        fmt.Printf(&quot;err %s&quot;, err.Error())
+    }
+
+    // 创建空的结构体，存储pod列表
+    podList := &amp;corev1.PodList{}
+
+    // 构建HTTP请求参数，直接定义 GVR
+    // Get请求
+    restClient.Get().
+        // 指定命名空间
+        Namespace(&quot;default&quot;).
+        // 指定要获取的资源类型
+        Resource(&quot;pods&quot;).
+        // 设置请求参数，使用metav1.ListOptions结构体设置了Limit参数为500，并使用scheme.ParameterCodec进行参数编码。
+        VersionedParams(&amp;metav1.ListOptions{Limit: 500}, scheme.ParameterCodec).
+        // 发送请求并获取响应，使用context.TODO()作为上下文
+        Do(context.TODO()).
+        // 将响应解码为podList
+        Into(podList)
+
+    for _, v := range podList.Items {
+        fmt.Printf(&quot;NameSpace: %v  Name: %v  Status: %v \n&quot;, v.Namespace, v.Name, v.Status.Phase)
+    }
+}
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% go mod tidy 
+go: finding module for package k8s.io/client-go/kubernetes/scheme
+go: finding module for package k8s.io/client-go/tools/clientcmd
+go: finding module for package k8s.io/client-go/rest
+go: found k8s.io/client-go/kubernetes/scheme in k8s.io/client-go v0.32.1
+go: found k8s.io/client-go/rest in k8s.io/client-go v0.32.1
+go: found k8s.io/client-go/tools/clientcmd in k8s.io/client-go v0.32.1
+go: finding module for package github.com/kr/text
+go: found github.com/kr/text in github.com/kr/text v0.2.0
+
+% go build main.go
+% ./main          
+NameSpace: default  Name: nginx-deployment-5c7dff4cf7-4ksf5  Status: Running 
+NameSpace: default  Name: nginx-deployment-5c7dff4cf7-vc9jg  Status: Running 
+NameSpace: default  Name: nginx-deployment-5c7dff4cf7-znl2s  Status: Running
+</code></pre>
+<h2 id="clientset">ClientSet</h2>
+<p>源码：https://github.com/kubernetes/client-go/blob/master/kubernetes/clientset.go</p>
+<p>最常用的 Client，实现了所有 K8s 标准对象的接口</p>
+<p>可以对除CRD之外的所有资源进行增删改查操作。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type Interface interface {
+        Discovery() discovery.DiscoveryInterface
+        AdmissionregistrationV1() admissionregistrationv1.AdmissionregistrationV1Interface
+        AdmissionregistrationV1alpha1() admissionregistrationv1alpha1.AdmissionregistrationV1alpha1Interface
+        AdmissionregistrationV1beta1() admissionregistrationv1beta1.AdmissionregistrationV1beta1Interface
+        InternalV1alpha1() internalv1alpha1.InternalV1alpha1Interface
+        AppsV1() appsv1.AppsV1Interface
+        AppsV1beta1() appsv1beta1.AppsV1beta1Interface
+        AppsV1beta2() appsv1beta2.AppsV1beta2Interface
+        ......
+}
+</code></pre>
+<h3 id="使用-clientset-创建-deployment">使用 ClientSet 创建 deployment</h3>
+<p>lesson/module_6/demo_2_1/main.go</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;os/user&quot;
+    &quot;path/filepath&quot;
+
+    appsv1 &quot;k8s.io/api/apps/v1&quot;
+    corev1 &quot;k8s.io/api/core/v1&quot;
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/client-go/kubernetes&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 clientset
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 定义 Nginx Deployment
+    replicas := int32(1)
+    deployment := &amp;appsv1.Deployment{
+        ObjectMeta: metav1.ObjectMeta{
+            Name: &quot;nginx-deployment&quot;,
+        },
+        Spec: appsv1.DeploymentSpec{
+            Replicas: &amp;replicas,
+            Selector: &amp;metav1.LabelSelector{
+                MatchLabels: map[string]string{
+                    &quot;app&quot;: &quot;nginx&quot;,
+                },
+            },
+            Template: corev1.PodTemplateSpec{
+                ObjectMeta: metav1.ObjectMeta{
+                    Labels: map[string]string{
+                        &quot;app&quot;: &quot;nginx&quot;,
+                    },
+                },
+                Spec: corev1.PodSpec{
+                    Containers: []corev1.Container{
+                        {
+                            Name:  &quot;nginx&quot;,
+                            Image: &quot;nginx:1.14.2&quot;,
+                            Ports: []corev1.ContainerPort{
+                                {
+                                    ContainerPort: 80,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+    // 创建 Deployment
+    deploymentsClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
+    result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Printf(&quot;Created deployment %q.\n&quot;, result.GetObjectMeta().GetName())
+}
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% go mod tidy                            
+go: finding module for package k8s.io/api/apps/v1
+go: finding module for package k8s.io/api/core/v1
+go: finding module for package k8s.io/apimachinery/pkg/apis/meta/v1
+go: finding module for package k8s.io/client-go/kubernetes
+go: finding module for package k8s.io/client-go/tools/clientcmd
+go: found k8s.io/api/apps/v1 in k8s.io/api v0.32.1
+go: found k8s.io/api/core/v1 in k8s.io/api v0.32.1
+go: found k8s.io/apimachinery/pkg/apis/meta/v1 in k8s.io/apimachinery v0.32.1
+go: found k8s.io/client-go/kubernetes in k8s.io/client-go v0.32.1
+go: found k8s.io/client-go/tools/clientcmd in k8s.io/client-go v0.32.1
+go: downloading github.com/onsi/ginkgo/v2 v2.21.0
+go: downloading github.com/onsi/gomega v1.35.1
+go: downloading golang.org/x/tools v0.26.0
+go: downloading github.com/google/pprof v0.0.0-20241029153458-d1b30febd7db
+
+% go build main.go                       
+% ./main
+Created deployment &quot;nginx-deployment&quot;.
+</code></pre>
+<h2 id="dynamicclient">DynamicClient</h2>
+<p>源码：https://github.com/kubernetes/client-go/tree/master/dynamic</p>
+<p>动态客户端，可以对任何资源进行操作（包括 CRD）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type ResourceInterface interface {
+        Create(ctx context.Context, obj *unstructured.Unstructured, options metav1.CreateOptions, subresources ...string) (*unstructured.Unstructured, error)
+        Update(ctx context.Context, obj *unstructured.Unstructured, options metav1.UpdateOptions, subresources ...string) (*unstructured.Unstructured, error)
+        UpdateStatus(ctx context.Context, obj *unstructured.Unstructured, options metav1.UpdateOptions) (*unstructured.Unstructured, error)
+        Delete(ctx context.Context, name string, options metav1.DeleteOptions, subresources ...string) error
+        DeleteCollection(ctx context.Context, options metav1.DeleteOptions, listOptions metav1.ListOptions) error
+        Get(ctx context.Context, name string, options metav1.GetOptions, subresources ...string) (*unstructured.Unstructured, error)
+        List(ctx context.Context, opts metav1.ListOptions) (*unstructured.UnstructuredList, error)
+        Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
+        Patch(ctx context.Context, name string, pt types.PatchType, data []byte, options metav1.PatchOptions, subresources ...string) (*unstructured.Unstructured, error)
+        Apply(ctx context.Context, name string, obj *unstructured.Unstructured, options metav1.ApplyOptions, subresources ...string) (*unstructured.Unstructured, error)
+        ApplyStatus(ctx context.Context, name string, obj *unstructured.Unstructured, options metav1.ApplyOptions) (*unstructured.Unstructured, error)
+}
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type Unstructured struct {
+    // Object is a JSON compatible map with string, flost, int, bool, []interface{}, or
+    // map[string]interface{}
+    // children
+    Object map[string]interface{}
+}
+</code></pre>
+<p>可通过 GVR 来创建任何资源</p>
+<h3 id="使用-dynamicclient-获取-ns-下的-pod">使用 dynamicClient 获取 ns 下的 pod</h3>
+<p>lesson/module_6/demo_3/main.go</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;os/user&quot;
+    &quot;path/filepath&quot;
+
+    corev1 &quot;k8s.io/api/core/v1&quot;
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/apimachinery/pkg/runtime&quot;
+    &quot;k8s.io/apimachinery/pkg/runtime/schema&quot;
+    &quot;k8s.io/client-go/dynamic&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 dynamicClient
+    dynamicClient, err := dynamic.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 指定要操作资源的版本和类型
+    // 这里直接用 gvr 来指定资源类型
+    gvr := schema.GroupVersionResource{
+        Version:  &quot;v1&quot;,
+        Resource: &quot;pods&quot;,
+    }
+
+    // 获取资源，返回的是*unstructured.UnstructuredList指针类型
+    unStructObj, err := dynamicClient.Resource(gvr).Namespace(&quot;default&quot;).List(
+        context.TODO(),
+        metav1.ListOptions{},
+    )
+    if err != nil {
+        panic(err)
+    }
+
+    podList := &amp;corev1.PodList{}
+    // 将unstructured对象转换为podList
+    if err = runtime.DefaultUnstructuredConverter.FromUnstructured(unStructObj.UnstructuredContent(), podList); err != nil {
+        panic(err)
+    }
+
+    for _, v := range podList.Items {
+        fmt.Printf(&quot;namespace: %s, name: %s, status: %s\n&quot;, v.Namespace, v.Name, v.Status.Phase)
+    }
+}
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">go mod tidy
+go: finding module for package k8s.io/api/core/v1
+go: finding module for package k8s.io/client-go/tools/clientcmd
+go: finding module for package k8s.io/apimachinery/pkg/apis/meta/v1
+go: finding module for package k8s.io/apimachinery/pkg/runtime
+go: finding module for package k8s.io/client-go/dynamic
+go: finding module for package k8s.io/apimachinery/pkg/runtime/schema
+go: found k8s.io/api/core/v1 in k8s.io/api v0.32.1
+go: found k8s.io/apimachinery/pkg/apis/meta/v1 in k8s.io/apimachinery v0.32.1
+go: found k8s.io/apimachinery/pkg/runtime in k8s.io/apimachinery v0.32.1
+go: found k8s.io/apimachinery/pkg/runtime/schema in k8s.io/apimachinery v0.32.1
+go: found k8s.io/client-go/dynamic in k8s.io/client-go v0.32.1
+go: found k8s.io/client-go/tools/clientcmd in k8s.io/client-go v0.32.1
+
+% go build main.go
+% ./main
+namespace: default, name: nginx-deployment-d556bf558-stw6s, status: Running
+</code></pre>
+<h3 id="通过-dynamicclient-创建-deployment">通过 dynamicClient 创建 Deployment</h3>
+<p>lesson/module_6/demo_4/main.go</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    _ &quot;embed&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;log&quot;
+    &quot;os/user&quot;
+    &quot;path/filepath&quot;
+    &quot;strings&quot;
+
+    v1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/apimachinery/pkg/apis/meta/v1/unstructured&quot;
+    &quot;k8s.io/apimachinery/pkg/runtime/schema&quot;
+    &quot;k8s.io/apimachinery/pkg/util/yaml&quot;
+    &quot;k8s.io/client-go/dynamic&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+//go:embed deploy.yaml
+var deployYaml string
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 dynamicClient
+    dynamicClient, err := dynamic.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 使用yaml.Unmarshal()将deployYaml解析为unstructured.Unstructured对象
+    deployObj := &amp;unstructured.Unstructured{}
+    if err := yaml.Unmarshal([]byte(deployYaml), deployObj); err != nil {
+        panic(err)
+    }
+
+    // 从deployObj中提取apiVersion和kind以确定GVR
+    apiVersion, found, err := unstructured.NestedString(deployObj.Object, &quot;apiVersion&quot;)
+    if err != nil || !found {
+        log.Fatalln(&quot;apiVersion not found:&quot;, err)
+    }
+
+    kind, found, err := unstructured.NestedString(deployObj.Object, &quot;kind&quot;)
+    if err != nil || !found {
+        log.Fatalln(&quot;kind not found:&quot;, err)
+    }
+
+    // 根据apiVersion生成GVR
+    gvr := schema.GroupVersionResource{}
+    versionParts := strings.Split(apiVersion, &quot;/&quot;)
+    if len(versionParts) == 2 {
+        gvr.Group = versionParts[0]
+        gvr.Version = versionParts[1]
+    } else {
+        // Pod 的话没有 group，只有 version
+        gvr.Version = versionParts[0]
+    }
+
+    // 根据kind确定资源名称
+    switch kind {
+    case &quot;Deployment&quot;:
+        gvr.Resource = &quot;deployments&quot;
+    case &quot;Pod&quot;:
+        gvr.Resource = &quot;pods&quot;
+    // 可以根据需要添加更多的kind
+    default:
+        log.Fatalf(&quot;unsupported kind: %s&quot;, kind)
+    }
+
+    // 使用dynamicClient.Resource()指定命名空间和资源选项, Create()方法创建deployment
+    _, err = dynamicClient.Resource(gvr).Namespace(&quot;default&quot;).Create(context.TODO(), deployObj, v1.CreateOptions{})
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    log.Println(&quot;create deployment success&quot;)
+}
+
+</code></pre>
+<h2 id="discoveryclient了解">DiscoveryClient（了解）</h2>
+<ul>
+<li>DiscoveryClient：发现客户端，主要用于发现 apiserver 支持的 Group、Version、Resource</li>
+<li>kubectl 的 api-version 和 api-resource 就是通过 DiscoveryClient 实现的，它可以将信息缓存在本地 Cache，以减轻 API 的访问压力，默认在 ~/.kube/cache/discovery 目录</li>
+</ul>
+<h1 id="实战一实现一个-client-go-watch-客户端">实战一：实现一个 Client-go Watch 客户端</h1>
+<h2 id="概述">概述</h2>
+<p><img src="../../../assets/wiki-img/WuI5bMZ1eoB0plxqS69cBR4an4d.png" alt="图片展示了Watch机制的架构。左侧为“Watch”模块，右侧为“K8s API Server”模块，二者通过虚线箭头连接。其中，“Pod”以红色标注突出显示。该图与文档中Watch机制的介绍相关，直观呈现了Watch机制中Pod与K8s API Server之间的关系，辅助理解Watch机制直接请求K8s API Server，增加集群负载这一内容。"></p>
+<p>Watch 指的是持续监听特定的资源变化，包括增删改查。</p>
+<p>使用 ClientSet 提供的 Watch 方法监听事件。</p>
+<p>一旦产生事件，则可以执行对应的业务逻辑。</p>
+<h2 id="示例代码-1">示例代码</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+
+    corev1 &quot;k8s.io/api/core/v1&quot;
+    metav1 &quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;
+    &quot;k8s.io/apimachinery/pkg/watch&quot;
+    &quot;k8s.io/client-go/kubernetes&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 clientset
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+    timeout := int64(60)
+    watcher, _ := clientset.CoreV1().Pods(&quot;default&quot;).Watch(context.TODO(), metav1.ListOptions{TimeoutSeconds: &amp;timeout})
+    for event := range watcher.ResultChan() {
+        item := event.Object.(*corev1.Pod)
+
+        switch event.Type {
+        case watch.Added:
+            processPod(item.GetName())
+        case watch.Modified:
+        case watch.Bookmark:
+        case watch.Error:
+        case watch.Deleted:
+        }
+    }
+}
+
+func processPod(name string) {
+    fmt.Println(&quot;new Pod : &quot;, name)
+}
+
+</code></pre>
+<h2 id="为什么不推荐直接使用-watch">为什么不推荐直接使用 Watch</h2>
+<ul>
+<li>处理 Watch 超时、断开重连等情况的处理比较复杂。</li>
+<li>Watch 机制直接请求 K8s API Server，增加了集群负载。</li>
+<li>对于希望对多个资源 Watch 时需创建单独的连接而无法共享，增加资源消耗和集群负载。</li>
+<li>重连可能会导致事件丢失。</li>
+<li>大量事件产生时无限流逻辑，可能导致业务过载崩溃。</li>
+<li>业务获得事件信号后，如果处理失败，没有第二次处理机会。</li>
+</ul>
+<h2 id="使用-informer-代替">使用 Informer 代替</h2>
+<ul>
+<li>
+<p>基于 Watch 实现，提供更高层次的抽象，更简单、安全、高性能</p>
+</li>
+<li>
+<p>自动处理超时和重连机制</p>
+</li>
+<li>
+<p>本地缓存机制，无需频繁调用 API Server</p>
+</li>
+<li>
+<p>内置全量和增量同步机制，确保事件不丢失</p>
+</li>
+<li>
+<p>可结合 Rate Limiting 和延迟队列，控制事件处理速率，避免业务过载，同时支持错误重试</p>
+</li>
+<li>
+<p>使用 SharedInformerFactory 创建一个共享的 Informer 实例，以便提高性能</p>
+</li>
+<li>
+<p>减少网络和资源消耗，减轻 K8s API 负载</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// 初始化 informer
+informerFactory := informers.NewShareInformerFactory(clientset, time.Hour*12)
+
+// 对 Deployment 监听
+deployInformer := informerFactory.Apps().V1().Deployments()
+informer := deployInformer.Informer()
+// Lister 实际上就是本地缓存，他从 Indexer 里取数据
+deployLister := deployInformer.Lister()
+informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+        AddFunc:    onAddDeployment,
+        UpdateFunc: onUpdateDeployment,
+        DeleteFunc: onDeleteDeployment,
+})
+
+// 对 Service 监听
+serviceInformer := informerFactory.Core().V1().Services()
+serviceInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+        AddFunc:    onAddService,
+        UpdateFunc: onUpdateService,
+        DeleteFunc: onDeleteService,
+})
+</code></pre>
+<h3 id="示例">示例</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;time&quot;
+
+    v1 &quot;k8s.io/api/apps/v1&quot;
+    v1core &quot;k8s.io/api/core/v1&quot;
+    &quot;k8s.io/apimachinery/pkg/labels&quot;
+    &quot;k8s.io/client-go/informers&quot;
+    &quot;k8s.io/client-go/kubernetes&quot;
+    &quot;k8s.io/client-go/tools/cache&quot;
+    &quot;k8s.io/client-go/tools/clientcmd&quot;
+)
+
+func main() {
+    // 获取 kubeconfig 文件路径
+    kubeconfig := flag.String(&quot;kubeconfig&quot;, &quot;/Users/keti/.kube/config&quot;, &quot;config&quot;)
+    config, err := clientcmd.BuildConfigFromFlags(&quot;&quot;, *kubeconfig)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 创建 clientset
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        fmt.Printf(&quot;error %s&quot;, err.Error())
+    }
+
+    // 初始化 informer
+    informerFactory := informers.NewSharedInformerFactory(clientset, time.Hour*12)
+
+    // 对 Deployment 监听
+    deployInformer := informerFactory.Apps().V1().Deployments()
+    informer := deployInformer.Informer()
+    // Lister 实际上就是本地缓存，他从 Indexer 里取数据
+    deployLister := deployInformer.Lister()
+    informer.AddEventHandler(
+        cache.ResourceEventHandlerFuncs{
+            AddFunc:    onAddDeployment,
+            UpdateFunc: onUpdateDeployment,
+            DeleteFunc: onDeleteDeployment,
+        },
+    )
+
+    // 对 Service 监听
+    serviceInformer := informerFactory.Core().V1().Services()
+    informer = serviceInformer.Informer()
+    informer.AddEventHandler(
+        cache.ResourceEventHandlerFuncs{
+            AddFunc:    onAddService,
+            UpdateFunc: onUpdateService,
+            DeleteFunc: onDeleteService,
+        },
+    )
+
+    stopper := make(chan struct{})
+    defer close(stopper)
+
+    // 启动 informer，List &amp; Watch
+    informerFactory.Start(stopper)
+    // 等待所有启动的 Informer 的缓存被同步
+    informerFactory.WaitForCacheSync(stopper)
+
+    // Lister，从本地缓存中获取 default 中的所有 deployment 列表，最终从 Indexer 取数据
+    deployments, err := deployLister.Deployments(&quot;default&quot;).List(labels.Everything())
+    if err != nil {
+        panic(err)
+    }
+    for idx, deploy := range deployments {
+        fmt.Printf(&quot;%d -&gt; %s\n&quot;, idx+1, deploy.Name)
+    }
+    // 阻塞住 goroutine
+    &lt;-stopper
+}
+
+func onAddDeployment(obj interface{}) {
+    deploy := obj.(*v1.Deployment)
+    fmt.Println(&quot;add a deployment:&quot;, deploy.Name)
+}
+
+func onUpdateDeployment(old, new interface{}) {
+    oldDeploy := old.(*v1.Deployment)
+    newDeploy := new.(*v1.Deployment)
+    fmt.Println(&quot;update deployment:&quot;, oldDeploy.Name, newDeploy.Name)
+}
+
+func onDeleteDeployment(obj interface{}) {
+    deploy := obj.(*v1.Deployment)
+    fmt.Println(&quot;delete a deployment:&quot;, deploy.Name)
+}
+
+func onAddService(obj interface{}) {
+    service := obj.(*v1core.Service)
+    fmt.Println(&quot;add a service:&quot;, service.Name)
+}
+
+func onUpdateService(old, new interface{}) {
+    oldService := old.(*v1core.Service)
+    newService := new.(*v1core.Service)
+    fmt.Println(&quot;update service:&quot;, oldService.Name, newService.Name)
+}
+
+func onDeleteService(obj interface{}) {
+    service := obj.(*v1core.Service)
+    fmt.Println(&quot;delete a service:&quot;, service.Name)
+}
+
+</code></pre>
+<h2 id="引入-ratelimitingqueue">引入 RateLimitingQueue</h2>
+<ul>
+<li>Q：上一个例子的 EventHandler 业务逻辑处理失败怎么办？</li>
+<li>A：基于事件驱动，没有二次处理机会</li>
+<li>引入 WorkQueue(RateLimitingQueue) 处理业务逻辑：错误重试、防止 Hot Loop（过载）</li>
+<li>示例代码：https://github.com/geektime-aiops-in-action/aiops/blob/main/lesson/module_6/demo_7/main.go</li>
+</ul>
+<h1 id="进阶informersindexerworkqueue">进阶：Informers、Indexer、Workqueue</h1>
+<h2 id="informer-架构">Informer 架构</h2>
+<p><img src="../../../assets/wiki-img/BuYWb2KE3oolFsxlvOtcAXOunEf.jpg" alt="图片展示了client-go中Informer架构的工作流程。Kubernetes server-side的API通过List &amp; Watch机制与Reflector交互，Reflector将对象放入Delta Fifo队列。Informer从Delta Fifo队列弹出对象，存入Indexer，Indexer存储缓存数据。Indexer将对象和key存入Thread safe store，再将key存入Workqueue，Workqueue将key发送给Process Item，最后获取对象并处理。此图直观呈现了Informer架构中各组件及流程关系。"></p>
+<ul>
+<li>Reflector：借助 List/Watch 机制监听资源变化，并将对象放到 Delta Fifo 队列里</li>
+<li>Informer：从 Delta Fifo 队列里弹出对象，然后将对象缓存到 Indexer 里（线程安全的 Map</li>
+<li>Indexer：提供对象的检索能力，比如可以通过 indexer.GetByKey(key) 来获取缓存中的任何一个对象（通过 cache.MetaNamespaceKeyFunc 生成 key: &lt;namespace&gt;/&lt;name&gt;)</li>
+</ul>
+<h2 id="reflector-deltafifo">Reflector DeltaFifo</h2>
+<ul>
+<li>
+<p>Delta 结构体包括：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 操作类型：增删改同步
+
+\- Interface{} 对象
+</code></pre>
+</li>
+<li>
+<p>Fifo：先进先出队列</p>
+</li>
+</ul>
+<h2 id="indexer">Indexer</h2>
+<ul>
+<li>Indexers：存储索引器，key 为索引器名称，value 为索引器实现的函数</li>
+<li>IndexFunc：计算 obj 用于索引的 key，client-go 默认是 MetaNamespaceIndexFunc（之前例子用到的）</li>
+<li>Indices：存储 Index 类型名和对应类型的 Index 的映射</li>
+<li>Index：存储缓存数据，其结构为 K/V</li>
+</ul>
+<h2 id="workqueue">WorkQueue</h2>
+<ul>
+<li>
+<p>Interface：通用先进先出队列，支持去重机制</p>
+</li>
+<li>
+<p>DelayingInterface：延迟队列接口，基于 Interface 接口封装，延迟一段时间后再将元素存入队列</p>
+</li>
+<li>
+<p>RateLimitingInterface：限速队列接口，基于 DelayingInterface 接口封装，比较常用</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 失败重试，指数退避策略
+
+\- 限速，避免业务被打爆
+</code></pre>
+</li>
+</ul>
+<h1 id="实战二实现一个简单的-kubectl-get-crd">实战二：实现一个简单的 Kubectl get CRD</h1>
+<h2 id="kubectl-get-crd">kubectl get CRD</h2>
+<ul>
+<li>CRD 无法通过 ClientSet 获取，需通过 dynamicClient 获取。</li>
+<li>get crd_name (GVK) 转化为 K8s API 请求 (GVR) 的过程</li>
+<li>借助 RESTMapping 进行转化</li>
+</ul>
+<p>lesson/module_6/demo_8</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">gvk := schema.GroupVersionKind{
+        Group:   &quot;mygroup.example.com&quot;,
+        Version: &quot;v1alpha1&quot;,
+        Kind:    kind,
+}
+
+mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+if err != nil {
+        panic(err)
+}
+</code></pre>
+<h2 id="example-crd">Example CRD</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">
+</code></pre>
+<h2 id="restmapping-原理">RestMapping 原理</h2>
+<ul>
+<li>NewDiscoveryRESTMapper: 用 CRD 定义的 plural(复数) 和 singular(单数) 字段，建立 Kind 和 Resource 的关系</li>
+<li>通过 RestMapper.RESTMapping 方法来实现 GVK 和 GVR 的转化</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

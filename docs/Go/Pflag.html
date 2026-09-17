@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基本用法</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="基本用法">基本用法</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+ &quot;fmt&quot;
+
+ &quot;github.com/spf13/pflag&quot;
+)
+
+type host struct {
+ value string
+}
+
+func (h *host) String() string {
+ return h.value
+}
+
+func (h *host) Set(v string) error {
+ h.value = v
+ return nil
+}
+
+func (h *host) Type() string {
+ return &quot;host&quot;
+}
+
+func main() {
+ var ip *int = pflag.Int(&quot;ip&quot;, 1234, &quot;help message for ip&quot;)
+
+ var port int
+ pflag.IntVar(&amp;port, &quot;port&quot;, 8080, &quot;help message for port&quot;)
+
+ var h host
+ pflag.Var(&amp;h, &quot;host&quot;, &quot;help message for host&quot;)
+
+ // 解析命令行参数
+ pflag.Parse()
+
+ fmt.Printf(&quot;ip: %d\n&quot;, *ip)
+ fmt.Printf(&quot;port: %d\n&quot;, port)
+ fmt.Printf(&quot;host: %+v\n&quot;, h)
+
+ fmt.Printf(&quot;NFlag: %v\n&quot;, pflag.NFlag()) // 返回已设置的命令行标志个数
+ fmt.Printf(&quot;NArg: %v\n&quot;, pflag.NArg())   // 返回处理完标志后剩余的参数个数
+ fmt.Printf(&quot;Args: %v\n&quot;, pflag.Args())   // 返回处理完标志后剩余的参数列表
+ fmt.Printf(&quot;Arg(1): %v\n&quot;, pflag.Arg(1)) // 返回处理完标志后剩余的参数列表中第 i 项
+}
+</code></pre>
+<p>以上示例演示的 pflag 用法跟 flag 包用法一致，可以做到二者无缝替换。</p>
+<p>示例分别使用 <code>pflag.Int()</code>、<code>pflag.IntVar()</code>、<code>pflag.Var()</code> 三种不同方式来声明标志。其中 <code>ip</code> 和 <code>port</code> 都是 <code>int</code> 类型标志，<code>host</code> 标志则为自定义的 <code>host</code> 类型，它实现了 <code>pflag.Value</code> 接口，通过实现接口类型，标志能够支持任意类型，增加灵活性。</p>
+<p>通过 <code>--help/-h</code> 参数查看命令行程序使用帮助：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-SQL">$ go run main.go --help                      
+Usage of ./main:
+      --host host   help message for host
+      --ip int      help message for ip (default 1234)
+      --port int    help message for port (default 8080)
+pflag: help requested
+</code></pre>
+<p>可以发现，帮助信息中的标志位置是经过重新排序的，并不是标志定义的顺序。</p>
+<p>与 flag 包不同的是，pflag 包参数定界符是两个 <code>-</code>，而不是一个 <code>-</code>，在 pflag 中 <code>--</code> 和 <code>-</code> 具有不同含义，这点稍后会进行介绍。</p>
+<p><code>ip</code> 标志的默认参数为 <code>1234</code>，<code>port</code> 标志的默认参数为 <code>8080</code>。</p>
+<p>通过如下方式使用命令行程序：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">$ go run main.go --ip 1 x y --host localhost a b 
+ip: 1
+port: 8080
+host: {value:localhost}
+NFlag: 2
+NArg: 4
+Args: [x y a b]
+Arg(1): y
+</code></pre>
+<p><code>ip</code> 标志的默认值已被命令行参数 <code>1</code> 所覆盖，由于没有传递 <code>port</code> 标志，所以打印结果为默认值 <code>8080</code>，<code>host</code> 标志的值也能够被正常打印。</p>
+<p>还有 4 个非选项参数数 <code>x</code>、<code>y</code>、<code>a</code>、<code>b</code> 也都被 pflag 识别并记录了下来。这点比 flag 要强大，在 flag 包中，非选项参数数只能写在所有命令行参数最后，<code>x</code>、<code>y</code> 出现在这里程序是会报错的。</p>
+<h1 id="进阶用法"><strong>进阶用法</strong></h1>
+<p>除了像 flag 包一样的用法，pflag 还支持一些独有的用法，以下是用法示例。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+ &quot;fmt&quot;
+ &quot;os&quot;
+
+ &quot;github.com/spf13/pflag&quot;
+)
+
+type host struct {
+ value string
+}
+
+func (h *host) String() string {
+ return h.value
+}
+
+func (h *host) Set(v string) error {
+ h.value = v
+ return nil
+}
+
+func (h *host) Type() string {
+ return &quot;host&quot;
+}
+
+func main() {
+ flagset := pflag.NewFlagSet(&quot;test&quot;, pflag.ExitOnError)
+
+ var ip = flagset.IntP(&quot;ip&quot;, &quot;i&quot;, 1234, &quot;help message for ip&quot;)
+
+ var boolVar bool
+ flagset.BoolVarP(&amp;boolVar, &quot;boolVar&quot;, &quot;b&quot;, true, &quot;help message for boolVar&quot;)
+
+ var h host
+ flagset.VarP(&amp;h, &quot;host&quot;, &quot;H&quot;, &quot;help message for host&quot;)
+
+ flagset.SortFlags = false
+
+ flagset.Parse(os.Args[1:])
+
+ fmt.Printf(&quot;ip: %d\n&quot;, *ip)
+ fmt.Printf(&quot;boolVar: %t\n&quot;, boolVar)
+ fmt.Printf(&quot;host: %+v\n&quot;, h)
+
+ i, err := flagset.GetInt(&quot;ip&quot;)
+ fmt.Printf(&quot;i: %d, err: %v\n&quot;, i, err)
+}
+</code></pre>
+<p>首先我们通过 <code>pflag.NewFlagSet</code> 自定义了 <code>FlagSet</code> 对象 <code>flagset</code>，之后的标志定义和解析都通过 <code>flagset</code> 来完成。</p>
+<p>前文示例中 <code>pflag.Int()</code> 这种用法，实际上使用的是全局 <code>FlagSet</code> 对象 <code>CommandLine</code>，<code>CommandLine</code> 定义如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">var CommandLine = NewFlagSet(os.Args[0], ExitOnError)
+</code></pre>
+<p>现在同样使用三种不同方式来声明标志，分别为 <code>flagset.IntP()</code>、<code>flagset.BoolVarP()</code>、<code>flagset.VarP()</code>。不难发现，这三个方法的命名结尾都多了一个 <code>P</code>，它们的能力也得以升级，三个方法都多了一个 <code>shorthand string</code> 参数（<code>flagset.IntP</code> 的第 2 个参数，<code>flagset.BoolVarP</code> 和 <code>flagset.VarP</code> 的第 3 个参数）用来设置简短标志。</p>
+<p>从声明标志的方法名中我们能够总结出一些规律：</p>
+<ul>
+<li><code>pflag.&lt;Type&gt;</code> 类方法名会将标志参数值存储在指针中并返回。</li>
+<li><code>pflag.&lt;Type&gt;Var</code> 类方法名中包含 <code>Var</code> 关键字的，会将标志参数值绑定到第一个指针类型的参数。</li>
+<li><code>pflag.&lt;Type&gt;P</code>、<code>pflag.&lt;Type&gt;VarP</code> 类方法名以 <code>P</code> 结尾的，支持简短标志。</li>
+</ul>
+<p>一个完整标志在命令行传参时使用的分界符为 <code>--</code>，而一个简短标志的分界符则为 <code>-</code>。</p>
+<p><code>flagset.SortFlags = false</code> 作用是禁止打印帮助信息时对标志进行重排序。</p>
+<p>示例最后，使用 <code>flagset.GetInt()</code> 获取参数的值。</p>
+<p>通过 <code>--help/-h</code> 参数查看命令行程序使用帮助：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-SQL">$ go run main.go --help
+Usage of test:
+  -i, --ip int      help message for ip (default 1234)
+  -b, --boolVar     help message for boolVar (default true)
+  -H, --host host   help message for host
+pflag: help requested
+</code></pre>
+<p>这次的帮助信息中，标志顺序没有被改变，就是声明的顺序。</p>
+<p>每一个标志都会对应一个简短标志，如 <code>-b</code> 和 <code>--boolVar</code> 是等价的，可以更加方便的设置参数。</p>
+<p>指定如下命令行参数运行示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run main.go --ip 1 -H localhost --boolVar=false
+ip: 1
+boolVar: false
+host: {value:localhost}
+i: 1, err: &lt;nil&gt;
+</code></pre>
+<p>通过 <code>--ip 1</code> 使用完整标志指定 <code>ip</code> 参数值。</p>
+<p>通过 <code>-H ``localhost</code> 使用简短标志指定 <code>host</code> 参数值。</p>
+<p>布尔类型的标志指定参数 <code>--boolVar=false</code> 需要使用等号 <code>=</code> 而非空格。</p>
+<h1 id="命令行标志语法"><strong>命令行标志语法</strong></h1>
+<p>命令行标志遵循如下语法：</p>
+<p><a href="https://feishu.cn/sheets/B8R5sLQ3chBtkatmSpWcpv9knyc">嵌入表格（请到飞书查看）</a></p>
+<p>标志解析在终止符 <code>--</code> 之后停止。</p>
+<p>整数标志接受 1234、0664、0x1234，并且可能为负数。</p>
+<p>布尔标志接受 1, 0, t, f, true, false, TRUE, FALSE, True, False。</p>
+<p><code>Duration</code> 标志接受任何对 <code>time.ParseDuration</code> 有效的输入。</p>
+<h1 id="标志名-normalize"><strong>标志名 Normalize</strong></h1>
+<p>借助 <code>pflag.NormalizedName</code> 我们能够给标志起一个或多个别名、规范化标志名等。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;fmt&quot;
+    &quot;os&quot;
+    &quot;strings&quot;
+
+    &quot;github.com/spf13/pflag&quot;
+)
+
+func normalizeaFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+    // alias
+    switch name {
+    case &quot;old-flag-name&quot;:
+       name = &quot;new-flag-name&quot;
+       break
+    }
+
+    // --my-flag == --my_flag == --my.flag
+    from := []string{&quot;-&quot;, &quot;_&quot;}
+    to := &quot;.&quot;
+    for _, sep := range from {
+       name = strings.Replace(name, sep, to, -1)
+    }
+    return pflag.NormalizedName(name)
+}
+
+func main() {
+    flagset := pflag.NewFlagSet(&quot;test&quot;, pflag.ExitOnError)
+
+    var ip = flagset.IntP(&quot;new-flag-name&quot;, &quot;i&quot;, 1234, &quot;help message for new-flag-name&quot;)
+    var myFlag = flagset.IntP(&quot;my-flag&quot;, &quot;m&quot;, 1234, &quot;help message for my-flag&quot;)
+
+    flagset.SetNormalizeFunc(normalizeFunc)
+    flagset.Parse(os.Args[1:])
+
+    fmt.Printf(&quot;ip: %d\n&quot;, *ip)
+    fmt.Printf(&quot;myFlag: %d\n&quot;, *myFlag)
+}
+</code></pre>
+<p>要使用 <code>pflag.NormalizedName</code>，我们需要创建一个函数 <code>normalizeFunc</code>，然后将其通过 <code>flagset.SetNormalizeFunc(normalizeFunc)</code> 注入到 <code>flagset</code> 使其生效。</p>
+<p>在 <code>normalizeFunc</code> 函数中，我们给 <code>new-flag-name</code> 标志起了一个别名 <code>old-flag-name</code>。</p>
+<p>另外，还对标志名进行了规范化处理，带有 <code>-</code> 和 <code>_</code> 分割符的标志名，会统一规范化成以 <code>.</code> 作为分隔符的标志名。</p>
+<p>使用示例如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run pflag.go --old-flag-name 2 --my-flag 200
+ip: 2
+myFlag: 200
+
+$ go run pflag.go --new-flag-name 3 --my_flag 300
+ip: 3
+myFlag: 300
+</code></pre>
+<h1 id="nooptdefval"><strong>NoOptDefVal</strong></h1>
+<p><code>NoOptDefVal</code> 是 <code>no option default values</code> 的简写。</p>
+<p>创建标志后，可以为标志设置 <code>NoOptDefVal</code> 属性，如果标志具有 <code>NoOptDefVal</code> 属性并且在命令行上设置了标志而没有参数选项，则标志将设置为 <code>NoOptDefVal</code> 指定的值。</p>
+<p>如下示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">var ip = flag.IntP(&quot;flagname&quot;, &quot;f&quot;, 1234, &quot;help message&quot;)
+flag.Lookup(&quot;flagname&quot;).NoOptDefVal = &quot;4321&quot;
+</code></pre>
+<p>不同参数结果如下：</p>
+<p><a href="https://feishu.cn/sheets/B8R5sLQ3chBtkatmSpWcpv9knyc">嵌入表格（请到飞书查看）</a></p>
+<h1 id="弃用隐藏标志"><strong>弃用/隐藏标志</strong></h1>
+<p>使用 <code>flags.MarkDeprecated</code> 可以弃用一个标志，使用 <code>flags.MarkShorthandDeprecated</code> 可以弃用一个简短标志，使用 <code>flags.MarkHidden</code> 可以隐藏一个标志。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;fmt&quot;
+    &quot;os&quot;
+
+    &quot;github.com/spf13/pflag&quot;
+)
+
+func main() {
+    flags := pflag.NewFlagSet(&quot;test&quot;, pflag.ExitOnError)
+
+    var ip = flags.IntP(&quot;ip&quot;, &quot;i&quot;, 1234, &quot;help message for ip&quot;)
+
+    var boolVar bool
+    flags.BoolVarP(&amp;boolVar, &quot;boolVar&quot;, &quot;b&quot;, true, &quot;help message for boolVar&quot;)
+
+    var h string
+    flags.StringVarP(&amp;h, &quot;host&quot;, &quot;H&quot;, &quot;127.0.0.1&quot;, &quot;help message for host&quot;)
+
+    // 弃用标志
+    flags.MarkDeprecated(&quot;ip&quot;, &quot;deprecated&quot;)
+    flags.MarkShorthandDeprecated(&quot;boolVar&quot;, &quot;please use --boolVar only&quot;)
+
+    // 隐藏标志
+    flags.MarkHidden(&quot;host&quot;)
+
+    flags.Parse(os.Args[1:])
+
+    fmt.Printf(&quot;ip: %d\n&quot;, *ip)
+    fmt.Printf(&quot;boolVar: %t\n&quot;, boolVar)
+    fmt.Printf(&quot;host: %+v\n&quot;, h)
+}
+</code></pre>
+<p>查看使用帮助：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run main.go -h                                 
+Usage of test:
+      --boolVar   help message for boolVar (default true)
+pflag: help requested
+</code></pre>
+<p>从打印结果可以发现，弃用标志 <code>ip</code> 时，其对应的简短标志 <code>i</code> 也会跟着被弃用；弃用 <code>boolVar</code> 所对应的简短标志 <code>b</code> 时，<code>boolVar</code> 标志会被保留；<code>host</code> 标志则完全被隐藏。</p>
+<p>指定如下命令行参数运行示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run main.go --ip 1 --boolVar=false -H localhost
+Flag --ip has been deprecated, deprecated
+ip: 1
+boolVar: false
+host: localhost
+</code></pre>
+<p>打印信息中会提示用户 <code>ip</code> 标志已经弃用，不过使用 <code>--ip 1</code> 指定的参数值依然能够生效。</p>
+<p>隐藏的 <code>host</code> 标志使用 <code>-H ``localhost</code> 指定参数值同样能够生效。</p>
+<p>指定如下命令行参数运行示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run main.go -i 1 -b=false --host localhost
+Flag --ip has been deprecated, deprecated
+Flag shorthand -b has been deprecated, please use --boolVar only
+ip: 1
+boolVar: false
+host: localhost
+</code></pre>
+<p>打印信息中增加了一条简短标志 <code>-b</code> 已被弃用的提示，指定参数值依然生效。</p>
+<p>对于弃用的 <code>ip</code> 标志，使用简短标志形式传惨 <code>-i 1</code> 同样生效。</p>
+<h1 id="支持-flag-类型"><strong>支持 flag 类型</strong></h1>
+<p>由于 pflag 对 flag 包兼容，所以可以在一个程序中混用二者：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+ &quot;flag&quot;
+ &quot;fmt&quot;
+
+ &quot;github.com/spf13/pflag&quot;
+)
+
+func main() {
+ var ip *int = pflag.Int(&quot;ip&quot;, 1234, &quot;help message for ip&quot;)
+ var port *int = flag.Int(&quot;port&quot;, 80, &quot;help message for port&quot;)
+
+ pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+ pflag.Parse()
+
+ fmt.Printf(&quot;ip: %d\n&quot;, *ip)
+ fmt.Printf(&quot;port: %d\n&quot;, *port)
+}
+</code></pre>
+<p>其中，<code>ip</code> 标志是使用 <code>pflag.Int()</code> 声明的，<code>port</code> 标志则是使用 <code>flag.Int()</code> 声明的。只需要通过 <code>AddGoFlagSet</code> 方法将 <code>flag.CommandLine</code> 注册到 pflag 中，那么 pflag 就可以使用 flag 中声明的标志集合了。</p>
+<p>运行示例结果如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go run main.go --ip 10 --port 8000
+ip: 10
+port: 8000
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

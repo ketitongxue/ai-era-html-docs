@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>docker --help</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="docker---help">docker --help</h1>
+<p>Usage:  docker [OPTIONS] COMMAND<br>
+A self-sufficient runtime for containers<br>
+Common Commands:<br>
+run         Create and run a new container from an image<br>
+exec        Execute a command in a running container<br>
+ps          List containers<br>
+build       Build an image from a Dockerfile<br>
+pull        Download an image from a registry<br>
+push        Upload an image to a registry<br>
+images      List images<br>
+login       Authenticate to a registry<br>
+logout      Log out from a registry<br>
+search      Search Docker Hub for images<br>
+version     Show the Docker version information<br>
+info        Display system-wide information<br>
+Management Commands:<br>
+ai*         Ask Gordon - Docker Agent<br>
+builder     Manage builds<br>
+buildx*     Docker Buildx<br>
+compose*    Docker Compose<br>
+container   Manage containers<br>
+context     Manage contexts<br>
+debug*      Get a shell into any image or container<br>
+desktop*    Docker Desktop commands (Beta)<br>
+dev*        Docker Dev Environments<br>
+extension*  Manages Docker extensions<br>
+feedback*   Provide feedback, right in your terminal!<br>
+image       Manage images<br>
+init*       Creates Docker-related starter files for your project<br>
+manifest    Manage Docker image manifests and manifest lists<br>
+network     Manage networks<br>
+plugin      Manage plugins<br>
+sbom*       View the packaged-based Software Bill Of Materials (SBOM) for an image<br>
+scout*      Docker Scout<br>
+system      Manage Docker<br>
+trust       Manage trust on Docker images<br>
+volume      Manage volumes<br>
+Swarm Commands:<br>
+swarm       Manage Swarm<br>
+Commands:<br>
+attach      Attach local standard input, output, and error streams to a running container<br>
+commit      Create a new image from a container's changes<br>
+cp          Copy files/folders between a container and the local filesystem<br>
+create      Create a new container<br>
+diff        Inspect changes to files or directories on a container's filesystem<br>
+events      Get real time events from the server<br>
+export      Export a container's filesystem as a tar archive<br>
+history     Show the history of an image<br>
+import      Import the contents from a tarball to create a filesystem image<br>
+inspect     Return low-level information on Docker objects<br>
+kill        Kill one or more running containers<br>
+load        Load an image from a tar archive or STDIN<br>
+logs        Fetch the logs of a container<br>
+pause       Pause all processes within one or more containers<br>
+port        List port mappings or a specific mapping for the container<br>
+rename      Rename a container<br>
+restart     Restart one or more containers<br>
+rm          Remove one or more containers<br>
+rmi         Remove one or more images<br>
+save        Save one or more images to a tar archive (streamed to STDOUT by default)<br>
+start       Start one or more stopped containers<br>
+stats       Display a live stream of container(s) resource usage statistics<br>
+stop        Stop one or more running containers<br>
+tag         Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE<br>
+top         Display the running processes of a container<br>
+unpause     Unpause all processes within one or more containers<br>
+update      Update configuration of one or more containers<br>
+wait        Block until one or more containers stop, then print their exit codes<br>
+Global Options:<br>
+--config string      Location of client config files (default &quot;/Users/keti/.docker&quot;)<br>
+-c, --context string     Name of the context to use to connect to the daemon (overrides DOCKER_HOST<br>
+env var and default context set with &quot;docker context use&quot;)<br>
+-D, --debug              Enable debug mode<br>
+-H, --host list          Daemon socket to connect to<br>
+-l, --log-level string   Set the logging level (&quot;debug&quot;, &quot;info&quot;, &quot;warn&quot;, &quot;error&quot;, &quot;fatal&quot;) (default<br>
+&quot;info&quot;)<br>
+--tls                Use TLS; implied by --tlsverify<br>
+--tlscacert string   Trust certs signed only by this CA (default &quot;/Users/keti/.docker/ca.pem&quot;)<br>
+--tlscert string     Path to TLS certificate file (default &quot;/Users/keti/.docker/cert.pem&quot;)<br>
+--tlskey string      Path to TLS key file (default &quot;/Users/keti/.docker/key.pem&quot;)<br>
+--tlsverify          Use TLS and verify the remote<br>
+-v, --version            Print version information and quit<br>
+Run 'docker COMMAND --help' for more information on a command.<br>
+For more help on how to use Docker, head to <a href="https://docs.docker.com/go/guides/">https://docs.docker.com/go/guides/</a></p>
+<h2 id="docker-run">docker run</h2>
+<h1 id="docker-run--p-主机宿主端口容器端口">docker run -p 主机(宿主)端口:容器端口</h1>
+<p>docker run -p 80:80/tcp -p 443:443/tcp -p 53:53/udp --name nginx-container-test1 nginx:1.20.2 #创建容器并指定多端口 映射<br>
+docker run -d -p 80:80 --name nginx-container-test1 nginx:1.20.2 #后台运行容器<br>
+docker run -it --rm --name nginx-delete-test nginx:1.20.2 bash #单次运行容器<br>
+docker run -it -d centos:7.9.2009 /usr/bin/tail -f '/etc/hosts' #创建容器的时候传递命令及参数</p>
+<h3 id="docker-run-背后发生了什么">docker run 背后发生了什么？</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ docker run -d --publish 80:80 --name webhost nginx
+</code></pre>
+<ol>
+<li>在本地查找是否有 nginx 这个 image 镜像，如果有就跳转第4步，没有继续第2步</li>
+<li>去远程的 image registry 查找 nginx 镜像（默认的 registry 是 Docker Hub)</li>
+<li>下载最新版本的 nginx 镜像 （nginx:latest 默认)</li>
+<li>基于 nginx 镜像来创建一个新的容器，并且准备运行</li>
+<li>docker engine 分配给这个容器一个虚拟IP地址</li>
+<li>在宿主机上打开 80 端口并把容器的 80 端口转发到宿主机上</li>
+<li>启动容器，运行指定的命令（这里是一个 shell 脚本去启动 nginx）</li>
+</ol>
+<h2 id="docker-exec">docker exec</h2>
+<h1 id="docker-exec--it-40e6379cf371-shbash-进入到容器执行命令操作推荐使用此方式">docker exec -it 40e6379cf371 sh/bash #进入到容器执行命令操作，推荐使用此方式</h1>
+<h2 id="docker-ps">docker ps</h2>
+<h1 id="docker-ps-列出容器加上-a会列出包含已停止的容器加上-q会只显示容器id">docker ps #列出容器,加上-a会列出包含已停止的容器，加上-q会只显示容器ID</h1>
+<h2 id="docker-build">docker build</h2>
+<h1 id="docker-build-从dockerfile-构建镜像">docker build #从dockerfile 构建镜像</h1>
+<h2 id="docker-pull">docker pull</h2>
+<h1 id="docker-pull-nginx1202-从镜像仓库下载镜像">docker pull nginx:1.20.2 #从镜像仓库下载镜像</h1>
+<h2 id="docker-push">docker push</h2>
+<h1 id="docker-push-nginx1202-从本地上传镜像到镜像仓库需要登录认证">docker push nginx:1.20.2 #从本地上传镜像到镜像仓库(需要登录认证)</h1>
+<h2 id="docker-images">docker images</h2>
+<h1 id="docker-images-查看本地所有镜像">docker images #查看本地所有镜像</h1>
+<h2 id="docker-login">docker login</h2>
+<h1 id="docker-login-登录镜像仓库">docker login #登录镜像仓库</h1>
+<p>docker logout #登出镜像仓库</p>
+<h2 id="docker-search">docker search</h2>
+<h1 id="docker-search-nginx-搜索镜像">docker search nginx #搜索镜像</h1>
+<h1 id="docker-version">docker version</h1>
+<h1 id="docker-version-显示docker-client和docker-server的版本信息">docker version #显示docker client和docker server的版本信息</h1>
+<p>Client:<br>
+Version:           27.4.0<br>
+API version:       1.47<br>
+Go version:        go1.22.10<br>
+Git commit:        bde2b89<br>
+Built:             Sat Dec  7 10:35:43 2024<br>
+OS/Arch:           darwin/arm64<br>
+Context:           desktop-linux<br>
+Server: Docker Desktop 4.37.2 (179585)<br>
+Engine:<br>
+Version:          27.4.0<br>
+API version:      1.47 (minimum version 1.24)<br>
+Go version:       go1.22.10<br>
+Git commit:       92a8393<br>
+Built:            Sat Dec  7 10:38:33 2024<br>
+OS/Arch:          linux/arm64<br>
+Experimental:     false<br>
+containerd:<br>
+Version:          1.7.21<br>
+GitCommit:        472731909fa34bd7bc9c087e4c27943f9835f111<br>
+runc:<br>
+Version:          1.1.13<br>
+GitCommit:        v1.1.13-0-g58aa920<br>
+docker-init:<br>
+Version:          0.19.0<br>
+GitCommit:        de40ad0</p>
+<h1 id="docker-info">docker info</h1>
+<h1 id="docker-info-显示系统信息">docker info #显示系统信息</h1>
+<h2 id="其他命令">其他命令</h2>
+<h1 id="docker-commit--a-keti-ketiketicom--m-v2---changeexpose-80-443-8ddf4ce923ef-new-nginx-image-将容器-提交为一个本地镜像">docker commit -a &quot;keti keti@keti.com&quot; -m &quot;v2&quot; --change=&quot;EXPOSE 80 443&quot; 8ddf4ce923ef new-nginx-image #将容器 提交为一个本地镜像</h1>
+<p>docker cp 源 目的 #从容器和宿主机相互拷贝文件或目录<br>
+docker create -it --name test1 nginx:1.20.2 #创建一个新的容器且创建后的容器处于退出状态<br>
+docker diff 8ddf4ce923ef #对比容器和镜像有差异的文件或目录<br>
+docker events #获取dockerd的实时事件,创建删除容器等操作<br>
+docker export 8ddf4ce923ef -o new-nginx-image.tar.gz #将容器的文件系统导出为一个本地压缩包,非镜像格式<br>
+docker history centos:7.9.2009 #查看的镜像的构建历史<br>
+docker import new-nginx-image.tar.gz #导入export导出的压缩包，导入后的镜像不完整，不能用于创建容器<br>
+docker inspect 50fe74b50e0d #显示docker对象(镜像、网络、容器等)的详细信息<br>
+参数 ：<br>
+-f 指定返回值的模板文件<br>
+-s 显示总的文件大小<br>
+–type 为指定类型返回JSON<br>
+示例：<br>
+docker inspect ketitx -f {{.Name}}   #获取容器名，输出 /ketitx<br>
+docker inspect container -f {{.NetworkSettings.IPAddress}} #获取容器 IP<br>
+docker kill $(docker ps -a -q) 强制关闭所有运行中的容器<br>
+docker load -i nginx-1.20.2.tar.gz #从一个tar包或标准输入导入镜像<br>
+docker logs -f nginx-container-test1 #持续查看容器标准输出和错误输出的日志<br>
+docker pause 81b344cff55d #暂停一个或者多个容器<br>
+docker port 81b344cff55d #列出一个容器端口映射关系<br>
+docker rename awesome_cerf nginx-container1 #重命名容器<br>
+docker restart ID/容器名称 #重启容器<br>
+docker rm ：删除一个或多个容器<br>
+参数：<br>
+-f :通过 SIGKILL 信号强制删除一个运行中的容器。<br>
+-l :移除容器间的网络连接，而非容器本身。<br>
+-v :删除与容器关联的卷。<br>
+docker rm -f 11445b3a84d3 #强制删除运行中的容器<br>
+docker rm -f<br>
+<code>docker ps -aq -f status=exited </code> #批量删除已退出容器<br>
+docker rm -f $(docker ps -a -q) #批量删除所有容器<br>
+docker rmi -f 53ec353d8dc4 90a4cd9dfe4c #删除一个或多个镜像<br>
+docker save 50fe74b50e0d &gt; nginx-1.20.2.tar.gz #保存一个或多个镜像到一个压缩文件(默认是标准输出)<br>
+docker start ID/容器名称 #启动一个或多个容器<br>
+docker stats #显示容器资源的实时统计信息<br>
+docker stop ID/容器名称 #停止一个或多个容器<br>
+docker tag nginx:1.20.2 harbor.ketitx.com/myserver/nginx:1.20.2 #为镜像添加一个新的tag<br>
+docker unpause 81b344cff55d #取消一个或多个容器的暂停<br>
+docker update 容器 --cpus 2 #更新容器配置信息，比如资源限制的值<br>
+docker wait #一直等待容器退出并显示容器的退出状态码</p>
+<h1 id="docker-save-nginx1202--nginx-imagetar">docker save nginx:1.20.2 &gt; nginx-image.tar</h1>
+<p>docker load -i nginx-image.tar<br>
+docker load  &lt;  nginx-image.tar<br>
+harbor.ketitx.com/myserver/ningx:20221616_113909-branch-1shzbz2w</p>
+<h1 id="docker-cp-d520d4462f51etcnginxconfddefaultconf-opt">docker cp d520d4462f51:/etc/nginx/conf.d/default.conf /opt/</h1>
+<p>docker cp /etc/passwd d520d4462f51:/tmp</p>
+<h1 id="docker-exec--it-40e6379cf371-shbash-推进入到容器执行命令操作推荐使用此方式">docker exec -it 40e6379cf371 sh/bash #推进入到容器执行命令操作，推荐使用此方式</h1>
+<p>docker images #查看本地所有镜像<br>
+docker inspect  50fe74b50e0d #显示docker对象(镜像、网络、容器等)的详细信息<br>
+docker load -i nginx-1.20.2.tar.gz  #从一个tar包或标准输入导入镜像<br>
+docker logs -f nginx-container-test1 #持续查看容器标准输出和错误输出的日志<br>
+docker pull mysql:5.6.48</p>
+<h1 id="docker-容器命令小技巧">docker 容器命令小技巧</h1>
+<h2 id="批量停止">批量停止</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ docker container ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+cd3a825fedeb   nginx     &quot;/docker-entrypoint.…&quot;   7 seconds ago    Up 6 seconds    80/tcp    mystifying_leakey
+269494fe89fa   nginx     &quot;/docker-entrypoint.…&quot;   9 seconds ago    Up 8 seconds    80/tcp    funny_gauss
+34b68af9deef   nginx     &quot;/docker-entrypoint.…&quot;   12 seconds ago   Up 10 seconds   80/tcp    interesting_mahavira
+7513949674fc   nginx     &quot;/docker-entrypoint.…&quot;   13 seconds ago   Up 12 seconds   80/tcp    kind_nobel
+</code></pre>
+<p>方法1 停止指定的某几个容器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ docker stop cd3 269 34b 751
+</code></pre>
+<p>方法2 停止所有的容器（-a 看到的已经包含了部分停止的容器）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$$ docker stop $$(docker ps -aq)
+cd3a825fedeb
+269494fe89fa
+34b68af9deef
+7513949674fc
+$ docker ps -a
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS                     PORTS     NAMES
+cd3a825fedeb   nginx     &quot;/docker-entrypoint.…&quot;   30 seconds ago   Exited (0) 2 seconds ago             mystifying_leakey
+269494fe89fa   nginx     &quot;/docker-entrypoint.…&quot;   32 seconds ago   Exited (0) 2 seconds ago             funny_gauss
+34b68af9deef   nginx     &quot;/docker-entrypoint.…&quot;   35 seconds ago   Exited (0) 2 seconds ago             interesting_mahavira
+7513949674fc   nginx     &quot;/docker-entrypoint.…&quot;   36 seconds ago   Exited (0) 2 seconds ago             kind_nobel
+$
+</code></pre>
+<h2 id="批量删除">批量删除</h2>
+<p>和批量停止类似，可以使用 <code>docker rm $(docker container ps -aq)</code>、</p>
+<p><code>docker system prune -a -f</code> 可以快速对系统进行清理，删除停止的容器，不用的image，等等</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>资源压缩提升效率</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="资源压缩提升效率">资源压缩提升效率</h1>
+<p>建立在动静分离的基础之上，如果一个静态资源的Size越小，那么自然传输速度会更快，同时也会更节省带宽，因此我们在部署项目时，也可以通过Nginx对于静态资源实现压缩传输，一方面可以节省带宽资源，第二方面也可以加快响应速度并提升系统整体吞吐。</p>
+<p>在Nginx也提供了三个支持资源压缩的模块ngx_http_gzip_module、ngx_http_gzip_static_module、ngx_http_gunzip_module，其中ngx_http_gzip_module属于内置模块，代表着可以直接使用该模块下的一些压缩指令，后续的资源压缩操作都基于该模块，先来看看压缩配置的一些参数/指令：</p>
+<p>了解了Nginx中的基本压缩配置后，接下来可以在Nginx中简单配置一下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">http{
+    # 开启压缩机制
+    gzip on;
+    # 指定会被压缩的文件类型(也可自己配置其他类型)
+    gzip_types text/plain application/javascript text/css application/xml text/javascript image/jpeg image/gif image/png;
+    # 设置压缩级别，越高资源消耗越大，但压缩效果越好
+    gzip_comp_level 5;
+    # 在头部中添加Vary: Accept-Encoding（建议开启）指定压缩
+    gzip_vary on;
+    # 处理压缩请求的缓冲区数量和大小
+    gzip_buffers 16 8k;
+    # 对于不支持压缩功能的客户端请求不开启压缩机制
+    gzip_disable &quot;MSIE [1-6]\.&quot;; 
+    # 低版本的IE浏览器不支持压缩# 设置压缩响应所支持的HTTP最低版本
+    gzip_http_version 1.1;
+    # 设置触发压缩的最小阈值
+    gzip_min_length 2k;
+    # 关闭对后端服务器的响应结果进行压缩
+    gzip_proxied off;
+}
+</code></pre>
+<p>在上述的压缩配置中，最后一个gzip_proxied选项，可以根据系统的实际情况决定，总共存在多种选项：</p>
+<ul>
+<li>off：关闭Nginx对后台服务器的响应结果进行压缩。</li>
+<li>expired：如果响应头中包含Expires信息，则开启压缩。</li>
+<li>no-cache：如果响应头中包含Cache-Control:no-cache信息，则开启压缩。</li>
+<li>no-store：如果响应头中包含Cache-Control:no-store信息，则开启压缩。</li>
+<li>private：如果响应头中包含Cache-Control:private信息，则开启压缩。</li>
+<li>no_last_modified：如果响应头中不包含Last-Modified信息，则开启压缩。</li>
+<li>no_etag：如果响应头中不包含ETag信息，则开启压缩。</li>
+<li>auth：如果响应头中包含Authorization信息，则开启压缩。</li>
+<li>any：无条件对后端的响应结果开启压缩机制。</li>
+</ul>
+<p>OK~，简单修改好了Nginx的压缩配置后，可以在原本的index页面中引入一个jquery-3.6.0.js文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">&lt;script type=&quot;text/javascript&quot; src=&quot;jquery-3.6.0.js&quot;&gt;&lt;/script&gt;  
+</code></pre>
+<p>分别来对比下压缩前后的区别：</p>
+<p>从图中可以很明显看出，未开启压缩机制前访问时，js文件的原始大小为230K，当配置好压缩后再重启Nginx，会发现文件大小从230KB→69KB，效果立竿见影！</p>
+<blockquote>
+<p>注意点：①对于图片、视频类型的数据，会默认开启压缩机制，因此一般无需再次开启压缩。②对于.js文件而言，需要指定压缩类型为application/javascript，而并非text/javascript、application/x-javascript。</p>
+</blockquote>
+<h1 id="nginx-缓冲区">Nginx 缓冲区</h1>
+<p>先来思考一个问题，接入Nginx的项目一般请求流程为：“客户端→Nginx→服务端”，在这个过程中存在两个连接：“客户端→Nginx、Nginx→服务端”，那么两个不同的连接速度不一致，就会影响用户的体验（比如浏览器的加载速度跟不上服务端的响应速度）。</p>
+<p>其实也就类似电脑的内存跟不上CPU速度，所以对于用户造成的体验感极差，因此在CPU设计时都会加入三级高速缓冲区，用于缓解CPU和内存速率不一致的矛盾。在Nginx也同样存在缓冲区的机制，主要目的就在于：「「用来解决两个连接之间速度不匹配造成的问题」」 ，有了缓冲后，Nginx代理可暂存后端的响应，然后按需供给数据给客户端。先来看看一些关于缓冲区的配置项：</p>
+<ul>
+<li>proxy_buffering：是否启用缓冲机制，默认为 on关闭状态。</li>
+<li>client_body_buffer_size：设置缓冲客户端请求数据的内存大小。</li>
+<li>proxy_buffers：为每个请求/连接设置缓冲区的数量和大小，默认 4 4k/8k。</li>
+<li>proxy_buffer_size：设置用于存储响应头的缓冲区大小。</li>
+<li>proxy_busy_buffers_size：在后端数据没有完全接收完成时， Nginx可以将 busy状态的缓冲返回给客户端，该参数用来设置 busy状态的 buffer具体有多大，默认为 proxy_buffer_size*2。</li>
+<li>proxy_temp_path：当内存缓冲区存满时，可以将数据临时存放到磁盘，该参数是设置存储缓冲数据的目录。</li>
+<li>path是临时目录的路径。</li>
+</ul>
+<p>语法：</p>
+<ul>
+<li>proxy_temp_file_write_size：设置每次写数据到临时文件的大小限制。</li>
+<li>proxy_max_temp_file_size：设置临时的缓冲目录中允许存储的最大容量。</li>
+</ul>
+<p>非缓冲参数项：</p>
+<ul>
+<li>proxy_connect_timeout：设置与后端服务器建立连接时的超时时间。</li>
+<li>proxy_read_timeout：设置从后端服务器读取响应数据的超时时间。</li>
+<li>proxy_send_timeout：设置向后端服务器传输请求数据的超时时间。</li>
+</ul>
+<p>具体的nginx.conf配置如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">http{
+    proxy_connect_timeout 10;
+    proxy_read_timeout 120;
+    proxy_send_timeout 10;
+    proxy_buffering on;
+    client_body_buffer_size 512k;
+    proxy_buffers 4 64k;
+    proxy_buffer_size 16k;
+    proxy_busy_buffers_size 128k;
+    proxy_temp_file_write_size 128k;
+    proxy_temp_path /soft/nginx/temp_buffer;
+}  
+</code></pre>
+<p>上述的缓冲区参数，是基于每个请求分配的空间，而并不是所有请求的共享空间。当然，具体的参数值还需要根据业务去决定，要综合考虑机器的内存以及每个请求的平均数据大小。</p>
+<blockquote>
+<p>最后提一嘴：使用缓冲也可以减少即时传输带来的带宽消耗。</p>
+</blockquote>
+<h1 id="缓存机制">缓存机制</h1>
+<p>对于性能优化而言，缓存是一种能够大幅度提升性能的方案，因此几乎可以在各处都能看见缓存，如客户端缓存、代理缓存、服务器缓存等等，Nginx的缓存则属于代理缓存的一种。对于整个系统而言，加入缓存带来的优势额外明显：</p>
+<ul>
+<li>减少了再次向后端或文件服务器请求资源的带宽消耗。</li>
+<li>降低了下游服务器的访问压力，提升系统整体吞吐。</li>
+<li>缩短了响应时间，提升了加载速度，打开页面的速度更快。</li>
+</ul>
+<p>那么在Nginx中，又该如何配置代理缓存呢？先来看看缓存相关的配置项：</p>
+<p>「proxy_cache_path」：代理缓存的路径。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">proxy_cache_path path [levels=levels] [use_temp_path=on|off] keys_zone=name:size [inactive=time] [max_size=size] [manager_files=number] [manager_sleep=time] [manager_threshold=time] [loader_files=number] [loader_sleep=time] [loader_threshold=time] [purger=on|off] [purger_files=number] [purger_sleep=time] [purger_threshold=time];
+</code></pre>
+<p>是的，你没有看错，就是这么长…，解释一下每个参数项的含义：</p>
+<ul>
+<li>path：缓存的路径地址。</li>
+<li>levels：缓存存储的层次结构，最多允许三层目录。</li>
+<li>use_temp_path：是否使用临时目录。</li>
+<li>keys_zone：指定一个共享内存空间来存储热点Key(1M可存储8000个Key)。</li>
+<li>inactive：设置缓存多长时间未被访问后删除（默认是十分钟）。</li>
+<li>max_size：允许缓存的最大存储空间，超出后会基于LRU算法移除缓存，Nginx会创建一个Cache manager的进程移除数据，也可以通过purge方式。</li>
+<li>manager_files：manager进程每次移除缓存文件数量的上限。</li>
+<li>manager_sleep：manager进程每次移除缓存文件的时间上限。</li>
+<li>manager_threshold：manager进程每次移除缓存后的间隔时间。</li>
+<li>loader_files：重启Nginx载入缓存时，每次加载的个数，默认100。</li>
+<li>loader_sleep：每次载入时，允许的最大时间上限，默认200ms。</li>
+<li>loader_threshold：一次载入后，停顿的时间间隔，默认50ms。</li>
+<li>purger：是否开启purge方式移除数据。</li>
+<li>purger_files：每次移除缓存文件时的数量。</li>
+<li>purger_sleep：每次移除时，允许消耗的最大时间。</li>
+<li>purger_threshold：每次移除完成后，停顿的间隔时间。</li>
+</ul>
+<p>「proxy_cache」：开启或关闭代理缓存，开启时需要指定一个共享内存区域。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">proxy_cache zone | off;
+</code></pre>
+<p>zone为内存区域的名称，即上面中keys_zone设置的名称。</p>
+<p>「proxy_cache_key」：定义如何生成缓存的键。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">proxy_cache_key string;
+</code></pre>
+<p>string为生成Key的规则，如$scheme$proxy_host$request_uri。</p>
+<p>「proxy_cache_valid」：缓存生效的状态码与过期时间。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">proxy_cache_valid [code ...] time;
+</code></pre>
+<p>code为状态码，time为有效时间，可以根据状态码设置不同的缓存时间。</p>
+<p>例如：proxy_cache_valid 200 302 30m;</p>
+<p>「proxy_cache_min_uses」：设置资源被请求多少次后被缓存。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">proxy_cache_min_uses number;
+</code></pre>
+<h1 id="大文件传输配置">大文件传输配置</h1>
+<p>在某些业务场景中需要传输一些大文件，但大文件传输时往往都会会出现一些Bug，比如文件超出限制、文件传输过程中请求超时等，那么此时就可以在Nginx稍微做一些配置，先来了解一些关于大文件传输时可能会用的配置项：</p>
+<p>关于大文件传输时可能会用的配置项：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>client_max_body_size</td>
+<td>默认1m 设置请求体允许最大体积，为0时不限制，超过所设定的大小，返回413错误。</td>
+</tr>
+<tr>
+<td>client_header_timeout</td>
+<td>等待客户端发送一个请求头的超时时间，超过所设定的大小，返回408错误。</td>
+</tr>
+<tr>
+<td>client_body_timeout</td>
+<td>设置读取请求体的超时时间，超过所设定的大小，返回413错误。</td>
+</tr>
+<tr>
+<td>keepalive_timeout</td>
+<td>服务器与客户端之间保持连接的超时时间，单位为秒。</td>
+</tr>
+<tr>
+<td>proxy_connect_timeout</td>
+<td>http请求无法立即被容器(tomcat,netty等)处理，被放在nginx的待处理池中等待被处理。此参数为等待的最长时间，默认为60秒，官方推荐最长不要超过75秒。</td>
+</tr>
+<tr>
+<td>proxy_read_timeout</td>
+<td>http请求被容器(tomcat,netty等)处理后，nginx会等待处理结果，也就是容器返回的response。此参数即为服务器响应时间，默认60秒。</td>
+</tr>
+<tr>
+<td>proxy_send_timeout</td>
+<td>http请求被服务器处理完后，把数据传返回给Nginx的用时，默认60秒。</td>
+</tr>
+</tbody>
+</table></div>
+<p>用法</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">client_max_body_size 1m;
+# 其他时间想着的都可以参考如下
+client_body_timeout 30s;
+</code></pre>
+<p>这些属性可以出现在http, server, location中。出现在不同的位置，表示其作用域不同。</p>
+<p>注意</p>
+<p>在调整 Nginx 的超时配置时，需要注意以下几点：</p>
+<p>合理设置超时时间：超时时间设置过短会导致误判，设置过长会增加服务器的负担。需要根据实际情况合理调整。</p>
+<p>超时时间的相互关系：有些超时配置之间存在相互关系，需要注意配置的先后顺序。例如，在配置反向代理时，proxy_read_timeout应该大于proxy_connect_timeout。</p>
+<p>客户端超时设置：客户端也可能会设置超时时间，需要注意服务器端的超时配置是否会与客户端的超时配置冲突。</p>
+<p>监控超时事件：应该定期监控超时事件的发生情况，如果发现超时事件过多，则可能需要调整超时配置。</p>
+<p>注意超时配置的影响范围：有些超时配置只对特定的场景有效，需要注意在哪些场景下使用。例如，send_timeout只对发送响应给客户端的场景有效。</p>
+<blockquote>
+<p>上述配置仅是作为代理层需要配置的，因为最终客户端传输文件还是直接与后端进行交互，这里只是把作为网关层的Nginx配置调高一点，调到能够“容纳大文件”传输的程度。当然，Nginx中也可以作为文件服务器使用，但需要用到一个专门的第三方模块nginx-upload-module，如果项目中文件上传的作用处不多，那么建议可以通过Nginx搭建，毕竟可以节省一台文件服务器资源。但如若文件上传/下载较为频繁，那么还是建议额外搭建文件服务器，并将上传/下载功能交由后端处理。</p>
+</blockquote>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

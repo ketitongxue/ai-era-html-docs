@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pushgateway 简介：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="pushgateway-简介">pushgateway 简介：</h1>
+<ul>
+<li>pushgateway 用于临时的指标数据收集。</li>
+<li>pushgateway **不支持数据拉取**(pull模式)，需要客户端主动将数据推送给 pushgateway。</li>
+<li>pushgateway 可以单独运行在一个节点，然后需要自定义监控脚本把需要监控的主动推送给 pushgateway的 API 接口，然后 pushgateway 再等待 prometheus server 抓取数据，即 pushgateway 本身没有任何抓取监控数据的功能，目前 pushgateway 只能被动的等待数据从客户端进行推送。</li>
+<li>-persistence.file=&quot;&quot; #数据保存的文件，默认只保存在内存中</li>
+<li>-persistence.interval=5m #数据持久化的间隔时间</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/Se4sb5abAoKoGcxf1kScnl0pnug.png" alt="图片展示了Prometheus监控系统架构图。Prometheus作为核心组件，通过Service Discovery发现Exporter，从Exporter拉取指标数据。Prometheus将数据存储在Storage中，还可向Grafana查询数据。Prometheus接收来自Alerts manager的告警推送，以及从Exporter接收推送的指标数据。此外，Temporary Jobs向Exporter推送指标数据，Exporter将指标数据推送到Push Gateway。该图直观呈现了Prometheus系统中各组件间的数据流向与交互关系。"></p>
+<h1 id="pushgateway-数据采集流程">pushgateway 数据采集流程:</h1>
+<p><img src="../../../../assets/wiki-img/TWwyb6m5Ko1jc0xAbQOc6pEynTd.png" alt="图片展示了pushgateway数据采集流程。左侧为App，中间是Push Gateway，右侧是Prometheus。App向Push Gateway推送指标数据，Push Gateway存储数据，Prometheus从Push Gateway拉取指标数据。Push Gateway和Prometheus均配有绿色圆柱形图标，代表存储。此图直观呈现了文档中介绍的pushgateway数据采集流程，帮助理解其工作原理。"></p>
+<h1 id="部署pushgateway">部署pushgateway：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-server2:/apps# tar xvf pushgateway-1.5.1.linux-amd64.tar.gz
+root@prometheus-server2:/apps# ln -sv /apps/pushgateway-1.5.1.linux-amd64 /apps/pushgateway
+root@prometheus-server2:/apps# cat /etc/systemd/system/pushgateway.service
+[Unit]
+Description=Prometheus pushgateway
+After=network.target
+
+[Service]
+ExecStart=/apps/pushgateway/pushgateway
+
+[Install]
+WantedBy=multi-user.target
+
+root@prometheus-server2:/apps/pushgateway# systemctl daemon-reload &amp;&amp; systemctl start pushgateway &amp;&amp; systemctl enable pushgateway
+</code></pre>
+<p>或使用docker部署：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># docker run -d --name pushgateway -p 9091:9091 prom/pushgateway:v1.5.1
+</code></pre>
+<h2 id="验证pushgateway">验证pushgateway：</h2>
+<p>监听在90991端口，并且可以通过 <code>http://&lt;ip&gt;:9091/metrics</code> 对外提供指标数据抓取接口</p>
+<p><img src="../../../../assets/wiki-img/DNDabSEKnolkV8xGdmucGZHgnIb.png" alt="图片展示的是Prometheus Pushgateway的界面。上方导航栏有“Pushgateway”“Metrics”“Status”“Help”选项。下方“Runtime Information”显示启动时间为2022年12月3日10:03:32.709424174 +0800 CST，持续时间0.014246055秒；“Build Information”部分列出了branch、buildDate、buildUser、goVersion、revision、version等信息，如branch为HEAD，buildDate为2022年11月29日16:30:38等。该图与文档中验证pushgateway的内容相关，用于展示pushgateway的运行和构建信息。"></p>
+<p><img src="../../../../assets/wiki-img/KbSmbgaGJoHNsuxrNIRc3xDmnzb.png" alt="图片展示的是在浏览器中访问http://172.31.1.102:9091/metrics后的界面。页面显示了多个以“go_memstats_”开头的监控指标，如heap_bytes、heap_sys_bytes、last_gc_time_seconds等，均为数值类型，部分数值较大，如heap_bytes为7.86432e+06。该图片与文档中“验证pushgateway”部分相关，用于直观呈现pushgateway在9091端口对外提供指标数据抓取接口后的监控数据情况。"></p>
+<h1 id="客户端推送单条指标数据">客户端推送单条指标数据：</h1>
+<ul>
+<li>要 Push 数据到 PushGateway 中，可以通过其提供的 API 标准接口来添加，默认 URL 地址为：<code>http://&lt;ip&gt;:9091/metrics/job/&lt;JOBNAME&gt;{/&lt;LABEL_NAME&gt;/&lt;LABEL_VALUE&gt;}</code></li>
+<li>其中<code>&lt;JOBNAME&gt;</code>是必填项，是job的名称，后边可以跟任意数量的标签对，一般我们会添加一个 <code>instance/&lt;INSTANCE_NAME&gt;</code>实例名称标签，来方便区分各个指标是在哪个节点产生的。</li>
+<li>如下推送一个job名称为mytest_job，key为mytest_metric值为2022</li>
+<li>echo &quot;mytest_metric 2088&quot; | curl --data-binary @- <a href="http://172.31.1.102:9091/metrics/job/mytest_job">http://172.31.1.102:9091/metrics/job/mytest_job</a></li>
+</ul>
+<p><img src="../../../../assets/wiki-img/DKRwbTTvnooNOOxX9Joc7MAQnac.png" alt="图片展示了Prometheus监控系统架构。左侧为App，中间是Push Gateway，右侧是Prometheus。App向Push Gateway推送指标数据，Push Gateway再向Prometheus拉取指标数据。Push Gateway和Prometheus均配有绿色圆柱形图标，代表存储。该图与文档中介绍Push Gateway作为中间存储，用于收集和存储指标数据，再由Prometheus拉取数据进行监控分析的内容相契合。"></p>
+<ul>
+<li>pushgateway验证指标数据：</li>
+<li>除了 mytest_metric 指标数据自身以外，pushgateway还为每一条指标数据附加了push_time_seconds 和 push_failure_time_seconds 两个指标，这两个是 PushGateway 自动生成的, 分别用于记录指标数据的成功上传时间和失败上传时间。</li>
+</ul>
+<p><img src="../../../../assets/wiki-img/VXRabTlI7ovopSxF4EQcUGH9nEf.png" alt="图片展示的是Pushgateway控制台界面。界面上方有“Pushgateway”“Metrics”“Status”“Help”标签。下方显示了“job=mytest_job”下的指标数据，包括“mytest_metric”（Untyped，最后推送时间为2022 - 12 - 03T10:28:48+08:00）、“push_failure_time_seconds”（Gauge，最后推送时间为2022 - 12 - 03T10:26:47+08:00）、“push_time_seconds”（Gauge，最后推送时间为2022 - 12 - 03T10:28:48+08:00）。该图片与文档中“客户端推送多条数据 - 方式一”及“pushgateway验证数据”内容相关，用于展示数据推送后的控制台显示情况。"></p>
+<h1 id="prometheus配置数据采集">prometheus配置数据采集：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-server1:/apps/prometheus# vim prometheus.yml
+  - job_name: 'pushgateway-monitor'
+  scrape_interval: 5s
+  static_configs:
+  - targets: ['172.31.1.102:9091']
+
+root@prometheus-server1:/apps/prometheus# systemctl restart prometheus.service
+</code></pre>
+<p><img src="../../../../assets/wiki-img/H9olbG6thoQOdHxEbFfczxkMnZc.png" alt="图片展示了Prometheus、Pushgateway及设备之间的数据采集与推送关系。左侧是Prometheus，中间是Pushgateway，右侧是Device 1和Device 2。Prometheus向Pushgateway推送metrics数据，Pushgateway可能通过防火墙向Device 1和Device 2推送metrics数据。该图与文档中“客户端推送单条指标数据”部分上下文对应，直观呈现了数据采集与推送的流程。"></p>
+<p>prometheus 验证指标数据：</p>
+<p><img src="../../../../assets/wiki-img/C94fbptVboH9GHx1G9lcDCgwn9f.png" alt="图片展示的是Prometheus监控界面，用于验证客户端推送的指标数据。界面上方有“Alert”“Graph”“Status”“Help”等导航栏。中间区域有“Use local time”“Enable query history”等选项，下方是“mytest_metric”查询框。下方图表显示了mytest_metric指标数据随时间的变化情况，横轴为时间，纵轴为数值，数值在2.000左右波动。该图与上文“prometheus验证指标数据”内容相关，用于直观呈现验证结果。"></p>
+<h1 id="客户端推送多条数据-方式一">客户端推送多条数据-方式一：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-node1:~# cat &lt;&lt;EOF | curl --data-binary @- http://172.31.1.102:9091/metrics/job/test_job/instance/172.31.2.181
+#TYPE node_memory_usage gauge
+node_memory_usage 4311744512
+# TYPE memory_total gauge
+node_memory_total 103481868288
+EOF
+</code></pre>
+<p>pushgateway验证数据：</p>
+<p><img src="../../../../assets/wiki-img/VVDcb0LYrogERdxMeGvcr84Fnpf.png" alt="图片展示的是Pushgateway的Metrics页面。页面顶部有导航栏，显示当前访问地址为172.31.1.102:9091。下方有“job”“instances”等标签，其中“job”标签被选中。页面主体部分显示了三个指标数据，分别是node_memory_total、node_memory_usage和push_failure_time_seconds，它们的类型分别为UNTYPED、GAUGE和GAUGE，最后推送时间均为2022-12-03T10:40:49+08:00。该图与上文客户端推送多条数据-方式一及pushgateway验证数据的内容相关，展示了验证数据的呈现形式。"></p>
+<h1 id="客户端推送多条数据-方式二">客户端推送多条数据-方式二：</h1>
+<p>基于自定义脚本实现数据的收集和推送：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-node1:~# cat memory_monitor.sh
+#!/bin/bash
+total_memory=$(free |awk '/Mem/{print $2}')
+used_memory=$(free |awk '/Mem/{print $3}')
+job_name=&quot;custom_memory_monitor&quot;
+instance_name=`ifconfig eth0 | grep -w inet | awk '{print $2}'`
+pushgateway_server=&quot;http://172.31.1.102:9091/metrics/job&quot;
+cat &lt;&lt;EOF | curl --data-binary @- ${pushgateway_server}/${job_name}/instance/${instance_name}
+#TYPE custom_memory_total gauge
+custom_memory_total $total_memory
+#TYPE custom_memory_used gauge
+custom_memory_used $used_memory
+EOF
+</code></pre>
+<p>分别在不同主机执行脚本，验证指标数据收集和推送：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-node1:~# bash memory_monitor.sh
+root@prometheus-node2:~# bash memory_monitor.sh
+</code></pre>
+<p>prometheus验证指标数据：</p>
+<p><img src="../../../../assets/wiki-img/S3YHbEAbBozyTtxbWr6cACH0nOc.png" alt="图片展示的是Prometheus界面，用于验证客户端推送多条数据后指标数据收集情况。界面上方有“Graph”“Status”等选项卡，当前选中“Graph”。下方输入框显示查询语句“custom_memory_used”。图表区域显示了“custom_memory_used”指标数据，横轴为时间，纵轴为数值，数值在391.5左右波动。底部标签栏有“custom_memory_used:instance”等标签。该图与上文“客户端推送多条数据-方式二”及“基于自定义脚本实现数据的收集和推送”内容相关，用于展示指标数据收集效果。"></p>
+<p>pushgateway指标数的删除：</p>
+<p>通过API删除：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@prometheus-node2:~# curl -X DELETE http://172.31.1.102:9091/metrics/job/custom_memory_monitor/instance/172.31.1.181
+</code></pre>
+<p>在控制台删除：</p>
+<p><img src="../../../../assets/wiki-img/L4oYb0U2Xo18VXxUlqrcEZW2ncZ.png" alt="图片展示的是Prometheus Pushgateway的界面，显示了两个指标数据组，分别为“job=“custom_memory_monitor” instance=“172.31.1.181””和“job=“custom_memory_monitor” instance=“172.31.1.182””。每个数据组右侧都有一个红色的“Delete Group”按钮。该图片与文档中“pushgateway指标数的删除”部分相关，直观呈现了在控制台删除指标数据组的操作界面，辅助说明了通过控制台删除pushgateway指标数据的操作场景。"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

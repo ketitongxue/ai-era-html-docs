@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIOps</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="什么是-agent">什么是 Agent</h1>
+<p>具有复杂推理能力、记忆和执行任务手段的自主代理；</p>
+<p>Agent = 规划 + 记忆 + 工具 + 行动</p>
+<p><img src="../../../assets/wiki-img/OgAPbzcWQo98g5xu0nvcj6zKnHf.jpg" alt="图片展示了Agent的架构图。Agent接收Action，通过Planning模块进行任务分解、反思等，再经Memory模块与Short-term memory、Long-term memory交互，最终执行Action。Tools模块包含Calendar()、Calculator()等工具，可调用CodeInterpreter()、Search()等。右侧还列出Reflection、Self-critics等能力。该图与文档中介绍Agent架构的内容相关，直观呈现了Agent各模块及工具的联系与作用。"></p>
+<h2 id="规划模块">规划模块</h2>
+<ul>
+<li>
+<p>任务分解</p>
+</li>
+<li>
+<p>反思</p>
+<ul>
+<li>ReAct</li>
+<li>Reflexion</li>
+<li>Chain of Thought</li>
+<li>Graph of thought</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/wiki-img/UeXPbsbEooaySfxjjwfcudkenGd.jpg" alt="图片展示了Agent处理任务的流程。用户请求后，Agent进行任务分解，生成任务列表；接着执行任务，若任务未完成则循环解决；若任务完成，更新状态并响应用户。流程中包含“Plan”“Task List”“Single - Task Agent”“Replan”等环节，以及“Exec Tasks”“Update state with task results”等步骤，还标注了数字序号标识的步骤，如“1. User Request”“2. Generate Tasks”等，直观呈现了Agent处理任务的步骤与环节。"></p>
+<h2 id="记忆模块">记忆模块</h2>
+<ul>
+<li>
+<p>短期记忆</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 上下文学习，长度有限
+</code></pre>
+</li>
+<li>
+<p>长期记忆</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 向量数据库以及长期对话历史
+</code></pre>
+</li>
+</ul>
+<p><img src="../../../assets/wiki-img/OU4GbnqSHoUsdnxlSbEcipLan7c.jpg" alt="图片展示了记忆的三个阶段：感觉记忆、短时记忆和长时记忆。感觉记忆通过编码接收信息，短时记忆从感觉记忆中获取信息，长时记忆从短时记忆中获取信息。各阶段间有“遗忘”和“学习与链接”等箭头标识，如短时记忆到长时记忆有“学习与链接”箭头，长时记忆到短时记忆有“检索”箭头。该图与文档中记忆模块内容相关，直观呈现了记忆各阶段及信息流动情况。"></p>
+<h2 id="工具模块">工具模块</h2>
+<ul>
+<li>搜索</li>
+<li>RAG</li>
+<li>代码解释器</li>
+<li>数学计算</li>
+<li>其他任何 API 服务</li>
+</ul>
+<p><img src="../../../assets/wiki-img/RypKbLaEfoEni6xwjDQcTyocnOc.jpg" alt="图片展示了Agent处理问题的流程。黄色圆圈“Question”代表问题输入，粉色圆圈“Agent”接收问题后，通过“Action”执行操作，绿色圆圈“Output”呈现结果。Agent与蓝色圆圈“Tools”之间有“Observation”箭头，表明Agent会观察工具，工具再反馈给Agent。该图与文档中介绍Agent的流程内容相呼应，直观呈现了Agent从接收问题到输出结果，以及与工具交互的全过程。"></p>
+<h2 id="为什么要使用-agent">为什么要使用 Agent？</h2>
+<p>大模型就像人的大脑一样，如果你没有手脚和记忆，大脑无法独立行动；</p>
+<p>将大模型视为大脑，Agent 视为完整的身体。</p>
+<h2 id="以-rag-为例理解-agent">以 RAG 为例理解 Agent</h2>
+<p>传统 RAG 流程（左图）：从向量数据库检索文档相关内容后直接回答问题</p>
+<p>RAG Agent 流程（右图）：从向量数据库检索文档后，进一步检查文档内容跟问题是否匹配，如果匹配则回答问题，如果不匹配，则改写问题重新检索，循环往复。</p>
+<p><img src="../../../assets/wiki-img/TrFPbxqQMoFRUixrIg8caycqnog.jpg" alt="图片展示了传统RAG流程和RAG Agent流程。传统RAG流程中，问题输入后，先进行索引，再检索相关文档，最后生成答案。RAG Agent流程则在检索文档后，增加判断文档是否相关、是否改写问题等环节，若不相关则循环检索，若相关则生成答案。该图与上下文紧密相关，直观呈现了RAG Agent相较于传统RAG在流程上的改进，即增加了自我反思和自我纠正功能，体现了Agent在RAG中的应用。"></p>
+<h1 id="agent-四种设计模式">Agent 四种设计模式</h1>
+<h2 id="反馈reflection">反馈(Reflection)</h2>
+<p>定义：让 AI 模型自我反思和自我迭代，不断优化输出，提高任务准确率。</p>
+<ul>
+<li>
+<p>优点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 提高准确性和质量
+</code></pre>
+</li>
+<li>
+<p>缺点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 多次迭代和反馈耗时更长，成本更高
+
+\- 反馈机制设计较为复杂
+</code></pre>
+</li>
+</ul>
+<p>例子：</p>
+<ol>
+<li>Q：给 X 任务写一段代码</li>
+<li>A：def task(): xxx</li>
+<li>Reflection1：代码中第 3 行有 bug，正在修复中</li>
+<li>A：def task2(): xxx</li>
+<li>Reflection1：代码中第 10 行有 bug，正在修复中</li>
+<li>A：def task3(): xxx</li>
+<li>Reflection1：未发现错误</li>
+<li>A：最终代码为 def task3(): xxx</li>
+</ol>
+<h2 id="工具调用tools">工具调用(Tools)</h2>
+<p>定义：让 AI 模型通过调用外部工具增强任务执行能力</p>
+<ul>
+<li>
+<p>优点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 对于数学计算场景，通过代码解释器极大提高准确性
+
+\- 扩充了模型能力范围
+</code></pre>
+</li>
+<li>
+<p>缺点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 模型产生了新的外部依赖，故障概率可能变高
+
+\- 多种工具协作增加了系统复杂性
+</code></pre>
+</li>
+<li>
+<p>例子：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 代码解释器
+
+\- 搜索
+
+\- 浏览网页
+
+\- 发送邮件
+
+\- 日历事件
+
+\- 文生图
+</code></pre>
+</li>
+</ul>
+<h2 id="规划planning">规划(Planning)</h2>
+<p>定义：让 AI 模型将复杂任务拆解为多个更小的步骤</p>
+<ul>
+<li>
+<p>优点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 简化复杂任务
+
+\- 提升复杂任务的准确性
+</code></pre>
+</li>
+<li>
+<p>缺点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 依赖性过强，下一步依赖于上一步的准确性
+
+\- 增加了任务时长和资源
+</code></pre>
+</li>
+</ul>
+<p>例子：</p>
+<ul>
+<li>生成一张图，一个小女孩坐在沙发上看书，姿势和示例图的男孩一样</li>
+<li>规划拆解</li>
+<li>检查示例图姿势，并生成骨架图</li>
+<li>应用骨架图，生成目标图像</li>
+</ul>
+<h2 id="多智能体协作multi-agent-collaboration">多智能体协作(Multi-agent Collaboration)</h2>
+<p>定义：让多个 Agent 分工协作提高任务执行效率和准确性</p>
+<ul>
+<li>
+<p>优点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 提高任务效率
+
+\- 应对复杂任务
+</code></pre>
+</li>
+<li>
+<p>缺点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- 协调多智能体设计复杂
+
+\- 增加了任务时长和资源
+</code></pre>
+</li>
+</ul>
+<h1 id="从零开发一个-agent">从零开发一个 Agent</h1>
+<h2 id="agent-rag-概述">Agent RAG 概述</h2>
+<ul>
+<li>检索向量后，判断文本块是否包含问题答案</li>
+<li>如包含则进行回答</li>
+<li>如不包含则重新进入向量检索，匹配+1 块</li>
+<li>最大循环次数 15</li>
+</ul>
+<h2 id="核心代码">核心代码</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">llm = ChatOpenAI(model=&quot;gpt-4o&quot;)
+k = 1
+docs = &quot;&quot;
+while True:
+    # 通过检索找到相关文档，每次循环增加一个检索文档数量，最大 15 个文档块
+    print(&quot;第&quot;, k, &quot;次检索&quot;)
+    if k &gt; 15:
+        break
+    docs = search_docs(user_query, k)
+    print(&quot;匹配到的文档块: &quot;, docs)
+    template = Template(check_can_answer_system_prompt)
+    filled_prompt = template.substitute(question=user_query, context=docs)
+    # 检查上下文是否足够回答问题
+    messages = [
+        (
+            &quot;system&quot;,
+            filled_prompt,
+        ),
+        (&quot;human&quot;, &quot;开始检查上下文是否足够回答问题。&quot;),
+    ]
+    llm_message = llm.invoke(messages)
+    content = llm_message.content
+    print(&quot;\nLLM Res: &quot;, content, &quot;\n&quot;)
+    if content == '{&quot;can_answer&quot;: true}':
+        break
+    else:
+        k += 1
+
+print(&quot;匹配到能够回答问题的知识库，开始进行回答\n&quot;)
+</code></pre>
+<p>从向量数据库匹配文档，并让大模型反思</p>
+<p>每次循环增加一个文档块，直到能回答问题</p>
+<p>文档块数量超过 15 个仍无法回答问题则放弃</p>
+<h2 id="改进方向">改进方向</h2>
+<p>判断文本块大小，并使用切片策略，避免上下文超限</p>
+<p>改进向量搜索策略，例如通过增加 offset 参数过滤已验证无法回答问题的文本块</p>
+<p>判断能否回答问题环节使用 JSON Mode 获得更稳定的结构化输出</p>
+<h2 id="完整代码">完整代码</h2>
+<p>lesson/module_5/demo_1/agent_rag.ipynb</p>
+<h1 id="translation-agent-源码和架构分析">Translation Agent 源码和架构分析</h1>
+<h2 id="translation-agent">Translation Agent</h2>
+<p>吴恩达教授开源</p>
+<p>基于反思工作流的智能翻译 Agent，模拟了人类翻译专家的思考过程，分成三个流程。 核心流程：</p>
+<ol>
+<li>初始翻译：利用 LLM 对文本进行初步翻译，得到初步的翻译结果</li>
+<li>翻译与改进：引导 LLM 对自身翻译结果进行反思，并提出修改意见，例如不准确、不流畅和语言习惯等问题</li>
+<li>优化输出：根据 LLM 提出的改进意见对翻译结果再次进行优化，得到最终结果</li>
+</ol>
+<h2 id="完整流程">完整流程</h2>
+<p><img src="../../../assets/wiki-img/F0x9beZvXoPXBmxAywmcmDiRnoe.png" alt="图片展示了Translation Agent的完整流程。翻译原文经Token计算后，若Token数小于最大token，进行单Chunk翻译、反思和完善；若Token数大于最大token，则先Chunk分割，再进行多Chunk翻译、反思和完善。最终得到翻译结果。该图与上下文紧密相关，直观呈现了上下文所述的基于反思工作流的智能翻译Agent核心流程，帮助理解其工作原理和步骤。"></p>
+<h2 id="translation-agent-1">Translation Agent</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install poetry
+
+git clone &lt;https://github.com/andrewyng/translation-agent.git&gt;
+cd translation-agent
+poetry install
+poetry shell # activates virtual environment
+
+# 翻译古诗：
+python module_5/demo_2/translation-agent/examples/example_script.py
+
+</code></pre>
+<h3 id="源码解析初始翻译">源码解析：初始翻译</h3>
+<p><code>one_chunk_initial_translation</code>：进行初始翻译</p>
+<p>输入：原始文本</p>
+<p>输出：初始译文</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">system_message = f&quot;You are an expert linguist, specializing in translation from {source_lang} to {target_lang}.&quot;
+
+translation_prompt = f&quot;&quot;&quot;This is an {source_lang} to {target_lang} translation, please provide the {target_lang} translation for this text. \\
+Do not provide any explanations or text apart from the translation.
+{source_lang}: {source_text}
+
+{target_lang}:&quot;&quot;&quot;
+
+    translation = get_completion(translation_prompt, system_message=system_message)
+
+</code></pre>
+<p>从 {source_lang} 翻译为 {target_lang}，通过提示语“除了翻译之外，不要提供任何解释或文字”提升翻译的准确率（幻觉）</p>
+<h3 id="源码解析结果反思">源码解析：结果反思</h3>
+<p><code>one_chunk_reflect_on_translation</code>：对初始翻译结果进行反思，让LLM 给出优化建议</p>
+<p>输入：原始文本、初始译文</p>
+<p>输出：反思改进建议</p>
+<p>核心提示语：</p>
+<ul>
+<li>翻译的最终风格要符合 {coutry} 口语的风格</li>
+<li>准确性：纠正、遗留或者未翻译的错误</li>
+<li>流畅性：语法、拼写和标点规则，避免重复</li>
+<li>风格：对翻译过后的文本同时考虑文化背景</li>
+<li>术语：确保术语的一致性</li>
+<li>列出具体、有用且有建设性的建议，以改进翻译。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">    system_message = f&quot;You are an expert linguist specializing in translation from {source_lang} to {target_lang}. \\
+You will be provided with a source text and its translation and your goal is to improve the translation.&quot;
+
+    if country != &quot;&quot;:
+        reflection_prompt = f&quot;&quot;&quot;Your task is to carefully read a source text and a translation from {source_lang} to {target_lang}, and then give constructive criticism and helpful suggestions to improve the translation. \\
+The final style and tone of the translation should match the style of {target_lang} colloquially spoken in {country}.
+
+The source text and initial translation, delimited by XML tags &lt;SOURCE_TEXT&gt;&lt;/SOURCE_TEXT&gt; and &lt;TRANSLATION&gt;&lt;/TRANSLATION&gt;, are as follows:
+
+&lt;SOURCE_TEXT&gt;
+{source_text}
+&lt;/SOURCE_TEXT&gt;
+
+&lt;TRANSLATION&gt;
+{translation_1}
+&lt;/TRANSLATION&gt;
+
+When writing suggestions, pay attention to whether there are ways to improve the translation's \\n\\
+(i) accuracy (by correcting errors of addition, mistranslation, omission, or untranslated text),\\n\\
+(ii) fluency (by applying {target_lang} grammar, spelling and punctuation rules, and ensuring there are no unnecessary repetitions),\\n\\
+(iii) style (by ensuring the translations reflect the style of the source text and take into account any cultural context),\\n\\
+(iv) terminology (by ensuring terminology use is consistent and reflects the source text domain; and by only ensuring you use equivalent idioms {target_lang}).\\n\\
+
+Write a list of specific, helpful and constructive suggestions for improving the translation.
+Each suggestion should address one specific part of the translation.
+Output only the suggestions and nothing else.&quot;&quot;&quot;
+
+</code></pre>
+<p>one_chunk_improve_translation：根据反思结果重新改进初始翻译结果，生成最终译文</p>
+<p>输入：反思改进建议、原始文本、初始译文</p>
+<p>输出：最终译文 核心提示语：</p>
+<ul>
+<li>仔细阅读专家的建议和建设性批评</li>
+<li>考虑准确性、流畅性、风格、术语、其他</li>
+<li>只输出新的译文</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">    system_message = f&quot;You are an expert linguist, specializing in translation editing from {source_lang} to {target_lang}.&quot;
+
+    prompt = f&quot;&quot;&quot;Your task is to carefully read, then edit, a translation from {source_lang} to {target_lang}, taking into
+account a list of expert suggestions and constructive criticisms.
+
+The source text, the initial translation, and the expert linguist suggestions are delimited by XML tags &lt;SOURCE_TEXT&gt;&lt;/SOURCE_TEXT&gt;, &lt;TRANSLATION&gt;&lt;/TRANSLATION&gt; and &lt;EXPERT_SUGGESTIONS&gt;&lt;/EXPERT_SUGGESTIONS&gt; \\
+as follows:
+
+&lt;SOURCE_TEXT&gt;
+{source_text}
+&lt;/SOURCE_TEXT&gt;
+
+&lt;TRANSLATION&gt;
+{translation_1}
+&lt;/TRANSLATION&gt;
+
+&lt;EXPERT_SUGGESTIONS&gt;
+{reflection}
+&lt;/EXPERT_SUGGESTIONS&gt;
+
+Please take into account the expert suggestions when editing the translation. Edit the translation by ensuring:
+
+(i) accuracy (by correcting errors of addition, mistranslation, omission, or untranslated text),
+(ii) fluency (by applying {target_lang} grammar, spelling and punctuation rules and ensuring there are no unnecessary repetitions), \\
+(iii) style (by ensuring the translations reflect the style of the source text)
+(iv) terminology (inappropriate for context, inconsistent use), or
+(v) other errors.
+
+Output only the new translation and nothing else.&quot;&quot;&quot;
+
+</code></pre>
+<h3 id="优势和不足">优势和不足</h3>
+<p>优势：</p>
+<ol>
+<li>基于反思工作流，翻译效果优于普通翻译工具</li>
+<li>可定制化 不足</li>
+<li>翻译效果依赖于 LLM 的智力</li>
+<li>相比较商业翻译引擎在特定专业领域略显不足</li>
+<li>使用有一定的门槛</li>
+<li>基于固定流程，没有使用 Agent 自我思考的循环机制</li>
+</ol>
+<h1 id="langgraph-agent-开发实战">LangGraph Agent 开发实战</h1>
+<h1 id="核心概念">核心概念</h1>
+<h3 id="什么是-langgraph">什么是 LangGraph</h3>
+<ul>
+<li>LangGraph 是一个构建在 LangChain 之上的库，旨在为 Agent 添加循环运算的能力。</li>
+<li>LangChain 主要面向定义有向无环图，一旦前面的节点失败则后面的都会失败。</li>
+<li>LangGraph 引入了循环的功能，实现了有向有环图，从而实现更复杂的 Agent。</li>
+</ul>
+<p>LangGraph = 构建 Agent 的框架.</p>
+<p>核心概念：</p>
+<ol>
+<li>Stateful Graph</li>
+<li>Node</li>
+<li>Edges</li>
+</ol>
+<h2 id="stateful-graph">Stateful Graph</h2>
+<p>Stateful Graph 定义有向有环图及其保存的状态，需要往里面添加 Node 才能形成有向有环图.</p>
+<p><img src="../../../assets/wiki-img/MSLtbmWE5ovIlgxDRXic47KQnCJ.jpg" alt="图片展示了LangGraph中Stateful Graph的概念示例。图中有两个Sub Graph，分别为Sub Graph 1和Sub Graph 2。每个Sub Graph内有多个节点，节点间有箭头连接，表示有向关系。图中还展示了两个数据对象，分别是{&quot;foo&quot;:&quot;bar&quot;}和{&quot;hello&quot;:&quot;world&quot;}，以及{&quot;foo&quot;:&quot;bar&quot;}和{&quot;fizz&quot;:&quot;buzz&quot;}。该图与上下文紧密相关，直观呈现了Stateful Graph定义有向有环图及其保存状态，需添加Node才能形成有向有环图这一概念。"></p>
+<h2 id="node">Node</h2>
+<p>Node 是 LangGraph 的节点，每个节点代表一个函数或一个计算步骤。</p>
+<p>你可以定义节点来执行特定任务，例如处理输入、做出决策或与外部 API 交互。</p>
+<p>节点相互依赖，可以是串行、并行和在某些节点循环运行</p>
+<p><img src="../../../assets/wiki-img/K8aobHOx3o0pDixz12bcyktZnvf.jpg" alt="图片展示了LangGraph中节点相互依赖的示例。图中有四个节点，分别为“Node “a””“Node “b””“Node “c””“Node “d””，节点以红色圆圈标识。节点间有箭头连接，箭头旁标注了条件，如“b or c”“d”等，表示不同节点间存在串行、并行或循环运行的关系。该图与文档中介绍LangGraph节点相互依赖的内容相关，直观呈现了节点间的依赖关系。"></p>
+<h2 id="edges">Edges</h2>
+<p>边连接图中的节点，定义计算流程（包括起始 Node 和终止 Node）。</p>
+<p>LangGraph 支持条件 Edges，可以根据图的当前状态动态确定要执行的下一个节点。</p>
+<p><img src="../../../assets/wiki-img/UCsWbADvHoQUGFxEHCKchAsAnsb.jpg" alt="图片展示了LangGraph的流程图。从“人”开始，经Node 1后，通过Conditional Edge分支，可选择Node 2、Node 3或Node 4。Node 2可直接到END，Node 3经Node 8到END，Node 4直接到END。Node 3和Node 4之后还有分支，如Node 3可到Node 5、Node 6，Node 6再到Node 7，最终到END。该图直观呈现了LangGraph中Node、Edges及流程分支情况，与文档中介绍的LangGraph概念相契合。"></p>
+<h2 id="langgraph-chat-example">LangGraph Chat Example</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">llm = ChatOpenAI()
+
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
+
+def chat(state: State):
+    return {&quot;messages&quot;:[llm.invoke(state[&quot;messages&quot;])]}
+
+# 单节点
+workflow = StateGraph(State)
+workflow.add_node(chat)
+workflow.set_entry_point(&quot;chat&quot;)
+workflow.set_finish_point(&quot;chat&quot;)
+graph = workflow.compile()
+
+display(Image(graph.get_graph().draw_mermaid_png()))
+
+</code></pre>
+<p>核心概念：StateGraph、Node、Edges</p>
+<p>aiops_Learning\Week4\LangGraph Agent\langgraph_chat_example.ipynb</p>
+<p><img src="../../../assets/wiki-img/TpnLbyw8BoNoTexv7yXcq73Jn2d.png" alt="图片展示的是LangGraph Chat Example中一个简单的状态图。图中有三个节点，从上至下依次为“start”“chat”“end”，其中“chat”节点为紫色，其他节点为蓝色。箭头从“start”指向“chat”，再从“chat”指向“end”。该图与上下文介绍的LangGraph支持条件Edges，可根据图的当前状态动态确定要执行的下一个节点等内容相关，直观呈现了状态图的结构。"></p>
+<h2 id="用-langgraph-实现-translation-agent">用 LangGraph 实现 Translation Agent</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 初始翻译
+def initial_translation(state: State):
+    return {&quot;messages&quot;: [llm.invoke(messages)]}
+# 反思建议
+def reflect_on_translation(state: State):
+    return {&quot;messages&quot;: [llm.invoke(messages)]}
+# 根据建议改善翻译结果
+def improve_translation(state: State):
+    return {&quot;messages&quot;: [llm.invoke(messages)]}
+
+workflow = StateGraph(State)
+workflow.add_node(&quot;initial_translation&quot;, initial_translation)
+workflow.add_node(&quot;reflect_on_translation&quot;, reflect_on_translation)
+workflow.add_node(&quot;improve_translation&quot;, improve_translation)
+
+# 定义有向无环图
+workflow.set_entry_point(&quot;initial_translation&quot;)
+workflow.add_edge(&quot;initial_translation&quot;, &quot;reflect_on_translation&quot;)
+workflow.add_edge(&quot;reflect_on_translation&quot;, &quot;improve_translation&quot;)
+workflow.add_edge(&quot;improve_translation&quot;, END)
+
+</code></pre>
+<p>aiops_Learning\Week4\LangGraph Agent\langgraph_translation_agent.ipynb</p>
+<p><img src="../../../assets/wiki-img/ZbMJbTXXEo6NRHxFkJxc0iA3nZg.png" alt="图片展示了用LangGraph实现Translation Agent时的流程图。从“start”开始，依次经过“initial_translation”“reflect_on_translation”“improve_translation”三个节点，最后到达“end”。该图与文档中“用LangGraph实现Translation Agent”部分内容对应，直观呈现了Translation Agent的执行流程，帮助理解其工作逻辑。"></p>
+<h2 id="接入-langsmith">接入 LangSmith</h2>
+<p>LangSmith: Agent 开发的调试、日志和追踪平台，和 LangChain、LangGraph 原生集成</p>
+<p>URL: <a href="https://smith.langchain.com/">https://smith.langchain.com/</a></p>
+<p>申请 API Key SaaS 平台，超过一定用量需付费</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">os.environ[&quot;LANGCHAIN_TRACING_V2&quot;] = &quot;true&quot;
+os.environ[&quot;LANGCHAIN_ENDPOINT&quot;] = &quot;https://api.smith.langchain.com&quot;
+os.environ[&quot;LANGCHAIN_API_KEY&quot;] = &quot;&lt;YOUR_LANGSMITH_API_KEY&gt;&quot;
+# LangSmith 项目名称，默认 default
+os.environ[&quot;LANGCHAIN_PROJECT&quot;] = &quot;default&quot;
+</code></pre>
+<h2 id="agent-trace-调用监控">Agent Trace 调用监控</h2>
+<p><img src="../../../assets/wiki-img/KP2Zb5vpXoTesQxYOzUcdHg8n5c.jpg" alt="图片展示了LangGraph的运行界面。左侧为运行列表，显示了多个运行记录，其中“LangGraph”运行占比9.99%。右侧是具体运行详情，包括Input、Rendered Output、Human、AI等部分，如Input中用户输入“静夜思”，Rendered Output中AI给出的翻译内容，以及Human和AI的交互记录。该图与文档中“借助LangGraph实现ReAct Agent”内容相关，直观呈现了Agent运行时的交互过程。"></p>
+<h2 id="借助-langgraph-实现-react-agent">借助 LangGraph 实现 ReAct Agent</h2>
+<p>ReAcT Agent：根据用户输入进行思考，循环调用工具，直到有足够的信息来解决用户输入</p>
+<p>例子</p>
+<ul>
+<li>User：帮我修改 payment 的工作负载，镜像为 nginx:v1.0</li>
+<li>Assistant：要修改 payment 工作负载，首先要获取 payment deployment</li>
+<li>Assistant：先调用 tools：get_deployment 获取工作负载</li>
+<li>Assistant：获取成功，再调用 tools：patch_deployment 修改工作负载</li>
+<li>Assistant：修改成功</li>
+</ul>
+<p><img src="../../../assets/wiki-img/Ed8rbaYcPoJuCZxMwbAcecQnnRe.jpg" alt="图片展示了ReAct Agent的流程图。从“start”开始，箭头指向“chat”，再分别指向“tools”和“end”。其中，“chat”与“tools”之间有双向箭头，表示循环调用关系。该图与文档中“如何控制循环结束”内容相关，直观呈现了ReAct Agent根据用户输入思考，循环调用工具，直到循环结束的流程，帮助理解循环调用的机制。"></p>
+<h2 id="如何控制循环结束">如何控制循环结束？</h2>
+<p>借助 add_conditional_edges 实现动态控制，当条件函数返回 tools 字符串，则继续调用 tools 节点，当返回 <strong>end</strong> 字符串，则退出</p>
+<p>条件函数 should_continue 的条件逻辑是检查 AI 消息是否需要继续调用工具</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">def should_continue(state: MessagesState) -&gt; Literal[&quot;tools&quot;, &quot;__end__&quot;]:
+    messages = state[&quot;messages&quot;]
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return &quot;tools&quot;
+    return &quot;__end__&quot;
+
+# 继续进入 tools 的调用或者 __end__ 结束
+workflow.add_conditional_edges(
+    &quot;chat&quot;,
+    should_continue,
+)
+</code></pre>
+<p><img src="../../../assets/wiki-img/DjMwbG6xdo946Yxczcycshjmn0c.jpg" alt="图片展示了ReAct Agent的流程图。上方“start”节点连接“chat”节点，下方“chat”节点分别连接“tools”和“end”节点。其中，“chat”节点有两条虚线箭头指向“tools”节点，一条虚线箭头指向“end”节点。该图与文档中“如何控制循环结束？”部分内容相关，借助add_conditional_edges实现动态控制，当条件函数返回“tools”字符串则继续调用“tools”节点，返回“end”字符串则退出，此图直观呈现了这一控制逻辑。"></p>
+<h3 id="核心代码-1">核心代码</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">def should_continue(state: MessagesState) -&gt; Literal[&quot;tools&quot;, &quot;__end__&quot;]:
+    messages = state[&quot;messages&quot;]
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return &quot;tools&quot;
+    return &quot;__end__&quot;
+
+# LangGraph Tools：载入多个 Tools
+tools = [get_deployment, apply_deployment]
+model_with_tools = ChatOpenAI(model=&quot;gpt-4o&quot;, temperature=0).bind_tools(tools)
+# ToolNode：将多个 Tools 转成 Node 节点
+tool_node = ToolNode(tools)
+workflow = StateGraph(MessagesState)
+workflow.add_node(&quot;chat&quot;, call_model)
+workflow.add_node(&quot;tools&quot;, tool_node)
+
+workflow.add_edge(&quot;__start__&quot;, &quot;chat&quot;)
+# Conditional Edges：动态控制是否继续运行 Tools 或退出
+workflow.add_conditional_edges(
+    &quot;chat&quot;,
+    should_continue,
+)
+# 定义有向有环图
+workflow.add_edge(&quot;tools&quot;, &quot;chat&quot;)
+app = workflow.compile()
+
+</code></pre>
+<h2 id="react-agent-trace-监控">ReAct Agent Trace 监控</h2>
+<p><img src="../../../assets/wiki-img/XhfrbgExAoCCkxxdyQkcVw0Fnps.jpg" alt="图片展示的是LangSmith平台界面，左侧为导航栏，有Projects、Annotation Queues等选项。右侧上方是Trace区域，显示了多个工具调用记录，如get_deployment、patch_deployment等，其中get_deployment调用次数最多。下方是LangGraph区域，呈现了输入、渲染输出、AI输出及YAML代码等内容，如输入为“帮我修改payment的工作负载，镜像为nginx:v1.0”，AI输出为“get_deployment call_11ady5XKG88SPJUeIMcUeRO”，YAML代码展示了deployment相关信息。该图与文档中“ReAct Agent Trace监控”内容相关，直观呈现了Agent调用工具及反馈信息。"></p>
+<h2 id="深入-langgraph-并行-super-step">深入 LangGraph 并行 (Super-step)</h2>
+<p><img src="../../../assets/wiki-img/YmqdbLMsTorgqgxJ28icqW3Enxh.png" alt="图片展示了LangGraph并行（Super-step）的代码及流程图。左侧代码部分定义了StateGraph，添加节点“a”至“d”，并设置返回值，构建图结构。右侧流程图呈现了节点间循环调用关系，从“start”开始，依次经“a”“b”“c”“d”节点，最终到达“end”。底部代码输出了“D被执行一次”。该图片与文档中“深入LangGraph并行(Super-step)”内容相关，直观呈现了并行流程的代码实现及执行结果。"></p>
+<p><img src="../../../assets/wiki-img/R4zab4nl6ozEPfxluD7c0XKGnsf.png" alt="图片展示了ReAct Agent Trace监控中借助LangGraph实现并行Super-step的代码及流程图。左侧代码中，定义了节点，连接节点，其中被红色框突出显示。右侧流程图呈现了节点间关系，开始，依次经过、、、、，最终到结束。底部代码输出了“D 被执行了两次”，并展示了节点执行情况。该图片与上下文紧密相关，直观呈现了代码与流程图对应关系，辅助理解并行Super-step的实现。"></p>
+<p><img src="../../../assets/wiki-img/JcsYbsj9DoM0Ywx7W4cc8FHVnce.png" alt="图片展示了ReAct Agent Trace监控中深入LangGraph并行(Super-step)的相关代码及流程图。左侧代码部分，builder.add_node等语句构建节点，builder.add_edge等语句添加边，其中第13行边的源节点为“c”和“e”，目标节点为“d”，用橙色框突出显示。右侧流程图呈现了节点间执行关系。下方代码输出了节点执行情况，如“D被执行了一次”。该图片与上下文紧密相关，直观呈现了代码与流程图对应关系，辅助理解ReAct Agent Trace监控中并行操作的执行情况。"></p>
+<h1 id="从零开发个人运维知识库-agent">从零开发个人运维知识库 Agent</h1>
+<h2 id="三种落地方式">三种落地方式</h2>
+<ol>
+<li>
+<p>无需代码开发，自托管部署：QAnything、RAGFlow、Open Web UI</p>
+</li>
+<li>
+<p>SaaS 服务：Coze、Dify</p>
+</li>
+<li>
+<p>二次开发，深度接入公司业务流程：LangChain、LangGraph</p>
+<ol>
+<li>创建工单</li>
+<li>读取内部运维数据</li>
+<li>打通 IM 工具</li>
+<li>根因分析</li>
+</ol>
+</li>
+</ol>
+<h2 id="coze-个人运维知识库">Coze 个人运维知识库</h2>
+<ol>
+<li>注册 <a href="https://www.coze.com/">https://www.coze.com/</a></li>
+<li>打开 Personal -&gt; Knowledge -&gt; Create Knowledge 上传知识库文件并进行 Embedding</li>
+<li>创建 Bot</li>
+<li>在 Knowledge -&gt; Text 下点击 + ，添加刚才创建的知识库</li>
+<li>在 Source 一栏开启 Show source</li>
+<li>在右侧开始调试，提问：你知道 payment 服务是谁维护吗？</li>
+<li>发布 Bot，获得一个公网访问链接，例如：<a href="https://www.coze.com/store/bot/7404669938810142727?bot_id=true">https://www.coze.</a><a href="https://www.coze.com/store/bot/7404669938810142727?bot_id=true">com/store/bot/7404669938810142727?bot_id=true</a></li>
+</ol>
+<h2 id="coze-参数配置">Coze 参数配置</h2>
+<p><a href="https://feishu.cn/sheets/Xma0sIRXkhNsYrtEeqqcRSVFnQe">嵌入表格（请到飞书查看）</a></p>
+<h2 id="langgraph-实现自适应-rag-agent">LangGraph 实现自适应 RAG Agent</h2>
+<p>基于论文： <a href="https://arxiv.org/abs/2403.14403">https://arxiv.org/abs/2403.14403</a> 核心点：</p>
+<ul>
+<li>Web 搜索工具：针对近期事件的搜索</li>
+<li>自适应 RAG 工具：针对知识库相关问题</li>
+<li>路由器：判断问题交由 Web 搜索还是RAG 处理</li>
+</ul>
+<p><img src="../../../assets/wiki-img/VQywbhLC3oqaCJxFkEgcSiFbnzb.jpg" alt="图片展示了基于论文https://arxiv.org/abs/2403.14403(https://arxiv.org/abs/2403.14403)的LangGraph实现自适应RAG Agent流程。左侧为Query Analysis，对问题进行分析，相关则进入RAG + self - reflection，不相关则进行Web search。右侧RAG + self - reflection部分，包含Retrieval、Grade、Generate等步骤，判断答案是否正确，不正确则重写问题。Web search部分，通过Generate生成节点，判断文档是否相关，不相关则重写问题。该图与文档中介绍的LangGraph实现自适应RAG Agent核心点紧密相关。"></p>
+<h2 id="web-搜索tavily">Web 搜索：Tavily</h2>
+<p>使用 Tavily 执行网络搜索，让 LLM 感知现实世界</p>
+<p>特点：</p>
+<ul>
+<li>快速响应：相比较搜索引擎能更快返回结果</li>
+<li>良好摘要：无需加载页面的所有内容</li>
+<li>结果优化：针对 LLM 优化的搜索结果，提高准确率</li>
+<li>SaaS 服务，需申请 Key: <a href="https://app.tavily.com">https://app.tavily.com</a></li>
+</ul>
+<h2 id="自适应-rag">自适应 RAG</h2>
+<p>基于论文： <a href="https://arxiv.org/abs/2310.11511">https://arxiv.org/abs/2310.11511</a></p>
+<p>特点：</p>
+<ul>
+<li>对检索到的文档和生成的回答进行反思和评分，直到获得满意的回答</li>
+<li>解决传统 RAG 粗暴检索固定数量段落以及回复准确性差的问题</li>
+<li>显著提升长文本检索的准确性</li>
+</ul>
+<p><img src="../../../assets/wiki-img/EPjUbOG15obgiJx3GW9ctjJunfd.jpg" alt="图片展示了自适应RAG（Self-RAG）与传统RAG的对比。左侧为传统RAG流程，Prompt提出问题后，Retriever检索K个文档，LM基于这些文档和Prompt生成答案，若答案不一致则重复检索。右侧是Self-RAG流程，同样从Prompt开始，Retriever按需检索，生成段落并并行处理，通过批评和选择最佳段落，最终生成答案。该图直观呈现了Self-RAG在检索和生成环节的改进，与上下文介绍的Self-RAG特点相契合。"></p>
+<h2 id="自适应-rag-流程">自适应 RAG 流程</h2>
+<p><img src="../../../assets/wiki-img/P33VbRVykoEfShxrgPxcrTWjnLc.png" alt="图片展示了结合Web Search和Self-RAG的流程。从问题出发，经检索器检索文档，评估文档与问题相关性，若相关则生成答案；若不相关，重写问题。生成答案后评估其是否基于事实，若基于事实则回答问题；若不基于事实，返回检索器。此流程解决了传统RAG粗暴检索及回复准确性差问题，显著提升长文本检索准确性，与文档中介绍的自适应RAG特点相契合。"></p>
+<p><img src="../../../assets/wiki-img/O78abnFCWoyvwrxCAw9cTTGZnOb.png" alt="图片展示了结合Web Search和Self-RAG的流程。从问题开始，经检索器检索文档，再由评估器评估文档与问题相关性，若相关则生成答案；若不相关，返回not_support。答案评估其是否解决用户问题，若解决则回答问题，若不解决则重写问题。此外，文档评估其是否基于事实，若基于事实则生成答案，若不基于事实则返回not_supported。该图与文档中介绍结合Web Search和Self-RAG的内容相呼应，直观呈现了流程。"></p>
+<h2 id="结合-web-search-和-self-rag">结合 Web Search 和 Self-RAG</h2>
+<p><img src="../../../assets/wiki-img/OpuTbL9VAoGxkZxunKkci63InOb.jpg" alt="图片展示了结合Web Search和Self-RAG的流程。从Query Analysis开始，若与索引相关则进入RAG + self-reflection，检索、评分文档，若不相关则进行Web search，生成节点后判断答案是否满意，若满意则回答问题，若不满意则重写问题。若与索引不相关，可添加更多路由，也可进行Web search生成节点，最终回答问题。该图与文档中结合Web Search和Self-RAG的内容对应，直观呈现了流程步骤。"></p>
+<p><img src="../../../assets/wiki-img/DPnWbmCNaoLCAKxuYXAcLGvEnLc.jpg" alt="图片展示了结合Web Search和Self-RAG的流程图。从_start开始，先进行web_search，若生成的回答不支持则返回，若支持则进入generate环节；若生成的回答不实用则返回transform_query，若实用则进入end环节；transform_query后再次进入generate环节；generate环节后进入retrieve环节，若检索到的文档不实用则返回transform_query，若实用则进入grade_documents环节。该图与文档中结合Web Search和Self-RAG的内容相关，直观呈现了流程。"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

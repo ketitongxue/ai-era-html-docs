@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户和用户组</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="用户和用户组">用户和用户组</h1>
+<h3 id="423-用户管理">4.23 用户管理</h3>
+<h4 id="添加用户useradd命令">添加用户：useradd命令</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">useradd [选项] 用户名 #[中括号表示这一段内容可有可无。]
+u选项：指定uid。 root用户的uid为0 ， CentOS7的普通用户UID是从1000开始使用
+-g选项：指定gid gid必须是已经存在的。
+-b选项：指定用户的家目录
+-s选项：指定用户登陆的shell 一般不需要指定, 指定不能登陆的用户 为/sbin/nologin
+-M选项：创建用户的同时不创建家目录。一个用户没有家目录会出现很多问题，所以一般只在创建不可登陆的用户时使用。
+</code></pre>
+<h4 id="删除用户userdel">删除用户：userdel</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">userdel [选项] user_name 删除用户
+基本用法：直接删除一个用户，但是不会删除该用户的家目录
+-r选项：删除用户的同时删除该用户的家目录
+</code></pre>
+<h4 id="修改用户属性usermod">修改用户属性：usermod</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">命令格式：usermod 选项 user_name #注：使用usermod命令至少需要一个选项。
+-u选项：更改用户的uid
+-g选项：更改用户gid 可以用组名也可以用gid
+-d选项：更改用户的家目录，如果更改用户的家目录不存在，需要将用户原有的家目录重命名为更改的家目录。或者复制系统的家目录模板到指定的路径下。
+/etc/skel/ 为系统的家目录配置模板
+-s选项：更改用户的shell，将testuser4更改为不能登录的shell
+-G选项：扩展组,给用户指定多个组 格式:usermod -G grp1,grp2,grp3… user+name
+-L选项：锁定用户。
+#注：锁定用户后，ROOT用户可以使用数su命令切换到该用户。
+#但是，该用户无法直接登录，在普通用户下也不能使用su命令登录被锁定的用户。
+#锁定后的用户在/etc/shadow文件中的密码最前面加上了一个感叹号。此时这个用户就无法登录了。
+-U选项：解锁用户
+</code></pre>
+<h4 id="用户切换su命令">用户切换：su命令</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">切换用户命令格式：su [选项] [参数] #参数为指定的用户名
+#使用su命令的时候 加上一个 “ - ” 符号。 可以加载要切换到用户的环境变量和配置等。
+-c选项：使用指定用户执行一条命令，需要知道指定用户的密码。。
+#命令格式： su -c 命令 指定用户    #如果命令中带有空格，需要用单引号或双引号括起来。
+修改用户密码：passwd
+passwd [username] 修改用户密码，不带username则修改当前用户密码，带username则修改username用户的密码（只有管理员可以这样操作）。
+-l选项：锁定用户。效果跟usermod -L 一样
+-u选项：解锁用户，效果跟usermod -U 一样
+–stdin选项： 更改用户密码的另一种方式, 可以echo password| passwd –stdin user_name
+#也可以passwd --stdin user_name，然后输入一个密码，此方法会以明文显示密码
+</code></pre>
+<h3 id="423-用户组管理">4.23 用户组管理</h3>
+<p><strong>查看用户gid和uid：id命令</strong></p>
+<p>id命令可以查看用户的UID，GID，和附加组的GID，怎么添加附加组下面会写到。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># id                      #不带参数直接使用id命令是查看当前用户
+uid=0(root) gid=0(root) 组=0(root)       #括号里面的为用户名和组名
+# id user1                #带用户名参数可以查看指定用户。
+uid=1001(user1) gid=1001(user1) 组=1001(user1)
+
+参数：
+-u选项：只显示用户的uid
+-g选项：只显示用户的gid
+-G选项：只显示用户的附加组的gid
+-n选项：配合-u、-g、-G选项使用，只显示显示用户名，所属组名，和附加组名。 #-n只能配合任意一个选项
+</code></pre>
+<p>用户组配置文件：/etc/group</p>
+<p>用户组的配置文件分为四段：</p>
+<p>第一段：用户组的名称</p>
+<p>第二段：用户组的密码，实际保存在/etc/gshadow文件中</p>
+<p>第三段：用户组的GID。</p>
+<p>第四段：用户组的成员。</p>
+<p>/etc/gshadow 用户组的密码配置文件</p>
+<p>此文件与/etc/group文件中的行一一对应，也有四段：</p>
+<p>第一段：用户组名</p>
+<p>第二段：加密码后的密码</p>
+<p>第三段：组管理员(多个用,分隔)</p>
+<p>第四段：组成员(多个用,分隔)</p>
+<p><strong>创建用户组：</strong></p>
+<p>命令格式：groupadd 选项 group_name</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># groupadd group1
+# tail -1 /etc/group
+group1:x:1015:                             #查看刚才创建的用户组，gid为1015
+</code></pre>
+<p>-g选项：指定创建的用户组的gid</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># groupadd -g 1111 group2   #创建一个gid为1111的用户组
+# tail -1 /etc/group        #查看/etc/group文件的最后一行
+group2:x:1111:
+</code></pre>
+<p><strong>修改用户组：</strong></p>
+<p>groupmod 选项 组名 #用法和usermod类似</p>
+<p>-g选项：#改变组的ID号</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># groupmod -g 1122 group1   #将用户组group1的gid改为1122
+# tail -2 /etc/group
+group1:x:1122:                                  
+group2:x:1111:
+</code></pre>
+<p>-n选项：改变用户组组名</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># groupmod -n group3 group2
+# tail -2 /etc/group        #将用户组group2更改为group3
+group1:x:1122:
+group3:x:1111:
+</code></pre>
+<p><strong>删除用户组</strong></p>
+<p>groupdel group_name 前提用户组里面没有任何成员。</p>
+<h1 id="用户配置文件和密码配置文件"><strong>用户配置文件和密码配置文件</strong></h1>
+<p><strong>用户配置文件：/etc/passwd</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">cat /etc/passwd  #有很多内容，这里只复制了几行做参考。
+root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+</code></pre>
+<p>一行代表一个用户，每一行用冒号分隔为7段：</p>
+<p>第一段：用户名</p>
+<p>第二段：早期为用户的密码,后来因为安全问题将密码保存在/etc/shadow文件里</p>
+<p>第三段：用户的uid</p>
+<p>第四段：用户的gid</p>
+<p>第五段：用户的注释描述信息，没有实际作用</p>
+<p>第六段：为用户的家目录路径</p>
+<p>第七段：用户登录的shell**</p>
+<p>**<strong>密码配置文件：/etc/shadow</strong></p>
+<p>跟/etc/passwd一一对应，每一行一个用户，用冒号分割为九段</p>
+<p>第一段：用户名</p>
+<p>第二段：用户密码，</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>1.如果密码为星号，或者密码的第一位是星号，那么这个用户就是禁用状态，不可登录。
+
+
+
+2.如果为空，则此用户登录不需要密码。
+
+
+
+3.双叹号表示这个密码已经过期了
+
+
+
+4.\$6\$开头的，表明是用SHA-512加密；
+
+
+
+5.\$1\$ 表明是用MD5加密；
+
+
+
+6.\$2\$ 是用Blowfish加密；
+
+
+
+7.\$5\$ 是用 SHA-256加密；
+</code></pre>
+<p>第三段：最近一次更改密码距离1970年1月1日总共多少天</p>
+<p>第四段：表示多少天以后才可以更改密码, 默认为0 不限制</p>
+<p>第五段：表示多少天内必须更改密码，否则密码过期，无法登录。</p>
+<p>第六段：警告提醒，提示距离密码过期还有几天</p>
+<p>第七段：不活动时间，表示的是用户没有登录活动但账号仍能保持有效的最大天数。</p>
+<p>第八段：用户距离1970年多少天后过期</p>
+<p>第九段：保留字段</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

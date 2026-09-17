@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker 存储简介：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>docker 中的重要数据通过-v 选项挂载数据卷实现持久化。</p>
+<h1 id="docker-存储简介">Docker 存储简介：</h1>
+<p><a href="https://en.wikipedia.org/wiki/UnionFS">https://en.wikipedia.org/wiki/UnionFS</a></p>
+<p>UnionFS是文件级的存储驱动，实现方式是把位于不同位置的目录或文件合并 mount 到同一个目的目录中，简单来说 就是支持将不同目录挂载到同一个虚拟文件系统下的文件系统，这种文件系统可以一层一层地叠加修改文件，无论底下有多少层都是只读的，只有最上层的文件系统是可写的。</p>
+<p><img src="../../../assets/wiki-img/SMG4bUxhQoE0OLxZ1NBcXUrwnIb.png" alt="图片展示了Docker容器存储结构。左侧是Dockerfile指令，创建基于busybox的容器，添加temp.txt文件，设置/data目录，执行“echo hello”命令。右侧是容器存储层结构，包含read-write layer、init-layer和read-only layer，通过union mount叠加，读写层可写，读取层只读，底层为aufs/mnt。该图直观呈现了Docker存储引擎中容器数据存储的层次关系，与上下文介绍的Docker存储引擎及UnionFS文件系统等内容相呼应。"></p>
+<h1 id="docker-存储引擎">Docker 存储引擎：</h1>
+<ul>
+<li>Overlay：UnionFS文件系统，Linux内核3.18后支持。</li>
+<li>overlay2: Overlay的升级版，到目前为止，所有Linux发行版推荐使用的存储类型。</li>
+<li>devicemapper：是CentOS和RHEL的早期使用的存储驱动程序，因为之前的内核版本较低不支持overlay2，但是当前较新版本的CentOS和RHEL现在已经支持overlay2，因此推荐使用overlay2。</li>
+<li>ZFS(Sun-2005)/btrfs(Oracle-2007)：目前没有广泛使用。</li>
+<li>vfs: 用于测试环境，适用于无法使用 copy-on-write 文件系统的情况。 此存储驱动程序的性能很差，通常不建议用于生产。</li>
+<li>AUFS(Another UnionFS): 是早期的一种 UnionFS 文件系统的实现，是Docker 18.06及更早版本使用的存储引擎。</li>
+</ul>
+<p><a href="https://docs.docker.com/storage/storagedriver/select-storage-driver/">https://docs.docker.com/storage/storagedriver/select-storage-driver/</a></p>
+<h1 id="docker-配置参数">Docker 配置参数：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">~# cat /etc/docker/daemon.json
+{
+        &quot;storage-driver&quot;: &quot;overlay2&quot;,
+        &quot;insecure-registries&quot;: [&quot;harbor.ketitx.com&quot;,&quot;harbor.myserver.com&quot;,&quot;172.31.7.105&quot;],
+        &quot;registry-mirrors&quot;: [&quot;&lt;https://9916w1ow.mirror.aliyuncs.com&gt;&quot;],
+        &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
+        &quot;live-restore&quot;: false,
+        &quot;log-opts&quot;: {
+          &quot;max-file&quot;: &quot;5&quot;,
+          &quot;max-size&quot;: &quot;100m&quot;
+        }
+}
+
+~# systemctl restart docker
+</code></pre>
+<h1 id="docker-数据管理">Docker 数据管理：</h1>
+<p>如果正在运行中的容器修如果生成了新的数据或者修改了现有的一个已经存在的文件内容，那么新产生的数据将会被复制到读写层进行持久化保存，这个读写层也就是容器的工作目录，此即“写时复制(COW) copy on write”机制。</p>
+<p>如下图是将对根的数据写入到了容器的可写层，但是把<code>/data</code>中的数据写入到了一个另外的 volume 中用于数据持久化。</p>
+<p><img src="../../../assets/wiki-img/MLZBb4bsboBA33xEG8qcsB6OnCh.png" alt="图片展示了Docker容器中数据存储的结构。左侧为程序，向容器的文件系统写入数据，文件系统又可写入到容器的本地文件系统（Layer）和数据卷（Volume）。右侧是容器，包含文件系统、Layer和Volume。箭头标注了数据写入路径，如程序写入到容器文件系统，再写入到本地文件系统和数据卷。该图与上下文介绍的Docker数据管理相关，直观呈现了数据在容器中的存储流向。"></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-markdown">Lower Dir：image镜像层(镜像本身，只读)
+
+Upper Dir：容器的上层(读写)
+
+Merged Dir：容器的文件系统，使用 Union FS（联合文件系统）将 lowerdir 和 upper Dir：合并给容器使用。
+
+Work Dir：容器在宿主机的工作目录，可以限制权限
+
+# 存放位置，宿主机
+/var/lib/docker/overlay2/************************/diff
+</code></pre>
+<p><img src="../../../assets/wiki-img/CA6KbW80wo83RcxVTEGcIPrLnxc.png" alt="图片展示的是Docker容器数据卷的GraphDriver配置信息。其中，“LowerDir”指向容器数据卷的底层目录；“MergedDir”是合并后的目录；“UpperDir”是容器数据卷的上层目录；“WorkDir”是工作目录。这些目录路径均为容器内部路径，对应于容器启动时挂载的宿主机目录。该图片与上下文介绍的Docker数据卷相关，直观呈现了数据卷在容器内部的存储结构。"></p>
+<ul>
+<li>Docker的镜像是分层设计的，镜像层是只读的，通过镜像启动的容器添加了一层可读写的文件系统，用户写入的数据都保存在这一层当中。</li>
+<li>如果要将写入到容器的数据永久保存，则需要将容器中的数据保存到宿主机的指定目录，目前Docker的数据类型分为两种:</li>
+<li>一是数据卷(data volume)，数据卷实际上就是宿主机上的目录或者是文件，可以被直接mount到容器当中作为容器的本地文件系统使 用，实际生产环境中，需要针对不同类型的服务、不同类型的数据存储要求做相应的规划，最终保证服务的可扩展性、稳定性以及数据的 安全性。基于数据卷通过将宿主机的文件或目录挂载到容器的指定目录，当容器中的挂载目录产生的新数据即可间接的保存到宿主机以实 现持久化的目的.</li>
+<li>二是数据卷容器(Data volume container), 数据卷容器是将宿主机的目录挂载至一个专用的数据卷容器，然后让其他容器通过数据卷容器 继承挂载的目录或文件，以实现将新产生的数据持久化到宿主机的目的。</li>
+</ul>
+<p><img src="../../../assets/wiki-img/LyXubsaRHorPHMxlWqTcKkE8nzc.png" alt="图片展示了Docker数据卷的两种类型。左侧是包含两个卷的容器，分别为/my/bind/volume和/managed/volume。右侧是存储设备，包含Docker管理的空间，其下有指向/some/specific/directory和/var/lib/docker/vfs/dir/&lt;some volume ID&gt;的箭头。其中/my/bind/volume通过bind mount volume挂载到宿主机的/some/specific/directory；/managed/volume是Docker管理的卷，其数据存储在宿主机的/var/lib/docker/vfs/dir/目录下。该图直观呈现了数据卷在Docker中的存储与挂载关系。"></p>
+<h1 id="创建数据卷">创建数据卷：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># docker volume create nginx-data
+
+# docker volume ls
+DRIVER VOLUME NAME
+local nginx-data
+
+# -v **本地目录:容器目录**  或 -v 容器目录
+
+# docker run -it -d -p 80:80 -v nginx-data:/data nginx:1.20.2
+4445e4640c74e1c503a7f8c704270abd58c5bc70aacf600e39945f7fd74ac810
+
+# docker exec -it 4445e4640c74 bash
+root@4445e4640c74:/# echo &quot;nginx web&quot; &gt; /data/index.html
+root@4445e4640c74:/# exit
+exit
+
+root@docker-server1:~# ls /var/lib/docker/volumes/nginx-data/_data/index.html
+/var/lib/docker/volumes/nginx-data/_data/index.html
+
+</code></pre>
+<h1 id="数据目录挂载">数据目录挂载：</h1>
+<p>以数据卷的方式，将自定义的宿主机目录或文件提供给容器使用，比如容器可以直接挂载宿主机本地的数据目录(如mysql容器的数据持久化)、 配置文件(如nginx的配置文件)、静态文件(如web服务的图片或js文件)等，只需要在创建容器的时候指定挂载即可。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># mkdir /data/testapp –p
+# echo &quot;testapp web page&quot; &gt; /data/testapp/index.html
+# cat /data/testapp/index.html
+testapp web page
+</code></pre>
+<p>启动两个测试容器，web1容器和web2容器，分别测试能否访问到宿主机的数据，注意使用-v参数，将宿主机目录映射到容器内部，web2的ro 表示在容器内对该目录只读，默认的权限是可读写的：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># docker run -d --name web1 -v /data/testapp:/usr/share/nginx/html/testapp -p 80:80 nginx:1.20.2
+# docker run -d --name web2 -v /data/testapp:/usr/share/nginx/html/testapp:ro -p 81:80 nginx:1.20.2
+</code></pre>
+<p><img src="../../../assets/wiki-img/I3RibkS50oLVshxe5YIcJPAentd.png" alt="图片展示了两个浏览器窗口中显示的“testapp web page”页面。上方窗口地址栏显示“172.31.6.201/testapp/”，下方窗口地址栏显示“172.31.6.201:81/testapp/”。两个窗口页面内容相同，均为“testapp web page”。该图片与文档中“数据目录挂载”部分内容相关，用于说明在使用-v参数将宿主机目录映射到容器内部后，容器访问宿主机数据的情况。"></p>
+<h1 id="数据目录及配置多卷挂载">数据目录及配置多卷挂载：</h1>
+<p>ngin多卷挂载：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># mkdir /data/nginx/conf -p
+# docker cp web1:/etc/nginx/nginx.conf /data/nginx/conf/
+# docker run -d --name web3 -v /data/testapp:/usr/share/nginx/html/testapp -v /data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro -p 83:80 nginx:1.20.2
+
+</code></pre>
+<p>mysql容器：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># docker pull mysql:5.7.38
+# docker run -it -d -p 3306:3306 -v /data/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:5.7.38 48e88061e80b9983d0d735f29a176efb810de32f0bd30e12893def798783b9d9
+
+# mysql -uroot -p123456 -h172.31.6.201
+Type 'help;' or '\\h' for help. Type '\\c' to clear the current input statement.
+
+mysql&gt;
+</code></pre>
+<h1 id="删除容器">删除容器：</h1>
+<p>创建容器的时候指定参数会删除 <code>/var/lib/docker/containers/</code> 的容器数据目录，但是不会删除数据卷的内容，如下</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># docker rm -f web3
+# ls /data/testapp/index.html /data/testapp/index.html #挂载的数据卷不会被删除
+</code></pre>
+<ul>
+<li>数据卷的特点及使用：</li>
+<li>数据卷是宿主机的目录或者文件，并且可以在多个容器之间共同使用。</li>
+<li>在宿主机对数据卷更改数据后会在所有容器里面会立即更新。</li>
+<li>数据卷的数据可以持久保存，即使删除使用使用该容器卷的容器也不影响。</li>
+<li>在容器里面的写入数据不会影响到镜像本身。</li>
+<li>数据卷使用场景：</li>
+<li>容器数据持久化(mysql数据、nginx日志等类型)</li>
+<li>静态web页面挂载</li>
+<li>应用配置文件挂载</li>
+<li>多容器间的目录或文件共享</li>
+</ul>
+<h1 id="数据卷容器使用场景很少">数据卷容器：（使用场景很少）</h1>
+<p>数据卷容器功能是可以让数据在多个 docker 容器之间共享，即先要创建一个后台运行的A容器作为 Server，之后创建的B容器、C容器等都可以同时访问A容器的内容，因此数据卷容器用于为其它容器提供卷的挂载继承服务，数据卷为其它容器提供数据读写服务， A容器称为 server 端、其它容器成为 client 端：</p>
+<p>卷容器Server:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># docker run -d **--name volume-server** -v /data/testapp:/usr/share/nginx/html/testapp -v /data/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro registry.cn-hangzhou.aliyuncs.com/zhangshijie/pause:3.8
+</code></pre>
+<p>client1:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># docker run -d --name web1 **--volumes-from volume-server** -p80:80 nginx:1.20.2
+</code></pre>
+<p>client2:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># docker run -d --name web2 **--volumes-from volume-server** -p81:80 nginx:1.20.2
+</code></pre>
+<ul>
+<li>
+<p>特点：</p>
+<ul>
+<li>适用于同类服务的数据卷共享</li>
+<li>client会继承卷server挂载和挂载权限</li>
+<li>停止卷server，也不影响已经运行的容器、甚至也不影响新建容器</li>
+<li>删除卷server，不影响已经运行的容器，但是不能新建容器</li>
+</ul>
+</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>系统监控：MetricsServer</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="系统监控metricsserver">系统监控：MetricsServer</h1>
+<p>如果你对Linux系统有所了解的话，也许知道有一个命令 <code>top</code> 能够实时显示当前系统的CPU和内存利用率，它是性能分析和调优的基本工具，非常有用。 Kubernetes也提供了类似的命令，就是 <code>kubectl top</code><strong>，不过默认情况下这个命令不会生效，必须要安装一个插件Metrics Server才可以。</strong></p>
+<p>Metrics Server是一个专门用来收集Kubernetes核心资源指标（metrics）的工具，它定时从所有节点的kubelet里采集信息，但是对集群的整体性能影响极小，每个节点只大约会占用1m的CPU和2MB的内存，所以性价比非常高。</p>
+<p>下面的 <a href="https://kubernetes.io/zh-cn/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-server">这张图</a> 来自Kubernetes官网，你可以对Metrics Server的工作方式有个大概了解：它调用kubelet的API拿到节点和Pod的指标，再把这些信息交给apiserver，这样kubectl、HPA就可以利用apiserver来读取指标了：</p>
+<p><img src="../../../../../assets/wiki-img/NpovbUb1SoZHzqxSCIlc3qNBnIb.png" alt="图片展示了Metrics Server在Kubernetes集群中的工作流程。kubelet从节点和Pod获取指标，通过Summary API将信息传递给Metrics Server，后者再通过metrics API将数据交给API server，API server可被HPA利用，kubectl top命令也能读取指标。此外，kubelet还与cAdvisor交互，获取容器运行时数据。该图与上下文紧密相关，直观呈现了Metrics Server获取和传递指标的过程，帮助理解其在集群监控中的作用。"></p>
+<p>在Metrics Server的项目网址（ <a href="https://github.com/kubernetes-sigs/metrics-server">https://github.com/kubernetes-sigs/metrics-server</a>）可以看到它的说明文档和安装步骤，不过如果你已经按照 <a href="https://time.geekbang.org/column/article/534762">第17讲</a> 用kubeadm搭建了Kubernetes集群，就已经具备了全部前提条件，接下来只需要几个简单的操作就可以完成安装。</p>
+<p>Metrics Server的所有依赖都放在了一个YAML描述文件里，你可以使用wget或者curl下载：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">wget https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+</code></pre>
+<p>但是在 <code>kubectl apply</code> 创建对象之前，我们还有两个准备工作要做。</p>
+<p><strong>第一个工作，是修改YAML文件</strong>。你需要在Metrics Server的Deployment对象里，加上一个额外的运行参数 <code>--kubelet-insecure-tls</code>，也就是这样：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  ... ...
+  template:
+    spec:
+      containers:
+      - args:
+        - --kubelet-insecure-tls
+        ... ...
+</code></pre>
+<p>这是因为Metrics Server默认使用TLS协议，要验证证书才能与kubelet实现安全通信，而我们的实验环境里没有这个必要，加上这个参数可以让我们的部署工作简单很多（生产环境里就要慎用）。</p>
+<p><strong>第二个工作，是预先下载Metrics Server的镜像。</strong> 看这个YAML文件，你会发现Metrics [Server的镜像仓库用的是gcr.io](http://xn--servergcr-by7nt8oj71ctxug31cbjeea1435k.io/)，下载很困难。好在它也有国内的镜像网站，可以下载后再改名，然后把镜像加载到集群里的节点上。</p>
+<p>两个准备工作都完成之后，我们就可以使用YAML部署Metrics Server了：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl apply -f components.yaml
+</code></pre>
+<p>Metrics Server属于名字空间“kube-system”，可以用 <code>kubectl get pod</code> 加上 <code>-n</code> 参数查看它是否正常运行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">% kubectl get pod -n kube-system
+NAME                                         READY   STATUS    RESTARTS      AGE
+coredns-7c65d6cfc9-djxg9                     1/1     Running   1 (21m ago)   31m
+coredns-7c65d6cfc9-wv78s                     1/1     Running   1 (21m ago)   31m
+etcd-kind-control-plane                      1/1     Running   1 (21m ago)   31m
+kindnet-2qrr8                                1/1     Running   1 (21m ago)   31m
+kube-apiserver-kind-control-plane            1/1     Running   1 (21m ago)   31m
+kube-controller-manager-kind-control-plane   1/1     Running   1 (21m ago)   31m
+kube-proxy-pcllx                             1/1     Running   1 (21m ago)   31m
+kube-scheduler-kind-control-plane            1/1     Running   1 (21m ago)   31m
+metrics-server-5cfcd8bbb5-zmmn8              1/1     Running   0             9m33s
+</code></pre>
+<p>现在有了Metrics Server插件，我们就可以使用命令 <code>kubectl top</code> 来查看Kubernetes集群当前的资源状态了。它有 **两个子命令， **<code>**node**</code>** 查看节点的资源使用率， **<code>**pod**</code>** 查看Pod的资源使用率**。</p>
+<p>由于Metrics Server收集信息需要时间，我们必须等一小会儿才能执行命令，查看集群里节点和Pod状态：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl top node
+kubectl top pod -n kube-system
+</code></pre>
+<p><img src="../../../../../assets/wiki-img/DFpsbHxtloX8kHxtJd0cS13mn6g.png" alt="图片展示了在Kubernetes集群中使用kubectl top命令查看节点和Pod资源使用率的结果。左侧显示了node子命令的输出，包括节点名称、CPU使用情况（如kind-control-plane节点CPU使用率为1%）、内存使用情况（如该节点内存使用量为1121Mi）等。右侧是pod子命令的输出，列举了kube-system命名空间下多个Pod的CPU使用（如kube-apiserver-kind-control-plane使用40m）和内存使用（如该Pod内存使用量为261Mi）情况。该图片与上下文紧密相关，直观呈现了使用Metrics Server插件后，通过kubectl top命令查看集群资源状态的操作结果。"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

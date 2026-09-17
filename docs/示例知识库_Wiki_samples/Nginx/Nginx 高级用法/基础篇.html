@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>防盗链 valid_referers</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="防盗链-valid_referers">防盗链 valid_referers</h1>
+<p>防盗链的意思是只允许特定的访问来源，常见于图片访问防盗，防止别人复制你的内容，导致过多的流量过来击垮你的主机。</p>
+<p>举个简单的例子理解：</p>
+<p>好比壁纸网站X站、Y站，X站是一点点去购买版权、签约作者的方式，从而积累了海量的壁纸素材，但Y站由于资金等各方面的原因，就直接通过&lt;img src=&quot;D:\opsnessary\Nginx\X站\xxx.jpg&quot; /&gt;这种方式照搬了X站的所有壁纸资源，继而提供给用户下载。</p>
+<p>那么如果我们自己是这个X站的Boss，心中必然不爽，那么此时又该如何屏蔽这类问题呢？</p>
+<p>结构</p>
+<p>后面可以加</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">valid_referers none | blocked | server_names | strings ....;
+</code></pre>
+<ul>
+<li>none， 检测 Referer 头域不存在的情况。</li>
+<li>blocked，检测 Referer 头域的值被防火墙或者代理服务器删除或伪装的情况。这种情况该头域的值不以 http://  或 https:// 开头。</li>
+<li>server_names ，设置一个或多个 URL ，检测 Referer 头域的值是否是这些 URL 中的某一个。</li>
+</ul>
+<p>实例1 全开放</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx"> valid_referers  none  blocked *.example.com;
+      if ($invalid_referer) {
+        return   403;
+      }
+</code></pre>
+<p>如果&quot;refer为空&quot;、或&quot;refer不以http/https开头&quot;、或&quot;域名为<a href="http://example.com/">example.com</a>的server_name&quot; 都是有效的refer，也即valid_referers的值为0（允许访问），除此之外为1（返回403）。</p>
+<p>实例2 白名单</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx"> valid_referers  *.example.com;
+      if ($invalid_referer) {
+        return   403;
+      }
+</code></pre>
+<p>去掉是none和blocked参数，也即：除了refer白名单的域名允许访问，其它都返回403（也包含none和blocked的refer也返回403）。</p>
+<p>小结</p>
+<p>根据上述中的内容配置后，就已经通过Nginx实现了最基本的防盗链机制，最后只需要额外重启一下就好啦！当然，对于防盗链机制实现这块，也有专门的第三方模块ngx_http_accesskey_module实现了更为完善的设计，感兴趣的小伙伴可以自行去看看。</p>
+<p>PS：防盗链机制也无法解决爬虫伪造referers信息的这种方式抓取数据。</p>
+<h1 id="nginx-实现-ip-黑白名单">Nginx 实现 IP 黑白名单</h1>
+<p>有时候往往有些需求，可能某些接口只能开放给对应的合作商，或者购买/接入API的合作伙伴，那么此时就需要实现类似于IP白名单的功能。而有时候有些恶意攻击者或爬虫程序，被识别后需要禁止其再次访问网站，因此也需要实现IP黑名单。那么这些功能无需交由后端实现，可直接在Nginx中处理。</p>
+<p>Nginx做黑白名单机制，主要是通过allow、deny配置项来实现：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">allow xxx.xxx.xxx.xxx; # 允许指定的IP访问，可以用于实现白名单。  
+deny xxx.xxx.xxx.xxx; # 禁止指定的IP访问，可以用于实现黑名单。  
+</code></pre>
+<p>要同时屏蔽/开放多个IP访问时，如果所有IP全部写在nginx.conf文件中定然是不显示的，这种方式比较冗余，那么可以新建两个文件BlocksIP.conf、WhiteIP.conf：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx"># --------黑名单：BlocksIP.conf---------  
+deny 192.177.12.222; # 屏蔽192.177.12.222访问  
+deny 192.177.44.201; # 屏蔽192.177.44.201访问  
+deny 127.0.0.0/8; # 屏蔽127.0.0.1到127.255.255.254网段中的所有IP访问  # --------白名单：WhiteIP.conf---------  
+allow 192.177.12.222; # 允许192.177.12.222访问  
+allow 192.177.44.201; # 允许192.177.44.201访问  
+allow 127.45.0.0/16; # 允许127.45.0.1到127.45.255.254网段中的所有IP访问  
+deny all; # 除开上述IP外，其他IP全部禁止访问  
+</code></pre>
+<p>分别将要禁止/开放的IP添加到对应的文件后，可以再将这两个文件在nginx.conf中导入：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">http{  
+    # 屏蔽该文件中的所有IP  
+    include /soft/nginx/IP/BlocksIP.conf;   
+    server{  
+        location xxx {  
+            # 某一系列接口只开放给白名单中的IP  
+            include /soft/nginx/IP/blockip.conf;   
+        }  
+    }  
+}  
+</code></pre>
+<p>对于文件具体在哪儿导入，这个也并非随意的，如果要整站屏蔽/开放就在http中导入，如果只需要一个域名下屏蔽/开放就在sever中导入，如果只需要针对于某一系列接口屏蔽/开放IP，那么就在location中导入。</p>
+<blockquote>
+<p>当然，上述只是最简单的IP黑/白名单实现方式，同时也可以通过ngx_http_geo_module、ngx_http_geo_module第三方库去实现（这种方式可以按地区、国家进行屏蔽，并且提供了IP库）。</p>
+</blockquote>
+<h1 id="nginx跨域配置">Nginx跨域配置</h1>
+<p>跨域问题在之前的单体架构开发中，其实是比较少见的问题，除非是需要接入第三方SDK时，才需要处理此问题。但随着现在前后端分离、分布式架构的流行，跨域问题也成为了每个Java开发必须要懂得解决的一个问题。</p>
+<p><strong>跨域问题产生的原因</strong></p>
+<p>产生跨域问题的主要原因就在于 「同源策略」 ，为了保证用户信息安全，防止恶意网站窃取数据，同源策略是必须的，否则cookie可以共享。由于http无状态协议通常会借助cookie来实现有状态的信息记录，例如用户的身份/密码等，因此一旦cookie被共享，那么会导致用户的身份信息被盗取。</p>
+<p>同源策略主要是指三点相同，「「协议+域名+端口」」 相同的两个请求，则可以被看做是同源的，但如果其中任意一点存在不同，则代表是两个不同源的请求，同源策略会限制了不同源之间的资源交互。</p>
+<p><strong>Nginx解决跨域问题</strong></p>
+<p>弄明白了跨域问题的产生原因，接下来看看Nginx中又该如何解决跨域呢？其实比较简单，在nginx.conf中稍微添加一点配置即可：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location / {  # 允许跨域的请求，可以自定义变量$http_origin，*表示所有  add_header 'Access-Control-Allow-Origin' *;  # 允许携带cookie请求  add_header 'Access-Control-Allow-Credentials' 'true';  # 允许跨域请求的方法：GET,POST,OPTIONS,PUT  add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT';  # 允许请求时携带的头部信息，*表示所有  add_header 'Access-Control-Allow-Headers' *;  # 允许发送按段获取资源的请求  add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';  # 一定要有！！！否则Post请求无法进行跨域！  # 在发送Post跨域请求前，会以Options方式发送预检请求，服务器接受时才会正式请求  if ($request_method = 'OPTIONS') {  add_header 'Access-Control-Max-Age' 1728000;  add_header 'Content-Type' 'text/plain; charset=utf-8';  add_header 'Content-Length' 0;  # 对于Options方式的请求返回204，表示接受跨域请求  return 204;  }  
+}
+</code></pre>
+<p>在nginx.conf文件加上如上配置后，跨域请求即可生效了。</p>
+<blockquote>
+<p>但如果后端是采用分布式架构开发的，有时候RPC调用也需要解决跨域问题，不然也同样会出现无法跨域请求的异常，因此可以在你的后端项目中，通过继承HandlerInterceptorAdapter类、实现WebMvcConfigurer接口、添加@CrossOrgin注解的方式实现接口之间的跨域配置。</p>
+</blockquote>
+<h1 id="配置ssl证书">配置SSL证书</h1>
+<p>随着越来越多的网站接入HTTPS，因此Nginx中仅配置HTTP还不够，往往还需要监听443端口的请求，HTTPS为了确保通信安全，所以服务端需配置对应的数字证书，当项目使用Nginx作为网关时，那么证书在Nginx中也需要配置，接下来简单聊一下关于SSL证书配置过程：</p>
+<p>①先去CA机构或从云控制台中申请对应的SSL证书，审核通过后下载Nginx版本的证书。</p>
+<p>②下载数字证书后，完整的文件总共有三个：.crt、.key、.pem：</p>
+<ul>
+<li>.crt：数字证书文件， .crt是 .pem的拓展文件，因此有些人下载后可能没有。</li>
+<li>.key：服务器的私钥文件，及非对称加密的私钥，用于解密公钥传输的数据。</li>
+<li>.pem： Base64-encoded编码格式的源证书文本文件，可自行根需求修改拓展名。</li>
+</ul>
+<p>③在Nginx目录下新建certificate目录，并将下载好的证书/私钥等文件上传至该目录。</p>
+<p>④最后修改一下nginx.conf文件即可，如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx"># ----------HTTPS配置-----------  
+server {
+    # 监听HTTPS默认的443端口  
+    listen 443;  # 配置自己项目的域名  
+    server_name www.xxx.com; 
+    # 打开SSL加密传输  
+    ssl on;  
+    # 输入域名后，首页文件所在的目录  
+    root html;  
+    # 配置首页的文件名  
+    index index.html index.htm index.jsp index.ftl;  
+    # 配置自己下载的数字证书  
+    ssl_certificate  certificate/xxx.pem;  
+    # 配置自己下载的服务器私钥  
+    ssl_certificate_key certificate/xxx.key;  
+    # 停止通信时，加密会话的有效期，在该时间段内不需要重新交换密钥  
+    ssl_session_timeout 5m; 
+    # TLS握手时，服务器采用的密码套件  RSA
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;  
+    # 服务器支持的TLS版本  
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; 
+    # 开启由服务器决定采用的密码套件 
+    ssl_prefer_server_ciphers on; 
+    location / {  ....  } 
+}  
+</code></pre>
+<p>HTTP请求转HTTPS</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">server {  
+    # 监听HTTP默认的80端口 
+    listen 80; 
+    # 如果80端口出现访问该域名的请求 
+    server_name www.xxx.com; 
+    # 将请求改写为HTTPS（这里写你配置了HTTPS的域名） 
+    rewrite ^(.*)$ https://www.xxx.com; 
+}  
+</code></pre>
+<p>OK~，根据如上配置了Nginx后，你的网站即可通过https://的方式访问，并且当客户端使用http://的方式访问时，会自动将其改写为HTTPS请求。</p>
+<h1 id="高可用">高可用</h1>
+<p>单点nginx总是会有流量上限，当单点nginx撑不住的出现宕机的时候，那么用户发起的所有请求都无法转发。</p>
+<p>nginx本身可以做负载均衡，但我们不能在nginx前面再部署一个nginx，这样的套娃没有意义还是解决不了单机流量承载的问题，于是就是有今天的方案。</p>
+<p>设置为系统服务</p>
+<p>首先第一步要保证nginx自身挂掉时自动重启 跳到这里 <a href="https://e0b7f33ulg5.feishu.cn/docx/Q1cbdEWXeocvCXxkfHrccGrZnDh#Uza6dh30voIV5kxHb6OcpWQcnPe">编译安装</a> 拉到底部。</p>
+<p>其次，如果是安装在物理机的，一般是使用keepalived的方案。</p>
+<p>Keepalived</p>
+<blockquote>
+<p>如果 nginx master 出现宕机，keepalived则会将服务切到 nginx slave上，保证业务不受影响</p>
+<p>这样就可以避免 nginx 单机故障问题，以此来实现高可用</p>
+</blockquote>
+<p>keepalived一般是2个节点运行keepalived，一台是主节点（MASTER）,一台是备节点（BACKUP），对外表现都是一个虚拟IP，主节点会发送特定的消息给备节点，如果备节点收不到这个特定消息时，说明主节点就宕机了，此时备节点就会接管虚拟IP进行服务提供，这就实现了高可用。</p>
+<p>安装参考官方文档</p>
+<p>https://www.keepalived.org/doc/installing_keepalived.html</p>
+<p>选择VIP</p>
+<p>随意选择一个同网段没有使用的IP即可，如果不同网段</p>
+<p>配置文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">cd /etc/keepalived/
+vim keepalived.conf
+</code></pre>
+<p>主配置</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">global_defs {  
+    # 自带的邮件提醒服务，建议用独立的监控或第三方SMTP，也可选择配置邮件发送。  
+    notification_email {  
+        root@localhost  
+    }
+    notification_email_from root@localhost  
+    smtp_server localhost  
+    smtp_connect_timeout 30  
+    # 高可用集群主机身份标识(集群中主机身份标识名称不能重复，建议配置成本机IP)  
+    router_id 192.168.12.129   
+}  
+# 定时运行的脚本文件配置  
+vrrp_script check_nginx_pid_restart {  
+    # 之前编写的nginx重启脚本的所在位置  
+    script &quot;/soft/scripts/keepalived/check_nginx_pid_restart.sh&quot;
+    # 每间隔3秒执行一次  
+    interval 3  
+    # 如果脚本中的条件成立，重启一次则权重-20  
+    weight -20  
+}  
+# 定义虚拟路由，VI_1为虚拟路由的标示符（可自定义名称）  
+vrrp_instance VI_1 {  
+    # 当前节点的身份标识：用来决定主从（MASTER为主机，BACKUP为从机）  
+    state MASTER  
+    # 绑定虚拟IP的网络接口，根据自己的机器的网卡配置  
+    interface ens33   
+    # 虚拟路由的ID号，主从两个节点设置必须一样  v
+    irtual_router_id 121  
+    # 填写本机IP  
+    mcast_src_ip 192.168.12.129  
+    # 节点权重优先级，主节点要比从节点优先级高  
+    priority 100  
+    # 优先级高的设置nopreempt，解决异常恢复后再次抢占造成的脑裂问题  
+    nopreempt  
+    # 组播信息发送间隔，两个节点设置必须一样，默认1s（类似于心跳检测）  
+    advert_int 1  
+    authentication {  
+        auth_type PASS  
+        auth_pass 1111  
+    }  
+    # 将track_script块加入instance配置块  
+    track_script {  
+        # 执行Nginx监控的脚本  
+        check_nginx_pid_restart  
+    }  
+    virtual_ipaddress {  
+        # 虚拟IP(VIP)，也可扩展，可配置多个。  
+        192.168.12.111  
+    }  
+}  
+</code></pre>
+<p>从配置</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">global_defs {    
+   # 自带的邮件提醒服务，建议用独立的监控或第三方SMTP，也可选择配置邮件发送。  
+   notification_email {  
+       root@localhost  
+   }  
+   notification_email_from root@localhost  
+   smtp_server localhost  
+   smtp_connect_timeout 30    
+   # 高可用集群主机身份标识(集群中主机身份标识名称不能重复，建议配置成本机IP)  
+   router_id 192.168.12.130   
+}    
+# 定时运行的脚本文件配置  
+vrrp_script check_nginx_pid_restart {    
+   # 之前编写的nginx重启脚本的所在位置  
+   script &quot;/soft/scripts/keepalived/check_nginx_pid_restart.sh&quot;     
+   # 每间隔3秒执行一次  
+   interval 3    
+   # 如果脚本中的条件成立，重启一次则权重-20  
+   weight -20  
+}    
+# 定义虚拟路由，VI_1为虚拟路由的标示符（可自定义名称）  
+vrrp_instance VI_1 {    
+   # 当前节点的身份标识：用来决定主从（MASTER为主机，BACKUP为从机）  
+   state BACKUP    
+   # 绑定虚拟IP的网络接口，根据自己的机器的网卡配置  
+   interface ens33     
+   # 虚拟路由的ID号，主从两个节点设置必须一样  
+   virtual_router_id 121    
+   # 填写本机IP  
+   mcast_src_ip 192.168.12.130    
+   # 节点权重优先级，主节点要比从节点优先级高  
+   priority 90    
+   # 优先级高的设置nopreempt，解决异常恢复后再次抢占造成的脑裂问题  
+   nopreempt    
+   # 组播信息发送间隔，两个节点设置必须一样，默认1s（类似于心跳检测）  
+   advert_int 1  
+   authentication {  
+        auth_type PASS  
+        auth_pass 1111  }    
+   # 将track_script块加入instance配置块  
+   track_script {    
+        # 执行Nginx监控的脚本  
+        check_nginx_pid_restart  
+   }  
+   virtual_ipaddress {    
+        # 虚拟IP(VIP)，也可扩展，可配置多个。  
+        192.168.12.111  
+   }  
+}  
+     
+   #
+</code></pre>
+<p>切换脚本</p>
+<p>编辑脚本，这个目录是我们上面配置的。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">vim /soft/scripts/keepalived/check_nginx_pid_restart.sh
+</code></pre>
+<p>内容如下</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 通过ps指令查询后台的nginx进程数，并将其保存在变量nginx_number中  
+nginx_number=`ps -C nginx --no-header | wc -l`  
+  
+# 判断后台是否还有Nginx进程在运行  
+if [ $nginx_number -eq 0 ];then    
+   # 如果后台查询不到`Nginx`进程存在，则执行重启指令  
+   nginx -c /etc/nginx/conf/nginx.conf    
+   # 重启后等待1s后，再次查询后台进程数  
+   sleep 1    
+   # 如果重启后依旧无法查询到nginx进程  
+   if [ `ps -C nginx --no-header | wc -l` -eq 0 ];then    
+    # 将keepalived主机下线，将虚拟IP漂移给从机，从机上线接管Nginx服务  
+    systemctl stop keepalived.service  
+   fi  
+fi  
+</code></pre>
+<p>PS：如果有中文内容需要修改下编码格式</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">如何是直接在linux上复制的则在vim里
+:set fileformats=unix
+如果是在windows上传上去的则
+:set fileformats=unix,dos
+</code></pre>
+<p>原神启动！</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">chmod +x /soft/scripts/keepalived/check_nginx_pid_restart.sh
+systemctl start keepalived.service
+</code></pre>
+<p>测试，如果在master上出现vip就成功挂载，并尝试ping一下 。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">ip addr
+</code></pre>
+<ul>
+<li>通过手动停止nginx的方式模拟了Nginx宕机情况，过了片刻后再次查询后台进程，我们会发现nginx依旧存活。</li>
+<li>手动关闭keepalived服务，然后再次查询了一下本机的IP信息，很明显会看到VIP消失了，在另一台出现。</li>
+</ul>
+<p>其他</p>
+<p>实际上还有一种办法，在track_script中只写check脚本，并在切换的时候通知启动如下。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">vrrp_script nginx_check {
+  script &quot;/tools/nginx_check.sh&quot;
+  interval 1
+}
+track_script {
+    nginx_check
+}
+notify_master /tools/master.sh
+notify_backup /tools/backup.sh
+notify_fault /tools/fault.sh
+notify_stop /tools/stop.sh
+</code></pre>
+<p>太费劲了，没必要这么弄。</p>
+<p>引用</p>
+<p>https://zhuanlan.zhihu.com/p/566166393</p>
+<p>https://blog.csdn.net/Andya_net/article/details/105534290</p>
+<h1 id="性能优化">性能优化</h1>
+<p><strong>优化一：打开长连接配置</strong></p>
+<p>通常Nginx作为代理服务，负责分发客户端的请求，那么建议开启HTTP长连接，用户减少握手的次数，降低服务器损耗，具体如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">upstream xxx {  
+    # 长连接数  
+    keepalive 32;  
+    # 每个长连接提供的最大请求数  
+    keepalived_requests 100;  
+    # 每个长连接没有新的请求时，保持的最长时间  
+    keepalive_timeout 60s;  
+}  
+</code></pre>
+<p><strong>优化二、开启零拷贝技术</strong></p>
+<p>零拷贝这个概念，在大多数性能较为不错的中间件中都有出现，例如Kafka、Netty等，而Nginx中也可以配置数据零拷贝技术，如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">sendfile on; 
+</code></pre>
+<p>零拷贝读取机制与传统资源读取机制的区别：</p>
+<ul>
+<li>「传统方式：」 硬件–&gt;内核–&gt;用户空间–&gt;程序空间–&gt;程序内核空间–&gt;网络套接字</li>
+<li>「零拷贝方式：」 硬件–&gt;内核–&gt;程序内核空间–&gt;网络套接字</li>
+</ul>
+<p>从上述这个过程对比，很轻易就能看出两者之间的性能区别。</p>
+<p><strong>优化三、开启无延迟或多包共发机制</strong></p>
+<p>在Nginx中有两个较为关键的性能参数，即tcp_nodelay、tcp_nopush，开启方式如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">tcp_nodelay on;
+tcp_nopush on;  
+</code></pre>
+<p>TCP/IP协议中默认是采用了Nagle算法的，即在网络数据传输过程中，每个数据报文并不会立马发送出去，而是会等待一段时间，将后面的几个数据包一起组合成一个数据报文发送，但这个算法虽然提高了网络吞吐量，但是实时性却降低了。</p>
+<p>因此你的项目属于交互性很强的应用，那么可以手动开启tcp_nodelay配置，让应用程序向内核递交的每个数据包都会立即发送出去。但这样会产生大量的TCP报文头，增加很大的网络开销。</p>
+<p>相反，有些项目的业务对数据的实时性要求并不高，追求的则是更高的吞吐，那么则可以开启tcp_nopush配置项，这个配置就类似于“塞子”的意思，首先将连接塞住，使得数据先不发出去，等到拔去塞子后再发出去。设置该选项后，内核会尽量把小数据包拼接成一个大的数据包（一个MTU）再发送出去.</p>
+<p>当然若一定时间后（一般为200ms），内核仍然没有积累到一个MTU的量时，也必须发送现有的数据，否则会一直阻塞。</p>
+<p>tcp_nodelay、tcp_nopush两个参数是“互斥”的，如果追求响应速度的应用推荐开启tcp_nodelay参数，如IM、金融等类型的项目。如果追求吞吐量的应用则建议开启tcp_nopush参数，如调度系统、报表系统等。</p>
+<p>注意：①tcp_nodelay一般要建立在开启了长连接模式的情况下使用。②tcp_nopush参数是必须要开启sendfile参数才可使用的。</p>
+<p><strong>优化四、调整Worker工作进程</strong></p>
+<p>Nginx启动后默认只会开启一个Worker工作进程处理客户端请求，而我们可以根据机器的CPU核数开启对应数量的工作进程，以此来提升整体的并发量支持，如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 自动根据CPU核心数调整Worker进程数量  
+worker_processes auto;  
+</code></pre>
+<p>工作进程的数量最高开到8个就OK了，8个之后就不会有再大的性能提升。</p>
+<p>同时也可以稍微调整一下每个工作进程能够打开的文件句柄数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 每个Worker能打开的文件描述符，最少调整至1W以上，负荷较高建议2-3W  
+worker_rlimit_nofile 20000;  
+</code></pre>
+<p>操作系统内核（kernel）都是利用文件描述符来访问文件，无论是打开、新建、读取、写入文件时，都需要使用文件描述符来指定待操作的文件，因此该值越大，代表一个进程能够操作的文件越多（但不能超出内核限制，最多建议3.8W左右为上限）。</p>
+<p><strong>优化五、开启CPU亲和机制</strong></p>
+<p>对于并发编程较为熟悉的伙伴都知道，因为进程/线程数往往都会远超出系统CPU的核心数，因为操作系统执行的原理本质上是采用时间片切换机制，也就是一个CPU核心会在多个进程之间不断频繁切换，造成很大的性能损耗。</p>
+<p>而CPU亲和机制则是指将每个Nginx的工作进程，绑定在固定的CPU核心上，从而减小CPU切换带来的时间开销和资源损耗，开启方式如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">worker_cpu_affinity auto;  
+</code></pre>
+<p><strong>优化六、开启epoll模型及调整并发连接数</strong></p>
+<p>在最开始就提到过：Nginx、Redis都是基于多路复用模型去实现的程序，但最初版的多路复用模型select/poll最大只能监听1024个连接，而epoll则属于select/poll接口的增强版，因此采用该模型能够大程度上提升单个Worker的性能，如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">events {  
+    # 使用epoll网络模型  
+    use epoll;  
+    # 调整每个Worker能够处理的连接数上限  
+    worker_connections  10240;  
+}  
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

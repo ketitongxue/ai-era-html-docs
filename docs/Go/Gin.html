@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gin 入门：最简 Gin 应用</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>Gin 的学习要点：</p>
+<ul>
+<li>如何定义路由：包括参数路由、通配符路由</li>
+<li>如何处理输入输出</li>
+<li>如何使用 middleware 解决 AOP 问题</li>
+</ul>
+<h1 id="gin-入门最简-gin-应用">Gin 入门：最简 Gin 应用</h1>
+<h2 id="安装">安装</h2>
+<p>要安装 Gin 软件包，需要先安装 Go 并设置 Go 工作区。</p>
+<p>1.下载并安装 gin：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">go get -u github.com/gin-gonic/gin
+</code></pre>
+<p>2.将 gin 引入到代码中：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import &quot;github.com/gin-gonic/gin&quot;
+</code></pre>
+<p>3.（可选）如果使用诸如 <code>http.StatusOK</code> 之类的常量，则需要引入 <code>net/http</code> 包：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import &quot;net/http&quot;
+</code></pre>
+<p>示例代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import &quot;github.com/gin-gonic/gin&quot;
+
+func main() {
+  server := gin.Default()
+  server.GET(&quot;/ping&quot;, func(c *gin.Context) {
+    c.JSON(200, gin.H{
+      &quot;message&quot;: &quot;pong&quot;,
+    })
+  })
+  server.Run(&quot;:8080&quot;) // 监听并在 0.0.0.0:8080 上启动服务
+}
+</code></pre>
+<p>然后, 执行 <code>go run example.go</code> 命令来运行代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ go run main.go
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in &quot;debug&quot; mode. Switch to &quot;release&quot; mode in production.
+ - using env:   export GIN_MODE=release
+ - using code:  gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --&gt; main.main.func1 (3 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Environment variable PORT is undefined. Using port :8080 by default
+[GIN-debug] Listening and serving HTTP on :8080
+</code></pre>
+<h1 id="gin-入门ginengine">Gin 入门：gin.Engine</h1>
+<ul>
+<li>在 Gin 里面，一个 Web 服务器被抽象成为 Engine。</li>
+<li>可以在一个应用里面创建多个 Engine 实例，监听不同的端口。</li>
+<li>Engine 承担了路由注册、接入 middleware的核心职责。</li>
+<li>右图中它组合了 RouterGroup，RouterGroup 才是实现路由功能的核心组件。</li>
+</ul>
+<h1 id="gin-入门gincontext">Gin 入门：gin.Context</h1>
+<p>gin.Context 是 Gin 里面的核心类型。应该说，你日常最经常的就是和它打交道。</p>
+<p>它的字面意思就是“上下文”，在 Gin 里面，它的核心职责是：</p>
+<ul>
+<li>处理请求</li>
+<li>返回响应</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">// 当一个 HTTP 请求，用 GET 方法访问的时候，如果访问路径是 /hello，
+server.GET(&quot;/ping&quot;, func(c *gin.Context) {
+    // 就执行这段代码
+    c.JSON(http.StatusOK, gin.H{
+       &quot;message&quot;: &quot;pong&quot;,
+    })
+})
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type Context struct {
+    writermem responseWriter
+    Request   *http.Request
+    Writer    ResponseWriter
+    ...
+}
+</code></pre>
+<p>上述代码中的 Request 代表的就是请求，Writer 代表的就是响应。</p>
+<h1 id="gin-入门路由注册">Gin 入门：路由注册</h1>
+<p>要灵活运用 IDE 的代码提示功能和源码查看功能。</p>
+<p>比如输入 server. 之后，IDE 就开始弹提示。</p>
+<p>通过查阅 API 定义来快速掌握 API 用法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">server.POST(&quot;/post&quot;, func(context *gin.Context) {
+    context.String(http.StatusOK, &quot;post&quot;)
+})
+</code></pre>
+<p>Gin 为每一个 HTTP 方法都提供了一个注册路由的方法。</p>
+<p>基本上都是两个参数：</p>
+<ul>
+<li>路由规则：比如说 /hello 这种静态路由。</li>
+<li>处理函数：也就是我们注册的，返回 hello, world的方法。</li>
+</ul>
+<p>Gin 支持很多类型的路由：</p>
+<ul>
+<li>静态路由：完全匹配的路由，也就是前面我们注册的 ping 的路由。</li>
+<li>参数路由：在路径中带上了参数的路由。要带冒号，不然会被理解为静态路由。</li>
+<li>通配符路由：任意匹配的路由。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">server.POST(&quot;/post&quot;, func(context *gin.Context) {
+    context.String(http.StatusOK, &quot;post&quot;)
+})
+
+server.GET(&quot;/users/:name&quot;, func(context *gin.Context) {
+    context.String(http.StatusOK, &quot;hello, 这是参数路由&quot;)
+})
+
+server.GET(&quot;/views/*.html&quot;, func(context *gin.Context) {
+    context.String(http.StatusOK, &quot;hello, 这是通配符路由&quot;)
+})
+</code></pre>
+<h1 id="gin-路由参数路由">Gin 路由：参数路由</h1>
+<p>参数路由的关键是获得参数，Gin 里面提供了 Param 方法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">server.GET(&quot;/users/:name&quot;, func(context *gin.Context) {
+    name := context.Param(&quot;name&quot;)
+    context.String(http.StatusOK, &quot;hello, 这是参数路由&quot;+name)
+})
+</code></pre>
+<h1 id="gin-路由查询参数">Gin 路由：查询参数</h1>
+<p>查询参数和参数路由是不太一样的，查询参数是指在 URL 后面附着的参数，要用 Query 方法来拿到查询参数的值。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">server.GET(&quot;/order&quot;, func(context *gin.Context) {
+    oid := context.Query(&quot;id&quot;)
+    context.String(http.StatusOK, &quot;hello, 这是查询参数&quot;+oid)
+})
+</code></pre>
+<p><img src="../../assets/wiki-img/WAgpbFTLiobYNBxVYcYc8oc6ngh.png" alt="图片显示了一个接口测试工具的界面，用户正在测试一个GET请求，请求路径为http://localhost:8080/order。请求参数包括一个名为id的查询参数，其值为123。在请求体中，用户输入了“hello，这是查询参数123”。图片下方提示用户可以切换为“文档模式”，以便更方便地设计API文档。图片在上下文中展示了如何使用Gin框架进行接口测试，特别是如何通过Query方法获取URL后面的查询参数。"></p>
+<h1 id="gin-路由通配符路由">Gin 路由：通配符路由</h1>
+<p>通配符路由究竟匹配上了什么，也是通过 Param 方法获得的。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">server.GET(&quot;/views/*.html&quot;, func(context *gin.Context) {
+    page := context.Param(&quot;.html&quot;)
+    context.String(http.StatusOK, &quot;hello, 这是通配符路由&quot;+page)
+})
+</code></pre>
+<p>通配符路由不能注册这种 <code>/users/*</code>, <code>/users/*/a</code>。也就是说，不能单独出现。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// 运行直接报错
+server.GET(&quot;/user/*&quot;, func(context *gin.Context) {
+    
+})
+</code></pre>
+<h1 id="gin-其它输入输出方法">Gin 其它输入输出方法</h1>
+<p>IDE context 点进去，在 Struct 里面找就可以。</p>
+<h1 id="gin-入门我该用什么方法什么路由">Gin 入门：我该用什么方法？什么路由？</h1>
+<p>在面对一个业务的时候，我该怎么设计路由？</p>
+<ul>
+<li>应该用 GET 方法还是 POST 方法？</li>
+<li>我该用路径参数？还是查询参数？还是把参数放到 body 里面？</li>
+</ul>
+<p>适用于初学者的两条原则：</p>
+<ul>
+<li>用户是查询数据的，用 GET，参数放到查询参数里面，即 ?a=123 这种。</li>
+<li>用户是提交数据的，用 POST，参数全部放到 Body 里面。</li>
+</ul>
+<p>课程后面我再教你用 RESTful 风格来设计路由。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">GET 查询
+DELETE 删除
+PUT 注册
+POST 修改
+</code></pre>
+<h1 id="gin-面试">Gin 面试</h1>
+<p>实际上，Gin 作为简单的框架，能够面试的内容并不多。</p>
+<ul>
+<li>什么是 Gin 的 middleware ？能用来解决什么问题？</li>
+<li>什么是跨域问题，怎么解决？</li>
+<li>跨域问题需要设置哪些头部？</li>
+</ul>
+<p>在 Gin 面试时候，提到自己研发了一个 Gin 插件库。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机器监控-操作系统重点关注指标</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="机器监控-操作系统重点关注指标">机器监控-操作系统重点关注指标</h1>
+<p>监控方向里我们最耳熟能详的，就是机器监控，也就是我们前面说的设备监控中的一种。机器是进程运行的基础环境，在制作中间件、应用监控仪表盘的时候，我们一般会把机器核心指标，比如CPU、内存、磁盘、网络、IO等，作为仪表盘的一部分，USE方法论主要就是针对机器监控提出的，其重要性不言而喻。</p>
+<h2 id="机器监控手段">机器监控手段</h2>
+<p>机器层面的监控分为两部分，带内监控和带外监控。带内监控就是通过带内网络来监控，主要是以在OS里部署 Agent 的方式，来获取 OS 的 CPU、内存、磁盘、IO、网络、进程等相关监控指标。随着云时代的到来，普通运维研发人员主要关注带内监控即可，IDC运维人员才会关注带外监控。不过为了让你的知识网络更加完整，带外监控我也浅聊几句。</p>
+<p>带外监控走的是带外网络，通常和业务网络不互通，通过 IPMI、SNMP 等协议获取硬件健康状况。</p>
+<p>IPMI可用于监控硬件的物理参数，如系统温度、风扇速度、电源电压等，可以有效地利用IPMI监控硬件温度、功耗、启动或关闭服务器和系统，以及进行日志记录。IPMI的一个主要亮点是，它的功能独立于服务器的CPU和操作系统。因为固件是直接在服务器主板上运行的，所以不管安装的操作系统是什么，它都可以用于管理各种远程位置的服务器。</p>
+<p>BMC（服务器基板管理控制器）也可以开启SNMP的支持，通过SNMP Trap做硬件监控是一个很好的思路。不过目前没有看到比较好的产品，可能一些老牌的国外监控产品可以做，但是那些产品都偏老套且收费昂贵。不过现在大都在上公有云，传统的SNMP Trap的监控，已经是一个存量需求了，不懂也不用太过焦虑。</p>
+<p>我们再回来看带内监控，常见的 Agent 有 Categraf、Telegraf、Grafana-agent、Datadog-agent、Node-exporter 等，这一讲我们除了介绍基本的CPU、内存、硬盘相关的监控，还会介绍一下进程监控和自定义监控脚本，所以我们选择Categraf，相对比较方便。</p>
+<h2 id="categraf-介绍">Categraf 介绍</h2>
+<p>Categraf 作为一款 Agent 需要部署到所有目标机器上，因为采集 CPU、内存、进程等指标，是需要读取 OS 里的一些信息的，远程读取不了。采集到数据之后，转换格式，传输给监控服务端。</p>
+<p>Categraf 推送监控数据到服务端，走的是 Prometheus 的 RemoteWrite 协议，是基于 Protobuf 的 HTTP 协议，所以所有支持 RemoteWrite 的后端，都可以和 Categraf 对接，比如 Prometheus、Nightingale、TDEngine等。</p>
+<p>Categraf 在 Github 的 <a href="https://github.com/flashcatcloud/categraf/releases">Releases</a> 页面提供了所有的版本信息，每个版本的发布，都会提供 changelog 和二进制发布包。Categraf默认提供 Linux 和 Windows 两个平台的发布包，当然，Categraf 也可以跑在 macOS 上，如果有兴趣你也可以自行编译测试。</p>
+<h2 id="categraf-配置">Categraf 配置</h2>
+<p>为了方便看到效果，我把 Categraf 采集的数据推送给 Nightingale，即 n9e-server 的 <code>/prometheus/v1/write</code> 地址，你可以看一下相关的配置。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[[writers]]
+url = &quot;http://127.0.0.1:19000/prometheus/v1/write&quot;
+</code></pre>
+<p>注：Categraf 的主配置文件是在 conf 目录下的 config.toml，解压缩发布包就可以看到了。</p>
+<p>当然，如果你想让 Categraf 把数据推给 Prometheus，也可以。但需要把127.0.0.1:19000 修改为你的环境的 Prometheus 地址，还要修改 URL 路径，因为 Prometheus 的 RemoteWrite 数据接收地址是 /api/v1/write。</p>
+<p>最后还要注意，Prometheus 进程启动的时候，需要增加一个启动参数 <code>--enable-feature=remote-write-receiver</code>，重启 Prometheus 就能接收 RemoteWrite 数据了。</p>
+<p>配置完就可以启动了，不过启动之前，我们先来简单测试一下。通过 <code>./categraf --test</code> 看看Categraf有没有报错，正常情况会在命令行输出采集到的监控数据，下面是我的环境下的运行结果，你可以参考下。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@tt-fc-dev01.nj categraf]# ./categraf --test --inputs mem:system
+2022/11/05 09:14:31 main.go:110: I! runner.binarydir: /home/work/go/src/categraf
+2022/11/05 09:14:31 main.go:111: I! runner.hostname: tt-fc-dev01.nj
+2022/11/05 09:14:31 main.go:112: I! runner.fd_limits: (soft=655360, hard=655360)
+2022/11/05 09:14:31 main.go:113: I! runner.vm_limits: (soft=unlimited, hard=unlimited)
+2022/11/05 09:14:31 config.go:33: I! tracing disabled
+2022/11/05 09:14:31 provider.go:63: I! use input provider: [local]
+2022/11/05 09:14:31 agent.go:85: I! agent starting
+2022/11/05 09:14:31 metrics_agent.go:93: I! input: local.mem started
+2022/11/05 09:14:31 metrics_agent.go:93: I! input: local.system started
+2022/11/05 09:14:31 prometheus_scrape.go:14: I! prometheus scraping disabled!
+2022/11/05 09:14:31 agent.go:96: I! agent started
+09:14:31 system_load_norm_5 agent_hostname=tt-fc-dev01.nj 0.3
+09:14:31 system_load_norm_15 agent_hostname=tt-fc-dev01.nj 0.2675
+09:14:31 system_uptime agent_hostname=tt-fc-dev01.nj 7307063
+09:14:31 system_load1 agent_hostname=tt-fc-dev01.nj 1.66
+09:14:31 system_load5 agent_hostname=tt-fc-dev01.nj 1.2
+09:14:31 system_load15 agent_hostname=tt-fc-dev01.nj 1.07
+09:14:31 system_n_cpus agent_hostname=tt-fc-dev01.nj 4
+09:14:31 system_load_norm_1 agent_hostname=tt-fc-dev01.nj 0.415
+09:14:31 mem_swap_free agent_hostname=tt-fc-dev01.nj 0
+09:14:31 mem_used agent_hostname=tt-fc-dev01.nj 5248593920
+09:14:31 mem_high_total agent_hostname=tt-fc-dev01.nj 0
+09:14:31 mem_huge_pages_total agent_hostname=tt-fc-dev01.nj 0
+09:14:31 mem_low_free agent_hostname=tt-fc-dev01.nj 0
+...
+</code></pre>
+<p>测试没问题，就可以启动了。通过 <code>nohup ./categraf &amp;&gt; stdout.log &amp;</code> 简单启动即可，如果是生产环境，建议你使用 systemd 或 supervisor 等托管进程。</p>
+<h2 id="导入配置">导入配置</h2>
+<p>Categraf 内置 <a href="https://github.com/flashcatcloud/categraf/blob/main/inputs/system/dashboard.json">Linux 监控大盘</a>，导入 Nightingale 就能看到效果，当然它也内置了告警规则，你可以看一下规则的 <a href="https://github.com/flashcatcloud/categraf/blob/main/inputs/system/alerts-linux.json">JSON 文件</a>。</p>
+<p>走完上面的几步，我们就可以看到监控效果了。下面我们就来看一下这些数据是怎么来的。</p>
+<h2 id="categraf-插件">Categraf 插件</h2>
+<p>Categraf 和 Telegraf、Datadog-agent 类似，都是插件架构，采集CPU指标的是 cpu 插件，采集内存指标的是 mem 插件，采集进程指标的是 procstat 插件，每个插件都有一个配置目录，在 conf 目录下，以 input. 打头。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">ulric@localhost conf % ls
+categraf.service            input.exec                  input.mem                   input.ntp                   input.redis_sentinel
+config.toml                 input.greenplum             input.mongodb               input.nvidia_smi            input.rocketmq_offset
+example.input.jolokia_agent input.http_response         input.mtail                 input.oracle                input.snmp
+input.arp_packet            input.ipvs                  input.mysql                 input.phpfpm                input.sqlserver
+input.conntrack             input.jenkins               input.net                   input.ping                  input.switch_legacy
+input.cpu                   input.kafka                 input.net_response          input.postgresql            input.system
+input.disk                  input.kernel                input.netstat               input.processes             input.tomcat
+input.diskio                input.kernel_vmstat         input.netstat_filter        input.procstat              input.zookeeper
+input.dns_query             input.kubernetes            input.nfsclient             input.prometheus            logs.toml
+input.docker                input.linux_sysctl_fs       input.nginx                 input.rabbitmq              prometheus.toml
+input.elasticsearch         input.logstash              input.nginx_upstream_check  input.redis                 traces.yaml
+</code></pre>
+<p>OS的各类指标采集，大都是读取的 <code>/proc</code> 目录， <a href="https://time.geekbang.org/column/article/624263">上一讲</a> 我们已经介绍过了，这里不再赘述。对于常见的插件，Categraf中有哪些配置可以控制其行为，下面我们一起看一下。</p>
+<h3 id="cpu">cpu</h3>
+<p>cpu插件的配置文件在input.cpu目录，只有两个配置项，interval和collect_per_cpu，其中interval 表示采集频率，所有的插件都有这个配置。而和CPU采集相关的配置实际只有一个，就是 collect_per_cpu，它用于控制是否采集每个单核的指标。默认值是 false，表示不采集单核的指标，只采集整机的指标。</p>
+<p>CPU相关的指标，最核心的就是使用率。大型互联网公司，为了应对突发流量，CPU的平均利用率一般就是30%左右。如果平时CPU利用率总是超过60%，就比较危险了。</p>
+<h3 id="mem">mem</h3>
+<p>mem插件的配置文件在 input.mem 目录，核心配置只有一个 collect_platform_fields，它表示是否采集各个平台特有的指标，什么意思呢？内存相关的指标，Linux、Windows、BSD、Darwin 都不是完全一样的，内存总量、使用量这类指标所有平台都有，但是其余很多指标都是和平台相关的，比如Linux下特有的 swap、huge_page 相关的指标，其他平台就是没有的。</p>
+<p>内存相关的指标，最核心的是可用率，即 mem_available_percent。新版本的 OS 内置 available 指标，老版本的姑且可以把 free + cached + buffer 看做 available。这个值如果小于 30% 就可以发个低级别告警出来了，然后着手扩容。</p>
+<h3 id="disk">disk</h3>
+<p>disk插件的配置文件在 input.disk 目录，默认不用调整，如果某个挂载点不想采集，可以配置到 ignore_mount_points 中，这样就会自动忽略掉对应的挂载点。</p>
+<p>硬盘相关的指标，主要关注空间使用率和inode使用率。对于空间使用率，85%一刀切的告警规则不合适，建议考虑大空间的盘和小空间的盘分别对应不同的告警规则。比如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">disk_used_percent{app=&quot;clickhouse&quot;} &gt; 85
+and
+disk_total{app=&quot;clickhouse&quot;}/1024/1024/1024 &lt; 300
+</code></pre>
+<p>这个规则用了 and 关键字，除了使用率大于 85 之外，又加了一个限制条件：总量小于 300G。</p>
+<h3 id="diskio">diskio</h3>
+<p>diskio插件的配置文件在 input.diskio 目录，默认不用调整，如果只想采集某几个盘的 IO 数据，可以使用 devices 配置进行限制。</p>
+<p>硬盘IO相关的指标，主要关注读写延迟，所谓的 IO.UTIL 这种指标基本不用太关注。这个问题网络上讨论比较多，你也可以Google一下。</p>
+<h3 id="net">net</h3>
+<p>net插件的配置文件在 input.net 目录，默认不用调整，如果只想采集某个特定网卡的数据，可以修改 interfaces 配置。</p>
+<p>现在的IDC环境，动辄万兆网卡，普通业务根本不用担心网卡跑满的问题，只有专门作为接入层的机器才需要重点关注。不过网卡丢包是需要关注的，比如长期每秒几十个丢包，就有理由怀疑是硬件的问题了。</p>
+<h3 id="netstat">netstat</h3>
+<p>netstat插件的配置文件在 input.netstat 目录，默认不用调整，tcp_time_wait 指标就是靠这个插件采集的。</p>
+<h3 id="processes">processes</h3>
+<p>processes插件的配置文件在 input.processes 目录，默认不用调整。最常见的指标是进程总量，如果某个机器进程总量超过600，大概率是有问题的，常见的原因比如某个 cron 写“挫”了，每分钟 fork 一个进程，但就是不退出，时间长了就把机器压垮了。</p>
+<h3 id="conntrack">conntrack</h3>
+<p>conntrack插件的配置文件在 input.conntrack 目录，默认不用调整。如果你工作时间比较久，应该遇到过 conntrack table full 的报错吧。这个插件就是用来监控 conntrack 的情况的。我们可以配置一条这样的告警规则及时发现问题： <code>conntrack_ip_conntrack_count / ip_conntrack_max &gt; 0.8</code> 就可以告警。</p>
+<h3 id="kernel_vmstat">kernel_vmstat</h3>
+<p>kernel_vmstat 插件的配置文件在 input.kernel_vmstat，采集的是 <code>/proc/vmstat</code> 的指标数据。这个文件内容比较多，所以配置文件中给了一个白名单，你可以按需启用，默认启用了 oom_kill。这样一来，OS发生OOM，我们可以及时知道。不过这需要高版本的内核，低版本是没有的。低版本的OS可以通过监控内核日志的“Out of memory”关键字来实现OOM监控。</p>
+<h3 id="ntp">ntp</h3>
+<p>ntp插件的配置文件在 input.ntp 目录，需要在配置文件中给出 ntp server 的地址。每个公司都应该有对时机制，很多分布式程序都是重度依赖时间的。监控指标是 ntp_offset_ms，顾名思义，单位是毫秒，一般这个值不能超过 1000，也不能小于-1000，需要配置告警规则。</p>
+<h3 id="procstat">procstat</h3>
+<p>procstat插件的配置文件在 input.procstat 目录，用于监控进程。进程监控主要是两个方面，一个是进程存活性，一个是进程占用的CPU、内存、文件句柄等数据。</p>
+<p>其中特别需要注意的是文件句柄，也就是 fd 相关的指标。Linux默认给进程分配的 fd 数量是1024，有些人调整了 ulimit 之后发现不好使，核心原因是进程在 ulimit 调整之前就启动了，或者是因为 systemd 层面没有调好。没关系，通过 fd 这个监控指标，我们最终都可以发现问题。procstat_rlimit_num_fds_soft &lt; 2048 就告警，需要配置这个规则。</p>
+<h3 id="exec">exec</h3>
+<p>exec 插件的配置文件在 input.exec 目录，用于自定义监控脚本。因为 Agent 虽然内置了很多插件，但有些长尾需求仍然是解决不了的，此时就需要通过自定义监控脚本来扩展监控采集能力。</p>
+<p>监控脚本可以是Shell的，也可以是Python、Perl、Ruby的，只要机器上有对应的执行环境就可以。Agent 会 fork 一个进程来执行，截获进程的 stdout（标准输出），解析成监控数据然后上报。所以脚本采集到数据之后，要格式化成某个特定的格式，打印到 stdout。Categraf 支持三种格式：Prometheus、Influx、Falcon，默认是 Influx 格式。</p>
+<p>我们简单举个例子，监控某个目录的大小。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">#!/bin/sh
+
+data1=`du -sb /data1`
+data2=`du -sb /data2`
+
+echo &quot;du,dir=/data1 size=$data1&quot;
+echo &quot;du,dir=/data2 size=$data2&quot;
+</code></pre>
+<p>这个例子使用的就是 Influx 输出格式，这个格式比较简单，我们 <a href="https://time.geekbang.org/column/article/620800">第2讲</a> 已经详细介绍过了，这里就不再赘述。当然，我们也可以采用 Prometheus 的格式或 Falcon 的格式。把这个脚本的路径配置到 exec.toml 中，Categraf 就会周期性地执行这个脚本，采集这两个目录的大小了。</p>
+<p><img src="../../../../assets/wiki-img/GW7ObQwLPoSyuBxWWLDcV3Hunbb.png" alt="图片为Categraf常见采集插件及关注点表格。表格分为两列，左侧为插件名称，包括cpu、mem、disk、diskio等；右侧为相关配置及关注重点，如cpu插件可开启单核采集，重点是关注利用率指标；mem插件默认开启内存指标采集，重点是关注可用率指标等。该表格与文档中介绍Categraf插件的内容相关，为使用Categraf监控操作系统时，对各插件配置及重点关注指标的说明提供参考。"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

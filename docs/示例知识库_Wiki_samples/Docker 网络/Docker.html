@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker网络：</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>Docker的网络有多种模式,但在单机docker环境下主要使用bridge模式。</p>
+<h1 id="docker网络">Docker网络：</h1>
+<p>Docker服务安装完成之后，默认在每个宿主机会生成一个名称为docker0的网卡其IP地址都是172.17.0.1/16，并且会生成三种不能类型的网 络，如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server1:~# ifconfig docker0
+docker0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt; mtu 1500
+        inet 172.17.0.1 netmask 255.255.0.0 broadcast 172.17.255.255
+        inet6 fe80::42:d9ff:fe20:16d9 prefixlen 64 scopeid 0x20&lt;link&gt;
+        ether 02:42:d9:20:16:d9 txqueuelen 0 (Ethernet)
+        RX packets 1920 bytes 101778 (101.7 KB)
+        RX errors 0 dropped 0 overruns 0 frame 0
+        TX packets 2203 bytes 16910412 (16.9 MB)
+        TX errors 0 dropped 0 overruns 0 carrier 0 collisions 0
+
+</code></pre>
+<p>另外会额外创建三个默认网络，用于不同的使用场景：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">root@docker-server1:~# docker network list
+NETWORK ID NAME DRIVER SCOPE
+#桥接网络，默认使用的模式，容器基于SNAT进行地址转换访问宿主机以外的环境
+438a9be14ef8 bridge bridge local 
+#host网络，直接使用宿主机的网络(不创建net namespace)，性能最好，但是容器端口不能冲突
+4c026356e4d1 host host local 
+#空网络，容器不会分配有效的IP地址(只有一个回环网卡用于内部通信)，用于离线数据处理等场景
+8d70da095b8e none null local 
+</code></pre>
+<h2 id="bridge模式">bridge模式：</h2>
+<p>docker的默认模式即不指定任何模式就是bridge模式，也是目前使用比较多的网络模式，此模式创建的容器会为每一个容器分配自己的网络 IP等信息，并将容器连接到一个虚拟网桥与外界通信。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql"># docker network inspect bridge
+# docker run -it -d --name nginx-web1-bridge-test-container -p 80:80 --net=bridge nginx:1.20.2
+</code></pre>
+<h2 id="host模式">host模式：</h2>
+<p>host模式就是直接使用宿主机的IP地址，创建的容器如果指定了使用host模式，那么新创建的容器不会创建自己的虚拟网卡，而是直接使用宿 主机的网卡和IP地址，因此在容器里面查看到的IP信息就是宿主机的信息，访问容器的时候直接使用宿主机IP+容器端口即可，而且某一个端 口一旦被其中一个容器占用那么其它容器就不能再监听此端口，不过容器的其它资源比如容器的文件系统、容器系统进程等还是基于 namespace相互隔离。</p>
+<p>此模式的网络性能最高，但是各容器之间端口不能相同，适用于运行容器端口比较固定的业务</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql"># docker run -it -d --name nginx-web1-host-test-container -p 80:80 --net=host nginx:1.20.2
+        root@docker-server1:~# docker exec -it 0092ca554f bash
+        root@docker-server1:/# apt update &amp;&amp; apt install net-tools
+        root@docker-server1:/# ifconfig
+        root@docker-server1:/# netstat -tanlp
+
+</code></pre>
+<h2 id="none模式">none模式：</h2>
+<p>none模式就是无IP模式，在使用none 模式后，docker 容器不会进行任何网络配置，其没有网卡、没有IP也没有路由，因此默认无法与外界通 信，需要手动添加网卡配置IP等，所以极少使用.</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">docker run -it -d --name nginx-web1-none-test-container -p 80:80 --net=none busybox sleep 10000000
+docker exec -it 3c54e90c209a sh
+/ # ifconfig
+lo Link encap:Local Loopback
+        inet addr:127.0.0.1 Mask:255.0.0.0
+        UP LOOPBACK RUNNING MTU:65536 Metric:1
+        RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+        TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+        collisions:0 txqueuelen:1000
+        RX bytes:0 (0.0 B) TX bytes:0 (0.0 B)
+
+/ # ping 223.6.6.6
+PING 223.6.6.6 (223.6.6.6): 56 data bytes
+ping: sendto: Network is unreachable
+
+</code></pre>
+<h2 id="container模式">container模式：</h2>
+<p>Container模式即容器模式，使用参数 --net=container:目标容器名称/ID 指定,使用此模式创建的容器需指定和一个已经存在的容器共享一个网络namespace，而不会创建独立的namespace，即新创建的容器不会创建自己的网卡也不会配置自己的IP，而是和一个已经存在的被指定的 目标容器共享对方的IP和端口范围，因此这个容器的端口不能和被指定的目标容器端口冲突，除了网络之外的文件系统、用户信息、进程信息 等仍然保持相互隔离，两个容器的进程可以通过lo网卡及容器IP进行通信。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># docker run -it -d --name nginx-container -p 80:80 --net=bridge nginx:1.22.0-alpine
+# docker run -it -d --name php-container --net=container:nginx-container php:7.4.30-fpm-alpine
+</code></pre>
+<p>分别进入容器验证IP地址信息</p>
+<p>验证net namesapce：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># ls /var/run/netns/netns
+# ln -s /var/run/docker/netns/* /var/run/netns/
+
+# ip netns list
+default
+# ip netns exec 10844980eee7 ip a
+72: eth0@if73: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default
+        link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netns default
+        inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0
+          valid_lft forever preferred_lft forever
+
+</code></pre>
+<h1 id="docker-网络模型与跨主机的容器间通信原理与过程展示和分析">Docker 网络模型与跨主机的容器间通信原理与过程展示和分析</h1>
+<h3 id="11host-模式">1.1：Host 模式：</h3>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>每个容器没有独立的net namespace，而是直接使用宿主机网卡通信</li>
+<li>服务器的端口只能被一个容器监听，其它容器再监听会出现端口冲突</li>
+<li>网络吞吐性能强(不需要iptables做目标地址和源地址转换)</li>
+<li>适用于在多台主机联合部署集群服务(redis cluster、elasticsearch cluster等)</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>单台主机运行较多容器的时候端口分配不好记录</li>
+<li>单台主机运行相同服务的时候端口的冲突问题</li>
+</ul>
+</li>
+</ul>
+<h3 id="12bridge模式">1.2：Bridge模式：</h3>
+<p><img src="../../../assets/wiki-img/WyHgbdEAvo0A2CxsMDdcPF2pnse.png" alt="图片展示了Docker网络模型中Bridge模式下跨主机的容器间通信原理与过程。图中有三个容器，分别为container1-nginx、container2-APP、container3-MySQL，分别运行nginx、APP、MySQL服务。每个容器有eth0网卡，与docker0网桥相连，docker0网桥再与宿主机eth0网卡相连。容器间通信通过docker0网桥转发，iptables进行报文转发，体现了Bridge模式下容器间通信的网络架构与数据传输路径。"></p>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>基于net namespace为每个容器实现独立的网络空间(每一个容器一个独立的IP)</li>
+<li>同一个服务器的不同容器不会出现容器中的服务监听地址冲突</li>
+<li>同一个服务器的不同容器不会出现容器中的服务监听端口冲突</li>
+<li>适用于在单台主机运行多容器的场景(Harbor、LNMP以及基于docker-compsoe部署的由多容器组成的单机项目)</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>需要维护每个服务的通信端口</li>
+<li>高并发的场景会有单节点瓶颈</li>
+<li>横向扩容需要在每台节点部署相同的服务</li>
+<li>进出宿主机的报文通过iptables进行转发，高并发的项目会有瓶颈</li>
+</ul>
+</li>
+<li>
+<p>创建测试容器:</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server1:~# docker run -it -d -p 80:80 nginx:1.20.2-alpine
+root@docker-server1:~# iptables-save | grep 80
+        -A DOCKER -d 172.17.0.2/32 ! -i docker0 -o docker0 -p tcp -m tcp --dport 80 -j ACCEPT
+        -A POSTROUTING -s 172.17.0.2/32 -d 172.17.0.2/32 -p tcp -m tcp --dport 80 -j MASQUERADE
+        -A DOCKER ! -i docker0 -p tcp -m tcp --dport 80 -j DNAT --to-destination 172.17.0.2:80
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server2:~# docker run -it -d -p 8080:8080 tomcat:7.0.93-alpine
+root@docker-server2:~# iptables-save | grep 8080 #验证iptables规则
+        -A DOCKER -d 172.17.0.2/32 ! -i docker0 -o docker0 -p tcp -m tcp --dport 8080 -j ACCEPT
+        -A POSTROUTING -s 172.17.0.2/32 -d 172.17.0.2/32 -p tcp -m tcp --dport 8080 -j MASQUERADE
+        -A DOCKER ! -i docker0 -p tcp -m tcp --dport 8080 -j DNAT --to-destination 172.17.0.2:8080
+
+</code></pre>
+<h3 id="网络bridge抓包">网络bridge抓包：</h3>
+<p>1.容器产生请求报文：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server1:~# docker exec -it 6c sh #进入容器向对端主机发起请求
+/ # curl &lt;http://172.31.6.202:8080&gt;
+root@docker-server1:~# tcpdump -nn -vvv -i vethdc255b5 -vvv -nn ! port 22 and ! arp and ! port 53 -w 1-
+vethdc255b5.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/X6DPbwXBhomC2ixxPDqc87MVnQe.png" alt="图片展示的是网络抓包分析内容，对应文档中“容器产生请求报文”步骤。图中红框标注了源容器的MAC地址、IP地址等信息，以及目标主机docker0的MAC地址、IP地址等信息。箭头指向部分显示了TCP协议的相关信息，如源端口、目标端口等。该图片直观呈现了容器产生请求报文时网络层和传输层的关键数据，与上下文对容器产生请求报文的描述相契合。"></p>
+<p>2.docker0-收到容器的请求报文并转发给宿主机：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server1:~# tcpdump -nn -vvv -i docker0 -vvv -nn ! port 22 and ! arp and ! port 53 -w 2-docker0.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/YxiBbnBNkohkQhxL52rcZGnan0e.png" alt="图片展示了Docker网络中容器产生请求报文时的抓包信息。上方显示当前容器MAC地址为02:42:a4:2c:9b:1c，IP地址为172.17.0.2。中间部分是目标MAC地址为docker0（02:42:a4:2c:9b:01）和目标IP地址为172.31.6.202。下方是IP协议报文，源地址172.17.0.2，目标地址172.31.6.202，端口57434和8888。该图片与上文“容器产生请求报文”内容对应，直观呈现了报文中的关键信息。"></p>
+<p>3.源主机eth0：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server1:~# tcpdump -nn -vvv -i eth0 -vvv -nn ! port 22 and ! arp and ! port 53 -w 3-eth0.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/PwxhbFq2OoZzT9xZbppcrcRenle.png" alt="图片展示了源主机eth0 MAC、源IP、目标MAC、目标地址（目的IP:端口）等关键网络信息。其中，源MAC为VMware_66:b6:f2，源IP为172.31.6.201，目标MAC为VMware_22:36:e6，目标地址为172.31.6.202:8080。该图片与文档中“源主机eth0”部分对应，直观呈现了源主机eth0在通信过程中的网络参数，为后续分析源主机eth0收到容器请求报文并转发给宿主机等步骤提供数据支撑。"></p>
+<p>4.目的主机eth0-收到请求报文：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server2:~# tcpdump -nn -vvv -i eth0 -vvv -nn ! port 22 and ! arp and ! port 53 -w 4-eth0.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/PlqsbZUBcompTcxVoQRcYBnenRe.png" alt="图片展示了Docker网络中容器间通信的网络抓包信息。上方显示源MAC、源IP、目标MAC、目标IP等关键信息。中间部分是IP报文，包括版本、协议、源IP、目标IP等字段。下方是TCP报文，显示源端口、目标端口、序列号等信息。该图片与文档中“源主机eth0 -收到容器的请求报文并转发给宿主机”步骤对应，直观呈现了报文结构，帮助理解容器间通信在网络层面的具体表现。"></p>
+<p>5.目的主机docker0：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server2:~# tcpdump -nn -vvv -i docker0 -vvv -nn ! port 22 and ! arp and ! port 53 -w 5-docker0.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/AjXybi1Mqo6aHNxRyJMcgNw0nKg.png" alt="图片展示了Docker网络中容器间通信的抓包分析。源MAC为docker0，源IP为172.31.0.90，目标MAC为容器eth0的MAC，目标IP为172.17.0.2，端口为8080。报文类型为IPv4，传输层协议为TCP，源端口为57434，目标端口为8080。该图与上下文紧密相关，直观呈现了容器产生请求报文后，经docker0转发给宿主机，再经宿主机eth0、docker0转发给目的主机容器虚拟机网卡，最终到达目的主机容器虚拟机网卡的网络通信过程。"></p>
+<p>6.目的主机容器虚拟机网卡：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">root@docker-server2:~# tcpdump -nn -vvv -i veth91f6e6a -vvv -nn ! port 22 and ! arp and ! port 53 -w 6-
+veth91f6e6a.pcap
+</code></pre>
+<p><img src="../../../assets/wiki-img/YjcWbMSAYo9XYPxWHNacVi0fnof.png" alt="图片展示了Docker网络中容器间通信的抓包分析。源MAC为宿主机docker0的MAC地址，源IP为宿主机eth0 IP，目标MAC为容器eth0 MAC，目标地址为容器IP:端口。该图片与上下文紧密相关，是对上文“源主机eth0”步骤抓包内容的展示，直观呈现了容器间通信时网络层和传输层的相关信息，帮助理解跨主机容器间通信原理与过程。"></p>
+<p>同宿主机总结：</p>
+<p>1、同宿主机的容器通信，在docker0实现报文转发，不需要经过宿主机的eth0。</p>
+<p>跨宿主机通信</p>
+<p>1、源容器产生请求报文发给网关docker0</p>
+<p>2、docker0检查报文的目的IP，如何是本机就直接转发，如果不是本机就转发给宿主机。</p>
+<p>3、目的宿主机收到报文后检查路由表，将源地址替换为本机IP并发送报文。</p>
+<p>4、目的主机收到请求报文，检查目的IP后将报文转发给docker0。</p>
+<p>5、docker0检查目的IP后匹配MAC地址表，将报文发送给目的MAC的容器。</p>
+<h3 id="13修改docker默认子网范围">1.3：修改docker默认子网范围</h3>
+<p>修改docker的默认IP地址范围：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-typescript">root@docker-server1:~# vim /lib/systemd/system/docker.service
+        ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --bip=10.10.0.1/24
+root@docker-server1:~# systemctl daemon-reload &amp;&amp; systemctl restart docker
+
+root@docker-server2:~# vim /lib/systemd/system/docker.service
+        ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --bip=10.20.0.1/24
+root@docker-server2:~# systemctl daemon-reload &amp;&amp; systemctl restart docker
+
+</code></pre>
+<p>容器的跨主机通信：</p>
+<p>在宿主机添加静态路由，将去往的目的容器网关(下一跳)指向目的容器所在的宿主机eth0网卡：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">root@docker-server1:~# route add -net 10.20.0.0/24 gw 172.31.6.202 #去往10.20.0.0/24的下一跳是172.31.6.202
+root@docker-server1:~# iptables -A FORWARD -s 172.31.0.0/21 -j ACCEPT #允许响应报文的转发
+root@docker-server2:~# route add -net 10.10.0.0/24 gw 172.31.6.201
+root@docker-server2:~# iptables -A FORWARD -s 172.31.0.0/21 -j ACCEPT
+root@docker-server1:~# docker exec -it 6c10dcf457d8 sh
+  / # ifconfig #当前容器ip
+  • eth0 Link encap:Ethernet HWaddr 02:42:0A:0A:00:02
+  • inet addr:10.10.0.2 Bcast:10.10.0.255 Mask:255.255.255.0
+  • UP BROADCAST RUNNING MULTICAST MTU:1500 Metric:1
+/ # ping 10.20.0.2 #测试容器跨主机通信
+  • PING 10.20.0.2 (10.20.0.2): 56 data bytes
+  • 64 bytes from 10.20.0.2: seq=0 ttl=62 time=1.018 ms
+
+</code></pre>
+<h3 id="14创建自定义网络">1.4：创建自定义网络：</h3>
+<p>在宿主机创建自定义容器网络：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">root@docker-server2:~# docker network create --help
+root@docker-server2:~# docker network create -d bridge --subnet 10.200.0.0/24 --gateway 10.200.0.1 magedu-net
+root@docker-server2:~# docker run -it -p 8080:8080 --name magedu-net-test --net=magedu-net alpine:3.16.2 sh
+
+        / # ifconfig
+        • eth0 Link encap:Ethernet HWaddr 02:42:0A:C8:00:02
+        • inet addr:10.200.0.2 Bcast:10.200.0.255 Mask:255.255.255.0
+
+        / # ping www.jd.com #测试与外网通信
+        • PING www.jd.com (110.242.21.33): 56 data bytes
+        • 64 bytes from 110.242.21.33: seq=0 ttl=127 time=42.207 ms
+
+为容器分配指定IP:
+        root@docker-server2:~# docker run -it -p 8080:8080 --name magedu-net-test --ip 10.200.0.100 --net=magedu-net alpine:3.16.2
+sh
+        • / # ifconfig
+        • eth0 Link encap:Ethernet HWaddr 02:42:0A:C8:00:64
+
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

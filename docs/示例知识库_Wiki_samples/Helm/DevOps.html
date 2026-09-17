@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>应用定义：Helm 入门和实战</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="应用定义helm-入门和实战">应用定义：Helm 入门和实战</h1>
+<h2 id="使用-helm-定义应用">使用 Helm 定义应用</h2>
+<ul>
+<li>管理 K8s 对象</li>
+<li>将多个微服务的工作负载、配置对象等封装为一个应用</li>
+<li>屏蔽终端用户使用的复杂度</li>
+<li>参数化、模板化，支持多环境</li>
+</ul>
+<h2 id="从第三方-helm-chart-开始">从第三方 Helm Chart 开始</h2>
+<ul>
+<li>
+<p>GitHub</p>
+<ul>
+<li>https://github.com/bitnami/charts</li>
+</ul>
+</li>
+<li>
+<p>Artifact Hub</p>
+<ul>
+<li>https://artifacthub.io</li>
+</ul>
+</li>
+</ul>
+<h1 id="helm-核心概念">Helm 核心概念</h1>
+<h2 id="chart">Chart</h2>
+<p>K8s 应用安装包，包含应用的 K8s 对象用于创建实例</p>
+<h2 id="release">Release</h2>
+<p>使用默认或特定参数安装的 Helm 实例（运行中的实例）。</p>
+<p>我们知道 Helm Chart 实际上是一个应用安装包，只有在安装（实例化）它时才会生效。它可以在同一个集群中甚至是同一个命名空间下安装多次，所以我们就需要为每次安装都起一个唯一的名字，这就是 Helm Release Name。</p>
+<h2 id="repository">Repository</h2>
+<p>用于存储和分发的 Helm Chart 仓库（Git、OCI）</p>
+<h1 id="helm-安装">Helm 安装</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+</code></pre>
+<p>https://helm.sh/docs/intro/install/</p>
+<p>插一句：helm list 信息存在哪？</p>
+<p>会有一个 secret——sh.helm.release.xxxxxxxx</p>
+<h1 id="helm-常用命令">Helm 常用命令</h1>
+<ul>
+<li>install：安装 Helm Chart， -f 指定 yaml 文件，--set 指定要覆盖的 key 和 value。</li>
+<li>get, status, list：获取 Helm Release 的信息，例如安装状态、日志、安装参数等</li>
+<li>uninstall：卸载 Helm Release</li>
+<li>repo add, repo list, repo remove, repo index： Repository 相关命令</li>
+<li>search：在 Repository 中查找 Helm Chart</li>
+<li>create, package：创建和打包 Helm Chart</li>
+<li>pull：拉取 helm chart</li>
+<li>rollback：回滚到指定版本</li>
+</ul>
+<p><img src="../../../assets/wiki-img/JykNbfwoBopsKCxTlrXc16Bqnuc.png" alt="图片展示的是在终端中使用Helm命令执行“helm list -A”操作后的结果。画面中显示了Kubernetes配置文件的警告信息，指出其为组可读和世界可读，存在不安全风险。接着列出名为“ingress-nginx”的应用，其Namespace为“ingress-nginx”，Revision为1，更新时间为2023年9月17日19:00:00，状态为“deployed”，Chart版本为“ingress-nginx-4.7.2”。该图片与文档中介绍Helm命令“list”获取Helm Release信息的内容相关，直观呈现了执行该命令后的结果。"></p>
+<p><img src="../../../assets/wiki-img/FhVPbknsDoj5NVxEMlucAwTHnRg.png" alt="图片展示的是在终端执行命令后的输出结果。命令用于列出Helm仓库，显示了仓库名称及对应的URL。其中，sonarqube仓库的URL为https://SonarSource.github.io/helm - chart - sonarqube，argo仓库的URL为https://argoproj.github.io/argo - helm，prometheus - community仓库的URL为https://prometheus - community.github.io/helm - charts，还有jenkins、kedacore、harbor、jetstack、ingress - nginx等仓库的URL。该图片与文档中介绍Helm命令相关，直观呈现了命令的使用效果。"></p>
+<h1 id="demo-从零创建-helm-chart">Demo: 从零创建 Helm Chart</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">helm create demo
+</code></pre>
+<ul>
+<li>
+<p>核心目录和文件</p>
+<ul>
+<li>
+<p>templates 目录</p>
+<ul>
+<li>用来存放模板文件，你可以把它视作 Kubernetes Manifest，但它和 Manifest 最大的区别是，模板文件可以包含变量，变量的值则来自于 values.yaml 文件定义的内容。</li>
+</ul>
+</li>
+<li>
+<p>Chart.yaml</p>
+<ul>
+<li>Helm Chart 的描述文件，例如名称、描述和版本等。</li>
+</ul>
+</li>
+<li>
+<p>values.yaml</p>
+<ul>
+<li>安装参数定义文件，它不是必需的。在 Helm Chart 被打包成 tgz 包时，如果 templates 目录下的 Kubernetes Manifest 包含变量，那么你需要通过它来提供默认的安装参数。作为最终用户，当安装某一个 Helm Chart 的时候，也可以提供额外的 YAML 文件来覆盖默认值。比如在上面的期望效果图中，我们为同一个 Helm Chart 提供不同的安装参数，就可以得到具有配置差异的多套环境。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/wiki-img/XEl0bOITXo8z7rxzTCwcPGV2nwe.png" alt="图片展示了在Mac终端中使用命令列出目录内容的结果。目录下有、、、等文件和文件夹，其中和文件夹权限为，大小为320和64字节，创建时间为9月20日15:55。该图片与文档中介绍Helm Chart打包成tgz包时，templates目录下Kubernetes Manifest包含变量等内容相关，展示了Helm Chart目录结构。"></p>
+<h2 id="chartyaml">Chart.yaml</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v2 # API 版本，默认v2
+name: demo # Helm Chart 名称
+description: A Helm chart for Kubernetes # 描述
+type: application # application 或 library，对于应用选择前者
+version: 0.1.0 # Helm Chart 版本号
+appVersion: &quot;1.16.0&quot; # 应用版本号
+dependencies: # 依赖的其他 chart
+</code></pre>
+<p>其中，apiVersion 字段设置为 v2，代表使用 Helm 3 来安装应用。</p>
+<p>name 表示 Helm Chart 的名称，当使用 helm install 命令安装 Helm Chart 时，指定的名称也就是这里配置的名称。</p>
+<p>description 表示 Helm Chart 的描述信息，你可以根据需要填写。</p>
+<p>type 表示类型，这里我们将其固定为 application，代表 Kubernetes 应用。</p>
+<p>version 表示我们打包的 Helm Chart 的版本，当使用 helm install 时，可以指定这里定义的版本号。Helm Chart 的版本就是通过这个字段来管理的，当我们发布新的 Chart 时，需要更新这里的版本号。</p>
+<p>appVersion 和 Helm Chart 无关，它用于定义应用的版本号，建立当前 Helm Chart 和应用版本的关系。</p>
+<h2 id="valuesyaml">values.yaml</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># 所有字段和值都可自定义，用来为模板提供值
+replicaCount: 1
+image:
+    repository: nginx
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: &quot;v1.0&quot;
+imagePullSecrets: []
+nameOverride: &quot;&quot;
+fullnameOverride: &quot;&quot;
+</code></pre>
+<h2 id="模板变量">模板变量</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: &quot;{{ .Values.image.repository }}:{{ .Values.image.tag }}&quot;
+        # 该模板变量替换为 values.yaml 配置的值
+</code></pre>
+<h1 id="ingress-处理使用命名空间变量">Ingress 处理：使用命名空间变量</h1>
+<ul>
+<li>使用安装命名空间变量作为域名 prefix</li>
+<li>自动为每一个环境配置访问域名</li>
+<li>{{ $.Release.Namespace }}</li>
+</ul>
+<h1 id="helm-高级核心技术">Helm 高级核心技术</h1>
+<ul>
+<li>
+<p>内置变量和函数</p>
+<ul>
+<li>https://helm.sh/docs/chart_template_guide/builtin_objects/</li>
+<li>https://helm.sh/docs/chart_template_guide/function_list</li>
+</ul>
+</li>
+<li>
+<p>依赖</p>
+<ul>
+<li>https://helm.sh/docs/helm/helm_dependency</li>
+</ul>
+</li>
+<li>
+<p>渲染和调试</p>
+<ul>
+<li>helm template . --debug</li>
+</ul>
+</li>
+<li>
+<p>Sub Chart（子 Chart）</p>
+<ul>
+<li>https://helm.sh/docs/chart_template_guide/subcharts_and_globals</li>
+</ul>
+</li>
+<li>
+<p>Helm Hooks</p>
+<ul>
+<li>https://helm.sh/docs/topics/charts_hooks/</li>
+<li>pre-install、post-install、pre-delete、post-delete、pre-upgrade、post-upgrade、pre-rollback、postrollback</li>
+</ul>
+</li>
+</ul>
+<h1 id="内置变量">内置变量</h1>
+<ul>
+<li>
+<p>Release</p>
+<ul>
+<li>Release.Name</li>
+<li>Release.Namespace</li>
+<li>Release.IsUpgrade</li>
+<li>Release.IsInstall</li>
+<li>Release.Revision</li>
+<li>Release.Service</li>
+</ul>
+</li>
+<li>
+<p>Values</p>
+<ul>
+<li>{{ .Values.Obj }}</li>
+</ul>
+</li>
+<li>
+<p>Chart</p>
+<ul>
+<li>{{ .Chart.Name }}</li>
+</ul>
+</li>
+<li>
+<p>Files</p>
+<ul>
+<li>Files.Get</li>
+<li>Files.Glob</li>
+<li>Files.AsSecrets</li>
+<li>Files.AsConfig</li>
+</ul>
+</li>
+<li>
+<p>Capabilities</p>
+<ul>
+<li>Capabilities.APIVersions</li>
+<li>Capabilities.KubeVersion</li>
+</ul>
+</li>
+<li>
+<p>Template</p>
+<ul>
+<li>Template.Name</li>
+<li>Template.BasePath</li>
+</ul>
+</li>
+</ul>
+<p>内置函数</p>
+<ul>
+<li>Date</li>
+<li>Encoding</li>
+<li>File Path</li>
+<li>Lists</li>
+<li>Math</li>
+<li>Network</li>
+<li>Regular Expressions</li>
+<li>String</li>
+<li>Type Conversion</li>
+<li>URL</li>
+<li>UUID</li>
+</ul>
+<h2 id="依赖dependencies">依赖（Dependencies）</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># Chart.yaml
+dependencies:
+- name: nginx
+version: &quot;1.2.3&quot;
+repository: &quot;https://example.com/charts&quot;
+- name: memcached
+version: &quot;1.2.3&quot;
+repository: &quot;file://../dependency_chart/memcached&quot;
+</code></pre>
+<h2 id="子-chartsub-chart">子 Chart（Sub Chart）</h2>
+<ul>
+<li>
+<p>Sub Chart 和 dependencies 依赖的关系</p>
+</li>
+<li>
+<p>dependencies 是借助子 chart 来实现的</p>
+</li>
+<li>
+<p>子 chart 约定放在 charts 目录，和 templates 目录同级</p>
+</li>
+<li>
+<p>helm 会将依赖下载到 charts 目录</p>
+</li>
+<li>
+<p>子 chart 也可以自己创建</p>
+</li>
+<li>
+<p>父 chart 可以覆写子 chart 的 values.yaml 值，但子 chart 不能覆写父 chart values.yaml 值</p>
+<p>subchart:</p>
+<p>key: values</p>
+</li>
+<li>
+<p>values 有一个保留关键字：global，在 values.yaml 定义后，子和父 chart 都能访问</p>
+</li>
+</ul>
+<p>global:</p>
+<p>salad: caesar</p>
+<h2 id="hooks">Hooks</h2>
+<ul>
+<li>pre-install：渲染模板之后、创建任何资源之前执行 (helm install)</li>
+<li>post-install：所有资源部署到 Kubernetes 后执行 (helm install)</li>
+<li>pre-delete：在从 Kubernetes 中删除任何资源之前执行 (helm uninstall)</li>
+<li>post-delete：在删除所有资源后执行 (helm uninstall)</li>
+<li>pre-upgrade：在渲染模板后、更新资源前执行 (helm upgrade)</li>
+<li>post-upgrade：在升级所有资源后执行 (helm upgrade)</li>
+<li>pre-rollback：在渲染模板之后、回滚任何资源之前执行 (helm rollback)</li>
+<li>post-rollback：在修改所有资源后执行 (helm rollback)</li>
+<li>test：在执行 helm test 命令时执行</li>
+</ul>
+<h2 id="demohooks">Demo：Hooks</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">apiVersion: batch/v1
+kind: Job
+metadata:
+  name: &quot;{{ .Release.Name }}&quot;
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    &quot;helm.sh/hook&quot;: post-install
+    &quot;helm.sh/hook-weight&quot;: &quot;-5&quot;
+    &quot;helm.sh/hook-delete-policy&quot;: hook-succeeded
+</code></pre>
+<h2 id="helm-cheat-sheet">Helm Cheat Sheet</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 安装 Helm Chart 或者执行升级，无需担心重复执行问题
+$ helm upgrade --install &lt;release name&gt; --values &lt;values file&gt; &lt;chart directory&gt;
+# 查看 Helm Chart values.yaml 配置信息
+$ helm inspect values &lt;CHART&gt;
+# 查看 Helm Repository Chart 列表
+$ helm repo list
+# 查看所有命名空间的 release
+$ helm list --all-namespaces
+# 升级应用前先更新依赖
+$ helm upgrade &lt;release&gt; &lt;chart&gt; --dependency-update
+# 回滚应用
+$ helm rollback &lt;release&gt; &lt;revision&gt;
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

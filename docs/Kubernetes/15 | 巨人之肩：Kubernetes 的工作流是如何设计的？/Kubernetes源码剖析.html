@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>15 | 巨人之肩：Kubernetes 的工作流是如何设计的？</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="15--巨人之肩kubernetes-的工作流是如何设计的">15 | 巨人之肩：Kubernetes 的工作流是如何设计的？</h1>
+<p>Kubernetes 的源码贡献流程。其实就是标准的 GitHub 工作流。如果我们未来想给 Kubernetes 贡献源码，需要遵照 Kubernetes 的源码贡献流程，另外因为 Kubernetes 的 GitHub 工作流，非常规范且详细，对于未来我们自己设计 GitHub 工作流也是很有参考意义的。</p>
+<h2 id="kubernetes-项目工作流设计">Kubernetes 项目工作流设计</h2>
+<p>Kubernetes 项目遵循标准的 GitHub 工作流，Kuberntes 社区给出了一个流程图，详细的说明了整个流程。流程图如下：</p>
+<p><img src="../../../assets/wiki-img/CYFmbpfiqo2cdjxlV6hc3wcanpc.png" alt="图片展示了Kubernetes工作流设计流程图。从GitHub开始，先Fork项目，再将Fork项目克隆到本地。接着在本地工作目录中，创建分支添加新功能或修复问题，进行代码修改后提交。若需进一步修改代码，可先提交，再使用git commit --amend更新提交信息。最后，将分支推送到fork的仓库，创建Pull Request。该图与文档中介绍Kubernetes工作流步骤的内容相呼应，直观呈现了各步骤操作及流程。"></p>
+<h2 id="步骤-1在-github上-fork-kubernetes-项目">步骤 1：在 GitHub上 Fork Kubernetes 项目</h2>
+<p>具体操作如下：</p>
+<p>访问 <a href="https://github.com/kubernetes/kubernetes%EF%BC%9B">https://github.com/kubernetes/kubernetes</a><a href="https://github.com/kubernetes/kubernetes%EF%BC%9B">；</a></p>
+<p>点击右上角的 Fork 按钮，Fork Kubernetes 项目。</p>
+<h2 id="步骤-2克隆-fork-项目到本地">步骤 2：克隆 Fork 项目到本地</h2>
+<p>执行以下命令，将 Fork 项目克隆到本地指定的路径：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Shell">$ export working_dir=&quot;$(go env GOPATH)/src/github.com/ketitongxue&quot; # 设置 kubernetes 仓库存放的目标目录
+$ export user=&lt;your github profile name&gt; # 注意，这里需要设置 user 为你的 GitHub 用户名，例如：ketitongxue
+$ mkdir -p $working_dir
+$ cd $working_dir
+$ git clone https://github.com/$user/kubernetes.git # 克隆 Fork 的 kubernetes 项目到本地
+$ cd $working_dir/kubernetes
+$ git remote add upstream https://github.com/kubernetes/kubernetes.git # 添加一个名为 upstream 的远程仓库到本地 Git 仓库中
+$ git remote set-url --push upstream no_push # 设置永不向 upstream 推送代码变更
+$ git remote -v # 确认远程仓库设置正确
+</code></pre>
+<p>在 GitHub 中，&quot;上游&quot;（upstream）通常指代原始仓库，而 &quot;origin&quot; 指代你 fork 出来的仓库。通过这种方式，你可以方便地与原始仓库保持同步，同时在自己的仓库中进行修改和开发。</p>
+<p>另外，要禁止向 upstream 推送代码，如果想给 upstream 仓库提交代码贡献，需要通过 PR 的方式，这个后面会介绍。</p>
+<h2 id="步骤-3同步上游-master-分支最新代码">步骤 3：同步上游 master 分支最新代码</h2>
+<p>在创建工作分支之前，我们还需要将本地的主分支更新到最新的状态，更新方法如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Shell">$ cd $working_dir/kubernetes # 切换到 kubernetes 项目仓库所在的目录
+$ git fetch upstream # 从远程仓库 upstream 中获取最新的更改，但不会自动合并到你的当前分支
+$ git checkout master # 切换到本地的 master 分支
+$ git rebase upstream/master # 同步 upstream/master 分支的最新变更到本地的 master 分支
+</code></pre>
+<p>注意：主分支可能被命名为 main 或 master，具体取决于代码仓库，kubernetes 项目的主分支名为 master</p>
+<p>在创建一个新的修复分支或者新功能分支时，要确保基于 upstream 最新的 master 代码来创建，这样可以使你能够基于最新的代码来开发，并且尽最大可能降低未来分支代码合并到上游 master 分支时的代码冲突。</p>
+<h2 id="步骤-4创建一个工作分支">步骤 4：创建一个工作分支</h2>
+<p>基于本地 master 分支，创建本地的工作分支：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git checkout -b feature-myfeature
+</code></pre>
+<p>之后，我们就可以在 feature-myfeature 分支，开发代码、编译代码、 测试代码。</p>
+<p>这里要注意，在基于本地 master 分支创建工作分支之前，要确保执行 <strong>步骤 3</strong>，确保本地 master 分支代码跟上游 master 分支代码是一致的。</p>
+<p>另外，这里要注意 Kubernetes 的分支命名规则为：</p>
+<ul>
+<li>feature-xxx：功能分支；</li>
+<li>fix-xxx：修复分支；</li>
+<li>release-xxx：发布分支。</li>
+</ul>
+<h2 id="步骤-5在工作分支变更代码">步骤 5：在工作分支变更代码</h2>
+<p>之后，我们就可以基于工作分支来开发 Kubernetes 源码。在开发过程中，我们可以根据需求提交代码变更。这里建议的流程如下：</p>
+<ol>
+<li>修改代码；</li>
+<li>执行 git add添加期望的变更内容；</li>
+<li>执行 git commit -m &quot;some useful commit message&quot;</li>
+<li>如果你需要更多的变更，变更完之后，可以执行 git commit --amend 命令，来将变更内容追加到上一次的提交中：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># 代码变更
+$ git add &lt;expected changes&gt;
+$ git commit --amend
+</code></pre>
+<p>关于 git commit --amend的详细介绍可参考：<a href="https://www.w3schools.com/git/git_amend.asp">amend your previous commit</a>。</p>
+<p><strong>确保分支代码和上游 master 代码的一致性</strong></p>
+<p>我们需要定期确保分支代码和上游的 master 代码的一致性。原因上面其实有介绍，就是确保我们基于最新的代码来开发，这样可以尽最大可能避免未来合并到上游 master 分支时的潜在冲突。</p>
+<p>保持同步的方法很简单，就是首先切换到工作分支，然后执行下述命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git checkout feature-myfeature
+$ git fetch upstream
+$ git rebase upstream/master
+</code></pre>
+<p>注意，不要使用 git pull 来代替 git fetch 和 git rebase，因为 git pull 会进行合并，并产生一个合并提交记录，这会使 kubernetes 仓库的提交历史变得混乱，并且这也违反了提交记录应该是整洁和清晰的原则。</p>
+<p>你还可以使用以下 2 种方法来同步上游的 master 代码（2 种方法都是确保git pull 时使用 rebase 而不是 merge）：</p>
+<p><strong>方法 1：</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git config branch.autoSetupRebase always # 该命令实际上是通过修改 .git/config 配置来改变 git pull 行为的
+$ git pull upstream master
+</code></pre>
+<p><strong>方法 2：</strong></p>
+<p>或者直接执行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git pull --rebase upstream master
+</code></pre>
+<h2 id="步骤-6将变更推送到远端仓库">步骤 6：将变更推送到远端仓库</h2>
+<p>代码开发完之后，就可以将开发分支推送到远端仓库，命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git push -f origin feature-myfeature
+</code></pre>
+<h2 id="步骤-7创建一个-pull-request">步骤 7：创建一个 Pull Request</h2>
+<p>可以遵循以下步骤，来创建一个PR（Pull Request）：</p>
+<ol>
+<li>访问 Fork kubernetes GitHub 仓库：<a href="https://github.com/%3Cuser%3E/kubernetes">https://github.com/&lt;user&gt;/kubernetes</a>；</li>
+<li>点击 <strong>Pull requestss</strong> -&gt; <strong>New pull request</strong>：</li>
+</ol>
+<p>提交的时候要注意：</p>
+<ul>
+<li><strong>base repository</strong> 选择 kubernetes/kubernetes，<strong>base</strong> 选择 maser；</li>
+<li><strong>head repository</strong> 选择 &lt;user&gt;/kubernetes，<strong>compare</strong> 选择 feature-myfeature；</li>
+<li>再次检查变更 Diff；</li>
+<li>点击 <strong>Create pull request</strong> 创建 PR。</li>
+</ul>
+<h3 id="进行代码审查">进行代码审查</h3>
+<p>PR 提交后，会被分配给一个或多个代码审阅者（reviewers），这些审阅者会对代码进行彻底的审查，尝试从中找到错误的变更、可以改进的代码、不符合风格的代码、以及任何不符合要求的代码变更。</p>
+<p>如果代码审查后，发现你的代码需要重新改进，你可以重新在 feature-myfeature 分支修改代码，并推送到 feature-myfeature 分支。</p>
+<p>这里建议每个 PR 不要包含很多代码变更，这样的 PR 很难审查，会导致你的 PR 被合入master的进度变得很缓慢。</p>
+<h3 id="压缩提交">压缩提交</h3>
+<p>在代码 review 后，我们需要压缩我们的提交记录，以准备最终的 PR 合并。</p>
+<p>我们应该确保最终的提交记录是有意义的（要么是一个里程碑，要么是一个单独、完整的提交），通过合理的提交记录，来使我们的变更变得更加清晰。</p>
+<p>在合并 PR 之前，以下类型的提交应该被压缩：</p>
+<ul>
+<li>修复/审查反馈；</li>
+<li>拼写错误；</li>
+<li>合并和变基；</li>
+<li>进行中的工作。</li>
+</ul>
+<p>我们应该确保 PR 中的每一个提交都能够独立编译，并通过测试（这不是必须的）。我们还应该确保合并提交记录被删除，因为这些提交无法通过测试。你可以阅读 <a href="https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History">interactive rebase</a> 来了解更多压缩提交的知识。</p>
+<p>压缩提交的具体操作流程如下：</p>
+<ol>
+<li>$ git status检查你的开发分支</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git status
+// 输出类似于：
+On branch your-contribution
+Your branch is up to date with 'origin/your-contribution'.
+</code></pre>
+<ol>
+<li>使用特定的提交哈希开始交互式变基，或者从您的最后一个提交使用 HEAD~&lt;n&gt; 进行倒数计数，其中 &lt;n&gt; 表示在变基中要包括的提交数量。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git rebase -i HEAD~3
+</code></pre>
+<p>输出类似于：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pick 2ebe926 Original commit
+pick 31f33e9 Address feedback
+pick b0315fe Second unit of work
+
+# Rebase 7c34fc9..b0315ff onto 7c34fc9 (3 commands)
+#
+# Commands:
+# p, pick &lt;commit&gt; = use commit
+# r, reword &lt;commit&gt; = use commit, but edit the commit message
+# e, edit &lt;commit&gt; = use commit, but stop for amending
+# s, squash &lt;commit&gt; = use commit, but meld into previous commit
+# f, fixup &lt;commit&gt; = like &quot;squash&quot;, but discard this commit's log message
+
+...
+</code></pre>
+<ol>
+<li>使用命令行文本编辑器将要压缩的提交中的单词&quot;pick&quot;更改为&quot;squash&quot;，然后保存您的更改并继续进行变基：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">pick 2ebe926 Original commit
+squash 31f33e9 Address feedback
+pick b0315fe Second unit of work
+
+...
+</code></pre>
+<p>保存之后，输出应该类似于：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">[detached HEAD 61fdded] Second unit of work
+ Date: Thu Mar 5 19:01:32 2020 +0100
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+ ...
+
+Successfully rebased and updated refs/heads/master.
+</code></pre>
+<ol>
+<li>强制推送您的更改到远程分支：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git push --force-with-lease
+</code></pre>
+<p>对于诸如自动文档格式化之类的大规模自动修复，对于工具变更使用一个或多个提交，最后使用一个提交来批量应用修复。这样可以使审阅变得更容易。</p>
+<p>手动压缩提交的替代方法是使用在 GitHub中 配置的 Prow 和 Tide自动化：在你的 PR 中添加一个带有 /label tide/merge-method-squash 的评论将触发自动化，以便 GitHub 在 PR 获得批准后将您的提交，压缩到目标分支上。使用这种方法简化了对 Git 不太熟悉的人的工作，但在某些情况下最好还是在本地进行压缩。审阅者会注意到这一点，并要求手动压缩。</p>
+<p>通过在本地压缩，你可以控制工作的提交消息，并将大型 PR 分解为逻辑上独立的更改。例如：您有一个 PR，代码已经开发完成，并且有 24 个提交。你对此进行变基，简化更改为两个提交。这两个提交中的每一个代表一个单一的逻辑更改，并且每个提交消息都总结了更改内容。审阅者看到现在一组更改变得更加易懂，并批准了您的 PR。</p>
+<h2 id="其它后续操作">其它后续操作</h2>
+<p>上面，我们已经按照 Kubernetes 源码的 GitHub 工作流，完成了 PR 的提交。之后 PR 便交给 Kubernetes 项目维护者进行代码 Review，Review 通过后，PR 会被合并到 Kubernetes master 分支。在这个过程中，还可能需要你合并提交你的代码，你也可能需要撤销你的提交。</p>
+<ol>
+<li>合并提交</li>
+</ol>
+<p>当你收到 Review 和 Approval 的通知后，说明你的提交已经被压缩（squashed），PR 已经准备好被合并到 master 分支了。</p>
+<p>当 Reviewer 和 Approver，批准你的 PR 之后，PR 会被自动合并到 master 分支。如果你没有压缩你的提交， kubernetes 项目维护者，可能会在批准 PR 之前要求你压缩你的提交。</p>
+<ol>
+<li>撤销提交</li>
+</ol>
+<p>在开发过程中，你可能需要撤销提交。你可以执行以下命令来回滚一个提交。</p>
+<p>创建一个分支，并同步最新的上游代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># 创建一个分组
+$ git checkout -b revert-myrevert
+# 同步最新的上游代码
+$ git fetch upstream
+$ git rebase upstream/master
+</code></pre>
+<p>如果你想要撤销的提交是一个合并提交，请使用以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># SHA 是你希望恢复的合并提交的哈希值
+$ git revert -m 1 &lt;SHA&gt;
+</code></pre>
+<p>如果这是一个单独的提交，请使用以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># SHA 是你希望恢复的单独提交的哈希值
+$ git revert &lt;SHA&gt;
+</code></pre>
+<p>这将创建一个新的提交来撤销这些更改。将这个新的提交推送到您的远程仓库:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ git push &lt;your_remote_name&gt; revert-myrevert
+</code></pre>
+<p>最后，基于 revert-myrevert 分支提交一个PR。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

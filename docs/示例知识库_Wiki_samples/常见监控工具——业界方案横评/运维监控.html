@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>老一代整体方案的代表 Zabbix</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="老一代整体方案的代表-zabbix">老一代整体方案的代表 Zabbix</h1>
+<p>Zabbix是一个企业级的开源解决方案，擅长设备、网络、中间件的监控。因为前几年使用的监控系统主要就是用来监控设备和中间件的，所以Zabbix在国内应用非常广泛。</p>
+<p>Zabbix核心由两部分构成，Zabbix Server与可选组件Zabbix Agent。Zabbix Server可以通过SNMP、Zabbix Agent、JMX、IPMI等多种方式采集数据，它可以运行在Linux、Solaris、HP-UX、AIX、Free BSD、Open BSD、OS X等平台上。</p>
+<p>Zabbix还有一些配套组件，Zabbix Proxy、Zabbix Java Gateway、Zabbix Get、Zabbix WEB等，共同组成了Zabbix整体架构。</p>
+<p><strong>Zabbix的优点</strong></p>
+<ul>
+<li>对各种设备的兼容性较好，Agentd不但可以在Windows、Linux上运行，也可以在Aix上运行。</li>
+<li>架构简单，使用数据库做时序数据存储，易于维护，备份和转储都比较容易。</li>
+<li>社区庞大，资料多。Zabbix大概是2012年开源的，因为发展的时间比较久，在网上可以找到海量的资源。</li>
+</ul>
+<p><strong>Zabbix的缺点</strong></p>
+<ul>
+<li>使用数据库做存储，无法水平扩展，容量有限。如果采集频率较高，比如10秒采集一次，上限大约可以监控600台设备，还需要把数据库部署在一个很高配的机器上，比如SSD或者NVMe的盘才可以。</li>
+<li>Zabbix面向资产的管理逻辑，监控指标的数据结构较为固化，没有灵活的标签设计，面对云原生架构下动态多变的环境，显得力不从心。</li>
+</ul>
+<h1 id="老一代国产代表-open-falcon">老一代国产代表 Open-Falcon</h1>
+<p>Open-Falcon出现在Zabbix之后，开发的初衷就是想要解决Zabbix的容量问题。Open-Falcon最初来自小米，14年开源，当时小米有3套Zabbix，1套业务性能监控系统perfcounter。Open-Falcon的初衷是想做一套大一统的方案，来解决这个乱局。你可以看一下Open-Falcon的架构图。</p>
+<p><img src="../../../assets/wiki-img/TlztbceKgoZ5fExAqomcnBqCnSb.png" alt="图片展示了Open - Falcon的架构图。图中包含多个模块及它们之间的交互关系，如负责采集数据的Agent（Falcon - agent）、转发的Transfer、告警的Judge和Alarm、负责心跳的Heartbeat server等。Transfer通过一致hash生成监控数据和Graph实例对应关系。数据可经不同路径流转，如从App经Client library到Falcon - agent再到transfer等。该图与上下文紧密相关，直观呈现了上文所述的Open - Falcon架构中的各模块功能及分片逻辑等内容。"></p>
+<p>Open-Falcon基于RRDtool做了一个分布式时序存储组件Graph。这种做法可以把多台机器组成一个集群，大幅提升海量数据的处理能力。前面负责转发的组件是Transfer，Transfer对监控数据求取一个唯一ID，再对ID做哈希，就可以生成监控数据和Graph实例的对应关系，这就是Open-Falcon架构中最核心的分片逻辑。</p>
+<p>结合我们给出的架构图来看，告警部分是使用Judge模块来做的，发送告警事件的是Alarm模块，采集数据的是Agent，负责心跳的模块是HBS，负责聚合监控数据的模块是Aggregator，负责处理数据缺失的模块是Nodata。当然，还有用于和用户交互的Portal/Dashboard模块。</p>
+<p>Open-Falcon把组件拆得比较散，组件比较多，部署起来相对比较麻烦。不过每个组件的职能单一，二次开发会比较容易，很多互联网公司都是基于Open-Falcon做了二次开发，比如美团、快网、360、金山云、新浪微博、爱奇艺、京东、SEA等。</p>
+<p><strong>Open-Falcon的优点</strong></p>
+<ul>
+<li>可以处理大规模监控场景，比Zabbix的容量要大得多，不仅可以处理设备、中间件层面的监控，也可以处理应用层面的监控，最终替换掉了小米内部的perfcounter和三套Zabbix。</li>
+<li>组件拆分得比较散，大都是用Go语言开发的，Web部分是用Python，易于做二次开发。</li>
+</ul>
+<p><strong>Open-Falcon的缺点</strong></p>
+<ul>
+<li>生态不够庞大，是小米公司在主导，很多公司做了二次开发，但是都没有回馈社区，有一些贡献者，但数量相对较少。</li>
+<li>开源软件的治理架构不够优秀，小米公司的核心开发人员离职，项目就停滞不前了，小米公司后续也没有大的治理投入，相比托管在基金会的项目，缺少了生命力。</li>
+</ul>
+<h1 id="新一代整体方案代表-prometheus">新一代整体方案代表 Prometheus</h1>
+<p>Prometheus的设计思路来自Google的Borgmon，师出名门，就像Borgmon是为Borg而生的，而Prometheus就是为Kubernetes而生的。它针对Kubernetes做了直接的支持，提供了多种服务发现机制，大幅简化了Kubernetes的监控。</p>
+<p>在Kubernetes环境下，Pod创建和销毁非常频繁，监控指标生命周期大幅缩短，这导致类似Zabbix这种面向资产的监控系统力不从心，而且云原生环境下大都是微服务设计，服务数量变多，指标量也呈爆炸态势，这就对时序数据存储提出了非常高的要求。</p>
+<p>Prometheus 1.0的版本设计较差，但从2.0开始，它重新设计了时序库，性能、可靠性都有大幅提升，另外社区涌现了越来越多的Exporter采集器，非常繁荣。你可以看一下Prometheus的架构图。</p>
+<p><img src="../../../assets/wiki-img/QEjHbm7F0ooi8yxZneFcnhYfnJh.png" alt="图片展示了Prometheus监控系统架构。Prometheus server为核心，包含Retrieval、TSDB、HTTP server等组件，与Node、HDD/SSD等存储设备相连。Service discovery部分，Kubernetes和file_sd发现目标，Prometheus targets为监控目标。Pushgateway用于推送指标，Prometheus alerting通过Alertmanager推送告警。右侧有Prometheus web UI、Grafana等数据可视化和导出工具，以及API clients。该图直观呈现了Prometheus系统各组件及数据流向，与文档中介绍Prometheus架构的内容相契合。"></p>
+<p><strong>Prometheus的优点</strong></p>
+<ul>
+<li>对Kubernetes支持得很好，目前来看，Prometheus就是Kubernetes监控的标配。</li>
+<li>生态庞大，有各种各样的Exporter，支持各种各样的时序库作为后端的Backend存储，也有很好的支持多种不同语言的SDK，供业务代码嵌入埋点。</li>
+</ul>
+<p><strong>Prometheus的缺点</strong></p>
+<ul>
+<li>易用性差一些，比如告警策略需要修改配置文件，协同起来比较麻烦。当然了，对于IaC落地较好的公司，反而认为这样更好，不过在国内当下的环境来看，还无法走得这么靠前，大家还是更喜欢用Web界面来查看监控数据、管理告警规则。</li>
+<li>Exporter参差不齐，通常是一个监控目标一个Exporter，管理起来成本比较高。</li>
+<li>容量问题，Prometheus默认只提供单机时序库，集群方案需要依赖其他的时序库。</li>
+</ul>
+<h1 id="新一代国产代表-nightingale">新一代国产代表 Nightingale</h1>
+<p>Nightingale 可以看做是 Open-Falcon 的一个延续，因为开发人员是一拨人，不过两个软件的定位截然不同，Open-Falcon 类似 Zabbix，更多的是面向机器设备，而Nightingale 不止解决设备和中间件的监控，也希望能一并解决云原生环境下的监控问题。</p>
+<p>但是在 Kubernetes 环境下，Prometheus 已经大行其道，再重复造轮子意义不大，所以 Nightingale 的做法是和 Prometheus 做良好的整合，打造一个更完备的方案。当下的架构，主要是把 Prometheus 当成一个时序库，作为 Nightingale 的一个数据源。如果不使用 Prometheus 也没问题，比如使用 VictoriaMetrics 作为时序库，也是很多公司的选择。</p>
+<p><img src="../../../assets/wiki-img/HEicbH8RjoHu51x9vmOcyGjyn5f.png" alt="图片展示了新一代国产监控工具Nightingale的架构图。左侧显示时序数据库（TSDB）可选择Prometheus、VictoriaMetrics等，通过n9e - server和负载均衡，接收来自Categraf、Telegraf、DD - Agent的数据。右侧是n9e - webapi从TSDB读取序列数据，与Redis、MySQL交互，处理用户配置和规则同步，服务于上海、北京、广州等区域。该图与上下文关系紧密，直观呈现了Nightingale在整合数据源等方面的架构情况。"></p>
+<p><strong>Nightingale的优点</strong></p>
+<ul>
+<li>有比较完备的UI，有权限控制，产品功能比较完备，可以作为公司级统一的监控产品让所有团队共同使用。Prometheus一般是每个团队自己用自己的，比较方便。如果一个公司用同一套Prometheus系统来解决监控需求会比较麻烦，容易出现我们上面说的协同问题，而Nightingale在协同方面做得相对好一些。</li>
+<li>兼容并包，设计上比较开放，支持对接 Categraf、Telegraf、Grafana-Agent、Datadog-Agent 等采集器，还有Prometheus生态的各种Exporter，时序库支持对接 Prometheus、VictoriaMetrics、M3DB、Thanos 等。</li>
+</ul>
+<p><strong>Nightingale的缺点</strong></p>
+<ul>
+<li>考虑到机房网络割裂问题，告警引擎单独拆出一个模块下沉部署到各个机房，但是很多中小公司无需这么复杂的架构，部署维护起来比较麻烦。</li>
+<li>告警事件发送缺少聚合降噪收敛逻辑，官方的解释是未来会单独做一个事件中心的产品，支持Nightingale、Zabbix、Prometheus等多种数据源的告警事件，但目前还没有放出。</li>
+</ul>
+<p>上面我介绍了4种典型方案，每种方案各有优缺点，如果你的主要需求是监控设备，推荐你使用Zabbix；如果你的主要需求是监控Kubernetes，可以选择Prometheus+Grafana；如果你既要兼顾传统设备、中间件监控场景，又要兼顾Kubernetes，做成公司级方案，推荐你使用 Nightingale。</p>
+<h1 id="cacti">Cacti</h1>
+<p>基于基于 LAMP 平台展现的网络流量监测及分析工具,<a href="https://www.cacti.net/">https://www.cacti.net</a></p>
+<h1 id="nagios">Nagios</h1>
+<p>用来监视系统和网络的开源应用软件，利用其众多的插件实现对本机和远端服务的监控,<a href="https://www.nagios.org/">https://www.nagios.org</a></p>
+<h1 id="商业监控">商业监控：</h1>
+<p>监控宝：<a href="https://www.jiankongbao.com/">https://www.jiankongbao.com</a></p>
+<p>听云：<a href="https://www.tingyun.com/">https://www.tingyun.com</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

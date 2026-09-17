@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>Prompt（提示语）：Prompt 是我们输入给大语言模型以获取期望响应的信息。它可以是一个简单的问题、一段陈述、详细的指令，甚至可以是文本与图像等其他模态的组合。</p>
+<p>Prompt Engineering：Prompt Engineering 是构建和优化输入 Prompt 以引导大语言模型生成准确且富有洞察力输出的艺术和科学。它不仅仅是简单地构造输入文本，还涉及到对模型行为的深入理解，以及对各种影响因素的综合考量。</p>
+<p>好的 Prompt engineering = 提好的问题 = 包含好答案的上下文（参考）= 好的答案。 Prompt 决定模型输出质量。</p>
+<h2 id="token">Token</h2>
+<p>大语言模型通过 Token 来处理文本，模型理解了 Token之间的统计关系，并基于已输出的 Token 计算下一个Token 的概率分布，并选择概率最高的 Token 作为预测结果。</p>
+<p><strong>注意</strong>：空格也会占用 Token。</p>
+<p>Token 统计包：<a href="https://github.com/openai/tiktoken">https://github.com/openai/tiktoken</a></p>
+<h2 id="模型的上下文长度">模型的上下文长度</h2>
+<p>Token 的输入（上下文窗口）和输出都是有限的，不同模型的限制不同。Token 越大，可输入的内容越多。 <strong>模型回答效果并不会随着输入 Token 数量线性增长，可能会有相反作用。</strong></p>
+<h2 id="prompt-engineering">Prompt Engineering</h2>
+<ol>
+<li>尽量给出具体的描述，避免说“不要做什么”，而是具体说明“要做什么”。</li>
+<li>对重要事项进行排序</li>
+<li>标准的格式，例如 markdown 语法</li>
+<li>拆解任务，给出思路</li>
+</ol>
+<h1 id="三种提示语编写模式zero-shot-vs-one-shot-vs-few-shot">三种提示语编写模式：Zero-shot VS One-shot VS few-shot</h1>
+<h2 id="zero-shot">Zero-shot</h2>
+<p>模型单纯通过自然语言描述任务来回答问题</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">通过输入识别用户的意图，用户的意图可能是查询日志、查询指标或者运维操作。
+用户输入：帮我检查一下系统是否有错误？
+</code></pre>
+<h2 id="one-shot">One-shot</h2>
+<h2 id="few-shot">Few-shot</h2>
+<p>除了自然语言描述以外，再给模型一些例子参考</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">通过输入识别用户的意图，用户的意图可能是查询日志、查询指标或者运维操作。以下是一些例子：
+Example1：
+输入：日志里有多少包含 Error 关键字的日志？
+意图：查询日志
+用户输入：帮我检查一下系统是否有错误？
+</code></pre>
+<h1 id="提示学习prompt-learning">提示学习（Prompt Learning）</h1>
+<h2 id="前提prompt-learning-vs-in-context-learning">前提：Prompt Learning vs In-context Learning</h2>
+<p>Prompt learning 是一种使用预训练语言模型的方法，它不会修改模型的权重。在这种方法中，模型被给予一个提示（prompt），这个提示是模型输入的一部分，它指导模型产生特定类型的输出。这个过程不涉及到对模型权重的修改，而是利用了模型在预训练阶段学习到的知识和能力。</p>
+<p>In-context learning 是指模型在处理一系列输入时，使用前面的输入和输出作为后续输入的上下文。这是Transformer 模型（如GPT系列）的一种基本特性。例如，当模型在处理一个对话任务时，它会使用对话中的前几轮内容作为上下文，来生成下一轮的回答。这个过程也不涉及到对模型权重的修改。</p>
+<p>总的来说，prompt learning 和 in-context learning 都是利用预训练语言模型的方法，它们都不会修改模型的权重。它们的主要区别在于，prompt learning 关注的是如何通过设计有效的提示来引导模型的输出，而 in-context learning 则关注的是如何利用输入序列中的上下文信息来影响模型的输出。</p>
+<p><strong>核心：不是调整模型改变模型参数，而是一个非常善于用工具，很好的设置Prompt。</strong></p>
+<h2 id="思维链chain-of-thought-cot开山之作">思维链（Chain-of-Thought, CoT）：开山之作</h2>
+<p>Chain of Thought（CoT） 让模型做出一步一步的思考，生成更具备解释性的答案，一般来说可以提高问题的准确率，对于 Zero-shot 和 Few-shot 均有效。</p>
+<p>首先，从原则上讲，CoT 允许模型将多步问题分解为中间步骤，这意味着可以将额外计算资源分配给需要更多推理步骤的问题。</p>
+<p>其次，CoT 提供了对模型行为的可解释窗口，提示了它可能是如何得出特定答案的，并提供了调试推理路径错误之处的机会（尽管完全描述支持答案的模型计算仍然是一个未解决问题）。</p>
+<p>第三，在数学应用题、常识推理和符号操作等任务中都可以使用思维链推理（CoT Reasoning），并且在原则上适用于任何人类能够通过语言解决的任务。</p>
+<p>最后，在足够大规模现成语言模型中很容易引发 CoT Reasoning ，只需在少样本提示示例中包含一些连贯思路序列即可。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[你的问题]，让我们一步一步思考，并给每一步做出简单解释。
+</code></pre>
+<p>GSM8K测试</p>
+<p>CoT Prompt 黑魔法：Think step-by-step</p>
+<p><img src="../../assets/wiki-img/LAWlbZgEpo9OOtxORe3cLWE6nUh.png" alt="图片展示了一个关于思维链推理的问答示例。提问者称自己六岁时妹妹是其年龄一半，询问自己七十岁时妹妹的年龄。回答先指出提问者六岁时妹妹三岁，接着说明因年龄差不变，错误地认为妹妹现在是提问者年龄的一半，即三十五岁。此示例是对上文思维链（CoT）概念的直观呈现，通过这个问答体现大语言模型在运用思维链推理时可能出现的错误推理情况，如这里对年龄差逻辑的错误理解。"></p>
+<p><img src="../../assets/wiki-img/APy9bAKkSoUfpyxg7QocfC1Pn2b.png" alt="图片展示了一个运用思维链（CoT）进行推理的示例。左侧是提问“当我六岁时，我的妹妹只有我年龄的一半。那么现在她多少岁，我已经七十了？Think Step - by - step”。右侧是回答，先指出六岁时妹妹三岁，年龄差距为3年，接着说明利用年龄差不变，现在自己70岁，妹妹年龄是70 - 3 = 67岁。该示例与上下文紧密相关，通过具体问答展示了思维链让模型逐步思考以得出答案的过程，体现了思维链在推理任务中的应用。"></p>
+<p>通过思维链，我们可以看到大语言模型的强与弱：</p>
+<ul>
+<li>它强在，模型规模的提高，让语义理解、符号映射、连贯文本生成等能力跃升，从而让多步骤推理的思维链成为可能，带来“智能涌现”。</li>
+<li>它弱在，即使大语言模型表现出了前所未有的能力，但思维链暴露了它，依然是鹦鹉学舌，而非真的产生了意识。</li>
+</ul>
+<p>没有思维链，大模型几乎无法实现逻辑推理。</p>
+<p>但有了思维链，大语言模型也可能出现错误推理，尤其是非常简单的计算错误。Jason Wei 等的论文中，曾展示过在GSM8K 的一个子集中，大语言模型出现了8% 的计算错误，比如6 * 13 = 68（正确答案是78）。</p>
+<p>Prompting 示意图</p>
+<p><img src="../../assets/wiki-img/HuhUb699vod8mzxdhX3cnN62ngp.png" alt="图片为Prompting示意图，展示了四种不同的提示方式。从左至右分别是Input - Output Prompting（IO）、Chain of Thought Prompting（CoT）、Self Consistency with CoT（CoT - SC）和Tree of Thoughts（ToT）。IO是简单的输入到输出；CoT让模型进行一步一步思考；CoT - SC在此基础上引入多数表决；ToT则呈现树状结构，其中绿色部分为重点突出的“thought”。该图与上文对思维链（CoT）等内容的介绍相呼应，直观呈现不同Prompting模式的架构。"></p>
+<h1 id="通用知识-prompt">通用知识 Prompt</h1>
+<p>Generate Knowledge Prompting</p>
+<p>在上下文中提供额外的知识来改善推理结果，比如把运维专家知识库的部分内容放在 <code>system prompt</code> 中进行问答</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">你现在是一名运维专家，请根据以下运维专家知识库对故障作出解释和提出修复建议。
+专家知识库内容如下：
+</code></pre>
+<h1 id="prompt-分片token-长度限制">Prompt 分片（Token 长度限制）</h1>
+<p>例如，对于长文本的总结，先分片总结，然后再汇总进行总结.</p>
+<h1 id="程序辅助-prompt">程序辅助 Prompt</h1>
+<p>Program-aided Language 对于复杂的任务，可以让 LLM 生成程序并运行得出结果，一般是 Python 代码</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
