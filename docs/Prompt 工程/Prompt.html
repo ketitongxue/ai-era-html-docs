@@ -39,6 +39,7 @@ ul, ol { padding-left: 28px; }
 li > p { margin: 8px 0; }
 blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
 hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
 pre {
   position: relative;
   margin: 26px 0;
@@ -77,7 +78,17 @@ pre[data-lang]::after {
   pointer-events: none;
 }
 code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-pre code { display: block; overflow-x: auto; padding: 22px 24px; font-size: 13px; line-height: 1.9; color: #a9b1d6; white-space: pre; overflow-wrap: normal; word-break: normal; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
 :not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 pre .cm { color: #565f89; }
 pre .st { color: #9ece6a; }
@@ -98,7 +109,7 @@ th { background: #eaf0f7; }
   body { background: #fff; }
   main { width: 100%; padding: 0; }
   .skip-link { display: none; }
-  pre { white-space: pre-wrap; }
+  pre { white-space: pre-wrap; box-shadow: none; }
   pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
   .table-scroll { overflow: visible; }
   th, td { min-width: 0; }
@@ -121,18 +132,10 @@ th { background: #eaf0f7; }
 <p>Token 的输入（上下文窗口）和输出都是有限的，不同模型的限制不同。Token 越大，可输入的内容越多。 <strong>模型回答效果并不会随着输入 Token 数量线性增长，可能会有相反作用。</strong></p>
 <h2 id="prompt-engineering">Prompt Engineering</h2>
 <ol>
-<li>
-<p>尽量给出具体的描述，避免说“不要做什么”，而是具体说明“要做什么”。</p>
-</li>
-<li>
-<p>对重要事项进行排序</p>
-</li>
-<li>
-<p>标准的格式，例如 markdown 语法</p>
-</li>
-<li>
-<p>拆解任务，给出思路</p>
-</li>
+<li>尽量给出具体的描述，避免说“不要做什么”，而是具体说明“要做什么”。</li>
+<li>对重要事项进行排序</li>
+<li>标准的格式，例如 markdown 语法</li>
+<li>拆解任务，给出思路</li>
 </ol>
 <h1 id="三种提示语编写模式zero-shot-vs-one-shot-vs-few-shot">三种提示语编写模式：Zero-shot VS One-shot VS few-shot</h1>
 <h2 id="zero-shot">Zero-shot</h2>
@@ -165,21 +168,17 @@ Example1：
 </code></pre>
 <p>GSM8K测试</p>
 <p>CoT Prompt 黑魔法：Think step-by-step</p>
-<p><img src="../../assets/prompt/age-problem-standard-prompt.png" alt="image.png"></p>
-<p><img src="../../assets/prompt/age-problem-chain-of-thought.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/LAWlbZgEpo9OOtxORe3cLWE6nUh.png" alt="图片展示了一个关于思维链推理的问答示例。提问者称自己六岁时妹妹是其年龄一半，询问自己七十岁时妹妹的年龄。回答先指出提问者六岁时妹妹三岁，接着说明因年龄差不变，错误地认为妹妹现在是提问者年龄的一半，即三十五岁。此示例是对上文思维链（CoT）概念的直观呈现，通过这个问答体现大语言模型在运用思维链推理时可能出现的错误推理情况，如这里对年龄差逻辑的错误理解。"></p>
+<p><img src="../../assets/md-images/APy9bAKkSoUfpyxg7QocfC1Pn2b.png" alt="图片展示了一个运用思维链（CoT）进行推理的示例。左侧是提问“当我六岁时，我的妹妹只有我年龄的一半。那么现在她多少岁，我已经七十了？Think Step - by - step”。右侧是回答，先指出六岁时妹妹三岁，年龄差距为3年，接着说明利用年龄差不变，现在自己70岁，妹妹年龄是70 - 3 = 67岁。该示例与上下文紧密相关，通过具体问答展示了思维链让模型逐步思考以得出答案的过程，体现了思维链在推理任务中的应用。"></p>
 <p>通过思维链，我们可以看到大语言模型的强与弱：</p>
 <ul>
-<li>
-<p>它强在，模型规模的提高，让语义理解、符号映射、连贯文本生成等能力跃升，从而让多步骤推理的思维链成为可能，带来“智能涌现”。</p>
-</li>
-<li>
-<p>它弱在，即使大语言模型表现出了前所未有的能力，但思维链暴露了它，依然是鹦鹉学舌，而非真的产生了意识。</p>
-</li>
+<li>它强在，模型规模的提高，让语义理解、符号映射、连贯文本生成等能力跃升，从而让多步骤推理的思维链成为可能，带来“智能涌现”。</li>
+<li>它弱在，即使大语言模型表现出了前所未有的能力，但思维链暴露了它，依然是鹦鹉学舌，而非真的产生了意识。</li>
 </ul>
 <p>没有思维链，大模型几乎无法实现逻辑推理。</p>
 <p>但有了思维链，大语言模型也可能出现错误推理，尤其是非常简单的计算错误。Jason Wei 等的论文中，曾展示过在GSM8K 的一个子集中，大语言模型出现了8% 的计算错误，比如6 * 13 = 68（正确答案是78）。</p>
 <p>Prompting 示意图</p>
-<p><img src="../../assets/prompt/prompting-methods-overview.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/HuhUb699vod8mzxdhX3cnN62ngp.png" alt="图片为Prompting示意图，展示了四种不同的提示方式。从左至右分别是Input - Output Prompting（IO）、Chain of Thought Prompting（CoT）、Self Consistency with CoT（CoT - SC）和Tree of Thoughts（ToT）。IO是简单的输入到输出；CoT让模型进行一步一步思考；CoT - SC在此基础上引入多数表决；ToT则呈现树状结构，其中绿色部分为重点突出的“thought”。该图与上文对思维链（CoT）等内容的介绍相呼应，直观呈现不同Prompting模式的架构。"></p>
 <h1 id="通用知识-prompt">通用知识 Prompt</h1>
 <p>Generate Knowledge Prompting</p>
 <p>在上下文中提供额外的知识来改善推理结果，比如把运维专家知识库的部分内容放在 <code>system prompt</code> 中进行问答</p>
@@ -193,34 +192,40 @@ Example1：
 </article>
 </main>
 <script>
-(function(){
-var KW="const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
-document.querySelectorAll("pre>code").forEach(function(c){
-var lm=c.className.match(/language-([\w#+.-]+)/);
-if(lm&&!/^(text|plaintext|txt|plain)$/i.test(lm[1]))c.parentElement.setAttribute("data-lang",lm[1]);
-var w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),ts=[],n;
-while(w.nextNode())ts.push(w.currentNode);
-ts.forEach(function(t){
-var s=t.nodeValue;
-if(!s||!/[#'"]/.test(s))return;
-var re=new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b('+KW+')\\b|((#|//)[^\\n]*)','g');
-var f=document.createDocumentFragment(),last=0,m;
-while((m=re.exec(s))){
-var cls=m[1]?"st":(m[2]?"kw":null);
-if(!cls){
-var p=m.index>0?s.charAt(m.index-1):" ";
-if(/\s/.test(p))cls="cm";
-else{re.lastIndex=m.index+1;continue}
-}
-if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
-var el=document.createElement("span");el.className=cls;el.textContent=m[0];f.appendChild(el);
-last=m.index+m[0].length;
-}
-if(!last)return;
-if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
-t.parentNode.replaceChild(f,t);
-});
-});
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
 })();
-</script></body>
+</script>
+</body>
 </html>

@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python 输入输出与文件操作</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="python-输入输出与文件操作">Python 输入输出与文件操作</h1>
+<h1 id="输入输出与文件操作">输入输出与文件操作</h1>
+<h2 id="编码">编码</h2>
+<ul>
+<li><code>ASCII</code>表</li>
+</ul>
+<p>众所周知，计算机起源于美国，英文只有26个字符，算上其他所有特殊符号也不会超过128个。字节是计算机的基本储存单位，一个字节(bytes)包括八个比特位(bit),能够表示出256个二进制数字，所以美国人在这里只是用到了一个字节的前七位即127个数字来对应了127个具体字符，而这张对应表就是ASCII码字符编码表，简称ASCII表。后来为了能够让计算机识别拉丁文，就将一个字节的最高位也应用了，这样就多扩展出128个二进制数字来对应新的符号。这张对应表因为是在ASCII表的基础上扩展的最高位，因此称为扩展ASCII表。到此位置，一个字节能表示的256个二进制数字都有了特殊的符号对应。</p>
+<ul>
+<li><code>GBK</code>编码</li>
+</ul>
+<p>但是，当计算机发展到东亚国家后，问题又出现了，像中文，韩文，日文等符号也需要在计算机上显示。可是一个字节已经被西方国家占满了。于是，我中华民族自己重写一张对应表，直接生猛地将扩展的第八位对应拉丁文全部删掉，规定一个小于127的字符的意义与原来相同，即支持ASCII码表，但两个大于127的字符连在一起时，就表示一个汉字，这样就可以将几千个汉字对应一个个二进制数了。而这种编码方式就是GB2312，也称为中文扩展ASCII码表。再后来，我们为了对应更多的汉字规定只要第一个字节是大于127就固定表示这是一个汉字的开始，不管后面跟的是不是扩展字符集里的内容。这样能多出几万个二进制数字，就算甲骨文也能够用了。而这次扩展的编码方式称为GBK标准。当然，GBK标准下，一个像”苑”这样的中文符号，必须占两个字节才能存储显示。</p>
+<ul>
+<li><code>Unicod</code>e与<code>utf8</code>编码</li>
+</ul>
+<p>与此同时，其它国家也都开发出一套编码方式，即本国文字符号和二进制数字的对应表。而国家彼此间的编码方式是互不支持的，这会导致很多问题。于是ISO国际化标准组织为了统一编码，统计了世界上所有国家的字符，开发出了一张万国码字符表，用两个字节即六万多个二进制数字来对应。这就是Unicode编码方式。这样，每个国家都使用这套编码方式就再也不会有计算机的编码问题了。Unicode的编码特点是对于任意一个字符，都需要两个字节来存储。这对于美国人而言无异于吃上了世界的大锅饭，也就是说，如果用ASCII码表，明明一个字节就可以存储的字符现在为了兼容其他语言而需要两个字节了，比如字母I，本可以用01001001来存储，现在要用Unicode只能是00000000 01001001存储，而这将导致大量的空间被浪费掉。基于此，美国人创建了utf8编码，而utf8编码是一种针对Unicode的可变长字符编码方式，根据具体不同的字符计算出需要的字节，对于ASCII码范围的字符，就用一个字节，而且符号与数字的对应也是一致的，所以说utf8是兼容ASCII码表的。但是对于中文，一般是用三个字节存储的。</p>
+<h3 id="编码和解码">编码和解码</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">s = &quot;张三&quot;
+b1 = s.encode()
+b2 = s.encode(&quot;GBK&quot;)
+print(b1) # 默认utf8 : b'\xe8\x8b\x91\xe6\x98\x8a'
+print(b2) # b'\xd4\xb7\xea\xbb'
+
+print(b1.decode()) # 这里如果用GBK解码就会出现乱码
+print(b2.decode(&quot;GBK&quot;))
+
+print(type(b1)) # &lt;class 'bytes'&gt;
+print(type(b2)) # &lt;class 'bytes'&gt;
+</code></pre>
+<p><img src="../../../assets/md-images/Nt0bbTYuCoRQqvxsFCIcKx45nJg.png" alt=""></p>
+<p>Python 3 最重要的新特性大概要算是对文本和二进制数据作了更为清晰的区分，不再会对bytes字节串进行自动解码。文本总是Unicode，由str类型表示，二进制数据则由bytes类型表示。Python 3不会以任意隐式的方式混用str和bytes，正是这使得两者的区分特别清晰。</p>
+<h2 id="输入">输入</h2>
+<p>一个程序如果使用文件作为输入系统要考虑的三件事：<strong>文件是否存在，文件是否有可读权限，使用正确的文件编码。</strong></p>
+<h3 id="文件是否存在">文件是否存在</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import pathlib
+import sys
+ 
+path = pathlib.Path(&quot;d:\\ab.txt&quot;)
+
+if path.is_file():
+    print(f&quot;{path} 是文件&quot;)
+else:
+    print(f&quot;{path} 不是文件, 请重新创建文件&quot;)
+    # 退出程序
+    sys.exit(1)
+</code></pre>
+<h3 id="文件是否有可读取权限">文件是否有可读取权限</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import pathlib
+import os
+ 
+path = pathlib.Path(&quot;d:\\a.txt&quot;)
+ 
+if os.access(path, os.R_OK):
+    print(&quot;文件可以读取&quot;)
+ 
+if os.access(path, os.W_OK):
+    print(&quot;文件可以写入&quot;)
+</code></pre>
+<h3 id="正确的文件编码">正确的文件编码</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># pip3 install chardet
+# chardet 是第三方库，需要通过 pip 命令为 Python 安装后使用
+ 
+from chardet.universaldetector import UniversalDetector
+ 
+detector = UniversalDetector()
+ 
+with open(&quot;d:\\temp\\a.txt&quot;, &quot;rb&quot;) as f:
+    detector.feed(f.read())
+    detector.close()
+ 
+    print(detector.result)
+# {'encoding': 'utf-8', 'confidence': 0.7525, 'language': ''}
+</code></pre>
+<p>以上代码，对文件进行判断之后，通过 detector.result 得到一个字典，其中字典 encoding 键对应的值就是文件的编码，我将这段代码运行在 Windows 上面，如果文件为 utf-8 编码，打开文件时在 open() 函数中增加 encoding=utf8 参数，否则不加。</p>
+<h3 id="打开文件">打开文件</h3>
+<p>在 Python中，如果想要操作文件，首先需要创建或者打开指定的文件，并创建一个文件对象，而这些工作可以通过内置的 open() 函数实现。open() 函数用于创建或打开指定文件，该函数的常用语法格式如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">file = open(file_name [, mode='r' [ , buffering=-1 [ , encoding = None ]]])
+</code></pre>
+<p>此格式中，用 [] 括起来的部分为可选参数，即可以使用也可以省略。其中，各个参数所代表的含义如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">'''
+- file：表示要创建的文件对象。
+- file_name：要创建或打开文件的文件名称，该名称要用引号（单引号或双引号都可以）括起来。需要注意的是，如果要打开的文件和当前执行的代码文件位于同一目录，则直接写文件名即可；否则，此参数需要指定打开文件所在的完整路径。
+- mode：可选参数，用于指定文件的打开模式。可选的打开模式如表 1 所示。如果不写，则默认以只读（r）模式打开文件。
+- buffering：可选参数，用于指定对文件做读写操作时，是否使用缓冲区。
+- encoding：手动设定打开文件时所使用的编码格式，不同平台的 ecoding 参数值也不同，以 Windows 为例，其默认为 cp936（实际上就是 GBK 编码）。
+'''
+</code></pre>
+<p>open() 函数支持的文件打开模式如表 1 所示。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>意义</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r</td>
+<td>只读模式打开文件，读文件内容的指针会放在文件的开头。</td>
+<td>操作的文件必须存在。</td>
+</tr>
+<tr>
+<td><code>rb</code></td>
+<td>以二进制格式、采用只读模式打开文件，读文件内容的指针位于文件的开头，一般用于非文本文件，如图片文件、音频文件等。</td>
+<td></td>
+</tr>
+<tr>
+<td>r+</td>
+<td>打开文件后，既可以从头读取文件内容，也可以从开头向文件中写入新的内容，写入的新内容会覆盖文件中等长度的原有内容。</td>
+<td></td>
+</tr>
+<tr>
+<td><code>rb+</code></td>
+<td>以二进制格式、采用读写模式打开文件，读写文件的指针会放在文件的开头，通常针对非文本文件（如音频文件）。</td>
+<td></td>
+</tr>
+<tr>
+<td>w</td>
+<td>以只写模式打开文件，若该文件存在，打开时会清空文件中原有的内容。</td>
+<td>若文件存在，会清空其原有内容（覆盖文件）；反之，则创建新文件。</td>
+</tr>
+<tr>
+<td><code>wb</code></td>
+<td>以二进制格式、只写模式打开文件，一般用于非文本文件（如音频文件）</td>
+<td></td>
+</tr>
+<tr>
+<td>w+</td>
+<td>打开文件后，会对原有内容进行清空，并对该文件有读写权限。</td>
+<td></td>
+</tr>
+<tr>
+<td><code>wb+</code></td>
+<td>以二进制格式、读写模式打开文件，一般用于非文本文件</td>
+<td></td>
+</tr>
+<tr>
+<td>a</td>
+<td>以追加模式打开一个文件，对文件只有写入权限，如果文件已经存在，文件指针将放在文件的末尾（即新写入内容会位于已有内容之后）；反之，则会创建新文件。</td>
+<td></td>
+</tr>
+<tr>
+<td>ab</td>
+<td>以二进制格式打开文件，并采用追加模式，对文件只有写权限。如果该文件已存在，文件指针位于文件末尾（新写入文件会位于已有内容之后）；反之，则创建新文件。</td>
+<td></td>
+</tr>
+<tr>
+<td>a+</td>
+<td>以读写模式打开文件；如果文件存在，文件指针放在文件的末尾（新写入文件会位于已有内容之后）；反之，则创建新文件。</td>
+<td></td>
+</tr>
+<tr>
+<td>ab+</td>
+<td>以二进制模式打开文件，并采用追加模式，对文件具有读写权限，如果文件存在，则文件指针位于文件的末尾（新写入文件会位于已有内容之后）；反之，则创建新文件。</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>将以上几个容易混淆的文件打开模式的功能做了很好的对比：</p>
+<p><img src="../../../assets/md-images/O8SibKiRqosMdNxNngrc2YjanQe.png" alt=""></p>
+<p>open()返回的文件对象常用的属性：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">'''
+- file.name：返回文件的名称；
+- file.mode：返回打开文件时，采用的文件打开模式；
+- file.encoding：返回打开文件时使用的编码格式；
+- file.closed：判断文件是否己经关闭。
+'''
+</code></pre>
+<blockquote>
+<p>注意，当操作文件结束后，必须调用 close() 函数手动将打开的文件进行关闭，这样可以避免程序发生不必要的错误。</p>
+</blockquote>
+<h3 id="读文件">读文件</h3>
+<p>Python提供了如下 3 种函数，它们都可以帮我们实现读取文件中数据的操作：</p>
+<ol>
+<li><code>read() </code>函数：逐个字节或者字符读取文件中的内容；</li>
+<li><code>readline()</code> 函数：逐行读取文件中的内容；</li>
+<li><code>readlines()</code> 函数：一次性读取文件中多行内容。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># (1) 读字符
+f = open(&quot;满江红&quot;,encoding=&quot;utf8&quot;)
+
+print(f.read()) # 默认读取所有字符
+print(f.read(3))
+print(f.readline())
+print(f.readlines())
+
+# (2) 读字节
+f = open(&quot;满江红&quot;,mode=&quot;rb&quot;)
+print(f.read())
+print(f.read(2))
+print(f.read(3))
+print(f.read(2).decode())
+print(f.read(12).decode())
+
+# (3) 循环读文件
+f = open(&quot;满江红&quot;,encoding=&quot;utf8&quot;)
+for line in f.readlines():
+    print(line,end=&quot;&quot;)
+
+for line in f:
+    print(line,end=&quot;&quot;)
+</code></pre>
+<h2 id="输出">输出</h2>
+<p>使用文件作为输出时，也要考虑两件事：<strong>文件要保存的文件夹是否存在；如果文件夹不存在，你要如何创建文件夹。</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import pathlib
+import sys
+import os
+ 
+dir = &quot;d:\\dir1\\dir2&quot;
+path = pathlib.Path(dir)
+if path.is_dir():
+    print(f&quot;{path} 文件夹存在&quot;)
+ 
+else:
+    print(f&quot;文件夹不存在，创建{path} 文件夹&quot;)
+ 
+    # 创建多级文件夹
+    os.makedirs(dir)
+</code></pre>
+<p>以上代码实现了判断文件夹是否存在，如果不存在的话自动创建多级文件夹操作。</p>
+<p>上面代码的第 7 行和第 14 行需要你特别注意，其中第 7 行实现了对文件夹类型的判断。第 14 行使用了 os 库的 makedirs() 函数创建多级文件夹。os 库创建文件夹有两个函数，分别为 mkdir() 和 makedirs() ，前者可以创建一级文件夹，后者可以创建多级文件夹。当你需要创建文件夹时，可以根据不同的需求使用不同的函数。</p>
+<h2 id="写文件">写文件</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">f = open(&quot;满江红new&quot;,mode=&quot;w&quot;,encoding=&quot;utf8&quot;) #  w:覆盖模式  a:  追加模式
+f.write(&quot;怒发冲冠，凭栏处、潇潇雨歇。\n&quot;)
+f.writelines([&quot;抬望眼,&quot;,&quot;仰天长啸，壮怀激烈&quot;]) # 将字符串列表写入文件中
+f.flush()
+import time
+time.sleep(100)
+f.close() # 没有close，只有在程序退出时才会被释放掉
+</code></pre>
+<h2 id="input函数">input()函数</h2>
+<p>命令行参数 argparse</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import argparse
+
+parser = argparse.ArgumentParser(description=&quot;这个程序用来演示 argparse 的用法&quot;)
+parser.add_argument(&quot;echo&quot;, help=&quot;echo the string you use here&quot;)
+parser.add_argument(&quot;-v&quot;, &quot;--verbosity&quot;, type=int, choices=[0, 1, 2], help=&quot;increase output verbosity&quot;)
+args = parser.parse_args()
+print(args.echo)
+</code></pre>
+<h2 id="三种常用的格式化输出方式">三种常用的格式化输出方式</h2>
+<ol>
+<li>
+<p>百分号 %</p>
+</li>
+<li>
+<p>format() 函数</p>
+<ol>
+<li>https://docs.python.org/zh-cn/3.10/library/stdtypes.html#str.format</li>
+</ol>
+</li>
+<li>
+<p>f-strings(推荐方法)</p>
+</li>
+</ol>
+<ul>
+<li>F-strings 是 Python3.6 新增的字符串格式化功能</li>
+<li>比百分号和 str.format() 更友好</li>
+<li>采用了早期为字符串添加关键字方式，如“u”、&quot;r”、“b&quot;</li>
+<li>官方文档:https://peps.python.org/pep-0498</li>
+<li>F-strings 的{}可以实现数字计算、字符串连接、函执行等计算任务</li>
+<li>嵌入的内容可解释执行</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">f&quot;{1 + 2}&quot;
+f&quot;{'a' + 'b'}&quot;
+f&quot;{print('c')}&quot;
+
+print(f&quot;我的名字叫{name},我的年龄{age}!&quot;)
+</code></pre>
+<h2 id="print-函数">print() 函数</h2>
+<p><code>print()</code> 函数由两部分构成 ：</p>
+<ol>
+<li>指令：print</li>
+<li>指令的执行对象，在 print 后面的括号里的内容</li>
+</ol>
+<p>而 <code>print()</code> 函数的作用是让计算机把你给它的指令结果，显示在屏幕的终端上。这里的指令就是你在 <code>print()</code> 函数里的内容。</p>
+<p>比如在上一章节中，我们的第一个 Python 程序，打印 <code>print('Hello Python')</code></p>
+<p>它的执行流程如下：</p>
+<ol>
+<li>向解释器发出指令，打印 ‘Hello Python’</li>
+<li>解析器把代码解释为计算器能读懂的机器语言</li>
+<li>计算机执行完后就打印结果</li>
+</ol>
+<p>可能这里有人会问，为什么要加单引号，直接 <code>print(Hello Python)</code> 不行吗？</p>
+<p>如果你写代码过程中，有这样的疑问，直接写一下代码，自己验证一下是最好的。</p>
+<p>显然，去掉单引号后，运行结果标红了（报错），证明这是不可以的。</p>
+<p>主要是因为这不符合 Python 的语法规则，去掉单引号后， Python 解释器根本没法看懂你写的是什么。</p>
+<p>所以就报 <code>SyntaxError: invalid syntax</code> 的错误，意思是：语法错误。说明你的语句不合规则。</p>
+<h2 id="使用-open-函数打开文件">使用 open() 函数打开文件</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">file_handler = open(&quot;afile&quot;)
+
+//返回内容
+name='a.file' mode='r' ecoding='UTF-8'
+</code></pre>
+<ul>
+<li>如果没有报错，文件打开成功</li>
+<li>为了避免误操作，默认为只读方式打开文件</li>
+</ul>
+<p>文件路径处理</p>
+<p>如果打开文件的路径不正确，会提示如下错误：</p>
+<p>FileNotFoundError: [Errno 2] No such file or directory: 'xxx.filet'</p>
+<p>解决办法：</p>
+<p>打开文件时增加路径</p>
+<p>进入指定路径后，再打开文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">file_handler = open(&quot;/tmp/afile&quot;)
+
+import os
+os.chdir(&quot;/tmp&quot;)
+file_handler = open(&quot;afile&quot;)
+</code></pre>
+<p>文件打开模式</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">file_handler = open(&quot;/tmp/afile&quot;, mode=&quot;r&quot;)
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

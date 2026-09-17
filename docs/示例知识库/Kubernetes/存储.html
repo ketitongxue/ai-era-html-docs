@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>存储</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="存储">存储</h1>
+<h1 id="存储卷基础">存储卷基础</h1>
+<p>容器的生命周期可能很短，会被频繁地创建和销毁，那么容器在销毁时，保存在容器中的数据也会被清除。这种结果对于用户来说，在某些情况下是不乐意看到的。为了持久化保存容器的数据，K8s引入了Volume的概念。</p>
+<ul>
+<li>
+<p>通过存储卷可以将外挂存储挂载到 Pod 内部使用。</p>
+</li>
+<li>
+<p>存储卷定义包括两个部分：Volume 和 VolumeMounts。</p>
+<ul>
+<li>Volume：定义 Pod 可以使用的存储卷来源。</li>
+<li>VolumeMounts：定义存储卷如何 Mount 到容器内部。</li>
+</ul>
+</li>
+<li>
+<p>从概念上讲，存储卷是可供Pod中的所有容器访问的目录</p>
+<ul>
+<li>
+<p>Pod规范中声明的存储卷来源决定了目录的创建方式、使用的存储介质以及目录的初始内容</p>
+<ul>
+<li>存储卷插件（存储驱动）决定了支持的后端存储介质或存储服务，例如hostPath插件使用宿主机文件系统，而nfs插件则对接指定的NFS存储服务等</li>
+<li>kubelet 内置支持多种存储卷插件</li>
+</ul>
+</li>
+<li>
+<p>Pod 在规范中需要指定其包含的卷以及这些卷在容器中的挂载路径</p>
+</li>
+</ul>
+</li>
+<li>
+<p>存储卷对象并非Kubernetes系统一等公民，它定义在Pod上，因而卷本身的生命周期同 Pod，但其后端的存储及相关数据的生命周期通常要取决于存储介质</p>
+</li>
+</ul>
+<h1 id="存储卷类型和相应的插件">存储卷类型和相应的插件</h1>
+<ul>
+<li>
+<p>In-Tree存储卷插件</p>
+<ul>
+<li>
+<p>临时存储卷</p>
+<ul>
+<li>emptyDir</li>
+</ul>
+</li>
+<li>
+<p>节点本地存储卷</p>
+<ul>
+<li>hostPath, local</li>
+</ul>
+</li>
+<li>
+<p>网络存储卷</p>
+<ul>
+<li>文件系统：NFS、GlusterFS、CephFS和Cinder</li>
+<li>块设备：iSCSI、FC、RBD和vSphereVolume</li>
+<li>存储平台：Quobyte、PortworxVolume、StorageOS和ScaleIO</li>
+<li>云存储：awsElasticBlockStore、gcePersistentDisk、azureDisk和azureFile</li>
+</ul>
+</li>
+<li>
+<p>特殊存储卷</p>
+<ul>
+<li>Secret、ConfigMap、DownwardAPI和Projected</li>
+</ul>
+</li>
+<li>
+<p>扩展接口</p>
+<ul>
+<li>CSI和FlexVolume</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Out-of-Tree存储卷插件</p>
+<ul>
+<li>经由CSI或FlexVolume接口扩展出的存储系统称为Out-of-Tree类的存储插件</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/md-images/PDvhbtGtHohP9yxqijec1TOGnBb.png" alt="图片展示了Kubernetes存储卷插件的分类。上方为“Volume Plugins”，分为“In-Tree Volume Plugins”和“Out-Of-Tree Volume Plugins”两类。前者包括nfs、ceph、ebs、glusterfs、hostpath等，后者有Flexfolume、csi等。下方是“Storage”。该图与文档中介绍Kubernetes存储卷插件的内容相关，直观呈现了In-Tree和Out-of-Tree两类插件的分类情况。"></p>
+<h1 id="存储卷资源规范">存储卷资源规范</h1>
+<ul>
+<li>
+<p>定义存储卷</p>
+<ul>
+<li>存储卷对象并非Kubernetes系统一等公民，它需要定义在Pod上</li>
+<li>卷本身的生命周期同Pod，但其后端的存储及相关数据的生命周期通常要取决于存储介质</li>
+</ul>
+</li>
+<li>
+<p>存储卷的配置由两部分组成前Pod对象中定义的存储卷</p>
+<ul>
+<li>通过.spec.volumes字段定义在Pod之上的存储卷列表，它经由特定的存储卷插件并结合特定的存储供给方的访问接口进行定义</li>
+<li>嵌套定义在容器的volumeMounts字段上的存储卷挂载列表，它只能挂载当</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">spec:
+  volumes:
+  - name &lt;string&gt;         # 卷名称标识，仅可使用DNS标签格式的字符，在当前Pod中必须惟一；
+    VOL_TYPE &lt;Object&gt;     # 存储卷插件及具体的目标存储供给方的相关配置；
+  containers:
+  - name: …
+    image: …
+    volumeMounts:
+    - name &lt;string&gt;               # 要挂载的存储卷的名称，必须匹配存储卷列表中某项的定义；
+      mountPath &lt;string&gt;          # 容器文件系统上的挂载点路径；
+      readOnly &lt;boolean&gt;          # 是否挂载为只读模式，默认为否；
+      subPath &lt;string&gt;            # 挂载存储卷上的一个子目录至指定的挂载点；
+      subPathExpr &lt;string&gt;        # 挂载由指定的模式匹配到的存储卷的文件或目录至挂载点；
+      mountPropagation &lt;string&gt;      # 挂载卷的传播模式；
+  volumes: 
+  - name: data
+    empertyDir: {}
+</code></pre>
+<h2 id="emptydir-存储卷">EmptyDir 存储卷</h2>
+<p>EmptyDir是最基础的Volume类型，一个EmptyDir就是Host上的一个空目录。</p>
+<p>EmptyDir是在Pod被分配到Node时创建的，它的初始内容为空，并且无须指定宿主机上对应的目录文件，因为k8s会自动分配一个目录，当Pod销毁时，EmptyDir中的数据也会被永久删除。可以用作同一Pod内的多个容器间文件共享</p>
+<ul>
+<li>
+<p>配置参数</p>
+<ul>
+<li>medium：此目录所在的存储介质的类型，可用值为“default”或“Memory”</li>
+<li>sizeLimit：当前存储卷的空间限额，默认值为nil，表示不限制</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-emptydir-demo
+spec:
+  initContainers:
+  - name: config-file-downloader
+    image: ikubernetes/admin-box
+    imagePullPolicy: IfNotPresent
+    command: ['/bin/sh', '-c', 'wget -O /data/envoy.yaml &lt;https://code.aliyun.com/MageEdu/kubernetesstart/raw/master/tutorials/handson/volume-basics-01/envoy.yaml&gt;']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /data
+  containers:
+  - name: envoy
+    image: envoyproxy/envoy-alpine:v1.16.2
+    command: ['/bin/sh', '-c']
+    args: ['envoy -c /etc/envoy/envoy.yaml']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /etc/envoy
+      readOnly: true
+  volumes:
+  - name: config-file-store
+    emptyDir:
+      medium: Memory
+      sizeLimit: 16Mi
+</code></pre>
+<h2 id="hostpath存储卷">HostPath存储卷</h2>
+<p>如果想简单地将数据持久化到主机中，可以选择HostPath。</p>
+<ul>
+<li>
+<p>hostPath卷</p>
+<ul>
+<li>将Pod所在 Node 节点上的文件系统的某目录用作存储卷</li>
+<li>数据的生命周期与节点相同</li>
+</ul>
+</li>
+<li>
+<p>配置参数</p>
+<ul>
+<li>
+<p>path：指定工作节点上的目录路径，必选字段</p>
+</li>
+<li>
+<p>type：指定节点之上存储类型</p>
+<ul>
+<li>DirectoryOrCreate 目录存在就使用，不存在就先创建后使用</li>
+<li>Directory 目录必须存在</li>
+<li>FileOrCreate 文件存在就使用，不存在就先创建后使用</li>
+<li>File 文件必须存在</li>
+<li>Socket unix套接字必须存在</li>
+<li>CharDevice 字符设备必须存在</li>
+<li>BlockDevice 块设备必须存在</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-hostpath-demo
+  labels:
+    app: redis
+spec:
+  containers:
+  - name: redis
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+      name: redisport
+    securityContext:
+      runAsUser: 999
+    volumeMounts:
+    - mountPath: /data
+      name: redisdata
+  volumes:
+  - name: redisdata
+    hostPath:
+      path: /appdatas/redis/
+      type: DirectoryOrCreate
+</code></pre>
+<h2 id="nfs存储卷">NFS存储卷</h2>
+<p>HostPath可以解决数据持久化的问题，但是一旦Node节点故障了，Pod如果转移到了别的节点，又会出现问题了，此时需要准备单独的网络存储系统，比较常用的有NFS、CIFS。</p>
+<p>NFS是一个网络文件存储系统，可以搭建一台NFS服务器，然后将Pod中的存储直接连接到NFS系统上，这样的话，无论Pod在节点上怎么转移，只要Node跟NFS的对接没问题，数据就可以成功访问。</p>
+<ul>
+<li>
+<p>nfs存储卷</p>
+<ul>
+<li>将nfs服务器上导出（export）的文件系统用作存储卷</li>
+<li>nfs是文件系统级共享服务，它支持多路挂载请求，可由多个Pod对象同时用作存储卷后端</li>
+</ul>
+</li>
+<li>
+<p>配置参数</p>
+<ul>
+<li>server &lt;string&gt;：NFS服务器的IP地址或主机名，必选字段</li>
+<li>path &lt;string&gt;：NFS服务器导出（共享）的文件系统路径，必选字段</li>
+<li>readOnly &lt;boolean&gt;：是否以只读方式挂载，默认为false</li>
+</ul>
+</li>
+</ul>
+<p>准备 NFS 服务器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># 在master上安装nfs服务
+[root@master ~]# yum install nfs-utils -y
+
+# 准备一个共享目录
+[root@master volume]# mkdir /mnt/data/nfs -pv
+mkdir: 已创建目录 &quot;/mnt/data&quot;
+mkdir: 已创建目录 &quot;/mnt/data/nfs&quot;
+
+# 将共享目录以读写权限暴露给 你的虚拟机IP前9位.0/24网段中的所有主机（例如192.123.456.0/24）
+[root@master ~]# vim /etc/exports
+[root@master ~]# more /etc/exports
+/mnt/data/nfs    你的虚拟机IP前9位.0/24(rw,no_root_squash)
+
+# 启动nfs服务
+[root@master ~]# systemctl start nfs
+
+# 在每个node节点上都安装nfs
+[root@node1 logs]# yum install nfs-utils -y
+[root@node2 logs]# yum install nfs-utils -y
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-nfs-demo
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+    ports:
+    - containerPort: 80
+      name: nginxport
+    volumeMounts:
+    - mountPath: /data
+      name: nginxdata
+  volumes:
+  - name: nginxdata
+    nfs:
+      server: 192.168.200.104  #nfs服务器地址
+      path: /mnt/data/nfs  #共享文件路径
+      readOnly: false
+</code></pre>
+<h1 id="pv-和-pvc">PV 和 PVC</h1>
+<ul>
+<li>
+<p>在Pod 级别定义存储卷有两个弊端</p>
+<ul>
+<li>卷对象的生命周期无法独立于 Pod 而存在</li>
+<li>用户必须要足够熟悉可的存储及其详情才能在 Pod 上配置和使用卷</li>
+</ul>
+</li>
+<li>
+<p>PV 和 PVC 可用于降低这种耦合关系</p>
+<ul>
+<li>PV （Persistent Volume Persistent Volume ）是集群级别的资源，负责将存储空间引入到中通常由管理员定义</li>
+<li>PVC （Persistent Volume Claim Persistent Volume ClaimPersistent Volume Claim Persistent Volume Claim Persistent Volume Claim ）是名称空间级别的 资源，由用户定义于在闲PV 中申请使用符合过滤条件的 PV 之一，与选定的 PV 是 “一对”的关系</li>
+<li>用户在 Pod 上通过 pvc 插件请求绑定使用义好的 PVC 资源</li>
+</ul>
+</li>
+<li>
+<p>StorageClass StorageClass StorageClass StorageClass 资源支持 PV 的动态预配（ Provision ）</p>
+</li>
+</ul>
+<p><img src="../../../assets/md-images/ZXZQbkxuLoJyQix43NgcsPMYn8f.png" alt="图片展示了Kubernetes集群中PV和PVC的使用关系。左侧是namespace，包含Pod和pvc，pvc与Pod有箭头连接。右侧是Cluster admin区域，有三个pv，pv与Storage有箭头连接。Storage admin区域也有Storage。下方标注Users and Developers、Cluster admin、Storage admin。该图直观呈现了用户和开发者通过pvc请求Pod使用PV，Cluster admin管理PV，Storage admin管理Storage的流程。"></p>
+<h2 id="pv资源">PV资源</h2>
+<ul>
+<li>
+<p>PV是标准的资源类型，除了负责关联至后端存储系统外，它通常还需要定义支持的存储特性</p>
+<ul>
+<li>Volume Mode：当前PV卷提供的存储空间模型，分为块设备和文件系统两种</li>
+<li>StorageClassName：当前PV隶属的存储类；</li>
+<li>AccessMode：支持的访问模型，分为单路读写、多路读写和多路只读三种</li>
+<li>Size：当前PV允许使用的空间上限</li>
+</ul>
+</li>
+<li>
+<p>在对象元数据上，还能够根据需要定义标签</p>
+</li>
+<li>
+<p>一般需要定义回收策略：Retain、Recycle（基本不用）和Delete</p>
+</li>
+</ul>
+<h2 id="pvc资源">PVC资源</h2>
+<ul>
+<li>
+<p>PVC也是标准的资源类型，它允许用户按需指定期望的存储特性，并以之为条件，按特定的条件顺序进行PV筛选</p>
+<ul>
+<li>VolumeMode → LabelSelector → StorageClassName → AccessMode → Size</li>
+</ul>
+</li>
+<li>
+<p>支持动态预配的存储类，还可以根据PVC的条件按需完成PV创建</p>
+</li>
+</ul>
+<h2 id="使用静态-pv-和pvc">使用静态 PV 和PVC</h2>
+<p>使用静态PV和PVC的配置卷的步骤</p>
+<p><img src="../../../assets/md-images/Fx4Hbx1P3os7KqxWSzAcLduynys.png" alt="图片展示了使用静态PV和PVC的配置卷步骤。管理员先设置网络存储（如NFS导出），然后创建PV，用户再创建PVC，最后用户创建Pod，Pod引用PVC中的卷。图中还标注了PersistentVolume、PersistentVolumeClaim、Pod等关键对象，以及NFS export等存储资源，直观呈现了各步骤间的关系，与上下文介绍的使用静态PV和PVC的配置卷步骤相契合。"></p>
+<h2 id="基于nfs存储的静态pv和pvc案例">基于NFS存储的静态PV和PVC案例</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># NFS PV 资源定义示例
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs-demo
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+  - hard
+  - nfsvers=4.1
+  nfs:
+    path: &quot;/data/redis&quot;
+    server: nfs.magedu.com
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># PVC 资源定义示例
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-demo
+  namespace: default
+spec:
+  accessModes: [&quot;ReadWriteMany&quot;]
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 3Gi
+    limits:
+      storage: 10Gi
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># 在Pod上使用PVC卷
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-pvc-demo
+  namespace: default
+spec:
+  containers:
+  - name: redis
+    image: redis:alpine
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 6379
+      name: redisport
+    volumeMounts:
+    - mountPath: /data
+      name: redis-rbd-vol
+  volumes:
+  - name: redis-rbd-vol
+    persistentVolumeClaim:
+      claimName: pvc-demo
+</code></pre>
+<h2 id="storageclass">StorageClass</h2>
+<p>StorageClass的作用有点像 IngressClass，它抽象了特定类型的存储系统（比如Ceph、NFS），在PVC和PV之间充当“协调人”的角色，帮助PVC找到合适的PV。也就是说它可以简化Pod挂载“虚拟盘”的过程，让Pod看不到PV的实现细节。</p>
+<ul>
+<li>
+<p>StorageClass 资源</p>
+</li>
+<li>
+<p>Kubernetes 支持的标准资源类型之一</p>
+</li>
+<li>
+<p>为管理 PV 资源之便而按需创建的存储类别（逻辑组）</p>
+</li>
+<li>
+<p>是PVC 筛选 PV 时的过滤条件之一</p>
+</li>
+<li>
+<p>为动态创建 PV 提供“模板”</p>
+<ul>
+<li>
+<p>需要存储服务提供管理 API API</p>
+</li>
+<li>
+<p>StorageClass StorageClass StorageClassStorageClass StorageClassStorageClass 资源上配置接入 API 的各种参数</p>
+<ul>
+<li>定义在 parameters 字段中</li>
+<li>还需要使用 provisioner 字段指明存储服务类型</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>一般由集群管理员定义，隶属集群级别</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># StorageClass资源示例
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-csi
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: nfs-server.default.svc.cluster.local
+  share: /
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+mountOptions:
+  - hard
+  - nfsvers=4.1
+</code></pre>
+<h2 id="pvc-和动态-pv-示例">PVC 和动态 PV 示例</h2>
+<ul>
+<li>有些存储类型默认并不支持动态PV机制，如下图所示</li>
+</ul>
+<p><img src="../../../assets/md-images/G9f0bfJ5Go2rSzxT5VkcDV1ynBb.png" alt="图片展示了Kubernetes支持的多种存储插件（Volume Plugin）及其是否支持内部卷分配（Internal Provisioner）的情况。其中，AWS Elastic Block Store、Azure File、Azure Disk、Cinder、FlexVolume、GCE Persistent Disk、Glusterfs、iSCSI、Quobyte、RBD、VsphereVolume、PortworxVolume、ScaleIO、StorageOS等插件支持内部卷分配，CephFS、FC、NFS、Local插件不支持。该图与上下文紧密相关，上下文提到多数CSI存储都支持动态PV，且支持卷扩展和卷快照等功能，此图直观呈现了支持动态PV的存储插件情况。"></p>
+<ul>
+<li>多数CSI存储都支持动态PV，且支持卷扩展和卷快照等功能</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># PVC向StorageClass申请绑定PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-nfs-dynamic
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-csi
+</code></pre>
+<h1 id="kubernetes存储架构">Kubernetes存储架构</h1>
+<ul>
+<li>
+<p>存储卷的具体的管理操作由相关的控制器向卷插件发起调用请求来完成</p>
+<ul>
+<li>
+<p>AD控制器：负责存储设备的Attach/Detach操作</p>
+<ul>
+<li>Attach：将设备附加到目标节点</li>
+<li>Detach：将设备从目标节点上拆除</li>
+</ul>
+</li>
+<li>
+<p>存储卷管理器：负责完成卷的Mount/Umount操作，以及设备的格式化操作等</p>
+</li>
+<li>
+<p>PV控制器：负责PV/PVC的绑定、生命周期管理，以及存储卷的Provision/Delete操作</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Scheduler：特定调度插件的调度决策会受到目标节点上的存储卷的影响</p>
+</li>
+</ul>
+<p><img src="../../../assets/md-images/WHvnb7Gubod4DEx78sFcK93dnSb.png" alt="图片展示了Kubernetes存储架构中Master和Worker节点的组件关系。Master节点上有Scheduler、Controller（含AD Controller、PV Controller）、Volume Plugin（In -Tree、Out -Of -Tree），以及API Server。Worker节点上有Kubelet、Volume Manager（In -Tree、Out -Of -Tree）。该图与上下文紧密相关，直观呈现了文档中提到的CSI基础概念，即CSI Controller负责与存储服务API通信，Node Plugin在节点级别完成存储卷管理，以及它们在Master和Worker节点上的部署情况。"></p>
+<h1 id="out-of-tree存储">Out-of-Tree存储</h1>
+<ul>
+<li>
+<p>CSI基础概念</p>
+<ul>
+<li>
+<p>容器存储接口规范，与平台无关</p>
+</li>
+<li>
+<p>驱动程序组件</p>
+<ul>
+<li>CSI Controller：负责与存储服务的API通信从而完成后端存储的管理操作</li>
+<li>Node Plugin：也称为CSI Node，负责在节点级别完成存储卷的管理</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>CSI存储组件和部署架构</p>
+<ul>
+<li>CSI Controller：由StatefulSet控制器对象编排运行，副本量需要设置为1，以保证只会该存储服务运行单个CSI Controller实例；</li>
+<li>Node Plugin：由DaemonSet控制器对象编排运行，以确保每个节点上精确运行一个相关的Pod副本</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/md-images/GFTdbhghlox7MCxILFYcG0BFnjg.png" alt="图片展示了Kubernetes中Out-of-Tree存储的CSI存储组件和部署架构。左侧为Node，包含Kubelet、DaemonSet Pod（node-driver-registrar、CSI Driver Container）、Hostpath volumes和Host /var/lib/kubelet等；右侧为Master，有Kube Controller Manager、API Server、etcd等。中间部分是CSI Driver Container，包含Identity + Node、external-attacher、external-provisioner等。该图与文档中介绍的CSI基础概念、CSI Controller和Node Plugin等内容相呼应，直观呈现了相关组件及运行环境。"></p>
+<h1 id="csi存储组件和部署架构">CSI存储组件和部署架构</h1>
+<ul>
+<li>
+<p>CSI Controller Pod中的Sidecar容器</p>
+<ul>
+<li>
+<p>CSI Controller被假定为不受信任而不允许运行于Master节点之上，因此，kube-controller-manager无法借助UnixSock套接字与之通信，而是要经由API Server进行；</p>
+</li>
+<li>
+<p>该通用需求由Kubernetes提供的external-attacher和external-provisioner程序完成，此两者通常会以一个Sidecar容器运行于CSI Controller Pod中</p>
+<ul>
+<li>external-attacher：负责针对CSI上的卷执行attach和detach操作，类似于CSI专用的AD Controller</li>
+<li>external-provisioner：负责针对CSI上的卷进行Provision和Delete操作等，类似于CSI专用的PV Controller</li>
+</ul>
+</li>
+<li>
+<p>CSI支持卷扩展和快照时，可能还会用到external-resizer和external-snapshotter一类的程序</p>
+</li>
+</ul>
+</li>
+<li>
+<p>CSI Node Pod中的Sidecar容器</p>
+<ul>
+<li>kubelet（实现卷的Mount/Umount操作）将UnixSock套接字与CSI Node Plugin进行通信</li>
+<li>将Node Plugin注册到kubelet上，并初始化NodeID（获取从Kubernetes节点名称到CSI驱动程序NodeID的映射）的功能由通用的node-driver-registrar程序提供，它通用运行为CSI Node Pod的Sidecar容器</li>
+</ul>
+</li>
+</ul>
+<h2 id="csi案例部署及使用nfs-csi-driver">CSI案例：部署及使用NFS CSI Driver</h2>
+<ul>
+<li>kubernetes-csi/csi-driver-nfs项目在其代码仓库中提供了示例性的部署及测试配置文件，它们都位于deploy目录下</li>
+<li>我们采用将代码仓库克隆到本地，而后基于本地的配置清单完成部署</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">1. 部署NFS Provisioner
+示例配置文件为deploy/example/nfs-provisioner/nfs-server.yaml，可按需定义节点上用于存储数据的目录路径
+~$ kubectl apply -f deploy/example/nfs-provisioner/nfs-server.yaml
+
+2. 部署NFS CSI Driver
+首先需要确认deploy/csi-nfs-driverinfo.yaml文件中，CSIDriver资源隶属的API群组为“storage.k8s.io/v1”
+提示：废除了对“storage.k8s.io/v1beta1”群组支持的较新版本的Kubernetes有此要求
+示例部署脚本为deploy/install-driver.sh，向其传递参数即可完成部署，例如如下
+./deploy/install-driver.sh master local
+
+3. 测试
+首先需要创建基于NFS CSI的PVC，或者创建一个支持动态PV创建的StorageClass，这些deploy/example/nfs-provisioner/nginx-pod.yaml文件中有示例
+kubectl apply -f deploy/example/nfs-provisioner/nginx-pod.yaml
+</code></pre>
+<h1 id="案例阿里云的csi插件简介">案例：阿里云的CSI插件简介</h1>
+<ul>
+<li>阿里云CSI插件实现了在Kubernetes中对阿里云云存储卷的生命周期管理</li>
+<li>CSI-Plugin组件遵循标准CSI规范，提供了EBS、NAS、OSS等类型阿里云云存储服务的挂载能力</li>
+<li>自ACK 1.16版本的集群开始，部署集群时默认即会自动安装最新版本的CSI组件</li>
+<li>CSI Plugin提供了数据卷的全生命周期管理，包括数据卷的：创建、挂载、卸载、删除、扩容等服务</li>
+</ul>
+<p><img src="../../../assets/md-images/TG6XbBdfgokJHxxlRX9cQVe4nje.png" alt="图片展示了Kubernetes中CSI（Container Storage Interface）架构。左侧为Controller Server，包含Controller、External Plugin、CSI Provisioner等组件；右侧为Node Server，有kubelet、Driver Registrar、CSI Plugin等。上下方分别标注了Controller Server的Controller Server (Deployment)、Node Server的Node Server (DaemonSet)。该图与上下文紧密相关，直观呈现了CSI插件在Kubernetes集群中与各组件的交互关系，辅助理解CSI插件在Kubernetes中对阿里云云存储卷生命周期管理的实现。"></p>
+<h1 id="实例阿里云-k8s-挂载-oss-和-nas">实例：阿里云 K8s 挂载 OSS 和 NAS</h1>
+<p><a href="../../DevOps/Kubernetes/%E5%AD%98%E5%82%A8/Kubernetes%20%E6%8C%82%E8%BD%BD%E9%98%BF%E9%87%8C%E4%BA%91.html">Kubernetes 挂载阿里云</a></p>
+<p><a href="../../DevOps/Kubernetes/%E5%AD%98%E5%82%A8/Kubernetes%20%E6%8C%82%E8%BD%BD%E9%98%BF%E9%87%8C%E4%BA%91%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%20NAS.html">Kubernetes 挂载阿里云文件存储 NAS</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

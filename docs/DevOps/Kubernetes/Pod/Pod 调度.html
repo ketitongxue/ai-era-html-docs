@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pod 调度</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="pod-调度">Pod 调度</h1>
+<p>在默认情况下，一个pod在哪个node节点上运行，是由scheduler组件采用相应的算法计算出来的，这个过程是不受人工控制的。</p>
+<p>但是在实际过程中，这并不满足需求，因为很多情况下，我们想控制某些pod到达某些节点上，那么应该怎么做呢？</p>
+<p>这就要求了解k8s对Pod的调度规则，k8s提供了四大类调度方式：</p>
+<ul>
+<li>自动调度：运行在哪个节点上完全由Scheduler经过一系列的算法得出</li>
+<li>定向调度：NodeName、NodeSelector</li>
+<li>亲和性调度：NodeAffinity、PodAffinity、PodAntiAffinity</li>
+<li>污点（容忍）调度：Taints、Toleration</li>
+</ul>
+<h2 id="定向调度">定向调度</h2>
+<p>定向调度，指的是利用在Pod上声明的NodeName或NodeSelector，以此将Pod调度到期望的Node节点上。注意，这里的调度是强制的，这就意味着即使要调度的目标Node不存在，也会向上面进行调度，只不过Pod运行失败而已</p>
+<h3 id="nodename">nodeName</h3>
+<p>nodeName用于强制约束将Pod调度到指定的name的Node节点上。这种方式，其实是直接跳过Scheduler的调度逻辑，直接将Pod调度到指定名称的节点。</p>
+<p>创建一个pod-nodename.yaml文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  containers:
+    - name: nginx # 容器名称
+      image: nginx:1.17.1  # 容器需要的镜像地址
+      imagePullPolicy: IfNotPresent  # 设置镜像的拉取策略
+      ports:
+        - name: nginx-port  # 端口名称，如果执行，必须保证name在Pod中是唯一的
+          containerPort: 80 # 容器要监听的端口
+          protocol: TCP # 端口协议
+  nodeName: node1  # 指定调度到node1上
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl apply -f pod-nodename.yaml
+pod/nginx created
+[root@master pod]# kubectl get pod nginx -n default -o wide
+NAME           READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          5s    10.244.1.15   node1   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<p>更改配置文件为node3</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  containers:
+    - name: nginx # 容器名称
+      image: nginx:1.17.1  # 容器需要的镜像地址
+      imagePullPolicy: IfNotPresent  # 设置镜像的拉取策略
+      ports:
+        - name: nginx-port  # 端口名称，如果执行，必须保证name在Pod中是唯一的
+          containerPort: 80 # 容器要监听的端口
+          protocol: TCP # 端口协议
+  nodeName: node3  # 指定调度到node1上
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl apply -f pod-nodename.yaml
+pod/nginx configured
+[root@master pod]# kubectl get pod nginx -n default -o wide
+NAME           READY   STATUS    RESTARTS   AGE   IP       NODE    NOMINATED NODE   READINESS GATES
+nginx   0/1     Pending   0          3s    &lt;none&gt;   node3   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<p>虽然被指定在了node3，但是由于node3不存在，pod无法启动</p>
+<h3 id="nodeselector">nodeSelector</h3>
+<p>nodeSelector用于将Pod调度到添加了指定标签的Node节点上，它是通过Kubernetes的label-selector机制实现的，换言之，在Pod创建之前，会由Scheduler使用MatchNodeSelector调度策略进行label匹配，找出目标node，然后将Pod调度到目标节点，该匹配规则是强制约束。</p>
+<p><strong>示例</strong></p>
+<ol>
+<li>
+<p>为node节点添加标签</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master ~]# kubectl label nodes node1 nodeenv=pro
+node/node1 labeled
+[root@master ~]# kubectl label nodes node2 nodeenv=test
+node/node2 labeled
+</code></pre>
+</li>
+<li>
+<p>创建一个pod-nodeselector.yaml文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nodeselector
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  nodeSelector:
+    nodeenv: pro  #指定调度到具有nodeenv=pro标签的节点上
+</code></pre>
+</li>
+<li>
+<p>验证</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-nodeselector.yaml
+pod/pod-nodeselector created
+[root@master pod]# kubectl get pod pod-nodeselector -n dev -o wide
+NAME               READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+pod-nodeselector   1/1     Running   0          13s   10.244.1.16   node1   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+</li>
+<li>
+<p>同样如果调度到不存在的标签上，Pod无法启动</p>
+</li>
+</ol>
+<h2 id="亲和性调度">亲和性调度</h2>
+<p>虽然定向调度的两种方式，使用起来非常方便，但是也有一定的问题，那就是如果没有满足条件的Node，那么Pod将不会被运行，即使在集群中还有可用的Node列表也不行，这就限制了它的使用场景。</p>
+<p>基于上面的问题，Kubernetes还提供了一种亲和性调度（Affinity）。它在<code>nodeSelector</code>的基础之上进行了扩展，可以通过配置的形式，实现优先选择满足条件的Node进行调度，如果没有，也可以调度到不满足条件的节点上，使得调度更加灵活。</p>
+<p>Affinity主要分为三类：</p>
+<ul>
+<li>nodeAffinity（node亲和性）：以Node为目标，解决Pod可以调度到那些Node的问题。</li>
+<li>podAffinity（pod亲和性）：以Pod为目标，解决Pod可以和那些已存在的Pod部署在同一个拓扑域中的问题。</li>
+<li>podAntiAffinity（pod反亲和性）：以Pod为目标，解决Pod不能和那些已经存在的Pod部署在同一拓扑域中的问题。</li>
+</ul>
+<blockquote>
+<p>亲和性：如果两个应用频繁交互，那么就有必要利用亲和性让两个应用尽可能的靠近，这样可以较少因网络通信而带来的性能损耗。</p>
+<p>反亲和性：当应用采用多副本部署的时候，那么就有必要利用反亲和性让各个应用实例打散分布在各个Node上，这样可以提高服务的高可用性。</p>
+</blockquote>
+<h3 id="nodeaffinity">nodeAffinity</h3>
+<p>nodeAffinity的可选配置项：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">requiredDuringSchedulingIgnoredDuringExecution  #Node节点必须满足指定的所有规则才可以，相当于硬限制
+    nodeSelectorTerms  #节点选择列表
+      matchFields   # 按节点字段列出的节点选择器要求列表
+      matchExpressions   #按节点标签列出的节点选择器要求列表(推荐)
+        key    #键
+        values #值
+        operator #关系符 支持Exists, DoesNotExist, In, NotIn, Gt, Lt
+
+preferredDuringSchedulingIgnoredDuringExecution #优先调度到满足指定的规则的Node，相当于软限制 (倾向)
+    preference   #一个节点选择器项，与相应的权重相关联
+      matchFields #按节点字段列出的节点选择器要求列表
+      matchExpressions   #按节点标签列出的节点选择器要求列表(推荐)
+        key #键
+        values #值
+        operator #关系符 支持In, NotIn, Exists, DoesNotExist, Gt, Lt
+    weight # 倾向权重，在范围1-100。
+</code></pre>
+<p>关系符的使用说明：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">- matchExpressions:
+        - key: env # 匹配存在标签的key为env的节点
+          operator: Exists
+        - key: env # 匹配标签的key为env,且value是&quot;xxx&quot;或&quot;yyy&quot;的节点
+          operator: In
+      values: [&quot;xxx&quot;,&quot;yyy&quot;]
+    - key: env # 匹配标签的key为env,且value大于&quot;xxx&quot;的节点
+      operator: Gt
+      values: &quot;xxx&quot;
+</code></pre>
+<h3 id="requiredduringschedulingignoredduringexecution">requiredDuringSchedulingIgnoredDuringExecution</h3>
+<p>硬限制</p>
+<p>创建pod-nodeaffinity-required.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nodeaffinity-required
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    nodeAffinity:   #设置node亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:  #硬限制
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nodeenv
+            operator: In
+            values: [&quot;xxx&quot;,&quot;yyy&quot;]
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-nodeaffinity-required.yaml
+pod/pod-nodeaffinity-required created
+[root@master pod]# kubectl get pod pod-nodeaffinity-required -n dev
+NAME                        READY   STATUS    RESTARTS   AGE
+pod-nodeaffinity-required   0/1     Pending   0          5s
+[root@master pod]# kubectl describe pod pod-nodeaffinity-required -n dev
+Name:         pod-nodeaffinity-required
+Namespace:    dev
+Priority:     0
+Node:         &lt;none&gt;
+Labels:       &lt;none&gt;
+Annotations:  &lt;none&gt;
+Status:       Pending
+IP:
+IPs:          &lt;none&gt;
+Containers:
+  nginx:
+    Image:        nginx:1.17.1
+    Port:         &lt;none&gt;
+    Host Port:    &lt;none&gt;
+    Environment:  &lt;none&gt;
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-w97gs (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False
+Volumes:
+  kube-api-access-w97gs:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       &lt;nil&gt;
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              &lt;none&gt;
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  15s   default-scheduler  0/3 nodes are available: 1 node(s) had taint {node-role.kubernetes.io/master: }, that the pod didn't tolerate, 2 node(s) didn't match Pod's node affinity/selector.
+</code></pre>
+<p>重新编辑配置文件的values</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nodeaffinity-required
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    nodeAffinity:   #设置node亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:  #硬限制
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nodeenv
+            operator: In
+            values: [&quot;pro&quot;,&quot;yyy&quot;]
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl delete -f pod-nodeaffinity-required.yaml
+pod &quot;pod-nodeaffinity-required&quot; deleted
+[root@master pod]# kubectl create -f pod-nodeaffinity-required.yaml
+pod/pod-nodeaffinity-required created
+[root@master pod]# kubectl get pod pod-nodeaffinity-required -n dev
+NAME                        READY   STATUS    RESTARTS   AGE
+pod-nodeaffinity-required   1/1     Running   0          5s
+</code></pre>
+<h3 id="preferredduringschedulingignoredduringexecution">preferredDuringSchedulingIgnoredDuringExecution</h3>
+<p>软限制</p>
+<p>创建pod-nodeaffinity-preferred.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nodeaffinity-preferred
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    nodeAffinity:   #设置node亲和性
+      preferredDuringSchedulingIgnoredDuringExecution:  # 优先调度到满足指定的规则的Node，相当于软限制 (倾向)
+      - weight: 1
+        preference: # 一个节点选择器项，与相应的权重相关联
+          matchExpressions:
+          - key: nodeenv
+            operator: In
+            values: [&quot;xxx&quot;,&quot;yyy&quot;]
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-nodeaffinity-preferred.yaml
+pod/pod-nodeaffinity-preferred created
+[root@master pod]# kubectl get pod pod-nodeaffinity-preferred -n dev -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+pod-nodeaffinity-preferred   1/1     Running   0          13s   10.244.1.18   node1   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<p>即使没有满足条件，pod也被正常调度了</p>
+<p><strong>注意：</strong></p>
+<blockquote>
+<p>如果同时定义了nodeSelector和nodeAffinity，那么必须两个条件都满足，Pod才能运行在指定的Node上。</p>
+<p>如果<code>nodeAffinity</code>指定了多个<code>nodeSelectorTerms</code>，那么只需要其中一个能够匹配成功即可。</p>
+<p>如果一个<code>nodeSelectorTerms</code>中有多个<code>matchExpressions</code>，则一个节点必须满足所有的才能匹配成功。</p>
+<p>如果一个Pod所在的Node在Pod运行期间其标签发生了改变，不再符合该Pod的<code>nodeAffinity</code>的要求，则系统将忽略此变化。</p>
+</blockquote>
+<h3 id="podaffinity">podAffinity</h3>
+<p>podAffinity主要实现以运行的Pod为参照，实现让新创建的Pod和参照的Pod在一个区域的功能。</p>
+<p>查看PodAffinity的可选配置项</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">requiredDuringSchedulingIgnoredDuringExecution  # 硬限制
+  namespaces # 指定参照pod的namespace
+  topologyKey # 指定调度作用域
+  labelSelector # 标签选择器
+    matchExpressions  # 按节点标签列出的节点选择器要求列表(推荐)
+      key    #  键
+      values # 值
+      operator # 关系符 支持In, NotIn, Exists, DoesNotExist.
+    matchLabels    # 指多个matchExpressions映射的内容
+
+preferredDuringSchedulingIgnoredDuringExecution # 软限制
+  podAffinityTerm  # 选项
+    namespaces
+    topologyKey
+    labelSelector
+       matchExpressions
+          key   #  键
+          values # 值
+          operator
+       matchLabels
+  weight 倾向权重，在范围1-100
+</code></pre>
+<blockquote>
+<p>topologyKey用于指定调度的作用域，例如:</p>
+<p>[如果指定为kubernetes.io/hostname，那就是以Node节点为区分范围。](http://xn--kubernetes-xx2p569hdyfn62aywp.io/hostname，那就是以Node节点为区分范围。)</p>
+<p>[如果指定为beta.kubernetes.io/os，则以Node节点的操作系统类型来区分。](http://xn--beta-uh5fo11dhodrqtvwj.kubernetes.io/os，则以Node节点的操作系统类型来区分。)</p>
+</blockquote>
+<h3 id="requireduringschedullingignoreduringexecution">requireDuringSchedullingIgnoreDuringExecution</h3>
+<p>创建一个参照pod，pod-podaffinity-target.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podaffinity-target
+  namespace: dev
+  labels:
+    podenv: pro   #设置标签
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  nodeName: node1  #将目标pod明确指定到node1上
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-podaffinity-target.yaml
+pod/pod-podaffinity-target created
+[root@master pod]# kubectl get pod pod-podaffinity-target -n dev -o wide --show-labels
+NAME                     READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES   LABELS
+pod-podaffinity-target   1/1     Running   0          7s    10.244.1.19   node1   &lt;none&gt;           &lt;none&gt;            podenv=pro
+</code></pre>
+<p>创建pod-podaffinity-required.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podaffinity-required
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    podAffinity:   #设置pod亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:  #硬限制
+      -  labelSelector:
+           matchExpressions: #匹配env的值在[&quot;xxx&quot;,&quot;yyy&quot;]中的标签
+           - key: podenv
+             operator: In
+             values: [&quot;xxx&quot;,&quot;yyy&quot;]
+         topologyKey: kubernetes.io/hostname
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-podaffinity-required.yaml
+pod/pod-podaffinity-required created
+[root@master pod]# kubectl get pod pod-podaffinity-required -n dev -o wide --show-labels
+NAME                       READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES   LABELS
+pod-podaffinity-required   0/1     Pending   0          5s    &lt;none&gt;   &lt;none&gt;   &lt;none&gt;           &lt;none&gt;            &lt;none&gt;
+[root@master pod]# kubectl describe pod pod-podaffinity-required -n dev
+Name:         pod-podaffinity-required
+Namespace:    dev
+Priority:     0
+Node:         &lt;none&gt;
+Labels:       &lt;none&gt;
+Annotations:  &lt;none&gt;
+Status:       Pending
+IP:
+IPs:          &lt;none&gt;
+Containers:
+  nginx:
+    Image:        nginx:1.17.1
+    Port:         &lt;none&gt;
+    Host Port:    &lt;none&gt;
+    Environment:  &lt;none&gt;
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-mntx2 (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False
+Volumes:
+  kube-api-access-mntx2:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       &lt;nil&gt;
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              &lt;none&gt;
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  12s   default-scheduler  0/3 nodes are available: 1 node(s) had taint {node-role.kubernetes.io/master: }, that the pod didn't tolerate, 2 node(s) didn't match pod affinity rules.
+</code></pre>
+<p>调度失败，修改配置信息:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podaffinity-required
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    podAffinity:   #设置pod亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:  #硬限制
+      -  labelSelector:
+           matchExpressions: #匹配env的值在[&quot;xxx&quot;,&quot;yyy&quot;]中的标签
+           - key: podenv
+             operator: In
+             values: [&quot;pro&quot;,&quot;yyy&quot;]
+         topologyKey: kubernetes.io/hostname
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl delete -f pod-podaffinity-required.yaml
+pod &quot;pod-podaffinity-required&quot; deleted
+[root@master pod]# kubectl create -f pod-podaffinity-required.yaml
+pod/pod-podaffinity-required created
+[root@master pod]# kubectl get pod pod-podaffinity-required -n dev -o wide --show-labels
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES   LABELS
+pod-podaffinity-required   1/1     Running   0          6s    10.244.1.20   node1   &lt;none&gt;           &lt;none&gt;            &lt;none&gt;
+</code></pre>
+<h3 id="preferredduringschedulingignoredduringexecution-1">preferredDuringSchedulingIgnoredDuringExecution</h3>
+<p>创建pod-podaffinity-preferred.yaml，将pod调度到不满足调度条件的node上，看是否能成功</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podaffinity-preferred
+  namespace: dev
+spec:
+  containers: # 容器配置
+    - name: nginx
+      image: nginx:1.17.1
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: nginx-port
+          containerPort: 80
+          protocol: TCP
+  affinity: # 亲和性配置
+    podAffinity: # Pod亲和性
+      preferredDuringSchedulingIgnoredDuringExecution: #软限制
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: podenv
+                  operator: In
+                  values:
+                    - &quot;xxx&quot;
+                    - &quot;yyy&quot;
+            topologyKey: kubernetes.io/hostname
+          weight: 1
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-podaffinity-preferred.yaml
+pod/pod-podaffinity-preferred created
+[root@master pod]# kubectl get pod -n dev pod-podaffinity-preferred -o wide --show-labels
+NAME                        READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES   LABELS
+pod-podaffinity-preferred   1/1     Running   0          38s   10.244.1.21   node1   &lt;none&gt;           &lt;none&gt;            &lt;none&gt;
+</code></pre>
+<p>pod在不满足给定调度条件情况下，任然可以调度，pod被调度到了node1上。</p>
+<h3 id="podantiaffinity">podAntiAffinity</h3>
+<p>podAntiAffinity主要实现以运行的Pod为参照，让新创建的Pod和参照的Pod不在一个区域的功能。</p>
+<p>其配置方式和podAffinity一样。</p>
+<p>创建pod-podantiaffinity-required.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podantiaffinity-required
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  affinity:   #亲和性设置
+    podAntiAffinity:   #设置pod反亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:  #硬限制
+      -  labelSelector:
+           matchExpressions: #匹配env的值在[&quot;pro&quot;]中的标签
+           - key: podenv
+             operator: In
+             values: [&quot;pro&quot;]
+         topologyKey: kubernetes.io/hostname
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-podantiaffinity-required.yaml
+pod/pod-podantiaffinity-required created
+[root@master pod]# kubectl get pod -n dev -o wide
+NAME                           READY   STATUS             RESTARTS        AGE     IP            NODE    NOMINATED NODE   READINESS GATES
+pod-podaffinity-target         1/1     Running            0               15m     10.244.1.19   node1   &lt;none&gt;           &lt;none&gt;
+pod-podantiaffinity-required   1/1     Running            0               5s      10.244.2.14   node2   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<p>不在一个节点上</p>
+<h2 id="污点和容忍">污点和容忍</h2>
+<h3 id="污点">污点</h3>
+<p>前面的调度方式都是站在Pod的角度上，通过在Pod上添加属性，来确定Pod是否要调度到指定的Node上，其实我们也可以站在Node的角度上，通过在Node上添加<code>污点属性</code>，来决定是否运行Pod调度过来。</p>
+<p>Node被设置了污点之后就和Pod之间存在了一种相斥的关系，进而拒绝Pod调度进来，甚至可以将已经存在的Pod驱逐出去。</p>
+<p>污点的格式为：<code>key=value:effect</code>，key和value是污点的标签，effect描述污点的作用，支持如下三个选项：</p>
+<p>1、<code>PreferNoSchedule</code>：Kubernetes将尽量避免把Pod调度到具有该污点的Node上，除非没有其他节点可以调度。</p>
+<p>2、<code>NoSchedule</code>：Kubernetes将不会把Pod调度到具有该污点的Node上，但是不会影响当前Node上已经存在的Pod。</p>
+<p>3、<code>NoExecute</code>：Kubernetes将不会把Pod调度到具有该污点的Node上，同时也会将Node上已经存在的Pod驱逐。</p>
+<p>污点相关语法:</p>
+<ul>
+<li>
+<p>设置污点</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl taint node xxx key=value:effect
+</code></pre>
+</li>
+<li>
+<p>去除污点</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl taint node xxx key:effect-
+</code></pre>
+</li>
+<li>
+<p>去除所有污点</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl taint node xxx key-
+</code></pre>
+</li>
+<li>
+<p>查看指定节点上的污点</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl describe node 节点名称
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>使用kubeadm搭建的集群，默认就会给Master节点添加一个污点标记，所以Pod就不会调度到Master节点上</p>
+</blockquote>
+<h3 id="容忍">容忍</h3>
+<p>上面介绍了污点的作用，我们可以在Node上添加污点用来拒绝Pod调度上来，但是如果就是想让一个Pod调度到一个有污点的Node上去，这时候应该怎么做？这就需要使用到容忍。</p>
+<blockquote>
+<p>污点就是拒绝，容忍就是忽略，Node通过污点拒绝Pod调度上去，Pod通过容忍忽略拒绝。</p>
+</blockquote>
+<p>容忍详细配置：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl explain pod.spec.tolerations
+......
+FIELDS:
+  key       # 对应着要容忍的污点的键，空意味着匹配所有的键
+  value     # 对应着要容忍的污点的值
+  operator  # key-value的运算符，支持Equal和Exists（默认）
+  effect    # 对应污点的effect，空意味着匹配所有影响
+  tolerationSeconds   # 容忍时间, 当effect为NoExecute时生效，表示pod在Node上的停留时间
+</code></pre>
+<p><code>operator</code> 的默认值是 <code>Equal</code>。</p>
+<p>一个容忍度和一个污点相“匹配”是指它们有一样的键名和效果，并且：</p>
+<ul>
+<li>如果 <code>operator</code> 是 <code>Exists</code>（此时容忍度不能指定 <code>value</code>），或者</li>
+<li>如果 <code>operator</code> 是 <code>Equal</code>，则它们的值应该相等。</li>
+</ul>
+<p>当operator为Equal的时候，如果Node节点有多个Taint，那么Pod每个Taint都需要容忍才能部署上去。</p>
+<p>当operator为Exists的时候，有如下的三种写法：</p>
+<ul>
+<li>
+<p>容忍指定的污点，污点带有指定的effect：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">  tolerations: # 容忍
+    - key: &quot;tag&quot; # 要容忍的污点的key
+      operator: Exists # 操作符
+      effect: NoExecute # 添加容忍的规则，这里必须和标记的污点规则相同
+</code></pre>
+</li>
+<li>
+<p>容忍指定的污点，不考虑具体的effect：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">  tolerations: # 容忍
+    - key: &quot;tag&quot; # 要容忍的污点的key
+      operator: Exists # 操作符
+</code></pre>
+</li>
+<li>
+<p>容忍一切污点（慎用）：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"> tolerations: # 容忍
+    - operator: Exists # 操作符
+</code></pre>
+</li>
+</ul>
+<p><code>effect</code> 字段的允许值包括：</p>
+<ul>
+<li><code>NoExecute</code></li>
+<li>这会影响已在节点上运行的 Pod，具体影响如下：如果 Pod 不能容忍这类污点，会马上被驱逐。如果 Pod 能够容忍这类污点，但是在容忍度定义中没有指定 <code>tolerationSeconds</code>， 则 Pod 还会一直在这个节点上运行。如果 Pod 能够容忍这类污点，而且指定了 <code>tolerationSeconds</code>， 则 Pod 还能在这个节点上继续运行这个指定的时间长度。 这段时间过去后，节点生命周期控制器从节点驱除这些 Pod。</li>
+<li><code>NoSchedule</code></li>
+<li>除非具有匹配的容忍度规约，否则新的 Pod 不会被调度到带有污点的节点上。 当前正在节点上运行的 Pod **不会**被驱逐。</li>
+<li><code>PreferNoSchedule</code></li>
+<li><code>PreferNoSchedule</code> 是“偏好”或“软性”的 <code>NoSchedule</code>。 控制平面将**尝试**避免将不能容忍污点的 Pod 调度到的节点上，但不能保证完全避免。</li>
+</ul>
+<p>通常情况下，如果给一个节点添加了一个 effect 值为 <code>NoExecute</code> 的污点， 则任何不能容忍这个污点的 Pod 都会马上被驱逐，任何可以容忍这个污点的 Pod 都不会被驱逐。 但是，如果 Pod 存在一个 effect 值为 <code>NoExecute</code> 的容忍度指定了可选属性 <code>tolerationSeconds</code> 的值，则表示在给节点添加了上述污点之后， Pod 还能继续在节点上运行的时间。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">tolerations:
+- key: &quot;key1&quot;
+  operator: &quot;Equal&quot;
+  value: &quot;value1&quot;
+  effect: &quot;NoExecute&quot;
+  tolerationSeconds: 3600
+</code></pre>
+<p>这表示如果这个 Pod 正在运行，同时一个匹配的污点被添加到其所在的节点， 那么 Pod 还将继续在节点上运行 3600 秒，然后被驱逐。 如果在此之前上述污点被删除了，则 Pod 不会被驱逐。</p>
+<p>在上面的污点示例中，已经给node1打上了NoExecute的污点，此时任何Pod是调度不上去的，可以通过在Pod中添加容忍，将Pod调度上去。</p>
+<p>创建pod-toleration.yaml文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-toleration
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+  tolerations:    #添加容忍
+  - key: &quot;tag&quot;   #要容忍的污点的key
+    operator: &quot;Equal&quot;   #操作符
+    value: &quot;ms&quot;   #容忍的污点的value
+    effect: &quot;NoExecute&quot;   #添加容忍的规则，这里必须和标记的污点规则相同
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[root@master pod]# kubectl create -f pod-toleration.yaml
+pod/pod-toleration created
+[root@master pod]# kubectl get pod -n dev
+NAME                           READY   STATUS        RESTARTS       AGE
+pod-toleration                 1/1     Running       0              5s
+taint3                         0/1     Pending       0              4m42s
+</code></pre>
+<h1 id="补充">补充</h1>
+<h2 id="对节点添加-label-和-taint">对节点添加 Label 和 Taint</h2>
+<p><a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/">Taints and Tolerations | Kubernetes</a></p>
+<p><a href="https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/">用节点亲和性把 Pod 分配到节点 | Kubernetes</a></p>
+<h2 id="通过亲和性控制-pod-调度">通过亲和性控制 Pod 调度</h2>
+<p><a href="Pod%20%E8%B0%83%E5%BA%A6/%E9%80%9A%E8%BF%87%E4%BA%B2%E5%92%8C%E6%80%A7%E6%8E%A7%E5%88%B6%20Pod%20%E8%B0%83%E5%BA%A6.html">通过亲和性控制 Pod 调度</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

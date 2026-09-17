@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>13 | 一文读懂Kubernetes源码构建、测试和本地调试的方法</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="13--一文读懂kubernetes源码构建测试和本地调试的方法">13 | 一文读懂Kubernetes源码构建、测试和本地调试的方法</h1>
+<h1 id="如何本地编译快速运行--测试">如何本地编译，快速运行 &amp; 测试？</h1>
+<p><img src="../../../assets/md-images/IgClbiMMvoNSplxKDgKcwD9bnUf.png" alt=""></p>
+<p>本节课根据研发流程来讲，编译 -&gt; 测试 -&gt; 运行 Kubernetes 集群 -&gt; 本地测试（全链路测试）。接下来，我先来介绍下如何编译 Kubernetes 源码。Kubernetes 源码编译有以下 2 种方式：</p>
+<ul>
+<li>Docker 编译：在指定的 Docker 容器中，编译 Kubernetes 源码；</li>
+<li>本地编译：直接在本地机器上编译 Kubernetes 源码。</li>
+</ul>
+<p>因为使用 Docker 编译 Kubernetes 源码比较简单。所以，接下来，我先来介绍下如何使用 Docker 编译 Kuberentes 源码。</p>
+<h1 id="源码编译使用-docker-构建-kubernetes">源码编译：使用 Docker 构建 Kubernetes</h1>
+<p>官方的 Kubernetes 发布文件都是使用 Docker 来构建的。使用 Docker 来编译源码，可以简化环境配置，并提供一致的编译和测试环境。</p>
+<p>本小结，我来介绍下，如何使用 Docker 来编译 Kubernetes 源码。</p>
+<h2 id="安装-docker">安装 Docker</h2>
+<p>如果想用 Docker 来编译 Kubernetes 源码，首先要安装 Docker。在前面，我们已经安装过 Docker，这里就不再介绍如何安装 Docker。</p>
+<p>如果，你之前没有安装过 Docker，可以参考以下方法来安装 Docker：</p>
+<ul>
+<li>MacOS 安装：参考 <a href="https://docs.docker.com/desktop/install/mac-install/">https://docs.docker.com/desktop/install/mac-install/</a>。注意，这里需要确保 Docker 虚拟机至少有 8G 内存，否则编译可能会失败；</li>
+<li>Linux 安装：参考 <a href="https://docs.docker.com/installation/#installation">https://docs.docker.com/installation/#installation</a>；</li>
+<li>Windos（WSL2）安装：参考 <a href="https://docs.docker.com/docker-for-windows/wsl-tech-preview/">https://docs.docker.com/docker-for-windows/wsl-tech-preview/</a></li>
+</ul>
+<p>在使用 Docker 编译 Kubernetes 源码时，使用到了 buildx Docker CLI 插件。可以使用以下命令来安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo apt install -y docker-buildx-plugin
+</code></pre>
+<h2 id="一些核心脚本">一些核心脚本</h2>
+<p>在使用 Docker 编译 Kubernetes 源码时，使用到了一些脚本文件，这些脚本文件都位于 build/ 目录中。在运行脚本时，最好位于 Kubernetes 源码根目录。脚本功能如下：</p>
+<ul>
+<li>
+<p>build/run.sh</p>
+<ul>
+<li>
+<p>在 Docker 容器中运行命令。常见的用法如下：</p>
+<ul>
+<li>build/run.sh make：在容器中仅构建 Linux 二进制文件。根据需要传递选项和软件包；</li>
+<li>build/run.sh make cross：为所有平台构建所有二进制文件。要仅构建特定平台，请添加 KUBE_BUILD_PLATFORMS=&lt;os&gt;/&lt;arch&gt;；</li>
+<li>build/run.sh make kubectl KUBE_BUILD_PLATFORMS=darwin/amd64：为特定平台构建特定二进制文件（在此示例中分别为darwin/amd64和kubectl）；</li>
+<li>build/run.sh make test：运行所有单元测试；</li>
+<li>build/run.sh make test-integration：运行集成测试；</li>
+<li>build/run.sh make test-cmd：运行 CLI 测试。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>build/copy-output.sh</p>
+<ul>
+<li>将 Docker 容器中 _output/dockerized/bin 的内容复制到本地_output/dockerized/bin。它还会复制构建过程中生成的特定文件模式。build/run.sh 调用了 build/copy-output.sh 脚本</li>
+</ul>
+</li>
+<li>
+<p>build/make-clean.sh</p>
+<ul>
+<li>清除 _output 目录的内容，删除任何在本地构建的容器映像并删除数据容器</li>
+</ul>
+</li>
+<li>
+<p>build/shell.sh</p>
+<ul>
+<li>进入构建 Kubernetes 源码的 Docker 容器中，该容器具有构建时的源码快照</li>
+</ul>
+</li>
+</ul>
+<h2 id="基本流程">基本流程</h2>
+<p>Kubernetes 使用 build/ 目录下的脚本来构建和测试 Kubernetes（用于构建 Kubernetes 源码的镜像称之为容器镜像 kube-build）。其中，Dockerfile 文件为 build/build-image/Dockerfile，内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># 这个文件创建了一个用于构建 Kubernetes 的标准构建环境。
+ARG KUBE_CROSS_IMAGE
+ARG KUBE_CROSS_VERSION
+
+FROM ${KUBE_CROSS_IMAGE}:${KUBE_CROSS_VERSION}
+
+# 将其标记为 kube-build 容器
+RUN touch /kube-build-image
+
+# 为了以非 root 用户运行，有时需要重新构建 go stdlib 包。
+RUN chmod -R a+rwx /usr/local/go/pkg
+
+# 运行集成测试用例，需要 /var/run/kubernetes 目录，该目录应该是可写的。
+RUN mkdir /var/run/kubernetes &amp;&amp; chmod a+rwx /var/run/kubernetes
+
+# Kubernetes 源码挂载文件夹，后续的操作，都是在此文件夹下
+ENV HOME=/go/src/k8s.io/kubernetes
+WORKDIR ${HOME}
+
+# 设置在 Docker 容器中构建产物的存放目录
+ENV KUBE_OUTPUT_SUBPATH=_output/dockerized
+
+# 在这里获取版本信息，因为我们不复制我们的 .git 文件。
+ENV KUBE_GIT_VERSION_FILE=${HOME}/.dockerized-kube-version-defs
+
+# 添加全局的 git 用户信息
+RUN git config --system user.email &quot;nobody@k8s.io&quot; \
+  &amp;&amp; git config --system user.name &quot;kube-build-image&quot;
+
+# 修复 $GOPATH 目录的权限
+RUN chmod -R a+rwx $GOPATH
+
+# 让日志消息使用正确的时区
+ADD localtime /etc/localtime
+RUN chmod a+r /etc/localtime
+
+# 设置 rsyncd
+ADD rsyncd.password /
+RUN chmod a+r /rsyncd.password
+ADD rsyncd.sh /
+RUN chmod a+rx /rsyncd.sh
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">${KUBE_CROSS_IMAGE}:${KUBE_CROSS_VERSION} 指定了基础镜像和版本：
+${KUBE_CROSS_IMAGE}：默认为 registry.k8s.io/build-image/kube-cross；
+${KUBE_CROSS_VERSION}：默认为 cat &quot;${KUBE_ROOT}/build/build-image/cross/VERSION（v1.30.0-go1.22.4-bullseye.0）。
+</code></pre>
+<p><img src="../../../assets/md-images/N9cwbY0S2oS10YxlighcY1Lanrf.png" alt=""></p>
+<p>你可以通过以下命令来直接设置 KUBE_CROSS_IMAGE 和 KUBE_CROSS_VERSION 的值：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ export KUBE_CROSS_IMAGE=XXX
+$ export KUBE_CROSS_VERSION=YYY
+</code></pre>
+<p>kube-build 镜像，首先会在 <code>_output/images/build-image</code> 目录中创建一个 &quot;context&quot; 目录，该目录中只存放用来参与构建的文件，以此来最小化构建镜像时需要打包的文件数。</p>
+<p>在构建 Kubernetes 源码的时候，会基于 <code>${KUBE_CROSS_IMAGE}:${KUBE_CROSS_VERSION}</code> 镜像，启动 3 个容器：</p>
+<ul>
+<li>data 容器：用来存储所有的数据，以支持增量构建；</li>
+<li>rsync 容器：用来将数据从 data 容器中拷贝出，或者从外面拷贝数据到 data 容器中；</li>
+<li>build 容器：用来执行源码编译。</li>
+</ul>
+<p>data 容器在每次运行后保留，rsync 容器和 build 容器在每次运行后会被销毁。使用 rsync 来高效的在容器和宿主机之间进行数据传输，这会将会使用 Docker 选择的临时端口，你可以通过设置 KUBE_RSYNC_PORT 环境变量来修改此端口。</p>
+<p>所有 Docker 容器名都附带一个哈希值，该哈希值是从文件路径派生而来的（以允许在诸如 CI 机器之类的环境中并行使用），还有一个版本号。当版本号发生变化时，所有状态都将被清除，并开始进行干净的构建操作。这使得构建基础设施可以被更改，并且通知 CI 系统需要删除旧的构建产物。</p>
+<h2 id="执行构建">执行构建</h2>
+<p>Kubernetes 的 Makefile 提供了以下个规则，用来构建镜像：</p>
+<ul>
+<li>
+<p>本地构建规则：</p>
+<ul>
+<li>release：在本地构建一个 release；</li>
+<li>quick-release：构建一个 release，但是不执行测试；</li>
+<li>release-skip-tests：构建一个 release，但是不执行单元测试。</li>
+</ul>
+</li>
+<li>
+<p>使用 Docker 容器构建规则：</p>
+<ul>
+<li>release-in-a-container：使用 Docker 容器来构建 release；</li>
+<li>release-images：构建一个 release 镜像；</li>
+<li>quick-release-images：构建 Docker 镜像，但是只构建 linux/amd64；</li>
+</ul>
+</li>
+</ul>
+<p>安装基础包</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">apt-get install make rsync -y
+</code></pre>
+<p>通常，我们可以使用以下命令来快速构建 Docker 镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ KUBE_BUILD_PLATFORMS=linux/amd64 KUBE_BUILD_CONFORMANCE=n KUBE_BUILD_HYPERKUBE=n make release-images GOFLAGS=-v GOGCFLAGS=&quot;-N -l&quot;
+</code></pre>
+<ul>
+<li>KUBE_BUILD_CONFORMANCE=n 和 KUBE_BUILD_HYPERKUBE=n 参数配置是否构建 hyperkube-amd64 和 conformance-amd64 镜像，默认是 y 构建，这里设置为 n 暂时不需要构建了。</li>
+<li>make release-images 表示执行编译并生成镜像 tar 包。</li>
+</ul>
+<p>构建的 Docker 镜像，会以 tar 包的形式发布在 _output/release-images/amd64 目录中：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ll _output/release-images/amd64/
+total 426996
+drwxr-xr-x 2 root root      4096  5月  8 21:04 ./
+drwxr-xr-x 3 root root      4096  5月  8 21:04 ../
+-rw------- 2 root root 102862336  5月  8 21:04 kube-apiserver.tar
+-rw------- 2 root root  95670272  5月  8 21:04 kube-controller-manager.tar
+-rw------- 2 root root  65034752  5月  8 21:04 kubectl.tar
+-rw------- 2 root root  99126784  5月  8 21:04 kube-proxy.tar
+-rw------- 2 root root  74530304  5月  8 21:04 kube-scheduler.tar
+</code></pre>
+<p>生成的核心组件二进制可执行文件以及镜像，在 _output/release-stage/server/linux-amd64/kubernetes/server/bin/ 目录可以找到：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ll _output/release-stage/server/linux-amd64/kubernetes/server/bin/
+total 806960
+drwxr-xr-x 2 root root      4096  5月  8 21:04 ./
+drwxr-xr-x 3 root root      4096  5月  8 21:04 ../
+-rwxr-xr-x 1 root root  97947832  5月  8 21:04 kube-apiserver*
+-rw-r--r-- 1 root root        37  5月  8 21:04 kube-apiserver.docker_tag
+-rw------- 2 root root 102862336  5月  8 21:04 kube-apiserver.tar
+-rwxr-xr-x 1 root root  90755256  5月  8 21:04 kube-controller-manager*
+-rw-r--r-- 1 root root        37  5月  8 21:04 kube-controller-manager.docker_tag
+-rw------- 2 root root  95670272  5月  8 21:04 kube-controller-manager.tar
+-rwxr-xr-x 1 root root  60121272  5月  8 21:04 kubectl*
+-rw-r--r-- 1 root root        37  5月  8 21:04 kubectl.docker_tag
+-rw------- 2 root root  65034752  5月  8 21:04 kubectl.tar
+-rwxr-xr-x 1 root root  70594744  5月  8 21:04 kube-proxy*
+-rw-r--r-- 1 root root        37  5月  8 21:04 kube-proxy.docker_tag
+-rw------- 2 root root  99126784  5月  8 21:04 kube-proxy.tar
+-rwxr-xr-x 1 root root  69615800  5月  8 21:04 kube-scheduler*
+-rw-r--r-- 1 root root        37  5月  8 21:04 kube-scheduler.docker_tag
+-rw------- 2 root root  74530304  5月  8 21:04 kube-scheduler.tar
+</code></pre>
+<h2 id="构建构件">构建构件</h2>
+<p>Kubernetes 构建系统会将所有的构建产物存放到 _output 目录中。其中包括：</p>
+<ul>
+<li>编译的二进制文件：例如 kubectl、kube-scheduler 等；</li>
+<li>归档的 Docker 镜像；</li>
+</ul>
+<p>如果想基于 Docker 镜像运行组件，那么需要使用 docker 命令从该目录中导入 Docker 镜像，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ docker import _output/release-images/amd64/kube-scheduler.tar k8s.io/kube-scheduler:$(git describe)
+</code></pre>
+<h2 id="发布">发布</h2>
+<p>build/release.sh 脚本将构建一个发布版本。它将构建二进制文件、运行测试，并（可选）构建运行时 Docker 镜像。构建产物主要是一个 kubernetes.tar.gz tar 文件。其中包括：</p>
+<ul>
+<li>交叉编译的客户端实用程序；</li>
+<li>根据平台，用于选择和运行正确客户端二进制文件的脚本（kubectl）；</li>
+<li>示例；</li>
+<li>各种云的集群部署脚本；</li>
+<li>包含所有服务器二进制文件的 tar 文件。</li>
+</ul>
+<p>此外，还有一些其他的 tar 文件被创建：</p>
+<ul>
+<li>kubernetes-client-*.tar.gz 特定平台的客户端二进制文件。</li>
+<li>kubernetes-server-*.tar.gz 特定平台的服务器二进制文件。</li>
+</ul>
+<p>在构建最终发布 tar 文件时，它们首先被分阶段放置到 _output/release-stage 中，然后被打包并放入 _output/release-tars 中。</p>
+<h2 id="可再现性">可再现性</h2>
+<p>make release 及其变体 make quick-release 提供了一个封闭的构建环境，能够为构建提供一定程度的可再现性。</p>
+<p>Kubernetes 构建环境支持由可再现构建项目指定的 SOURCE_DATE_EPOCH 环境变量，该变量可以设置为 UNIX 纪元时间戳。这将用于嵌入在编译的 Go 二进制文件中的构建时间戳，也许将来还可以用于 Docker 镜像。</p>
+<p>通常，我们通过以下方式来设置 SOURCE_DATE_EPOCH 环境变量：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">SOURCE_DATE_EPOCH=$(git show -s --format=format:%ct HEAD)
+</code></pre>
+<h1 id="源码编译在本地操作系统构建-kuberentes">源码编译：在本地操作系统构建 Kuberentes</h1>
+<p>首先，我们需要克隆 kubernetes 源码，并切换到 v1.30.2 分支：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ cd $GOPATH/src/k8s.io/
+$ git clone https://github.com/kubernetes/kubernetes.git
+$ git checkout -b v1.30.2
+</code></pre>
+<h2 id="操作系统配置">操作系统配置</h2>
+<p>Kubernetes 是一个大型项目，编译它会使用大量资源。编译 Kubernetes 建议的资源配置如下：</p>
+<ul>
+<li>内存 &gt;= 8 GB；</li>
+<li>磁盘存储空间 &gt;= 50 GB；</li>
+</ul>
+<p>Kubernetes 源码支持在 Linux、Windows、MacOS 上进行编译，不同操作系统的编译指令是不同的。因为时间、精力有限，没办法把所有平台的编译方式都给你介绍一遍，也没必要。所以，本文只展示如何在 Linux 上编译 Kubernetes 源码。</p>
+<h2 id="安装依赖软件包">安装依赖软件包</h2>
+<p>准备好部署机器之后，还需要安装一些依赖工具。</p>
+<h3 id="安装最新的-gnu-开发工具">安装最新的 GNU 开发工具</h3>
+<p>Kubernetes 项目仓库中包含了大量可以提升开发效率的脚本，这些脚本需要一些最新的 GNU 开发工具，在 Debian 12 上可通过以下命令，来安装最新版的 GNU 开发工具：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo apt update
+$ sudo apt install build-essential
+$ gcc -v # 确保 gcc 成功安装
+$ make -v #确保 make 成功安装
+</code></pre>
+<h3 id="安装其他依赖工具">安装其他依赖工具</h3>
+<h4 id="安装-rsync">安装 rsync</h4>
+<p>在构建 Kubernetes 时，还需要 rsync工具，rsync 是一个常用的文件同步和传输工具，大多数现代操作系统已经预装了 rsync。在 Debian 12 中，可以通过以下命令来安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo apt install rsync
+$ rsync --version # 查看 rsync 是否被成功安装
+</code></pre>
+<h4 id="安装-jq-工具">安装 jq 工具</h4>
+<p>一些 Kubernetes 辅助脚本需要在你的开发环境中安装 jq，这是一个命令行 JSON 处理器，在 Debian 12 中，可以通过以下命令来安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo apt install jq
+$ jq --version # 查看 jq 是否被成功安装
+</code></pre>
+<p>也可以直接访问 <a href="https://jqlang.github.io/jq/download">https://jqlang.github.io/jq/download/</a>，来下载期望的 jq 版本。</p>
+<h4 id="安装-gcloud-命令">安装 gcloud 命令</h4>
+<p>其实，我们用不到 gcloud 命令，但是在后面执行 ./cluster/kubectl.sh 脚本时，如果没有安装 gcloud 命令，脚本会报错。所以，这里我们也把 gcloud 命令安装上，安装命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ wget 'https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-453.0.0-linux-x86_64.tar.gz?hl=zh-cn' -O google-cloud-cli-453.0.0-linux-x86_64.tar.gz
+$ tar -xvzf google-cloud-cli-453.0.0-linux-x86_64.tar.gz
+$ ./google-cloud-sdk/install.sh # 根据需要选择 yes or no 即可
+</code></pre>
+<h4 id="安装-go">安装 go</h4>
+<p>Kubernetes 的构建语言是 Go，所以还需要安装 go 编译命令。在本套课程的最开始的准备阶段，我们已经安装过 go 命令。这里需要注意，编译 Kuberentes v1.30.2，需要 Go 的版本 &gt;= 1.19</p>
+<h4 id="安装-pyyaml">安装 PyYAML</h4>
+<p>一些 Kubernetes 的测试用例，使用到了 <a href="https://pyyaml.org/">PyYAML</a>，因此需要在本地环境中安装它才能成功运行所有验证测试。你可以使用 <a href="https://pyyaml.org/wiki/PyYAMLDocumentation">PyYAML 文档</a> 找到适用于你的平台的安装说明。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ apt install -y python3-pip
+$ apt install pipx
+$ pipx ensurepath
+</code></pre>
+<h4 id="安装-etcd">安装 Etcd</h4>
+<p>Kubernetes 底层使用了 Etcd 作为数据存储引擎，如果想测试 Kubernetes，还需要安装 Etcd，可通过以下命令来安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ ./hack/install-etcd.sh
+$ export PATH=&quot;${PATH}:/root/kubernetes/third_party/etcd&quot;
+</code></pre>
+<h4 id="安装-bash">安装 bash</h4>
+<p>Kubernetes 中内置了大量的 bash 脚本，为了能够成功运行其中的 Shell 脚本，还需要安装 bash，版本应该 &gt; 4.3。大部分操作系统默认已经安装了 bash，你可通过以下命令，来查看 bash 的版本：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ bash --version
+</code></pre>
+<p>提示：如果你准备远程构建或者运行 e2e 测试，还需要安装 gcloud（Google Cloud 平台的命令行工具）命令。这里，我们不远程构建，也不运行 e2e 测试，所以不用安装 gcloud工具。如果你想安装，可以参考文档：<a href="https://cloud.google.com/sdk/downloads">Follow the gcloud installation instructions for your operating system</a>。</p>
+<h2 id="编译指定的-kubernetes-组件">编译指定的 Kubernetes 组件</h2>
+<p>Kubernetes 使用了 Makefile 工具，来提高项目的管理效率。我们可以使用 make 命令，来编译、检查、测试、打包、发布 Kubernetes 源码。具体可以通过 make help 命令来查看 Makefile 提供的可用规则。v1.30.2 版本的 Kubernetes 源码有多大 49 个 Makefile 规则。</p>
+<p>我们可以根据需要执行 Makefile 规则。其中，最重要的规则是编译 Kubernetes 源码。Kubernetes 提供了不同的规则，用来对 Kubernetes 源码进行编译。根据使用频度和重要性，可分为以下 2 种编译类型：</p>
+<ul>
+<li>基本编译方式：提供基本、重要的编译方式。这些编译方式也是日常编译经常用到的；</li>
+<li>进阶编译方式：提供更多的编译方式，用来满足更多的编译需求和场景。</li>
+</ul>
+<h3 id="基本编译方式">基本编译方式</h3>
+<p>我们可以通过构建一部分的 Kubernetes 组件，来发现并解决未就绪的环境问题，最终确保我们有一个就绪的环境，能够完整编译 Kubernetes。</p>
+<p>我们可以在 make 命令行中，指定 WHAT 环境变量来编译指定的 Kubernetes 组件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ KUBE_BUILD_PLATFORMS=linux/amd64 make WHAT=cmd/&lt;subsystem&gt;
+</code></pre>
+<ul>
+<li>KUBE_BUILD_PLATFORMS：指定编译的 OS 和 CPU 架构，提高编译速度。</li>
+<li>内存至少要 4G，否则很可能会报 OOM 错误。这里建议内存 8G 起步。</li>
+</ul>
+<p>如果不指定 KUBE_BUILD_PLATFORMS 环境变量，默认会构建编译时所使用的 OS 和 CPU 架构。</p>
+<p>我们可以将 &lt;subsystem&gt; 替换为 kubernetes cmd/ 目录下的任何目录文件。例如可以使用以下命令来编译 kube-apiserver 组件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make WHAT=cmd/kube-apiserver
+</code></pre>
+<p>上述命令会编译 kube-apiserver 组件，并将成功编译的二进制产出物存放在 _output/bin/ 目录中，文件名就是组件名，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ls -lrt _output/bin/kube-apiserver
+_output/bin/kube-apiserver
+</code></pre>
+<p>如果想构建所有的 Kubernetes 组件可以执行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make all # 或者你也可以执行 make
+</code></pre>
+<p>当然，我们还可以使用最原始的编译方法，直接进入需要编译的组件 main 文件所在的目录中进行编译，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cd cmd/kube-apiserver/
+$ go build -v .
+</code></pre>
+<p>上述命令，会在当前目录下生成编译后的二进制文件 kube-apiserver。</p>
+<h3 id="进阶编译方式">进阶编译方式</h3>
+<p>Kubernetes 构建系统默认限制报告的 Go 编译器错误数量为 10 个。如果你想要移除这个限制，请在命令行中添加 GOGCFLAGS=&quot;-e&quot;。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make WHAT=&quot;cmd/kubectl&quot; GOGCFLAGS=&quot;-e&quot;
+</code></pre>
+<p>你还可以根据需要添加更多的 Go 编译 Flag，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make WHAT=cmd/kube-apiserver GOFLAGS=-v GOGCFLAGS=&quot;-N -l&quot;
+</code></pre>
+<ul>
+<li>GOFLAGS=-v：Go 编译参数，开启 verbose 日志。</li>
+<li>GOGCFLAGS=&quot;-N -l&quot;：Go 编译参数，禁止编译优化和内联，减小可执行程序大小。</li>
+</ul>
+<p>如果你需要在已编译的 Kubernetes 可执行文件上使用调试检查工具，请设置 DBG=1。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make WHAT=&quot;cmd/kubectl&quot; DBG=1
+</code></pre>
+<p>要为所有平台交叉编译 Kubernetes，请运行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make cross
+</code></pre>
+<p>要为特定平台构建二进制文件，请添加 KUBE_BUILD_PLATFORMS=&lt;os&gt;/&lt;arch&gt;。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make cross KUBE_BUILD_PLATFORMS=windows/amd64
+</code></pre>
+<p>组件编译完成后，二进制可执行文件默认生成到 _output/bin 目录下。</p>
+<h2 id="使用特定版本的-go-构建-kubernetes">使用特定版本的 Go 构建 Kubernetes</h2>
+<p>Kubernetes 支持你使用指定的 Go 版本，来编译 Kubernetes 源码。你只需要修改 .go-version 文件，将其中的 Go 版本改成你期望的 Go 版本：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cat .go-version
+1.24.5
+</code></pre>
+<p>Kubernetes Makefile 在构建源码时，Go 版本选择规则如下：</p>
+<ul>
+<li>
+<p>如果操作系统已经安装了 go，并且 go 版本跟 .go-version 文件中的版本不一致，则默认使用 .go-version 文件中指定的版本；</p>
+</li>
+<li>
+<p>如果你不需要出现以上行为，可以执行以下操作之一：</p>
+<ul>
+<li>使用环境变量 GO_VERSION 来直接指定 Go 版本，例如：export GO_VERSION=1.20.10；</li>
+<li>设置 FORCE_HOST_GO 环境变量为一个非空值，这会使 Kubernetes 构建脚本直接使用系统中的 Go 版本。</li>
+</ul>
+</li>
+</ul>
+<p>例如：</p>
+<p>使用 GO_VERSION 直接指定 Go 版本</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ GO_VERSION=go1.22.2c make WHAT=cmd/&lt;subsystem&gt;
+</code></pre>
+<p>使用操作系统中安装的 Go 版本</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">FORCE_HOST_GO=y make WHAT=cmd/&lt;subsystem&gt;
+</code></pre>
+<p>Kubernetes 为什么要默认使用 .go-version文件中指定的 Go 版本呢？是因为 Kubernetes 系统很复杂，为了能够确保本地编译二进制文件的一致性，进而减少环境原因带来的问题，在编译时，Kubernetes 也统一了版本和 Go 版本。由此，可见 Kubernetes 源码在设计上是很严谨的。</p>
+<h1 id="源码测试kubernetes-测试快速入门">源码测试：Kubernetes 测试快速入门</h1>
+<p>因为 Kubernetes 只有在单元测试、集成测试和端到端测试通过后，才会合并 Pull Request。所以，在 Kubernetes 代码开发完成后，还需要在本地成功运行所有的测试用例。</p>
+<p>本小节只是一个测试的快速教程，如果你想了解更多关于 Kubernetes 源码测试的内容，可以参考以下 2 个文档：</p>
+<ul>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/testing.md">Testing Guide</a>；</li>
+<li><a href="https://github.com/kubernetes/community/blob/master/contributors/devel/README.md#sig-testing">SIG Architecture developer guide material</a>。</li>
+</ul>
+<p>Kubernetes 中测试分为以下 4 种：</p>
+<ol>
+<li>预提交验证；</li>
+<li>单元测试；</li>
+<li>集成测试；</li>
+<li>E2E 测试。</li>
+</ol>
+<p><img src="../../../assets/md-images/CGvhbKT6qolQdlxdoJScPDn3nEd.png" alt=""></p>
+<h2 id="预提交验证">预提交验证</h2>
+<p>预提交验证提供了一系列的检查和测试，以使你的 Pull Request 有最大的概率被接受。如果，你需要给 Kubernetes 贡献代码，则需要你在本地运行尽可能多的验证测试。</p>
+<p>Kubernetes 仓库中，hack 目录下，包含了所有的预提交测试用例（执行 hack/verify-*.sh）：</p>
+<p><img src="../../../assets/md-images/EDweb7togogzqmxOtgDcI7k0nmf.png" alt=""></p>
+<p>可以使用以下命令来运行所有的预提交测试用例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make verify
+</code></pre>
+<p>注意，执行 make verify 之前需要确保 Kubernetes 源码目录是干净的。可以通过以下命令来检查源码目录是否干净：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ git status|grep 'nothing to commit, working tree clean' # 查找成功，说明干净
+nothing to commit, working tree clean
+</code></pre>
+<p>如果某个测试失败，一般会有一个更新脚本来帮助解决问题。这些脚本位于 hack/update-*.sh 中。例如，hack/update-gofmt.sh 确保所有源代码文件格式正确。你可以运行以下命令，来执行所有的更新脚本：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make update
+</code></pre>
+<h2 id="单元测试">单元测试</h2>
+<p>新开发的 Kubernetes 源码要想合入 master 分支，还需要通过所有的单元测试用例。可以使用以下命令来执行单元测试：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make test
+</code></pre>
+<p>还可以使用 WHAT 选项来控制测试哪些包和子系统，使用 GOFLAGS 来更改测试的运行方式。例如，要针对一个包运行详细的单元测试，可以执行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make test WHAT=./pkg/apis/core/helper GOFLAGS=-v
+</code></pre>
+<h2 id="集成测试">集成测试</h2>
+<p>新开发的 Kubernetes 源码要想合入 master 分支，还需要通过所有的集成测试用例。注意，集成测试依赖于 etcd 的正确安装。可以执行以下命令来运行集成测试：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make test-integration
+</code></pre>
+<p>可以阅读<a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/integration-tests.md">SIG Testing Integration Tests guide</a>了解更多关于集成测试的介绍。</p>
+<h2 id="e2e-测试">E2E 测试</h2>
+<p>端到端（E2E）测试提供了一种测试系统的端到端行为的机制。E2E 测试的主要目标是确保 Kubernetes 代码库的一致和可靠行为，特别是在单元测试和集成测试不足的领域。</p>
+<p>E2E 测试构建测试二进制文件、启动测试集群、运行测试、然后关闭集群。这里要注意，运行所有的 E2E 测试需要非常长的时间！</p>
+<p>你可以阅读 <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/e2e-tests.md">End-to-End Testing in Kubernetes</a>和<a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/e2e-tests-kubetest2.md">getting started guide for kubetest2</a> 文档，来了解更多关于 E2E 测试的信息。</p>
+<h1 id="本地运行本地快速启动-kubernetes-集群">本地运行：本地快速启动 Kubernetes 集群</h1>
+<h2 id="前置依赖">前置依赖</h2>
+<ol>
+<li>Linux：本套课程推荐基于 Debian12 操作系统，Debian12 是一个 Linux 操作系统；</li>
+<li>容器运行时；</li>
+<li>Etcd；</li>
+<li>Go；</li>
+<li>OpenSSL 和 CFSSL 工具：安装命令如下：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo apt install -y openssl
+$ go install github.com/cloudflare/cfssl/cmd/cfssl@latest
+</code></pre>
+<h2 id="快速启动-kubernetes">快速启动 Kubernetes</h2>
+<p>启动步骤如下：</p>
+<h3 id="根据需要设置环境变量"><strong>根据需要设置环境变量</strong></h3>
+<p>设置 containerd 容器运行时的访问端点。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ export CONTAINER_RUNTIME_ENDPOINT=&quot;unix:///run/containerd/containerd.sock&quot;
+$ export ETCD_PORT=2479
+</code></pre>
+<p>注意，这里需要使用 ETCD_PORT 环境变量重新设置 Etcd 的监听端口，否则会跟 Kind 集群使用的 Etcd 集群的监听端口起冲突。</p>
+<p>你还可以根据需要设置更多的环境变量。可设置的环境变量可在 ./hack/local-up-cluster.sh 脚本顶部找到。</p>
+<h3 id="启用-cri"><strong>启用 CRI</strong></h3>
+<p>v1.30.2 版本的 kubelet 通过 CRI 接口来调用底层的容器运行时，这里我们还要确保 containerd 启用了 CRI 插件。</p>
+<p>在部署阶段我们安装了 docker，并使用 containerd 作为容器运行时，containerd 是一个开源的容器运行时，它能够管理完整的容器生命周期，包括镜像的拉取和管理，容器的执行和监控等。containerd 本身并不直接支持 Kubernetes 的 CRI （Container Runtime Interface），而是通过一个名为 cri 的插件来提供对 CRI 的支持。</p>
+<p>在 containerd 的配置文件（通常位于 /etc/containerd/config.toml）中，disabled_plugins 是一个数组，用于指定需要禁用的插件。</p>
+<p>如果你在 disabled_plugins 中指定了 [&quot;cri&quot;]，那么 containerd 将不会加载 cri 插件，也就是说，containerd 将无法直接作为 Kubernetes 的容器运行时使用。这种情况下，你可能需要通过其他方式（如使用 docker 作为容器运行时，而 docker 底层则使用 containerd）来运行 Kubernetes。</p>
+<p>如果你希望 containerd 直接作为 Kubernetes 的容器运行时，那么你应该确保 cri 插件没有被禁用。你可以通过删除或注释掉 disabled_plugins = [&quot;cri&quot;] 这一行来启用 cri 插件。</p>
+<p>请注意，修改 containerd 的配置后，你需要重启 containerd 服务才能使新的配置生效。在大多数 Linux 发行版中，你可以使用以下命令来重启 containerd：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ sudo systemctl restart containerd
+</code></pre>
+<h3 id="运行快速启动脚本"><strong>运行快速启动脚本</strong></h3>
+<p>打开一个新的 Linux 终端，运行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ cd kubernetes
+$ sed -i 's/etcd \-\-advertise-client-urls/etcd \-\-listen-peer-urls http:\/\/localhost:2382 \-\-advertise-client-urls/g' hack/lib/etcd.sh
+$ ./hack/local-up-cluster.sh # 使用 root 权限启动，用来规避一些权限问题
+</code></pre>
+<p>上述命令，会构建并启动一个非常轻量的本地 Kubernetes 集群，包括一个 master 节点和一个 work 节点。你可以使用 CTRL + C 来关闭 Kubernetes 集群。</p>
+<p>注意：</p>
+<ul>
+<li>我们 kind 集群使用 etcd 的 --listen-peer-urls 默认监听地址为 http://localhost:2380，为了避免冲突，我们需要执行以上 sed 命令，将本地 kubernetes 集群的 etcd 的 --listen-peer-urls 设置为http://localhost:2382。</li>
+<li>启动过程中，因为需要往/目录下拷贝一些权限，所以会弹出输入框，让你输入 root 用户的密码，记得输入下；</li>
+</ul>
+<p>上述命令会启动 etcd、kube-apiserver、kube-scheduler、kubelet、kube-controller-manager 组件，这些组件的日志文件分别：</p>
+<ul>
+<li>/tmp/etcd.log;</li>
+<li>/tmp/kube-apiserver.log;</li>
+<li>/tmp/kube-scheduler.log;</li>
+<li>/tmp/kubelet.log;</li>
+<li>/tmp/kube-controller-manager.log;</li>
+</ul>
+<p>如果，你已经编译过 Kubernetes 各组件源码，可以使用 -O 选项，来跳过编译步骤：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ./hack/local-up-cluster.sh -O
+</code></pre>
+<p>你可以使用 ./cluster/kubectl.sh 脚本，来与新创建的轻量级本地 Kubernetes 集群进行交互，./hack/local-up-cluster.sh 脚本会打印将要运行的命令。</p>
+<p>./hack/local-up-cluster.sh 执行后，如果出现以下日志输出，恭喜你，说明你成功在本地安装了开发测试用的 Kubernetes 集群：</p>
+<p><img src="../../../assets/md-images/P6afbMfZko5hOExtc7tcuN1FnQd.png" alt=""></p>
+<h1 id="本地测试本地-kubernetes-集群测试">本地测试：本地 Kubernetes 集群测试</h1>
+<p>在本地快速运行一个 Kubernetes 集群之后，你一定想测试下 Kubernetes 集群是否成功安装，是否能够正常工作。这时候，你可以尝试通过 kubectl 工具访问新启动的 Kubernetes 集群，或者创建一个简单的 Pod。</p>
+<h2 id="运行一个容器">运行一个容器</h2>
+<p>当 Kubernetes 集群运行起来之后，你可以使用 kubectl 命令行工具，来执行一些命令与本地 Kubernetes 交互：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ export KUBECONFIG=/var/run/kubernetes/admin.kubeconfig
+$ kubectl get pods
+$ kubectl get services
+$ kubectl get replicationcontrollers
+$ kubectl run my-nginx --image=nginx --port=80
+</code></pre>
+<p>提示：不要使用 ./cluster/kubectl.sh 脚本，./cluster/kubectl.sh 脚本依赖 gcloud 等的正确安装。如果没有安装 gcloud组件，却运行了 ./cluster/kubectl.sh 会报以下错误：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ./cluster/kubectl.sh create -f test/fixtures/doc-yaml/user-guide/pod.yaml
+python3: can't open file '/home/colin/lib/gcloud.py': [Errno 2] No such file or directory
+</code></pre>
+<h2 id="运行用户定义的-pod">运行用户定义的 Pod</h2>
+<p>你可以执行以下命令，来运行一个测试 Pod：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl create -f test/fixtures/doc-yaml/user-guide/pod.yaml
+pod/nginx created
+</code></pre>
+<p>可以使用以下命令，来查看 Pod 是否成功创建：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl get pods
+NAME    READY   STATUS              RESTARTS   AGE
+nginx   1/1     Running             0          65s
+</code></pre>
+<p>如果 Pod 处在 Running状态，则说明集群成功安装。</p>
+<h1 id="一些小提示">一些小提示</h1>
+<ol>
+<li>无法创建 replicas &gt; 1 的副本控制器</li>
+</ol>
+<p>这是因为，你运行的测试集群只有 1 个节点。如果你想创建具有多个副本控制器的集群，可以尝试 Kind 集群。</p>
+<ol>
+<li>修改 Kubernetes 源码后，如何重新运行集群？</li>
+</ol>
+<p>你可以通过执行以下命令，来运行集群：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cd kubernetes
+$ make
+$ ./hack/local-up-cluster.sh
+</code></pre>
+<ol>
+<li>kubectl get pods 或者 docker ps 没有显示容器</li>
+</ol>
+<p>一个或多个 Kubernetes 守护程序可能已崩溃。在 /tmp 中跟踪每个守护程序的日志。</p>
+<ol>
+<li>Pod 无法通过主机名访问 Service</li>
+</ol>
+<p>这是因为没有启动 DNS 服务，可以使用以下环境变量来启动 DNS 服务：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ export KUBE_ENABLE_CLUSTER_DNS=true
+$ export KUBE_DNS_SERVER_IP=&quot;10.0.0.10&quot;
+$ export KUBE_DNS_NAME=&quot;cluster.local&quot;
+</code></pre>
+<ol>
+<li>Pod 启动时报：`expected cgroupPath to be of format &quot;slice:prefix:name&quot; for sysnted service 错误</li>
+</ol>
+<p>这是因为，机器上的容器运行时，使用了 systemd cgroup 驱动程序，但默认情况下 ./hack/localup-cluster.sh 使用 cgroupfs。需要将 CGROUP_DRIVER 环境变量设置为 systemd 以使二者保持一致：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ export CGROUP_DRIVER=systemd
+</code></pre>
+<ol>
+<li>选择性运行 kubelet、kube-proxy</li>
+</ol>
+<p>local-up-cluster.sh 提供了 START_MODE 环境变量，可供你选择性运行 kubelet、kube-proxy。例如，如果你不想运行 kubelet，可以执行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ export START_MODE=nokubelet
+$ sudo ./hack/local-up-cluster.sh
+</code></pre>
+<p>START_MODE 支持以下值（字面意思，不多解释）：</p>
+<ul>
+<li>all</li>
+<li>kubeletonly</li>
+<li>nokubelet</li>
+<li>nokubeproxy</li>
+<li>nokubelet,nokubeproxy</li>
+</ul>
+<h1 id="如何魔改并测试-kube-scheduler">如何魔改并测试 kube-scheduler？</h1>
+<p>为了方便测试，我基于 kubernetes 源码目录下的 hack/local-up-cluster.sh 脚本，又封装了以下 2 个脚本：</p>
+<ul>
+<li>
+<p>scripts/local-up-cluster/start-local-cluster.sh：一键启动本地 Kubernetes 集群，封装了以下 2 个核心功能：</p>
+<ul>
+<li>为了避免跟 Kind 集群使用的 Etcd 端口起冲突，修改了 Etcd 启动时的端口设置；</li>
+<li>保存 Kubernetes 各组件的启动命令到 k8s-cmdlines 目录下。</li>
+</ul>
+</li>
+<li>
+<p>scripts/local-up-cluster/restart-component.sh：可以很方便的重启某个 Kubernetes 组件。</p>
+</li>
+</ul>
+<p>具体魔改步骤如下。</p>
+<ol>
+<li><strong>编译 Kubernetes 源码，并启动测试集群</strong></li>
+</ol>
+<p>因为，我们实际对 Kubernetes 进行魔改开发的时候，每次可能只会魔改一个组件，没必要每次都重启整个 Kubernetes 集群。为了达到此目的，我这里先启动整个 Kubernetes 集群，然后再重启其中需要的组件。为此我们需要，执行以下 2 步：</p>
+<p>1） 启动整个 Kubernetes 集群；</p>
+<p>2） 获取某个组件的启动命令，重启时使用。</p>
+<p>启动本地 Kubernetes 集群的命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ cd $GOPATH/src/k8s.io/kubernetes
+$ make all
+$ export LINUX_PASSWORD='onex(#)666' # 为了方便，你可以将该 export 命令加入 $HOME/.bashrc 文件中，但要注意保护 $HOME/.baserc 文件的安全
+$ nohup $ONEX_ROOT/scripts/local-up-cluster/start-local-cluster.sh &amp;
+</code></pre>
+<p>start-local-cluster.sh 会保存 Kubernetes 组件的启动命令行到 _output/k8s-cmdlines 目录下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ls _output/k8s-cmdlines/
+kube-apiserver  kube-controller-manager  kubelet  kube-proxy  kube-scheduler
+</code></pre>
+<p><strong>进入 kubernetes 源码目录</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cd $GOPATH/src/k8s.io/kubernetes
+</code></pre>
+<p><strong>魔改 kube-scheduler 源码</strong></p>
+<p>为了，快速验证整个二次开发流程，我们这里只对 kube-scheduler 作最简单的代码修改。这里，我们在 Run 函数中打印一条 Hello World 消息（位于 <a href="https://github.com/kubernetes/kubernetes/blob/v1.28.3/cmd/kube-scheduler/app/server.go#L157">cmd/kube-scheduler/app/server.go</a> 文件中）：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-go">// Run executes the scheduler based on the given configuration. It only returns on error or when context is done.
+func Run(ctx context.Context, cc *schedulerserverconfig.CompletedConfig, sched *scheduler.Scheduler) error {
+    logger := klog.FromContext(ctx)
+
+    // ...
+
+    logger.Info(&quot;When you see this message, it means the code has been successfully modified and executed.&quot;)
+
+    // ...
+}
+</code></pre>
+<p><strong>编译修改后的源码</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make WHAT=cmd/kube-scheduler
+</code></pre>
+<p><strong>启动 kube-scheduler</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-go">$ $ONEX_ROOT/scripts/local-up-cluster/restart-component.sh kube-scheduler
+I1124 11:30:46.917350  121581 flags.go:64] FLAG: --allow-metric-labels=&quot;[]&quot;
+I1124 11:30:46.917467  121581 flags.go:64] FLAG: --authentication-kubeconfig=&quot;/var/run/kubernetes/scheduler.kubeconfig&quot;
+I1124 11:30:46.917492  121581 flags.go:64] FLAG: --authentication-skip-lookup=&quot;false&quot;
+I1124 11:30:46.917506  121581 flags.go:64] FLAG: --authentication-token-webhook-cache-ttl=&quot;10s&quot;
+I1124 11:30:46.917516  121581 flags.go:64] FLAG: --authentication-tolerate-lookup-failure=&quot;true&quot;
+...
+I1124 11:30:47.708178  121581 server.go:158] &quot;When you see this message, it means the code has been successfully modified and executed.&quot;
+...
+</code></pre>
+<p>可以看到，kube-scheduler 的输出中，包含了我们新增的 logger.Info 日志调用，说明代码魔改，并测试成功。之后，你可以根据需要对 kube-scheduler 作更多、更深入的魔改，并编译测试。</p>
+<h1 id="总结">总结</h1>
+<p>如果想学习 Kubernetes 源码，最重要的开始就是能够编译并运行 Kubernetes 源码。本节课，详细介绍了 Kubernetes 提供的各种源码编译方式，并告诉你如何基于构建产物快速启动一个本地开发测试用的 Kubernetes 集群。</p>
+<p>本节课，最后还给你演示了，如何魔改 kube-sheduler 组件，这是一个 Hello World 魔改示例。之后，你可以根据需要进行任何魔改，并在魔改过程中学习 Kubernetes 源码。</p>
+<h1 id="课后练习">课后练习</h1>
+<p>克隆 Kubernetes 源码，并执行 make命令，编译所有的 Kubernetes 源码；</p>
+<p>运行 ./hack/local-up-cluster.sh脚本，在本地快速启动一个测试用的 Kubernetes 集群；</p>
+<p>魔改 kube-scheduler 源码，并重启 kube-scheduler 组件，观察魔改内容是否生效。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

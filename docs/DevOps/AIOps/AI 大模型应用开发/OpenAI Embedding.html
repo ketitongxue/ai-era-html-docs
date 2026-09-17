@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAI Embedding</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="openai-embedding">OpenAI Embedding</h1>
+<p>快速上手 OpenAI Embedding</p>
+<p>第一个 Demo</p>
+<p>openai_api/embedding.ipynb</p>
+<h1 id="openai-大模型开发指南">OpenAI 大模型开发指南</h1>
+<h2 id="openai-语言模型总览">OpenAI 语言模型总览</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>MODELS</th>
+<th>DESCRIPTION</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://platform.openai.com/docs/models/embeddings">embeddings</a></td>
+<td>A set of models that can convert text into a numerical form</td>
+</tr>
+<tr>
+<td><a href="https://platform.openai.com/docs/models/gpt-4">GPT-4</a></td>
+<td>A set of models that improve on GPT-3.5 and can understand as well as generate natural language or code</td>
+</tr>
+<tr>
+<td>GPT-3.5</td>
+<td>A set of models that improve on GPT-3 and can understand as well as generate natural language or code</td>
+</tr>
+<tr>
+<td>GPT-3</td>
+<td>A set of models that can understand and generate natural language</td>
+</tr>
+<tr>
+<td>Moderation</td>
+<td>A fine-tuned model that can detect whether text may be sensitive or unsafe</td>
+</tr>
+<tr>
+<td><a href="https://platform.openai.com/docs/deprecations">Deprecated</a></td>
+<td>A full list of models that have been deprecated</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="openai-模型基准测试与微调">OpenAI 模型基准测试与微调</h2>
+<p>根据基准测试的结果可以反推是什么规模的模型</p>
+<h2 id="token-计费与计算">Token 计费与计算</h2>
+<p>每个模型都具有不同的功能和价格。价格是按照每1000个 Token 计算的。您可以将Token视为单词的组成部分，其中1000个Token 大约相当于750个单词。（这段文字包含35个Token）</p>
+<p>tiktoken: a fast BPE(Byte pair encoding) Tokenizer</p>
+<h1 id="openai-api-入门与实战">OpenAI API 入门与实战</h1>
+<h2 id="openai-models-api">OpenAI Models API</h2>
+<h3 id="list-models">List Models</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">GET https://api.openai.com/v1/models
+</code></pre>
+<h2 id="openai-completions-api">OpenAI Completions API</h2>
+<p>文本补全API：给定一个Prompt，模型将返回一个或多个文本生成结果，并且还可以返回每个位置上备选tokens的概率。</p>
+<h2 id="openai-chat-completions-api">OpenAI Chat Completions API</h2>
+<p>聊天补全API： 给定一个包含对话的消息列表，返回模型生成的消息作为输出。尽管聊天格式旨在使多轮对话变得简单，但它同样适用于没有任何对话的单轮任务。</p>
+<h2 id="completions-vs-chat-completions">Completions vs Chat Completions</h2>
+<p>The chat completions format can be made similar to the completions format by constructing a request using a single user message. For example, one can translate from English to French with the following completions prompt:</p>
+<p><strong>Translate the following English text to French: &quot;{text}&quot;</strong></p>
+<p>And an equivalent chat prompt would be:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">[
+    {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: 'Translate the following English text to French: &quot;{text}”’
+    }
+]
+</code></pre>
+<h1 id="openai-大模型应用实践">OpenAI 大模型应用实践</h1>
+<h2 id="文本内容补全初探text-completion">文本内容补全初探（Text Completion）</h2>
+<h2 id="聊天机器人初探chat-completion">聊天机器人初探（Chat Completion）</h2>
+<h2 id="使用-tiktoken-计算-token-数量">使用 tiktoken 计算 token 数量</h2>
+<p><a href="https://github.com/openai/tiktoken/blob/main/README.md"><code>tiktoken</code></a>是OpenAI开发的一种BPE分词器。</p>
+<p>给定一段文本字符串（例如，<code>&quot;tiktoken is great!&quot;</code>）和一种编码方式（例如，<code>&quot;cl100k_base&quot;</code>），分词器可以将文本字符串切分成一系列的token（例如，<code>[&quot;t&quot;, &quot;ik&quot;, &quot;token&quot;, &quot; is&quot;, &quot; great&quot;, &quot;!&quot;]</code>）。</p>
+<p>将文本字符串切分成token非常有用，因为GPT模型看到的文本就是以token的形式呈现的。知道一段文本字符串中有多少个token可以告诉你（a）这个字符串是否对于文本模型来说太长了而无法处理，以及（b）一个OpenAI API调用的费用是多少（因为使用量是按照token计价的）。</p>
+<h3 id="编码方式">编码方式</h3>
+<p>编码方式规定了如何将文本转换成token。不同的模型使用不同的编码方式。</p>
+<p><code>tiktoken</code> 支持OpenAI模型使用的三种编码方式：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>编码名称</th>
+<th>OpenAI模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cl100k_base</td>
+<td>gpt-4，text-embedding-ada-002</td>
+</tr>
+<tr>
+<td>p50k_base</td>
+<td>Codex模型, text-davinci-002, text-davinci-003</td>
+</tr>
+<tr>
+<td>50k_base 或 gpt2</td>
+<td>像 `davinci` 这样的GPT-3模型</td>
+</tr>
+</tbody>
+</table></div>
+<p>你可以使用 <code>tiktoken.encoding_for_model()</code> 获取一个模型的编码方式，如下所示：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
+</code></pre>
+<p>注意，<code>p50k_base</code> 与 <code>r50k_base</code> 有很大的重叠，对于非代码应用，它们通常会产生相同的token。</p>
+<h3 id="不同语言的分词器库">不同语言的分词器库</h3>
+<p>对于 <code>cl100k_base</code> 和 <code>p50k_base</code> 编码方式：</p>
+<ul>
+<li>Python: <a href="https://github.com/openai/tiktoken/blob/main/README.md">tiktoken</a></li>
+<li>.NET / C#: <a href="https://github.com/dmitry-brazhenko/SharpToken">SharpToken</a>, <a href="https://github.com/aiqinxuancai/TiktokenSharp">TiktokenSharp</a></li>
+<li>Java: <a href="https://github.com/knuddelsgmbh/jtokkit">jtokkit</a></li>
+</ul>
+<p>对于 <code>r50k_base</code> (<code>gpt2</code>) 编码方式，许多语言都提供了分词器。</p>
+<ul>
+<li>Python: <a href="https://github.com/openai/tiktoken/blob/main/README.md">tiktoken</a> (或者另选 <a href="https://huggingface.co/docs/transformers/model_doc/gpt2#transformers.GPT2TokenizerFast">GPT2TokenizerFast</a>)</li>
+<li>JavaScript: <a href="https://www.npmjs.com/package/gpt-3-encoder">gpt-3-encoder</a></li>
+<li>.NET / C#: <a href="https://github.com/dluc/openai-tools">GPT Tokenizer</a></li>
+<li>Java: <a href="https://github.com/hyunwoongko/gpt2-tokenizer-java">gpt2-tokenizer-java</a></li>
+<li>PHP: <a href="https://github.com/CodeRevolutionPlugins/GPT-3-Encoder-PHP">GPT-3-Encoder-PHP</a></li>
+</ul>
+<p>（OpenAI对第三方库不做任何背书或保证。）</p>
+<h3 id="如何进行通常的分词操作">如何进行通常的分词操作</h3>
+<p>在英语中，token的长度通常在一个字符到一个单词之间变化（例如，<code>&quot;t&quot;</code> 或 <code>&quot; great&quot;</code>），尽管在某些语言中，token可以比一个字符短或比一个单词长。空格通常与单词的开头一起分组（例如，<code>&quot; is&quot;</code> 而不是 <code>&quot;is &quot;</code> 或 <code>&quot; &quot;</code>+<code>&quot;is&quot;</code>）。你可以快速在 <a href="https://beta.openai.com/tokenizer">OpenAI分词器</a> 检查一段字符串如何被分词。</p>
+<h3 id="安装-tiktoken">安装 <code>tiktoken</code></h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">pip install --upgrade tiktoken
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">import tiktoken
+</code></pre>
+<h3 id="load-an-encoding">Load an encoding</h3>
+<p>使用<code>tiktoken.get_encoding()</code>按名称加载编码。</p>
+<p>第一次运行时，它将需要互联网连接进行下载。后续运行不需要互联网连接。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">encoding = tiktoken.get_encoding(&quot;cl100k_base&quot;)
+</code></pre>
+<p>使用<code>tiktoken.encoding_for_model()</code>函数可以自动加载给定模型名称的正确编码。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">encoding = tiktoken.encoding_for_model(&quot;gpt-3.5-turbo&quot;)
+</code></pre>
+<h3 id="turn-text-into-tokens-with-encodingencode">Turn text into tokens with <code>encoding.encode()</code></h3>
+<p>The <code>.encode()</code> method converts a text string into a list of token integers.</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">encoding.encode(&quot;tiktoken is great!&quot;)
+</code></pre>
+<p>通过计算<code>.encode()</code>返回的列表的长度来统计token数量。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">def num_tokens_from_string(string: str, encoding_name: str) -&gt; int:
+    &quot;&quot;&quot;返回文本字符串中的Token数量&quot;&quot;&quot;
+    encoding = tiktoken.get_encoding(encoding_name)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
+num_tokens_from_string(&quot;tiktoken is great!&quot;, &quot;cl100k_base&quot;)
+</code></pre>
+<h3 id="turn-tokens-into-text-with-encodingdecode">Turn tokens into text with <code>encoding.decode()</code></h3>
+<p><code>.decode()</code>将一个token整数列表转换为字符串。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">encoding.decode([83, 1609, 5963, 374, 2294, 0])
+encoding.decode([0,1,2,3])
+</code></pre>
+<p><strong>注意：尽管</strong><code>.decode()</code><strong>可以应用于单个token，但对于不在 utf-8 边界上的token来说，解码可能会有损失或错误。</strong></p>
+<p>对于单个token，<code>.decode_single_token_bytes()</code> 安全地将单个整数token转换为其表示的字节。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">[encoding.decode_single_token_bytes(token) for token in [83, 1609, 5963, 374, 2294, 0]]
+</code></pre>
+<h3 id="comparing-encodings">Comparing encodings</h3>
+<p>不同的编码方式在分割单词、处理空格和非英文字符方面存在差异。通过上述方法，我们可以比较几个示例字符串在不同的编码方式下的表现。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">def compare_encodings(example_string: str) -&gt; None:
+    &quot;&quot;&quot;Prints a comparison of three string encodings.&quot;&quot;&quot;
+    # print the example string
+    print(f'\nExample string: &quot;{example_string}&quot;')
+    # for each encoding, print the # of tokens, the token integers, and the token bytes
+    for encoding_name in [&quot;gpt2&quot;, &quot;p50k_base&quot;, &quot;cl100k_base&quot;]:
+        encoding = tiktoken.get_encoding(encoding_name)
+        token_integers = encoding.encode(example_string)
+        num_tokens = len(token_integers)
+        token_bytes = [encoding.decode_single_token_bytes(token) for token in token_integers]
+        print()
+        print(f&quot;{encoding_name}: {num_tokens} tokens&quot;)
+        print(f&quot;token integers: {token_integers}&quot;)
+        print(f&quot;token bytes: {token_bytes}&quot;)
+compare_encodings(&quot;antidisestablishmentarianism&quot;)
+compare_encodings(&quot;2 + 2 = 4&quot;)
+compare_encodings(&quot;お誕生日おめでとう&quot;)
+</code></pre>
+<h3 id="counting-tokens-for-chat-completions-api-calls">Counting tokens for chat completions API calls</h3>
+<p>ChatGPT模型，如gpt-3.5-turbo和gpt-4，与旧的完成模型一样使用token，但由于其基于消息的格式，很难准确计算对话中将使用多少个token。</p>
+<p>下面是一个示例函数，用于计算传递给gpt-3.5-turbo或gpt-4的消息中的token数量。</p>
+<p>请注意，从消息中计算token的确切方式可能因模型而异。请将下面函数中的计数视为估计值，并非永恒保证。</p>
+<p>特别地，在使用可选功能输入(input)的请求上方会消耗额外的token。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 定义函数 num_tokens_from_messages，该函数返回由一组消息所使用的token数。
+def num_tokens_from_messages(messages, model=&quot;gpt-3.5-turbo&quot;):
+    &quot;&quot;&quot;Return the number of tokens used by a list of messages.&quot;&quot;&quot;
+    # 尝试获取模型的编码
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        # 如果模型没有找到，使用 cl100k_base 编码并给出警告
+        print(&quot;Warning: model not found. Using cl100k_base encoding.&quot;)
+        encoding = tiktoken.get_encoding(&quot;cl100k_base&quot;)
+    # 针对不同的模型设置token数量
+    if model in {
+        &quot;gpt-3.5-turbo-0613&quot;,
+        &quot;gpt-3.5-turbo-16k-0613&quot;,
+        &quot;gpt-4-0314&quot;,
+        &quot;gpt-4-32k-0314&quot;,
+        &quot;gpt-4-0613&quot;,
+        &quot;gpt-4-32k-0613&quot;,
+        }:
+        tokens_per_message = 3
+        tokens_per_name = 1
+    elif model == &quot;gpt-3.5-turbo-0301&quot;:
+        tokens_per_message = 4  # 每条消息遵循 {role/name}\n{content}\n 格式
+        tokens_per_name = -1  # 如果有名字，角色会被省略
+    elif &quot;gpt-3.5-turbo&quot; in model:
+        # 对于 gpt-3.5-turbo 模型可能会有更新，此处返回假设为 gpt-3.5-turbo-0613 的token数量，并给出警告
+        print(&quot;Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.&quot;)
+        return num_tokens_from_messages(messages, model=&quot;gpt-3.5-turbo-0613&quot;)
+    elif &quot;gpt-4&quot; in model:
+        # 对于 gpt-4 模型可能会有更新，此处返回假设为 gpt-4-0613 的token数量，并给出警告
+        print(&quot;Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.&quot;)
+        return num_tokens_from_messages(messages, model=&quot;gpt-4-0613&quot;)
+    else:
+        # 对于没有实现的模型，抛出未实现错误
+        raise NotImplementedError(
+            f&quot;&quot;&quot;num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.&quot;&quot;&quot;
+        )
+    num_tokens = 0
+    # 计算每条消息的token数
+    for message in messages:
+        num_tokens += tokens_per_message
+        for key, value in message.items():
+            num_tokens += len(encoding.encode(value))
+            if key == &quot;name&quot;:
+                num_tokens += tokens_per_name
+    num_tokens += 3  # 每条回复都以助手为首
+    return num_tokens
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 让我们验证上面的函数是否与OpenAI API的响应匹配
+
+# OpenAI Python SDK v1.0 更新后的使用方式
+from openai import OpenAI
+client = OpenAI()
+
+
+example_messages = [
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;content&quot;: &quot;You are a helpful, pattern-following assistant that translates corporate jargon into plain English.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;name&quot;: &quot;example_user&quot;,
+        &quot;content&quot;: &quot;New synergies will help drive top-line growth.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;name&quot;: &quot;example_assistant&quot;,
+        &quot;content&quot;: &quot;Things working well together will increase revenue.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;name&quot;: &quot;example_user&quot;,
+        &quot;content&quot;: &quot;Let's circle back when we have more bandwidth to touch base on opportunities for increased leverage.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;name&quot;: &quot;example_assistant&quot;,
+        &quot;content&quot;: &quot;Let's talk later when we're less busy about how to do better.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;This late pivot means we don't have time to boil the ocean for the client deliverable.&quot;,
+    },
+]
+
+for model in [
+    &quot;gpt-3.5-turbo-0613&quot;,
+    &quot;gpt-3.5-turbo&quot;,
+    &quot;gpt-4-0613&quot;,
+    &quot;gpt-4&quot;,
+    ]:
+    print(model)
+    # example token count from the function defined above
+    print(f&quot;{num_tokens_from_messages(example_messages, model)} prompt tokens counted by num_tokens_from_messages().&quot;)
+    # example token count from the OpenAI API
+    # OpenAI Python SDK v1.0 更新后的使用方式
+    completion = client.chat.completions.create(
+        model=model,
+        messages=example_messages,
+        temperature=0,
+        max_tokens=1,  # we're only counting input tokens here, so let's not waste tokens on the output
+    )
+    print(f'{completion.usage.prompt_tokens} prompt tokens counted by the OpenAI API.')
+    print()
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

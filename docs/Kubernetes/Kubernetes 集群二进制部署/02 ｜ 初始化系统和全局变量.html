@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 | 初始化系统和全局变量</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="02--初始化系统和全局变量">02 | 初始化系统和全局变量</h1>
+<h1 id="集群规划">集群规划</h1>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>节点名</th>
+<th>IP</th>
+<th>规格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k8s-01</td>
+<td>172.16.0.4（内）</td>
+<td>4C8G5M</td>
+</tr>
+<tr>
+<td>k8s-02</td>
+<td>172.16.0.8（内）</td>
+<td>2C2G1M</td>
+</tr>
+</tbody>
+</table></div>
+<p>上述 2 台机器混合部署本教程的 Etcd、Master 节点和 Worker 节点。</p>
+<p>如果你想部署 3 节点容灾的 Kubernetes 集群，只需要修改以下几个地方即可：</p>
+<p>修改 environment.sh脚本文件，将新节点按其他节点的配置格式在NODE_IPS、NODE_NAMES、ETCD_ENDPOINTS、ETCD_NODES 变量中更新；</p>
+<p>创建 CSR 文件时，将新的节点 IP 添加到 hosts字段中；</p>
+<p>修改  for (( i=0; i &lt; 2; i++ ))中的 2为 3；</p>
+<p>所有需要在每个节点执行的命令，都需要在新节点执行。</p>
+<p><strong>注意：如果没有特殊说明，需要在所有节点上执行本课程的初始化操作。</strong></p>
+<h1 id="设置主机名">设置主机名</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">hostnamectl set-hostname k8s-01 # 登录 k8s-01 机器，执行 hostnamectl 命令
+hostnamectl set-hostname k8s-02 # 登录 k8s-02 机器，执行 hostnamectl 命令
+</code></pre>
+<p>如果 DNS 不支持主机名称解析，还需要在每台机器的 /etc/hosts 文件中添加主机名和 IP 的对应关系：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cat &gt;&gt; /etc/hosts &lt;&lt;EOF
+172.16.0.4 k8s-01
+172.16.0.8 k8s-02
+EOF
+</code></pre>
+<p>退出，重新登录 root 账号，可以看到主机名生效。</p>
+<h1 id="添加节点信任关系">添加节点信任关系</h1>
+<p>以下操作要在所有节点上执行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">sed -i 's/PubkeyAuthentication no/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/^#\s*\(AuthorizedKeysFile\s\+.*\)/\1/' /etc/ssh/sshd_config
+systemctl restart sshd
+</code></pre>
+<p>以下操作只需要在 k8s-master-01 节点上进行，设置 root 账户可以免密登录<strong>所有节点</strong>：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ssh-keygen -t rsa
+ssh-copy-id root@k8s-01
+ssh-copy-id root@k8s-02
+</code></pre>
+<p>添加完节点信任关系之后，最好手动分别执行 <code>ssh root@k8s-master-01、ssh root@k8s-master-02、ssh root@k8s-master-03</code> 命令测试下是否可以无密码登录，防止因为 sshd 配置的原因，引起的无密码登录失败。</p>
+<h1 id="更新-path-变量">更新 PATH 变量</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">echo 'export PATH=/opt/k8s/bin:$PATH' &gt;&gt; $HOME/.bashrc
+source /root/.bashrc
+</code></pre>
+<p>/opt/k8s/bin 目录保存本课程下载的安装文件。</p>
+<h1 id="安装依赖包">安装依赖包</h1>
+<p>在部署 Kubernetes 集群之前需要在所有节点上安装必要的依赖，安装命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">apt-get update
+apt install -y policycoreutils jq chrony conntrack ipvsadm ipset jq iptables curl sysstat wget socat git
+</code></pre>
+<ul>
+<li>本课程的 kube-proxy 使用 ipvs 模式，ipvsadm 为 ipvs 的管理工具；</li>
+<li>Etcd 集群各机器需要时间同步，chrony 用于系统时间同步；</li>
+<li>如果 <code>apt-get update</code> 提示 <code>E: The repository 'cdrom://[Debian GNU/Linux 12.5.0 </code><em><code>Bookworm</code></em><code> - Official amd64 DVD Binary-1 with firmware 20240210-11:28] bookworm Release' does not have a Release file.</code> 修改 <code>/etc/apt/sources.list</code> 注释对应行</li>
+</ul>
+<h1 id="关闭防火墙">关闭防火墙</h1>
+<p>关闭防火墙，清理防火墙规则，设置默认转发策略：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">systemctl stop nftables
+systemctl disable nftables
+iptables -F &amp;&amp; iptables -X &amp;&amp; iptables -F -t nat &amp;&amp; iptables -X -t nat
+iptables -P FORWARD ACCEPT
+</code></pre>
+<h1 id="关闭-swap-分区">关闭 swap 分区</h1>
+<p>关闭 swap 分区，否则 kubelet 会启动失败(可以设置 kubelet 启动参数 --fail-swap-on 为 false 关闭 swap 检查)：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">swapoff -a
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+</code></pre>
+<h1 id="关闭-selinux">关闭 SELinux</h1>
+<p>关闭 SELinux，否则 kubelet 挂载目录时可能报错 Permission denied：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+</code></pre>
+<h1 id="优化内核参数">优化内核参数</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cat &gt; kubernetes.conf &lt;&lt;EOF
+net.ipv4.ip_forward=1
+net.ipv4.tcp_tw_recycle=0
+net.ipv4.neigh.default.gc_thresh1=1024
+net.ipv4.neigh.default.gc_thresh2=2048
+net.ipv4.neigh.default.gc_thresh3=4096
+vm.swappiness=0
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_instances=8192
+fs.inotify.max_user_watches=1048576
+fs.file-max=52706963
+fs.nr_open=52706963
+net.ipv6.conf.all.disable_ipv6=1
+EOF
+
+cp kubernetes.conf  /etc/sysctl.d/kubernetes.conf
+sysctl -p /etc/sysctl.d/kubernetes.conf
+</code></pre>
+<p>关闭 tcp_tw_recycle，否则与 NAT 冲突，可能导致服务不通；</p>
+<h1 id="设置系统时区">设置系统时区</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">timedatectl set-timezone Asia/Shanghai
+</code></pre>
+<h1 id="设置系统时钟同步">设置系统时钟同步</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">systemctl enable chrony
+systemctl start chrony
+</code></pre>
+<p>查看同步状态：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">timedatectl status
+</code></pre>
+<p>输出：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">root@k8s-01:~# timedatectl status
+               Local time: Sun 2025-05-11 17:24:28 CST
+           Universal time: Sun 2025-05-11 09:24:28 UTC
+                 RTC time: Sun 2025-05-11 09:24:28
+                Time zone: Asia/Shanghai (CST, +0800)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+</code></pre>
+<ul>
+<li>System clock synchronized: yes，表示时钟已同步；</li>
+<li>NTP service: active，表示开启了时钟同步服务；</li>
+</ul>
+<p>执行以下命令将当前的 UTC 时间写入硬件时钟：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 将当前的 UTC 时间写入硬件时钟
+timedatectl set-local-rtc 0
+
+# 重启依赖于系统时间的服务
+systemctl restart rsyslog
+systemctl restart chrony
+</code></pre>
+<h1 id="关闭无关的服务">关闭无关的服务</h1>
+<p>以下服务如果有开启则关闭，没有开启则忽略：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">systemctl stop postfix &amp;&amp; systemctl disable postfix
+</code></pre>
+<h1 id="创建相关安装目录">创建相关安装目录</h1>
+<p>创建安装目录命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">mkdir -p /opt/k8s/{bin,work} /etc/{kubernetes,etcd}/cert
+</code></pre>
+<h1 id="分发集群配置参数脚本">分发集群配置参数脚本</h1>
+<p>后续使用的环境变量都定义在文件 environment.sh 中，请根据<strong>自己的机器、网络情况</strong>修改。然后拷贝到<strong>所有</strong>节点。本套课程部署时使用的 <a href="https://github.com/superproj/kubernetes-installation-wizard/blob/master/manifests/environment.sh">environment.sh</a> 内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">#!/usr/bin/bash
+
+# 生成 EncryptionConfig 所需的加密 key
+export ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
+
+# 集群各机器 IP 数组
+export NODE_IPS=(172.16.0.4 172.16.0.8)
+
+# 集群各 IP 对应的主机名数组
+export NODE_NAMES=(k8s-01 k8s-02)
+
+# etcd 集群服务地址列表
+export ETCD_ENDPOINTS=&quot;https://172.16.0.4:2379,https://172.16.0.8:2379&quot;
+
+# etcd 集群间通信的 IP 和端口
+export ETCD_NODES=&quot;k8s-01=https://172.16.0.4:2380,k8s-02=https://172.16.0.8:2380&quot;
+
+# kube-apiserver 的反向代理(kube-nginx)地址端口
+export KUBE_APISERVER=&quot;https://127.0.0.1:8443&quot;
+
+# 节点间互联网络接口名称
+export IFACE=&quot;eth0&quot;
+
+# etcd 数据目录
+export ETCD_DATA_DIR=&quot;/data/k8s/etcd/data&quot;
+
+# etcd WAL 目录，建议是 SSD 磁盘分区，或者和 ETCD_DATA_DIR 不同的磁盘分区
+export ETCD_WAL_DIR=&quot;/data/k8s/etcd/wal&quot;
+
+# k8s 各组件数据目录
+export K8S_DIR=&quot;/data/k8s/k8s&quot;
+
+## DOCKER_DIR 和 CONTAINERD_DIR 二选一
+# docker 数据目录
+export DOCKER_DIR=&quot;/data/k8s/docker&quot;
+
+# containerd 数据目录
+export CONTAINERD_DIR=&quot;/data/k8s/containerd&quot;
+
+## 以下参数一般不需要修改
+
+# TLS Bootstrapping 使用的 Token，可以使用命令 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
+BOOTSTRAP_TOKEN=&quot;41f7e4ba8b7be874fcff18bf5cf41a7c&quot;
+
+# 最好使用 当前未用的网段 来定义服务网段和 Pod 网段
+
+# 服务网段，部署前路由不可达，部署后集群内路由可达(kube-proxy 保证)
+SERVICE_CIDR=&quot;10.254.0.0/16&quot;
+
+# Pod 网段，建议 /16 段地址，部署前路由不可达，部署后集群内路由可达(flanneld 保证)
+CLUSTER_CIDR=&quot;172.30.0.0/16&quot;
+
+# 服务端口范围 (NodePort Range)
+export NODE_PORT_RANGE=&quot;30000-32767&quot;
+
+# kubernetes 服务 IP (一般是 SERVICE_CIDR 中第一个IP)
+export CLUSTER_KUBERNETES_SVC_IP=&quot;10.254.0.1&quot;
+
+# 集群 DNS 服务 IP (从 SERVICE_CIDR 中预分配)
+export CLUSTER_DNS_SVC_IP=&quot;10.254.0.2&quot;
+
+# 集群 DNS 域名（末尾不带点号）
+export CLUSTER_DNS_DOMAIN=&quot;cluster.local&quot;
+
+# 将二进制目录 /opt/k8s/bin 加到 PATH 中
+export PATH=/opt/k8s/bin:$PATH
+</code></pre>
+<p>根据部署的节点信息修改了以下环境变量的值：NODE_IPS、NODE_NAMES、ETCD_ENDPOINTS、ETCD_NODES。</p>
+<p>执行以下命令，将 environment.sh 文件分发到所有节点上：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">source environment.sh # 先修改
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    scp environment.sh root@${node_ip}:/opt/k8s/bin/
+    ssh root@${node_ip} &quot;chmod +x /opt/k8s/bin/*&quot;
+  done
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

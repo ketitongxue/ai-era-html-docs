@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>压缩：如何回收旧版本数据？</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="压缩如何回收旧版本数据">压缩：如何回收旧版本数据？</h1>
+<p>etcd中的每一次更新、删除key操作，treeIndex的keyIndex索引中都会追加一个版本号，在boltdb中会生成一个新版本boltdb key和value。也就是随着你不停更新、删除，你的etcd进程内存占用和db文件就会越来越大。很显然，这会导致etcd OOM和db大小增长到最大db配额，最终不可写。</p>
+<p>那么etcd是通过什么机制来回收历史版本数据，控制索引内存占用和db大小的呢？</p>
+<p>这就是我今天要和你分享的etcd压缩机制。希望通过今天的这节课，能帮助你理解etcd压缩原理，在使用etcd过程中能根据自己的业务场景，选择适合的压缩策略，避免db大小增长失控而不可写入，帮助你构建稳定的etcd服务。</p>
+<h2 id="整体架构"><strong>整体架构</strong></h2>
+<p><img src="../../../../assets/md-images/VkTwb790OoJTANx3xZucz8Bpnjg.png" alt="图片展示了etcd压缩模块的整体架构。左侧从clientv3 KV/Compact发起Compact操作，经gRPC KV Server、Raft Apply，到Store Compact Job。右侧有keyIndex、Compact index、treelndex等结构，以及Backend/bolt db。关键部分是Compact操作由Periodic和Revision触发，Update CompactRev、FIFO Scheduled、Schedule Compaction等流程，Range/Delete Key操作，还有Backend/bolt db。此图与上下文介绍etcd压缩机制相呼应，直观呈现了压缩模块的运作流程。"></p>
+<p>在了解etcd压缩模块实现细节前，我先给你画了一幅压缩模块的整体架构图。从图中可知，你可以通过client API发起人工的压缩(Compact)操作，也可以配置自动压缩策略。在自动压缩策略中，你可以根据你的业务场景选择合适的压缩模式。目前etcd支持两种压缩模式，分别是时间周期性压缩和版本号压缩。</p>
+<p>当你通过API发起一个Compact请求后，KV Server收到Compact请求提交到Raft模块处理，在Raft模块中提交后，Apply模块就会通过MVCC模块的Compact接口执行此压缩任务。</p>
+<p>Compact接口首先会更新当前server已压缩的版本号，并将耗时昂贵的压缩任务保存到FIFO队列中异步执行。压缩任务执行时，它首先会压缩treeIndex模块中的keyIndex索引，其次会遍历boltdb中的key，删除已废弃的key。</p>
+<p>以上就是压缩模块的一个工作流程。接下来我会首先和你介绍如何人工发起一个Compact操作，然后详细介绍周期性压缩模式、版本号压缩模式的工作原理，最后再给你介绍Compact操作核心的原理。</p>
+<h2 id="压缩特性初体验"><strong>压缩特性初体验</strong></h2>
+<p>在使用etcd过程中，当你遇到&quot;etcdserver: mvcc: database space exceeded&quot;错误时，若是你未开启压缩策略导致db大小达到配额，这时你可以使用etcdctl compact命令，主动触发压缩操作，回收历史版本。</p>
+<p>如下所示，你可以先通过endpoint status命令获取etcd当前版本号，然后再通过etcdctl compact命令发起压缩操作即可。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 获取etcd当前版本号
+$ rev=$(etcdctl endpoint status --write-out=&quot;json&quot; | egrep -o '&quot;revision&quot;:[0-9]*' | egrep -o '[0-9].*')
+$ echo $rev
+9
+# 执行压缩操作，指定压缩的版本号为当前版本号
+$ etcdctl compact $rev
+Compacted revision 9
+# 压缩一个已经压缩的版本号
+$ etcdctl compact $rev
+Error: etcdserver: mvcc: required revision has been compacted
+# 压缩一个比当前最大版号大的版本号
+$ etcdctl compact 12
+Error: etcdserver: mvcc: required revision is a future revision
+​
+</code></pre>
+<p>请注意，如果你压缩命令传递的版本号小于等于当前etcd server记录的压缩版本号，etcd server会返回已压缩错误(&quot;mvcc: required revision has been compacted&quot;)给client。如果版本号大于当前etcd server最新的版本号，etcd server则返回一个未来的版本号错误给client(&quot;mvcc: required revision is a future revision&quot;)。</p>
+<p>执行压缩命令的时候，不少初学者有一个常见的误区，就是担心压缩会不会把我最新版本数据给删除？</p>
+<p>压缩的本质是 **回收历史版本**，目标对象仅是 **历史版本**，不包括一个key-value数据的最新版本，因此你可以放心执行压缩命令，不会删除你的最新版本数据。不过我在 <a href="https://time.geekbang.org/column/article/341060">08</a> 介绍Watch机制时提到，Watch特性中的历史版本数据同步，依赖于MVCC中是否还保存了相关数据，因此我建议你不要每次简单粗暴地回收所有历史版本。</p>
+<p>在生产环境中，我建议你精细化的控制历史版本数，那如何实现精细化控制呢？</p>
+<p>主要有两种方案，一种是使用etcd server的自带的自动压缩机制，根据你的业务场景，配置合适的压缩策略即可。</p>
+<p>另外一种方案是如果你觉得etcd server的自带压缩机制无法满足你的诉求，想更精细化的控制etcd保留的历史版本记录，你就可以基于etcd的Compact API，在业务逻辑代码中、或定时任务中主动触发压缩操作。你需要确保发起Compact操作的程序高可用，压缩的频率、保留的历史版本在合理范围内，并最终能使etcd的db 大小保持平稳，否则会导致db大小不断增长，直至db配额满，无法写入。</p>
+<p>在一般情况下，我建议使用etcd自带的压缩机制。它支持两种模式，分别是按时间周期性压缩和保留版本号的压缩，配置相应策略后，etcd节点会自动化的发起Compact操作。</p>
+<p>接下来我就和你详细介绍下etcd的周期性和保留版本号压缩模式。</p>
+<h1 id="周期">周期</h1>
+<p>首先是周期性压缩模式，它适用于什么场景呢？</p>
+<p>当你希望etcd只保留最近一段时间写入的历史版本时，你就可以选择配置etcd的压缩模式为periodic，保留时间为你自定义的1h等。</p>
+<p>如何给etcd server配置压缩模式和保留时间呢?</p>
+<p>如下所示，etcd server提供了配置压缩模式和保留时间的参数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">--auto-compaction-retention '0'
+Auto compaction retention length. 0 means disable auto Compaction.
+--auto-compaction-mode 'periodic'
+Interpret 'auto-Compaction-retention' one of: periodic|revision.
+​
+</code></pre>
+<p>auto-compaction-mode为periodic时，它表示启用时间周期性压缩，auto-compaction-retention为保留的时间的周期，比如1h。</p>
+<p>auto-compaction-mode为revision时，它表示启用版本号压缩模式，auto-compaction-retention为保留的历史版本号数，比如10000。</p>
+<p>注意，etcd server的auto-compaction-retention为'0'时，将关闭自动压缩策略，</p>
+<p>那么周期性压缩模式的原理是怎样的呢？ etcd是如何知道你配置的1h前的etcd server版本号呢？</p>
+<p>其实非常简单，etcd server启动后，根据你的配置的模式periodic，会创建periodic Compactor，它会异步的获取、记录过去一段时间的版本号。periodic Compactor组件获取你设置的压缩间隔参数1h， 并将其划分成10个区间，也就是每个区间6分钟。每隔6分钟，它会通过etcd MVCC模块的接口获取当前的server版本号，追加到rev数组中。</p>
+<p>因为你只需要保留过去1个小时的历史版本，periodic Compactor组件会通过当前时间减去上一次成功执行Compact操作的时间，如果间隔大于一个小时，它会取出rev数组的首元素，通过etcd server的Compact接口，发起压缩操作。</p>
+<p>需要注意的一点是，在etcd v3.3.3版本之前，不同的etcd版本对周期性压缩的行为是有一定差异的，具体的区别你可以参考下 <a href="https://github.com/etcd-io/etcd/blob/v3.4.9/Documentation/op-guide/maintenance.md">官方文档</a>。</p>
+<h1 id="版本号">版本号</h1>
+<p>了解完周期性压缩模式，我们再看看版本号压缩模式，它又适用于什么场景呢？</p>
+<p>当你写请求比较多，可能产生比较多的历史版本导致db增长时，或者不确定配置periodic周期为多少才是最佳的时候，你可以通过设置压缩模式为revision，指定保留的历史版本号数。比如你希望etcd尽量只保存1万个历史版本，那么你可以指定compaction-mode为revision，auto-compaction-retention为10000。</p>
+<p>它的实现原理又是怎样的呢?</p>
+<p>也很简单，etcd启动后会根据你的压缩模式revision，创建revision Compactor。revision Compactor会根据你设置的保留版本号数，每隔5分钟定时获取当前server的最大版本号，减去你想保留的历史版本数，然后通过etcd server的Compact接口发起如下的压缩操作即可。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 获取当前版本号，减去保留的版本号数
+rev := rc.rg.Rev() - rc.retention
+# 调用server的Compact接口压缩
+_，err := rc.c.Compact(rc.ctx，&amp;pb.CompactionRequest{Revision: rev})
+​
+</code></pre>
+<h2 id="压缩原理"><strong>压缩原理</strong></h2>
+<p>介绍完两种自动化的压缩模式原理后，接下来我们就深入分析下压缩的本质。当etcd server收到Compact请求后，它是如何执行的呢？ 核心原理是什么？</p>
+<p>如前面的整体架构图所述，Compact请求经过Raft日志同步给多数节点后，etcd会从Raft日志取出Compact请求，应用此请求到状态机执行。</p>
+<p>执行流程如下图所示，MVCC模块的Compact接口首先会检查Compact请求的版本号rev是否已被压缩过，若是则返回ErrCompacted错误给client。其次会检查rev是否大于当前etcd server的最大版本号，若是则返回ErrFutureRev给client，这就是我们上面执行etcdctl compact命令所看到的那两个错误原理。</p>
+<p>通过检查后，Compact接口会通过boltdb的API在meta bucket中更新当前已调度的压缩版本号(scheduledCompactedRev)号，然后将压缩任务追加到FIFO Scheduled中，异步调度执行。</p>
+<p><img src="../../../../assets/md-images/D0ZzbobkxoPOt5xZxv4cd5KOnMg.png" alt="图片展示了etcd中Compact接口处理Compact请求的流程。Compact请求进入后，先判断rev是否小于等于compactMainRev，若小于等于则已压缩，结束；若大于则判断是否为Future版本号，若不是则更新scheduledCompactRev，再将请求加入FIFO队列；若为Future版本号，则返回ErrFutureRev。该图与上文提到的Compact接口检查rev是否大于当前etcd server最大版本号，以及更新meta bucket中当前已调度的压缩版本号等内容相呼应，直观呈现了处理逻辑。"></p>
+<p>为什么Compact接口需要持久化存储当前已调度的压缩版本号到boltdb中呢？</p>
+<p>试想下如果不保存这个版本号，etcd在异步执行的Compact任务过程中crash了，那么异常节点重启后，各个节点数据就会不一致。</p>
+<p>因此etcd通过持久化存储scheduledCompactedRev，节点crash重启后，会重新向FIFO Scheduled中添加压缩任务，已保证各个节点间的数据一致性。</p>
+<p>异步的执行压缩任务会做哪些工作呢？</p>
+<p>首先我们回顾下 <a href="https://time.geekbang.org/column/article/340226">07</a> 里介绍的treeIndex索引模块，它是etcd支持保存历史版本的核心模块，每个key在treeIndex模块中都有一个keyIndex数据结构，记录其历史版本号信息。</p>
+<p><img src="../../../../assets/md-images/CMSEbM8OQo5yyhxHpSzc74yyngb.png" alt="图片展示了etcd异步执行压缩任务的工作流程。左侧为FIFO Scheduler，右侧是压缩任务流程。流程分为两部分，一部分是treelIndex模块，包含clone、compact keyIndex、delete keyIndex等操作；另一部分是schedule Compaction，有range、delete等操作，最终将CompactRev写入boltdb。该图与上下文紧密相关，是对异步执行压缩任务工作内容的直观呈现，帮助理解etcd在节点crash重启后重新添加压缩任务以保证数据一致性的工作机制。"></p>
+<p>如上图所示，因此异步压缩任务的第一项工作，就是 **压缩treeIndex模块中的各key的历史版本**、已删除的版本。为了避免压缩工作影响读写性能，首先会克隆一个B-tree，然后通过克隆后的B-tree遍历每一个keyIndex对象，压缩历史版本号、清理已删除的版本。</p>
+<p>假设当前压缩的版本号是CompactedRev， 它会保留keyIndex中最大的版本号，移除小于等于CompactedRev的版本号，并通过一个map记录treeIndex中有效的版本号返回给boltdb模块使用。</p>
+<p>为什么要保留最大版本号呢?</p>
+<p>因为最大版本号是这个key的最新版本，移除了会导致key丢失。而Compact的目的是回收旧版本。当然如果keyIndex中的最大版本号被打了删除标记(tombstone)， 就会从treeIndex中删除这个keyIndex，否则会出现内存泄露。</p>
+<p>Compact任务执行完索引压缩后，它通过遍历B-tree、keyIndex中的所有generation获得当前内存索引模块中有效的版本号，这些信息将帮助etcd清理boltdb中的废弃历史版本。</p>
+<p><img src="../../../../assets/md-images/Rtxxb96KdoGwkFxBu4Fc5QTFnAh.png" alt="图片展示了etcd中Compact任务的执行流程。左侧为FIFO Scheduler，右侧是Compact任务，其下有compact treelIndex、clone、compact keyIndex、delete keyIndex等操作。右侧还包含boltdb，其中schedule Compaction任务通过range、delete、put/finished CompactRev等操作，最终删除boltdb中废弃的历史版本数据。该图与上下文紧密相关，直观呈现了Compact任务执行压缩操作及删除废弃历史版本数据的过程。"></p>
+<p>压缩任务的第二项工作就是 **删除boltdb中废弃的历史版本数据**。如上图所示，它通过etcd一个名为scheduleCompaction任务来完成。</p>
+<p>scheduleCompaction任务会根据key区间，从0到CompactedRev遍历boltdb中的所有key，通过treeIndex模块返回的有效索引信息，判断这个key是否有效，无效则调用boltdb的delete接口将key-value数据删除。</p>
+<p>在这过程中，scheduleCompaction任务还会更新当前etcd已经完成的压缩版本号(finishedCompactRev)，将其保存到boltdb的meta bucket中。</p>
+<p>scheduleCompaction任务遍历、删除key的过程可能会对boltdb造成压力，为了不影响正常读写请求，它在执行过程中会通过参数控制每次遍历、删除的key数（默认为100，每批间隔10ms），分批完成boltdb key的删除操作。</p>
+<h2 id="为什么压缩后db大小不减少呢"><strong>为什么压缩后db大小不减少呢?</strong></h2>
+<p>当你执行完压缩任务后，db大小减少了吗？ 事实是并没有减少。那为什么我们都通过boltdb API删除了key，db大小还不减少呢？</p>
+<p>上节课我们介绍boltdb实现时，提到过boltdb将db文件划分成若干个page页，page页又有四种类型，分别是meta page、branch page、leaf page以及freelist page。branch page保存B+ tree的非叶子节点key数据，leaf page保存bucket和key-value数据，freelist会记录哪些页是空闲的。</p>
+<p>当我们通过boltdb删除大量的key，在事务提交后B+ tree经过分裂、平衡，会释放出若干branch/leaf page页面，然而boltdb并不会将其释放给磁盘，调整db大小操作是昂贵的，会对性能有较大的损害。</p>
+<p>boltdb是通过freelist page记录这些空闲页的分布位置，当收到新的写请求时，优先从空闲页数组中申请若干连续页使用，实现高性能的读写（而不是直接扩大db大小）。当连续空闲页申请无法得到满足的时候， boltdb才会通过增大db大小来补充空闲页。</p>
+<p>一般情况下，压缩操作释放的空闲页就能满足后续新增写请求的空闲页需求，db大小会趋于整体稳定。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

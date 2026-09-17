@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jenkins 简介</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="jenkins-简介">Jenkins 简介</h1>
+<p>Jenkins 简介</p>
+<ul>
+<li>
+<p>是一个 Java 写的，开源的持续部署工具，<a href="https://www.jenkins.io/zh/">https://www.jenkins.io/zh/</a>。</p>
+</li>
+<li>
+<p>Jenkins的前身是Hudson，Hudson是基于java语言开发。需要 Java 11。</p>
+</li>
+<li>
+<p>Hudson由Sun公司在2004年立项，第一个版本于2005年发布。</p>
+</li>
+<li>
+<p>2007年开始Hudson逐渐取代早期其他的开源构建工具，成为主流工具。</p>
+</li>
+<li>
+<p>2011年1月11日，原Hudson主要项目维护者要求投票将项目名称从“Hudson”改为“Jenkins”，并在2011年1月29日，该建议得到社区投票的批准后创建了Jenkins项目。</p>
+</li>
+<li>
+<p>后Jenkins项目得到了全球开发爱好者的拥护并快速迭代，2013年后就全面超越了Hudson项目。</p>
+</li>
+<li>
+<p>安装简单支持rpm/deb包、war包等多种安装方式。</p>
+</li>
+<li>
+<p>图形化的界面，简单易用、方便维护、运行稳定。</p>
+</li>
+<li>
+<p>支持 master/slave 工作模式，分布式构建实现性能横向扩容。</p>
+</li>
+<li>
+<p>支持插件化，可通过插件支持 gitlab、svn、webhook 等功能、方便功能扩展及二次开发。</p>
+</li>
+<li>
+<p>支持构建成功或失败的邮件通知。</p>
+</li>
+<li>
+<p>支持pipline，实现流水线形式的可视化代码部署流程。</p>
+</li>
+<li>
+<p>可以结合SonarQube等第三方工具实现代码质量检测并生成可视化报告。</p>
+</li>
+<li>
+<p>丰富的使用案例，大量的使用文档及解决方案。</p>
+</li>
+<li>
+<p>Jenkins 功能特点：</p>
+<ul>
+<li>安装简单</li>
+<li>强大的图形功能</li>
+<li>支持构建Email通知</li>
+<li>支持分布式构建</li>
+<li>插件化便于二次开发及功能扩展</li>
+<li>支持piplinie流水线</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/CGrgbzlQwoOPeIxEVeIcmNx0n8s.png" alt=""></p>
+<h1 id="jenkins分布式构建">Jenkins分布式构建：</h1>
+<ul>
+<li>jenkins master 节点负责 job 的创建、管理与触发。</li>
+<li>job 在执行时分配给特定的 jenkins slave 节点执行</li>
+<li>job 执行成功后由 jenkins master 发送邮件通知。</li>
+<li>基于 jenkins 分布式架构可以快速横向扩容 jenkins 的构建并发能力。</li>
+</ul>
+<p><img src="../../../../assets/md-images/PHRzbkJbTo7pvNxAyWscedrjnLd.jpg" alt=""></p>
+<h1 id="常见的业务环境">常见的业务环境：</h1>
+<ul>
+<li>
+<p>开发环境(Development、dev环境)：</p>
+<ul>
+<li>软件研发工程师(Software Development Engineer)专用于代码开发的机器，必须本地办公 PC 或公司会给程序员分配虚拟机专用于本人做代码开发。</li>
+</ul>
+</li>
+<li>
+<p>测试环境(Test)：</p>
+<ul>
+<li>首次将代码合并及构建后进行统一的集中功能与性能等意向的专用测试环境，会存在一些未知的bug(漏洞、功能缺陷)等需要迭代修复，不对用户开放。</li>
+</ul>
+</li>
+<li>
+<p>UAT环境(User Acceptance Test)：</p>
+<ul>
+<li>用户接受度测试,即最终的验收合格测试环境，UAT环境主要用于测试或交付人员进行验收测试，也不对客户开放。</li>
+</ul>
+</li>
+<li>
+<p>灰度环境(preview、pre环境)：</p>
+<ul>
+<li>灰度环境,是生产环境的一小部分服务器，外部用户可以访问,主要在此环境对新版本进行小规模发布与测试，即便有bug或功能缺陷问题也只影响一小部分用户。</li>
+</ul>
+</li>
+<li>
+<p>生产环境：</p>
+<ul>
+<li>正式对用户开放的业务环境，是经过层层测试的最终相对稳定的代码程序。</li>
+</ul>
+</li>
+</ul>
+<h1 id="常见的代码部署方式">常见的代码部署方式：</h1>
+<ul>
+<li>
+<p>开发自己ssh到服务器上传：</p>
+<ul>
+<li>最原始的部署方式，效率低而且容易出错</li>
+</ul>
+</li>
+<li>
+<p>开发给运维手动上传：</p>
+<ul>
+<li>运维自己手动部署</li>
+</ul>
+</li>
+<li>
+<p>运维使用脚本复制：</p>
+<ul>
+<li>手动批量部署，需要到时候手动执行并验证</li>
+</ul>
+</li>
+<li>
+<p>结合web界面一键部署：</p>
+<ul>
+<li>自动部署、自动验证、自动上线</li>
+</ul>
+</li>
+</ul>
+<h1 id="常见的代码部署方案">常见的代码部署方案：</h1>
+<ul>
+<li>
+<p>蓝绿部署：</p>
+<ul>
+<li>蓝绿部署是指有两套一样的业务环境，然后有一套在线上运行，一套是离线的。在进行代码部署的时候不停止老版本代码(完全不影响上一个版本访问)，而是在另外一套离线环境部署新版本然后进行测试，在测试通过后再将用户请求流量切到新版本，其特点为业务无中断，升级风险相对较小。</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/DYcAb16hVoETvmx4tPXcyMlFn5d.png" alt=""></p>
+<ul>
+<li>
+<p>A/B测试：</p>
+<ul>
+<li>A/B测试也是同时运行两个业务环境，但是蓝绿部署完全是两码事，A/B 测试是用来测试应用功能表现的方法，例如业务功能可用性、 业务受欢迎程度等等，蓝绿部署的目的是安全稳定地发布新版本应用，并在必要时回滚，即和蓝绿部署的区别是蓝绿部署是一套正式环境环境在线，而A/B测试是两套环境同时在线并进行(内部团队竞争)。</li>
+</ul>
+</li>
+<li>
+<p>滚动发布：</p>
+<ul>
+<li>滚动发布一般是分几批次部署，先取出一个或一部分服务器从负载均衡下线、然后逐个停止服务，然后逐个执行更新，最后更新完成后、再重新添加到 负载均衡使用，周而复始，直到集群中所有的实例都更新成新版本。</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/J5V6bzN40oobN0xSIYYcbfXWnfh.png" alt=""></p>
+<ul>
+<li>
+<p>金丝雀/灰度：</p>
+<ul>
+<li>金丝雀发布也叫灰度发布，是指从当前版本升级到新版本，能够实现平滑升级和过渡的一种发布方式，灰度发布是增量发布的一种类型，灰度发布是在 原有版本可用的情况下，同时部署一个新版本应用作为“金丝雀”(小白鼠)，测试新版本的性能和表现，以保障整体系统稳定的情况下，尽早发现、调整问题。</li>
+</ul>
+</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基础 Go 包开发：日志包设计和实现</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="基础-go-包开发日志包设计和实现">基础 Go 包开发：日志包设计和实现</h1>
+<p>在 Go 语言中，包是组织代码的一种基本方式，用于管理和复用代码。Go 提供了强大的包机制，通过包可以将代码分成若干模块，以提高代码的可读性、可复用性和可维护性。在 Go 项目开发中，经常会用到各种类型的包，其中有一些 Go 包会被频繁使用到，并且在 Go 项目开发中需要进行适配。</p>
+<p>高频使用的 Go 包有很多，例如：cobra、viper、pflag、gorm、gin、grpc、zap、logrus、uuid、resty、casbin、jwt-go、validator、lru 等。上述常用的 Go 包，在项目开发中一般不需要做二次适配便可直接使用。但是有些基础的 Go 包需要二次开发或者从零开发才能够满足 Go 项目的需求。最常见的需要二次适配的 Go 包是日志包和错误包。</p>
+<h1 id="如何记录日志">如何记录日志</h1>
+<p>在开发日志包之前，需要先明白代码中，是如何记录日志的。之后，根据记录日志的需求特点开发满足项目需要的日志包。记录日志通常涉及到以下几个方面：</p>
+<ul>
+<li>日志记录方式；</li>
+<li>日志记录规范；</li>
+<li>日志保存方式。</li>
+</ul>
+<h2 id="日志记录方式">日志记录方式</h2>
+<p>在 Go 项目开发中，通过日志包来记录日志。所以，在项目开发之前，需要准备一个易用、满足需求的 Go 日志包。准备日志包的方式有以下三种：</p>
+<ul>
+<li>使用开源日志包：使用开源的日志包，例如 log、glog、logrus、zap 等。Docker、 ilium、Tyk 等项目使用了 logrus，etcd 则使用了 log 和 zap；</li>
+<li>定制化开源日志包：基于开源日志包封装一个满足特定需求的日志包。例如，Kubernetes 使用的 klog 是基于 glog 开发的。有些项目封装的日志包还会兼容多种类别的 Logger；</li>
+<li>自研日志包：根据需求，从零开发一个日志包。</li>
+</ul>
+<h3 id="使用开源日志包">使用开源日志包</h3>
+<p>如果对记录日志没有特殊需求，并且已经有优秀的开源日志包可供选择，那么直接使用原生的开源日志包，无需封装或自行研发。这样不仅可以充分利用开源日志包的功能，还能随开源日志包进行功能升级与迭代。最重要的是，这种方式能够显著提高开发效率，减少日志包维护的工作量。</p>
+<p>然而，在以下情景下，可以考虑封装或自研一个新的日志包：</p>
+<ul>
+<li>需要满足定制化需求，而现有的开源日志包无法满足这些需求；</li>
+<li>拥有较强的研发能力，能够开发出在性能或功能上优于当前开源日志包的日志包；</li>
+<li>有定制化的日志记录需求。</li>
+</ul>
+<p>目前已有许多开源日志包，社区比较受欢迎的开源日志包有 logrus、zap、zerolog、apex/log、log15 等。其中最受欢迎的两个日志包是 logrus 和 zap。</p>
+<p>logrus 功能强大、使用简单，不仅实现了日志包的基本功能，还有很多高级特性，适合一些大型项目，尤其是需要结构化日志记录的项目。因为 logrus 封装了很多能力，性能一般。</p>
+<p>zap 提供了很强大的日志功能，性能高，内存分配次数少，适合对日志性能要求很高的项目。另外，zap 包中的子包 zapcore，提供了很多底层的日志接口，适合用来做二次封装。</p>
+<p>在企业级 Go 应用开发时，通常会在 logrus、zap 二者之间进行选择，选择建议如下：</p>
+<ul>
+<li>如果对性能要求不高，更加注重日志包的功能和易用性，可以选择 logrus；</li>
+<li>如果对性能有较高要求，同时希望日志包更加灵活和可定制化，可以选择 zap。</li>
+</ul>
+<p>miniblog 项目选择了 zap，因为 zap 具有较高的性能，同时使用便捷，并易于定制。实际上，zap 也可以作为今后 Go 项目开发的首选日志包。</p>
+<h3 id="定制化开源日志包">定制化开源日志包</h3>
+<p>在实际开发中，基于开源日志包开发定制化日志包的主要原因在于，开源日志包无法完全满足特定需求。例如，kubernetes 团队由于 glog 存在缺陷且已停止维护，基于 glog 重新开发了 klog。此外，一些团队需要在日志中添加固定字段（如用户名、请求 ID 等），因此对开源日志包进行了改造；还有一些团队需要根据日志内容触发回调逻辑，而这类需求通常难以通过现有的开源日志包实现，因此选择定制化开发。</p>
+<p>在企业级应用开发过程中，出于多种需求，定制化开发新的日志包是一种常见的现象。然而，在决定开发新的日志包之前，应当认真思考以下问题：是否确实需要开发一个新的日志包？现有的开源日志包是否完全无法满足需求？</p>
+<h3 id="自研日志包">自研日志包</h3>
+<p>如果前两种方式无法满足日志记录需求，可以考虑自主研发一个日志包。然而，自主研发日志包需要较高的研发能力且开发周期较长，因此并不推荐，这里不作详细介绍。</p>
+<h2 id="日志记录规范">日志记录规范</h2>
+<p>记录日志的方式实际上就是遵循项目制定的日志规范，通过调用日志包提供的方法来记录日志。</p>
+<p>miniblog 也制定了相应的日志规范，具体规范内容见 docs/devel/zh-CN/conversions/logging.md。该日志规范可以在后续的开发过程中根据需求不断更新和迭代。在 miniblog 的日志规范中，有以下两点规范需要注意：</p>
+<ul>
+<li>错误日志应在最初发生错误的位置打印。这样做一方面可以避免上层代码缺失关键的日志信息（因为上层代码可能无法获取错误发生处的详细信息），另一方面可以减少日志漏打的情况（距离错误发生位置越远，越容易忽略错误的存在，从而导致日志未被打印）；</li>
+<li>当调用第三方报函数或放发报错时，需要在错误处打印日志，例如：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">if err := os.Chdir(&quot;/root&quot;); err != nil {
+    log.Errorf(&quot;change dir failed: %v&quot;, err)
+}
+</code></pre>
+<p>对于嵌套的 Error，可在 Error 产生的最初位置打印 Error 日志，上层如果不需要添加必要的信息，可以直接返回下层的 Error。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;github.com/golang/glog&quot;
+)
+
+func main() {
+    flag.Parse()
+    defer glog.Flush()
+    if err := loadConfig(); err != nil {
+        glog.Error(err)
+    }
+}
+
+// 正例：直接返回错误
+func loadConfig() error {
+    return decodeConfig() // 直接返回
+}
+
+// 正例：如果需要基于函数返回的错误，封装更多的信息，可以封装返回的 err。否则，建议直接返回 err
+func decodeConfig() error {
+    if err := readConfig(); err != nil {
+        // 添加必要的信息，用户名称
+
+        return fmt.Errorf(&quot;could not decode configuration data for user %s: %v&quot;, &quot;colin&quot;, err) 
+    }
+    return nil
+}
+
+func readConfig() error {
+    glog.Errorf(&quot;read: end of input.&quot;)
+    return fmt.Errorf(&quot;read: end of input&quot;)
+}
+</code></pre>
+<p>在最初产生错误的位置打印日志，可以很方便地追踪到错误产生的根源，并且错误日志只打印一次，可以减少重复的日志打印，减少排障时重复日志干扰，也可以提高代码的简洁度。当然，在开发中也可以根据需要对错误补充一些有用的信息，以记录错误产生的其他影响。</p>
+<h2 id="日志保存方式">日志保存方式</h2>
+<p>我们可以将日志保存到任意需要的位置，常见的保存位置包括以下几种：</p>
+<ul>
+<li>**标准输出：**通常用于开发和测试阶段，主要目的是便于调试和查看；</li>
+<li>**日志文件：**这是生产环境中最常见的日志保存方式。保存的日志通常会被 Filebeat、Fluentd 等日志采集组件收集，并存储到 Elasticsearch 等系统中；</li>
+<li>**消息中间件：**例如 Kafka。日志包会调用 API 接口将日志保存到 Kafka 中。为了提高性能，通常会使用异步任务队列异步保存。然而，在这种情况下，需要开发异步上报逻辑，且服务重启时可能导致日志丢失，因此这种方式较少被采用。</li>
+</ul>
+<p>当前比较受欢迎的日志包（如 zap、logrus 等）都支持将日志同时保存到多个位置。例如，miniblog 项目的日志包底层封装了 zap，zap 支持同时将日志输出到标准输出和日志文件中。</p>
+<p>如果应用采用容器化部署，建议优先将日志输出到标准输出。容器平台通常具备采集容器日志的能力，采集日志时可以选择从标准输出采集或从容器内的日志文件中采集。如果选择从日志文件采集，则需要配置日志采集路径；而如果选择从标准输出采集，则无需额外配置，可以直接复用容器平台现有的能力，从而实现日志记录与日志采集的完全解耦。在 Kubernetes 最新的日志设计方案中，也建议应用直接将日志输出到标准输出。</p>
+<h1 id="miniblog-日志包开发">miniblog 日志包开发</h1>
+<p>前面介绍了在 Go 项目开发中，日志的记录方式和日志包的开发方式。为了给你详细展示日志包的设计和实现过程，本节会展示如何从零开发一个日志包，本节最终代码位于 <a href="https://github.com/onexstack/miniblog/tree/feature/s06">feature/s06</a> 分支。</p>
+<p>在 Go 项目开发中，通常会因为以下原因，选择从零开发一个日志包：</p>
+<ul>
+<li>为了方便通过日志进行问题排查，需要在每一行日志中打印一些自定义字段，例如请求 ID、用户名等。虽然目前许多日志包（如 logrus、zap 等）都支持添加日志字段，但使用方式较为繁琐，且代码可读性较差；</li>
+<li>随着项目功能的不断迭代，未来可能会出现特殊的日志需求。因此，开发一个定制的日志包可以为未来的技术扩展做好准备，预留足够的扩展空间；</li>
+<li>logrus、zap 等日志包功能丰富，但许多功能在项目开发中并不需要。因此，我考虑定制一个精简的日志包。精简的日志包不仅易于使用，同时其有限的功能也有助于规范日志记录（日志包提供的日志记录函数数量直接影响代码中日志记录方式的种类，功能过多可能导致难以实现规范化和统一化）。</li>
+</ul>
+<h2 id="日志包设计方式">日志包设计方式</h2>
+<p>在 Go 项目开发中，日志包实现方法有很多，但大都遵循以下设计方式：</p>
+<ul>
+<li>设计日志接口，通常命名为 Logger，日志接口中定义需要的日志方法；</li>
+<li>定义日志级别类型，并定义日志级别；</li>
+<li>定义日志结构体类型，例如：xxxLogger。xxxLogger 中包括需要的字段，例如日志级别。xxxLogger 通常会实现一个打印日志的基础方法。Logger 接口中定义的方法，均通过调用基础方法实现日志打印。xxxLogger 也可以包含其他日志包的日志实例，从而在输出日志时，调用其他日志包的方法进行输出；</li>
+<li>实现创建 xxxLogger 实例的 New 方法；</li>
+<li>xxxLogger 结构体类型实现 Logger 接口中定义的方法。</li>
+</ul>
+<p>遵循上述日志设计方法的代码示例如代码清单 6-1 所示。</p>
+<p>代码清单 6-1 日志设计方法示例</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;fmt&quot;
+    &quot;strings&quot;
+)
+
+// 定义日志级别
+const (
+    DebugLevel = iota
+    InfoLevel
+    WarnLevel
+    ErrorLevel
+)
+
+// Logger 定义日志接口，包含常用日志方法.
+type Logger interface {
+    Debug(msg string)
+    Info(msg string)
+    Warn(msg string)
+    Error(msg string)
+}
+
+// customLogger 是 Logger 接口的具体实现.
+type customLogger struct {
+    level  int    // 日志级别
+    prefix string // 日志前缀
+}
+
+// New 创建一个 customLogger 实例.
+func New(level int, prefix string) Logger {
+    return &amp;customLogger{level: level, prefix: prefix}
+}
+
+// logMessage 是内部方法，根据日志级别打印日志.
+func (l *customLogger) logMessage(level int, levelStr string, msg string) {
+    if level &gt;= l.level { // 只有当日志级别大于等于设定的级别时才打印
+        fmt.Printf(&quot;[%s] %s: %s\n&quot;, strings.ToUpper(levelStr), l.prefix, msg)
+    }
+}
+
+// Debug 实现 Logger 接口的 Debug 方法.
+func (l *customLogger) Debug(msg string) {
+    l.logMessage(DebugLevel, &quot;debug&quot;, msg)
+}
+
+// Info 实现 Logger 接口的 Info 方法.
+func (l *customLogger) Info(msg string) {
+    l.logMessage(InfoLevel, &quot;info&quot;, msg)
+}
+
+// Warn 实现 Logger 接口的 Warn 方法.
+func (l *customLogger) Warn(msg string) {
+    l.logMessage(WarnLevel, &quot;warn&quot;, msg)
+}
+
+// Error 实现 Logger 接口的 Error 方法.
+func (l *customLogger) Error(msg string) {
+    l.logMessage(ErrorLevel, &quot;error&quot;, msg)
+}
+
+func main() {
+    // 创建一个日志实例，日志级别为 Info
+    logger := New(InfoLevel, &quot;MyApp&quot;)
+
+    // 根据不同级别打印日志
+    logger.Debug(&quot;This is a debug message&quot;) // 不会打印（级别低于 Info）
+    logger.Info(&quot;This is an info message&quot;)  // 会打印
+}
+</code></pre>
+<h2 id="miniblog-日志包开发-1">miniblog 日志包开发</h2>
+<p>在定制开发日志包之前，应该先选择一个合适的开源日志包，并在其基础上进行封装。miniblog 项目选择 zap 作为基础日志包。因此，在定制开发之前，需要熟悉 zap 的使用方法，可参考相关的 zap 使用文档进行学习。</p>
+<p>定制开发日志包的步骤如下：</p>
+<p>（1）定义日志接口；</p>
+<p>（2）定义日志类型；</p>
+<p>（3）编写创建日志实例函数；</p>
+<p>（4）实现日志实例化代码；</p>
+<p>（5）实现日志接口。</p>
+<h3 id="定义日志接口">定义日志接口</h3>
+<p>在开发日志包之前，需要根据日志记录需要定义日志接口，接口中包含需要用到的日志记录方法。在设计日志接口时，需要考虑以下两点：</p>
+<ul>
+<li>**日志级别：**在记录日志时，按严重性由低到高通常包括 Debug、Info、Warn、Error、Panic、Fatal 级别。Warn 级别在有些日志包中也叫 Warning 级别；</li>
+<li>**日志记录方法：**每个日志级别，根据记录方式，又包括非格式化记录、格式化记录和结构化记录三种方式。形如 Info(msg string) 的方法为非格式化记录方式。形如 Infof(format string, args ...any) 的方法为格式化记录方式。形如 Infow(msg string, kvs ...any) 的方法为结构化记录方式。Infow 方法名中的 w 代表“with”，即“带有”额外的上下文信息。这些方法与没有 w 的方法（如 Debug，Info 等）相比，允许你在日志消息后面附加额外的键值对（key-value），从而提供更详细的上下文信息。</li>
+</ul>
+<p>在 Go 项目开发中，建议的日志记录方式为结构化记录方式。格式化记录方式可以通过结构化记录方式来替代，例如：log.Infof(&quot;Failed to create user: %s&quot;, username) 可替换为 log.Infow(&quot;Failed to create user&quot;, &quot;username&quot;, username)。</p>
+<p>另外，结构化记录方式也可以替代非结构化记录方式，例如 log.Infof(&quot;Failed to create user&quot;) 可替换为 log.Infow(&quot;Failed to create user&quot;)。</p>
+<p>所以，miniblog 项目为了方便日志记录，降低开发者理解日志记录方法的负担，只实现了结构化记录方法。最终 miniblog 日志接口定义（位于文件 <a href="https://github.com/onexstack/miniblog/blob/feature/s06/internal/pkg/log/log.go#L19">internal/pkg/log/log.go</a> 中）如代码清单 6-2 所示。</p>
+<p>代码清单 6-2 日志接口定义</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-TypeScript">// Logger 定义了 miniblog 项目的日志接口。
+// 该接口包含了项目中支持的日志记录方法，提供对不同日志级别的支持。
+type Logger interface {
+    // Debugw 用于记录调试级别的日志，通常用于开发阶段，包含详细的调试信息。
+    Debugw(msg string, kvs ...any)
+
+    // Infow 用于记录信息级别的日志，表示系统的正常运行状态。
+    Infow(msg string, kvs ...any)
+
+    // Warnw 用于记录警告级别的日志，表示可能存在问题但不影响系统正常运行。
+    Warnw(msg string, kvs ...any)
+
+    // Errorw 用于记录错误级别的日志，表示系统运行中出现的错误，需要开发人员介入处理。
+    Errorw(msg string, kvs ...any)
+
+    // Panicw 用于记录严重错误级别的日志，表示系统无法继续运行，记录日志后会触发 panic。
+    Panicw(msg string, kvs ...any)
+
+    // Fatalw 用于记录致命错误级别的日志，表示系统无法继续运行，记录日志后会直接退出程序。
+    Fatalw(msg string, kvs ...any)
+
+    // Sync 用于刷新日志缓冲区，确保日志被完整写入目标存储。
+    Sync()
+}
+</code></pre>
+<p>将日志包 log 放置在 internal/pkg 目录下的原因在于，日志包封装了一些定制化的逻辑，不适合对外暴露，所以不适合放在 pkg/ 目录下。但是日志包又是项目内的共享包，所以需要放在 internal/pkg 目录下。</p>
+<p>miniblog 为了降低开发者使用日志时的理解、学习成本，仅实现了核心的日志方法。这种仅实现核心日志功能的设计方式牺牲了一些功能和灵活性，但带来了更高的一致性。</p>
+<p>通过定义 Logger 接口，可以体现接口即规范的编程哲学。这意味着，通过 Logger 接口可以清晰地表明 zapLogger 需要实现哪些方法，并明确日志调用者应调用哪些方法。在 Go 项目中，通常将日志接口命名为 Logger。</p>
+<h3 id="定义日志类型">定义日志类型</h3>
+<p>在文件 internal/pkg/log/log.go 中，通过以下代码定义了一个日志类型：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// zapLogger 是 Logger 接口的具体实现. 它底层封装了 zap.Logger.
+type zapLogger struct {
+    z *zap.Logger
+}
+</code></pre>
+<p>将日志类型定义为不可导出的 zapLogger 类型是因为开发者在使用日志包时，不需要关注日志具体的实现细节，只需要调用日志接口包含的方法即可。定义为不可导出的类型，有利于日志类型的封装和维护，屏蔽实现细节。</p>
+<p>zapLogger 日志类型包含了 *zap.Logger 类型的字段 z，是因为 zapLogger 底层会调用 *zap.Logger 类型实例 z 提供的日志记录方法。</p>
+<h3 id="编写创建日志实例函数">编写创建日志实例函数</h3>
+<p>一个日志包通常包含两类 zapLogger 对象：一类是全局对象，另一类是局部对象。全局对象便于通过类似 log.Infow() 的方式直接调用，而局部对象则方便传入不同参数以创建自定义的 Logger。为了实现这一目标，通常需要实现以下两种函数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// New 根据提供的 Options 参数创建一个自定义的 zapLogger 对象.
+// 如果 Options 参数为空，则会使用默认的 Options 配置.
+func New(opts *Options) *zapLogger
+// Init 初始化全局的日志对象.
+func Init(opts *Options)
+</code></pre>
+<p>Init 函数通过调用 New 函数来创建 *zapLogger 类型的实例，并将其赋值给类型为 *zapLogger 的全局变量 std。创建一个全局变量的原因将在后文说明。</p>
+<p>New 和 Init 函数中的 Options 结构体类型包含了日志的配置项。在开发初期，可以将 Options 定义为空结构体，其字段后面根据需要陆续添加。</p>
+<p>此外，根据 Go 代码开发的最佳实践，建议给 Options 结构体添加一个 NewOptions() *Options 函数，用于创建带有默认值的 *Options 对象。通过这种方式，简化创建日志实例时的配置。</p>
+<p>有些代码实现中，会将 Options 命名为 LoggerOptions，建议直接使用简洁的 Options 作为名称。因为通过 &lt;包名.结构体名&gt; 的调用方式，已经能够明确 Options 是一个日志配置结构体。</p>
+<p>基于上述思路，开发完成的代码如代码清单 6-3 所示（位于 internal/pkg/log/log.go 文件中）。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package log
+
+import (
+    &quot;sync&quot;
+
+    &quot;go.uber.org/zap&quot;
+)
+
+// Logger 定义了 miniblog 项目的日志接口.
+// 该接口包含了项目中支持的日志记录方法，提供对不同日志级别的支持。
+type Logger interface {
+    // Debugw 用于记录调试级别的日志，通常用于开发阶段，包含详细的调试信息。
+    Debugw(msg string, kvs ...any)
+
+    // Infow 用于记录信息级别的日志，表示系统的正常运行状态。
+    Infow(msg string, kvs ...any)
+
+    // Warnw 用于记录警告级别的日志，表示可能存在问题但不影响系统正常运行。
+    Warnw(msg string, kvs ...any)
+
+    // Errorw 用于记录错误级别的日志，表示系统运行中出现的错误，需要开发人员介入处理。
+    Errorw(msg string, kvs ...any)
+
+    // Panicw 用于记录严重错误级别的日志，表示系统无法继续运行，记录日志后会触发 panic。
+    Panicw(msg string, kvs ...any)
+
+    // Fatalw 用于记录致命错误级别的日志，表示系统无法继续运行，记录日志后会直接退出程序。
+    Fatalw(msg string, kvs ...any)
+
+    // Sync 用于刷新日志缓冲区，确保日志被完整写入目标存储。
+    Sync()
+}
+
+// zapLogger 是 Logger 接口的具体实现. 它底层封装了 zap.Logger.
+type zapLogger struct {
+    z *zap.Logger
+}
+
+// Options 定义了日志配置的选项结构体.
+// 通过该结构体，可以自定义日志的输出格式、级别以及其他相关配置.
+type Options struct{}
+
+var (
+    mu sync.Mutex
+
+    // std 定义了默认的全局 Logger.
+    std = New(NewOptions())
+)
+
+// Init 初始化全局的日志对象.
+func Init(opts *Options) {
+    // 因为会给全局变量 std 赋值，所以这里对 std 变量加锁，防止出现并发问题.
+    mu.Lock()
+    defer mu.Unlock()
+
+    std = New(opts)
+}
+
+// New 根据提供的 Options 参数创建一个自定义的 zapLogger 对象.
+// 如果 Options 参数为空，则会使用默认的 Options 配置。
+func New(opts *Options) *zapLogger {
+    if opts == nil {
+        opts = NewOptions()
+    }
+
+    return &amp;zapLogger{z: &amp;zap.Logger{}}
+}
+
+// NewOptions 创建并返回一个带有默认值的 Options 对象.
+// 该方法用于初始化日志配置选项，提供默认的日志级别、格式和输出位置.
+func NewOptions() *Options {
+    return &amp;Options{}
+}
+</code></pre>
+<h3 id="实现日志实例化代码">实现日志实例化代码</h3>
+<p>实例化 *zapLogger 类型的日志，其实就是实例化 *zapLogger 类型中的各个字段。*zapLogger 类型只包含了 *zap.Logger 类型的字段。所以，实例化 *zapLogger 类型，其实就是实例化 *zap.Logger 类型。本节会详细介绍日志实例化代码的开发及思考过程，以使你了解项目开发中，如何去实现一个功能。</p>
+<p>实例化 *zap.Logger 类型，最容易想到的方法，是借助于谷歌/百度搜索，或者 GPT 类工具给出一个实例化*zap.Logger 类型的示例。最简单的方式是编写详细的 GPT 提示词，让 GPT 类软件给出具体的 New 方法实现。但如果之前没有实现过 Go 日志包，出于学习需要，建议先调研社区其他开发者的实现方式，再参考 GPT 给出的代码实现，选择最优、最符合要求的实现。有三种方法可以用来调研社区其他开发者的代码实现：阅读 zap 官方文档、GitHub 查找相关示例仓库、GitHub 查找相关实现代码。</p>
+<h4 id="1方法一阅读-zap-官方文档"><strong>（1）方法一：阅读 zap 官方文档。</strong></h4>
+<p>最简单、便捷的方法是从 zap 官方仓库的 <a href="https://github.com/uber-go/zap/blob/master/README.md">README</a> 文件和 examples 这类目录中查找需要的代码示例。官方仓库是最可能存放 zap 代码示例的地方。因为是官方仓库，所实现方式会比较标准，代码质量也相对较高，建议优先考虑从官方仓库中调研查找。</p>
+<h4 id="2方法二github-查找相关示例仓库"><strong>（2）方法二：GitHub 查找相关示例仓库。</strong></h4>
+<p>如果官方仓库中找不到相关的代码示例，还可以在 GitHub 上查找可能有相关实现的代码仓库。GitHub 上有大量开源的仓库和代码实现，可以通过在 GitHub 上进行详细搜索和查找，了解其他开发者的设计思路和实现方法。相比于仅仅找到所需的代码示例，更大的价值在于调研过程中能够学习到更多关于 zap 包的使用方法。比较建议的查找方法如图 6-1 所示。</p>
+<p><img src="../../../assets/md-images/HGtWbK1FqojSfYxp3knc1GRknod.png" alt="图片展示了在GitHub上查找Go语言相关zap示例仓库的操作步骤。画面中，①处显示在搜索栏输入了“language:go zap demo”进行检索；②处显示按“Most stars”排序；③处展示了搜索结果中的一个仓库“cag2050/go_zap_demo”。图片与上下文紧密相关，是对文中提到的在GitHub查找相关示例仓库这一方法的直观呈现，帮助读者更清晰地理解如何在GitHub上进行具体操作以查找合适的代码示例用于创建*zap.Logger。"></p>
+<p>首先，在 GitHub 的搜索栏中输入 language:go zap demo，以检索同时在仓库名称或仓库描述中包含&quot;zap&quot;和&quot;demo&quot;关键字的 Go 代码仓库，并按照&quot;Most stars&quot;进行排序。接着，从搜索结果中从上到下依次阅读代码仓库，通过仓库名称及描述判断其是否为可供参考的 Go 项目，若符合条件，则进入相应仓库以获取更详细的信息。最后，如果找到合适的代码，可参考其实现用于创建 *zap.Logger，若未找到合适代码示例，则继续查找。</p>
+<h4 id="3方法三github-查找相关实现代码"><strong>（3）方法三：GitHub 查找相关实现代码。</strong></h4>
+<p>如果没有找到需要的代码，则需要进行更深入的查找。可以通过查找使用了 zap 包的代码，根据代码来判断 Go 代码段或者代码段所在的项目是否可以借鉴使用，查找方法如图 6-2 所示。</p>
+<p><img src="../../../assets/md-images/OnU2bDnAXoYIs4xg5p6c0YMtnkf.png" alt="图片展示的是在GitHub上查找使用了zap包的Go代码段的操作及结果。在搜索栏中输入“language:go go.uber.org/zap”进行检索（如标识1所示），下方显示了检索到338k个文件。其中展示了dunglas/mercure - hub.go文件的部分代码（如标识2所示），其中包含了“go.uber.org/zap”相关引用。该图对应文档中介绍的查找使用zap包代码的方法，帮助开发者判断代码段是否有参考价值，以助力miniblog日志包开发中日志实例化代码的实现。"></p>
+<p>在 GitHub 的搜索栏中输入 language:go go.uber.org/zap，以检索可能封装了 zap 包的代码段。根据检索到的代码段内容，判断其是否具有参考价值。若具有参考价值，则打开对应文件阅读其源码，并在确认源码可用后，进一步了解其所属的代码仓库，此时可能会发现该代码仓库包含一个完整的实现。</p>
+<p>通过以上三种查找方式，可能你已经找到创建 *zap.Logger 类型实例的创建方法，并且在查找过程中，学到了更多 zap 包的使用方法。</p>
+<p>当前 LLM 能力日渐强大，GPT 类软件可以根据需要写出符合要求的高质量 Go 代码。所以，最后，还可以通过编写合理的 GPT 提示词，来告诉 GPT 生成期望的代码，并审核 GPT 实现的代码是否可用以及是否是最佳实现方法。以下是一个 GPT 提示词示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">假设你是一名专业的Go开发者，要开发一个日志包，日志结构体定义为：
+type zapLogger struct {
+    z *zap.Logger
+}
+
+zapLogger 实例创建方法为：
+func New(opts *Options) *zapLogger {
+}
+
+请根据New方法声明，完善New方法实现和Options结构体定义。
+</code></pre>
+<p>将以上 GPT 提示词输入给 GPT 工具，并查看 GPT 工具输出的代码示例。GPT 生成的代码可能存在幻觉问题，并不一定对。另外，GPT 生成的代码，并不一定是最佳实现方法。可以根据之前的 GitHub 调研、学习，并参考 GPT 的实现，给出最终的代码实现。最终代码实现如代码清单 6-4 所示。</p>
+<p>代码清单 6-4 New 方法实现</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// Options 定义了日志配置的选项结构体.
+// 通过该结构体，可以自定义日志的输出格式、级别以及其他相关配置.
+type Options struct {
+    // DisableCaller 指定是否禁用 caller 信息.
+    // 如果设置为 false（默认值），日志中会显示调用日志所在的文件名和行号，例如：&quot;caller&quot;:&quot;main.go:42&quot;.
+    DisableCaller bool
+    // DisableStacktrace 指定是否禁用堆栈信息.
+    // 如果设置为 false（默认值），在日志级别为 panic 或更高时，会打印堆栈跟踪信息.
+    DisableStacktrace bool
+    // Level 指定日志级别.
+    // 可选值包括：debug、info、warn、error、dpanic、panic、fatal.
+    // 默认值为 info.
+    Level string
+    // Format 指定日志的输出格式.
+    // 可选值包括：console（控制台格式）和 json（JSON 格式）.
+    // 默认值为 console.
+    Format string
+    // OutputPaths 指定日志的输出位置.
+    // 默认值为标准输出（stdout），也可以指定文件路径或其他输出目标.
+    OutputPaths []string
+}
+
+// NewOptions 创建并返回一个带有默认值的 Options 对象.
+// 该方法用于初始化日志配置选项，提供默认的日志级别、格式和输出位置.
+func NewOptions() *Options {
+    return &amp;Options{
+        // 默认启用 caller 信息
+        DisableCaller: false,
+        // 默认启用堆栈信息
+        DisableStacktrace: false,
+        // 默认日志级别为 info
+        Level: zapcore.InfoLevel.String(),
+        // 默认日志输出格式为 console
+        Format: &quot;console&quot;,
+        // 默认日志输出位置为标准输出
+        OutputPaths: []string{&quot;stdout&quot;},
+    }
+}
+
+// New 根据提供的 Options 参数创建一个自定义的 zapLogger 对象.
+// 如果 Options 参数为空，则会使用默认的 Options 配置。
+func New(opts *Options) *zapLogger {
+    // 如果 opts 为空，则使用默认配置
+    if opts == nil {
+        opts = NewOptions()
+    }
+
+    // 将 Options 中的日志级别（字符串）转换为 zapcore.Level 类型
+    var zapLevel zapcore.Level
+    if err := zapLevel.UnmarshalText([]byte(opts.Level)); err != nil {
+        // 如果指定了非法的日志级别，则默认使用 info 级别
+        zapLevel = zapcore.InfoLevel
+    }
+
+    // 创建 encoder 配置，用于控制日志的输出格式
+    encoderConfig := zap.NewProductionEncoderConfig()
+    // 自定义 MessageKey 为 message，message 语义更明确
+    encoderConfig.MessageKey = &quot;message&quot;
+    // 自定义 TimeKey 为 timestamp，timestamp 语义更明确
+    encoderConfig.TimeKey = &quot;timestamp&quot;
+    // 指定时间序列化函数，将时间序列化为 `2006-01-02 15:04:05.000` 格式，更易读
+    encoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+        enc.AppendString(t.Format(&quot;2006-01-02 15:04:05.000&quot;))
+    }
+    // 指定 time.Duration 序列化函数，将 time.Duration 序列化为经过的毫秒数的浮点数
+    // 毫秒数比默认的秒数更精确
+    encoderConfig.EncodeDuration = func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+        enc.AppendFloat64(float64(d) / float64(time.Millisecond))
+    }
+
+    // 创建构建 zap.Logger 需要的配置
+    cfg := &amp;zap.Config{
+        // 是否在日志中显示调用日志所在的文件和行号，例如：`&quot;caller&quot;:&quot;apiserver/server.go:75&quot;`
+        DisableCaller: opts.DisableCaller,
+        // 是否禁止在 panic 及以上级别打印堆栈信息
+        DisableStacktrace: opts.DisableStacktrace,
+        // 指定日志级别
+        Level: zap.NewAtomicLevelAt(zapLevel),
+        // 指定日志显示格式，可选值：console, json
+        Encoding:      opts.Format,
+        EncoderConfig: encoderConfig,
+        // 指定日志输出位置
+        OutputPaths: opts.OutputPaths,
+        // 设置 zap 内部错误输出位置
+        ErrorOutputPaths: []string{&quot;stderr&quot;},
+    }
+
+    // 使用 cfg 创建 *zap.Logger 对象
+    z, err := cfg.Build(zap.AddStacktrace(zapcore.PanicLevel), zap.AddCallerSkip(2))
+    if err != nil {
+        panic(err)
+    }
+
+    // 将标准库的 log 输出重定向到 zap.Logger
+    zap.RedirectStdLog(z)
+
+    return &amp;zapLogger{z: z}
+}
+</code></pre>
+<p>New 方法中包含了 *zap.Logger 类型实例的初始化方法。代码已经有详尽的注释，课程中不再对代码清单 6-4 进行说明。在代码清单 6-4 中，有以下开发技巧可供参考。</p>
+<p>创建一个默认配置并根据需要修改指定字段，是一种良好的开发方式。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">    // 创建 encoder 配置，用于控制日志的输出格式
+    encoderConfig := zap.NewProductionEncoderConfig()
+    // 自定义 MessageKey 为 message，message 语义更明确
+    encoderConfig.MessageKey = &quot;message&quot;
+    // 自定义 TimeKey 为 timestamp，timestamp 语义更明确
+    encoderConfig.TimeKey = &quot;timestamp&quot;
+</code></pre>
+<p>为了便于编译查找和分类管理，miniblog 将 Options 的定义与创建单独放置在了 <a href="https://github.com/onexstack/miniblog/blob/feature/s06/internal/pkg/log/options.go">options.go</a> 文件中，以实现文件级别的功能代码隔离。</p>
+<p>在 Go 项目开发过程中，应始终考虑如何使程序更易读、更易维护。例如，为了提升日志的可读性，上述代码将 ts 修改为 timestamp，将 msg 修改为 message，并将时间格式从 1669314079.4161139 转换为 2022-11-24 23:12:25.479。</p>
+<p>由于 log 包对 zap 包进行了封装，因此在调用栈中需要跳过的调用深度应增加 2，即使用 zap.AddCallerSkip(2)。</p>
+<h3 id="实现日志接口">实现日志接口</h3>
+<p>New 方法会实例化并返回 *zapLogger 类型的实例。接下来就可以给 *zapLogger 结构体添加 Logger 接口中定义的方法。*zapLogger 结构体类型中包含了 *zap.Logger 类型的实例 z。可以使用 z 实例中提供的各类日志方法来封装需要的 Logger 方法。代码清单 6-5 是 Debugw(msg string, kvs ...any) 方法的具体实现。</p>
+<p>代码清单 6-5 Debugw 方法实现</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// Debugw 输出 debug 级别的日志.
+func Debugw(msg string, kvs ...any) {
+    std.Debugw(msg, kvs...)
+}
+
+func (l *zapLogger) Debugw(msg string, kvs ...any) {
+    l.z.Sugar().Debugw(msg, kvs...)
+}
+</code></pre>
+<p>func (l *zapLogger) Debugw(msg string, kvs ...any) 方法调用了 *zap.Logger 的 Sugar().Debugw() 方法，用于以结构化方式输出 debug 级别的日志。</p>
+<p>为了便于通过 log.Debugw() 输出日志，代码清单 6-5 实现了一个包级别函数 Debugw。该函数通过调用*zapLogger 类型的全局变量 std 的 Debugw(msg string, kvs ...any) 方法，输出 debug 级别的日志。这里要注意，Debugw 函数内部应该直接调用 std.Debugw(msg, kvs...)，而非 std.z.Sugar().Debugw(msg, kvs...)，这样可以复用 *zapLogger 类型的 Debugw 方法现在以及未来可能的实现逻辑。</p>
+<p>同理，我们可以为 *zapLogger 实现 Logger 接口中定义的其他方法。</p>
+<p>为了在编译阶段确保 *zapLogger 实现了 Logger 接口，可以在 <a href="https://github.com/onexstack/miniblog/blob/feature/s06/internal/pkg/log/log.go#L48">log.go</a> 文件中添加以下变量定义：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">var _ Logger = (*zapLogger)(nil)
+</code></pre>
+<p>通过上述变量赋值，如果 *zapLogger 未实现 Logger 接口，代码将在编译阶段报错。此类编程技巧在 Go 项目开发中被广泛使用。</p>
+<h2 id="miniblog-日志包测试">miniblog 日志包测试</h2>
+<p>在开发完 Go 包之后，本节通过给 log 包添加示例测试用例，来展示如何使用 log 包。示例用例实现如代码清单 6-6 所示。</p>
+<p>代码清单 6-6 log 包示例测试</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package log_test
+
+import (
+    &quot;testing&quot;
+    &quot;time&quot;
+
+    &quot;github.com/ketitongxue/miniblog/internal/pkg/log&quot;
+)
+
+func TestLogger(t *testing.T) {
+    // 自定义日志配置
+    opts := &amp;log.Options{
+        Level:             &quot;debug&quot;,            // 设置日志级别为 debug
+        Format:            &quot;json&quot;,             // 设置日志格式为 JSON
+        DisableCaller:     false,              // 显示调用日志的文件和行号
+        DisableStacktrace: false,              // 允许打印堆栈信息
+        OutputPaths:       []string{&quot;stdout&quot;}, // 将日志输出到标准输出
+    }
+
+    // 初始化全局日志对象
+    log.Init(opts)
+
+    // 测试不同级别的日志输出
+    log.Debugw(&quot;This is a debug message&quot;, &quot;key1&quot;, &quot;value1&quot;, &quot;key2&quot;, 123)
+    log.Infow(&quot;This is an info message&quot;, &quot;key&quot;, &quot;value&quot;)
+    log.Warnw(&quot;This is a warning message&quot;, &quot;timestamp&quot;, time.Now())
+    log.Errorw(&quot;This is an error message&quot;, &quot;error&quot;, &quot;something went wrong&quot;)
+
+    // 注意：Panicw 和 Fatalw 会中断程序运行，因此在测试中应小心使用。
+    // 可以注释掉以下两行进行测试，或者在单独的环境中运行。
+    // log.Panicw(&quot;This is a panic message&quot;, &quot;reason&quot;, &quot;unexpected situation&quot;)
+    // log.Fatalw(&quot;This is a fatal message&quot;, &quot;reason&quot;, &quot;critical failure&quot;)
+
+    // 确保日志缓冲区被刷新
+    log.Sync()
+}
+</code></pre>
+<p>将上述代码保存在 internal/pkg/log/example_test.go 文件中，执行以下命令来运行示例测试，并查看日志调用结果：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cd internal/pkg/log/
+$ go mod tidy
+$ go test -run TestLogger$
+{&quot;level&quot;:&quot;debug&quot;,&quot;timestamp&quot;:&quot;2025-07-16 14:22:30.149&quot;,&quot;caller&quot;:&quot;log/log_test.go:24&quot;,&quot;message&quot;:&quot;This is a debug message&quot;,&quot;key1&quot;:&quot;value1&quot;,&quot;key2&quot;:123}
+{&quot;level&quot;:&quot;info&quot;,&quot;timestamp&quot;:&quot;2025-07-16 14:22:30.149&quot;,&quot;caller&quot;:&quot;log/log_test.go:25&quot;,&quot;message&quot;:&quot;This is an info message&quot;,&quot;key&quot;:&quot;value&quot;}
+{&quot;level&quot;:&quot;warn&quot;,&quot;timestamp&quot;:&quot;2025-07-16 14:22:30.149&quot;,&quot;caller&quot;:&quot;log/log_test.go:26&quot;,&quot;message&quot;:&quot;This is a warning message&quot;,&quot;timestamp&quot;:&quot;2025-07-16 14:22:30.149&quot;}
+{&quot;level&quot;:&quot;error&quot;,&quot;timestamp&quot;:&quot;2025-07-16 14:22:30.149&quot;,&quot;caller&quot;:&quot;log/log_test.go:27&quot;,&quot;message&quot;:&quot;This is an error message&quot;,&quot;error&quot;:&quot;something went wrong&quot;}
+PASS
+ok      github.com/ketitongxue/miniblog/internal/pkg/log        0.003s
+</code></pre>
+<p>至此，miniblog 项目成功的开发了期望的 log 包，最终代码见 <a href="https://github.com/onexstack/miniblog/tree/feature/s06">feature/s06</a> 分支。</p>
+<h2 id="miniblog-日志包调用">miniblog 日志包调用</h2>
+<p>在开发了基础的 log 包之后，可以使用 log 包在 miniblog 应用中打印日志。添加步骤包括日志包初始化和调用日志包方法打印日志。日志包初始化代码实现如代码清单 6-7 所示。</p>
+<p>代码清单 6-7 日志包初始化</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    ...
+    &quot;github.com/onexstack/miniblog/internal/pkg/log&quot;
+    ...
+)
+...
+// run 是主运行逻辑，负责初始化日志、解析配置、校验选项并启动服务器。
+func run(opts *options.ServerOptions) error {
+    // 如果传入 --version，则打印版本信息并退出
+    version.PrintAndExitIfRequested()
+    
+    // 初始化日志
+    log.Init(logOptions())
+    defer log.Sync() // 确保日志在退出时被刷新到磁盘
+    ...
+}
+
+// logOptions 从 viper 中读取日志配置，构建 *log.Options 并返回.
+// 注意：viper.Get&lt;Type&gt;() 中 key 的名字需要使用 . 分割，以跟 YAML 中保持相同的缩进.
+func logOptions() *log.Options {
+    opts := log.NewOptions()
+    if viper.IsSet(&quot;log.disable-caller&quot;) {
+        opts.DisableCaller = viper.GetBool(&quot;log.disable-caller&quot;)
+    }
+    if viper.IsSet(&quot;log.disable-stacktrace&quot;) {
+        opts.DisableStacktrace = viper.GetBool(&quot;log.disable-stacktrace&quot;)
+    }
+    if viper.IsSet(&quot;log.level&quot;) {
+        opts.Level = viper.GetString(&quot;log.level&quot;)
+    }
+    if viper.IsSet(&quot;log.format&quot;) {
+        opts.Format = viper.GetString(&quot;log.format&quot;)
+    }
+    if viper.IsSet(&quot;log.output-paths&quot;) {
+        opts.OutputPaths = viper.GetStringSlice(&quot;log.output-paths&quot;)
+    }
+    return opts
+}
+</code></pre>
+<p>代码清单 6-7，实现了 <a href="https://github.com/onexstack/miniblog/blob/feature/s07/cmd/mb-apiserver/app/server.go#L120">logOptions</a> 函数，用来从配置文件中读取日志配置，并返回 *log.Options 类型的实例。这里要注意只有设置了配置项时，才需要给 opts 变量的字段进行赋值，否则日志初始化时，可能会因为设置了不合法的零值造成日志初始化失败。</p>
+<p>在 run 函数中，添加了 log.Init(logOptions()) 函数调用，用来在应用运行时，初始化日志实例，并在 miniblog 应用退出时，调用 log.Sync() 将缓存中的日志写入磁盘中。</p>
+<p>修改 internal/apiserver/server.go 文件，将其中的配置内容打印，替换成 log 包打印：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// Run 运行应用.
+func (s *UnionServer) Run() error {
+    log.Infow(&quot;ServerMode from ServerOptions&quot;, &quot;jwt-key&quot;, s.cfg.JWTKey)
+    log.Infow(&quot;ServerMode from Viper&quot;, &quot;jwt-key&quot;, viper.GetString(&quot;jwt-key&quot;))
+
+    select {}
+        return nil
+}
+</code></pre>
+<p>在 $HOME/.miniblog/mb-apiserver.yaml 配置文件中添加日志配置：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">...
+# 日志配置
+log:
+  # 是否开启 caller，如果开启会在日志中显示调用日志所在的文件和行号
+  disable-caller: false
+  # 是否禁止在 panic 及以上级别打印堆栈信息
+  disable-stacktrace: false
+  # 指定日志级别，可选值：debug, info, warn, error, dpanic, panic, fatal
+  # 生产环境建议设置为 info
+  level: debug
+  # 指定日志显示格式，可选值：console, json
+  # 生产环境建议设置为 json
+  format: json
+  # 指定日志输出位置，多个输出，用 `逗号 + 空格` 分开。stdout：标准输出
+  output-paths: [/tmp/miniblog.log, stdout]
+</code></pre>
+<p>执行以下命令测试 mb-apiserver 日志打印功能是否被正确添加：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make build
+$ _output/mb-apiserver -c $HOME/.miniblog/mb-apiserver.yaml
+{&quot;level&quot;:&quot;info&quot;,&quot;timestamp&quot;:&quot;2025-02-01 12:12:02.943&quot;,&quot;caller&quot;:&quot;apiserver/server.go:37&quot;,&quot;message&quot;:&quot;ServerMode from ServerOptions&quot;,&quot;jwt-key&quot;:&quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;timestamp&quot;:&quot;2025-02-01 12:12:02.943&quot;,&quot;caller&quot;:&quot;apiserver/server.go:38&quot;,&quot;message&quot;:&quot;ServerMode from Viper&quot;,&quot;jwt-key&quot;:&quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;}
+</code></pre>
+<p>注意，上述是测试代码，在实际开发中，不应该在日志中打印密钥、密码等敏感信息。至此，miniblog 应用成功使用新开发的 log 包打印了日志，完整代码见 <a href="https://github.com/onexstack/miniblog/tree/feature/s05https://github.com/onexstack/miniblog/tree/feature/s07">feature/s07</a> 分支。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

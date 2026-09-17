@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>业务实现（1）：实现 Store 层数据结构定义</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="业务实现1实现-store-层数据结构定义">业务实现（1）：实现 Store 层数据结构定义</h1>
+<p>在完成基础功能开发后，需要进一步开发与业务逻辑相关的代码。相较于基础功能，业务逻辑代码不仅占据了代码仓库的大部分代码量，其复杂性也更高。因此，需要设计一种合理的代码架构，以确保代码的可读性、可维护性和可扩展性。目前，业界较为流行且被广泛认可的代码架构是简洁架构。</p>
+<h2 id="三层架构开发">三层架构开发</h2>
+<p>miniblog 三层简洁架构的依赖关系：Handler 层依赖 Biz 层，Biz 层依赖 Store 层，Store 层依赖数据库。依赖关系如图 9-1 所示。</p>
+<p><img src="../../../assets/md-images/V6LCblkrQo2qlGxz1uwcJME4nDc.png" alt="图片展示了一个软件架构图，其中包含Handler层、Biz层和Store层。Handler层位于最下方，Store层位于最上方，Biz层位于中间。Store层箭头指向Biz层，Biz层箭头指向Handler层，表示Store层依赖Biz层，Biz层依赖Handler层。在图片的最下方，有一个标签“PKG（内部包、外部包、框架包等）”，表示这些包是整个架构的基础。这张图在上下文中说明了软件开发的顺序应为先开发Store层，接着是Biz层，最后是Handler层，以确保依赖较少的组件优先开发，从而提高开发效率。"></p>
+<p>为了能够随时测试所开发的代码功能，最优的方式是优先开发依赖较少的组件。否则，需要先 Mock 或开发所依赖的功能（层）。因此，开发顺序应为：先开发 Store 层，接着是 Biz 层，最后是 Handler 层。</p>
+<p>每一层通常包含多个功能，这里建议不要等待将每一层的全部功能开发完成后再进行其他层的开发，这样会导致整个应用程序的开发周期变长。最佳的方法是先开发一条完整的功能链路，例如优先实现用户创建的业务功能。这样可以快速启动应用的框架程序，提前发现并测试问题。其他业务功能也可以通过拷贝已开发代码后进行二次修改，从而快速完成开发。</p>
+<p>本节课及接下来几节课代码改动量较大，其中有很多同类改动。为了提高你的学习效率，本节课不会对代码进行逐行解读，相反主要讲解其中的核心设计和实现。</p>
+<h2 id="store-层数据结构定义">Store 层数据结构定义</h2>
+<p>根据依赖关系，需要先开发 Store 层代码。Store 层依赖一些数据类型。如果项目持久存储用的是 MySQL/MariaDB 数据库，这些数据类型其实就是 GORM Model。GORM Model 实际上是数据库表字段到 Go 结构体的映射。可以根据 miniblog 数据库中的表来创建对应的 Model。</p>
+<blockquote>
+<p>提示：</p>
+<p>本节最终源码位于 miniblog 项目的 feature/s16 分支。</p>
+</blockquote>
+<p>miniblog 数据库中包含以下三张表，这些表的结构在项目设计阶段已完成设计和创建：</p>
+<ul>
+<li>casbin_rule 表：该表用于存放 casbin 的授权策略，由 casbin 库自动创建，无需特别关注；</li>
+<li>user 表：该表用于存储用户数据；</li>
+<li>post 表：该表用于存储博客数据。</li>
+</ul>
+<p>需要根据表名、表字段及表字段类型创建 Store 层的 Go 结构体，以映射数据库中的对应表。建议将映射数据库表的 Go 结构体以 &lt;表名的大驼峰命名&gt;M 格式进行命名。例如用户表的数据库表名为 user，则其对应的 Go 结构体名为 UserM。这种语义化的命名方式具有以下优点：</p>
+<ul>
+<li>通过后缀 M，可以明确这是一个 Store 层使用的 Go 结构体，专用于映射数据库表；</li>
+<li>通过 User 可以确定该结构体映射的是数据库中的 user 表；</li>
+<li>UserM 结构体类型的实例名称可以命名为 userM。与直接命名为 user 相比，这种命名方式能够有效避免变量命名冲突。</li>
+</ul>
+<p>语义化的命名能够帮助开发者明确结构体的用途和映射的表名，从而提高开发效率并降低理解成本。</p>
+<p>UserM 结构体定义可以手动编写，也可以借助工具自动生成。建议使用工具自动生成，具体步骤如下：</p>
+<ol>
+<li>创建数据库和数据库表；</li>
+<li>根据数据库表生成 Model 文件；</li>
+<li>修改生成的 Go 代码。</li>
+</ol>
+<h2 id="创建数据库和数据库表">创建数据库和数据库表</h2>
+<p>数据库和数据库表的创建方式及 SQL 相关知识不在本课程讨论范围内。为了方便读者快速创建 miniblog 数据库和表结构，本课程在 feature/s16 分支下提供了一个名为 <a href="https://github.com/onexstack/miniblog/blob/feature/s16/configs/miniblog.sql">configs/miniblog.sql</a> 的文件，其中保存了数据库初始化的 SQL 语句。</p>
+<p>数据库的字段命名风格可以是驼峰格式，也可以是蛇形格式。因为是 Go 项目，为了跟 Go 的变量命名风格保持一致，方便字段映射，建议数据库的字段命名也使用驼峰格式。</p>
+<p>在初始化数据库时，只需登录数据库，在数据库交互 Shell 中执行 <code>source configs/miniblog.sql;</code> 即可完成 miniblog 数据库、表结构及部分初始化数据的创建操作。在本课程第 2 讲中，已完成一个可用的 miniblog 数据库环境初始化，这里不需要再次初始化。</p>
+<h2 id="根据数据库表生成-model-文件">根据数据库表生成 Model 文件</h2>
+<p>在 Go 项目开发中，编写 GORM Model 文件通常有多种方式，例如根据数据库表结构手动编写 GORM Model，或使用读取数据库表结构并自动生成 GORM Model 的工具，例如 <a href="https://github.com/Shelnutt2/db2struct">db2struct</a>。</p>
+<p>GORM 官方提供了 <a href="https://github.com/go-gorm/gen">Gen 工具</a>以及 gorm.io/gen 包，用于读取数据库表结构并自动生成 GORM Model 结构体。与其他工具相比，Gen 工具更加友好、安全且灵活，也是推荐的 GORM Model 生成工具。</p>
+<p>在实际开发中，可以直接在 Linux 命令行中运行 gentool 工具生成 GORM Model。但更推荐的方式是基于 gorm.io/gen 包，开发一个与项目适配的 Model 生成工具。相较于 gentool 工具，gorm.io/gen 包提供更加强大且灵活的定制能力。在基于数据库表结构生成 Model 结构体时，通常需要根据项目需求实现以下定制功能：</p>
+<ul>
+<li>自定义结构体名：将数据库表名映射为指定的 Go 结构体名;</li>
+<li>自定义结构体字段名：根据数据库字段名，生成指定的结构体字段名;</li>
+<li>自定义 GORM 标签：指定 Model 结构体的 GORM 标签;</li>
+<li>自定义结构体字段类型：给某个结构体字段指定自定义的字段类型;</li>
+<li>自定义结构体字段注释：在生成的代码中添加更具描述性的注释以增强代码可读性;</li>
+<li>自定义代码生成路径：自定义 GORM Model 文件的保存路径。</li>
+</ul>
+<p>除了上述常用的自定义能力，gorm.io/gen 包还提供其他非常多的自定义能力。</p>
+<p>miniblog 项目的 GORM Model 生成工具见 feature/s16 分支的 <a href="https://github.com/onexstack/miniblog/blob/feature/s16/cmd/gen-gorm-model/gen_gorm_model.go">cmd/gen-gorm-model/gen_gorm_model.go</a> 文件。gen_gorm_model.go 代码量比较大，且拥有详尽的注释，课程中不再详细介绍。</p>
+<p>为了降低读者的学习成本，miniblog 支持开启 SQLite 数据库的内存模式（In-Memory Mode）。通过使用内存存储数据，可以移除快速部署时对 MariaDB 的依赖。在程序启动时，GORM 会基于 Model 结构体定义，通过类似于 AutoMigrate(&amp;model.UserM{}) 的调用方式，自动在内存数据库中创建数据库表。但是在通过 MariaDB 表结构生成的 GORM Model 结构体的列标签并不能用来自动创建 SQLite 表结构。这是因为 MariaDB 中的有些字段类型，SQLite 并不支持。所以，在创建 *gen.Generator 类型的实例时，需要设置 FieldWithTypeTag 为 false，以关闭列标签的生成。</p>
+<p>为了在代码中明确标识出 GORM Model 结构体类型，统一将 GORM Model 结构体命名为 &lt;表名的大驼峰命名&gt;M 的格式，需要在 GenerateModelAs 方法中，指定生成的 GORM Model 结构体名。</p>
+<p>为了生成符合 Go 语言开发规范的结构体名，使用 gen.FieldRename() 方法，将 casbin_rule 表 ptype 字段对应的结构体字段重命名为 Ptype。</p>
+<p>gorm.io/gen 包默认生成的默认时间 gorm 标签为 default:current_timestamp()，该标签不能被 SQLite 识别，需要使用 gen.FieldGORMTag 方法重命名为 default:current_timestamp。</p>
+<p>gorm.io/gen 包默认生成的 uniqueIndex 标签页不能直接适用于 SQLite，也需要通过 gen.FieldGORMTag 重新指定。</p>
+<p>gen.FieldIgnore(&quot;placeholder&quot;) 的作用是告诉 gorm/gen 在生成模型代码时忽略表中名为 placeholder 的字段，不会将它包含在生成的 Go 模型结构体中。这里仅展示用，不会对功能有任何影响。在 gen_gorm_model.go 文件中，还通过设置 ModelPkgPath 配置项，将生成的 GORM Model 代码保存在了  <a href="https://github.com/onexstack/miniblog/tree/feature/s16/internal/apiserver/model">internal/apiserver/model/</a> 目录中。</p>
+<blockquote>
+<p>提示：</p>
+<p>casbin_rule 表由 casbin 包自动生成，casbin_rule 表中保存了授权相关的设置。</p>
+</blockquote>
+<p>因为编写了 gen-gorm-model 工具用来快速生成 Model 文件，所以，在每次数据库有字段增删改的时候，都可以运行 gen-gorm-model 来生成 Model 文件。运行以下命令，可以查看 gen-gorm-model 的使用方式：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-SQL">$ go run cmd/gen-gorm-model/gen_gorm_model.go -h
+Usage: main [flags] arg [arg...]
+
+This is a pflag example.
+
+Flags:
+  -a, --addr string             MySQL host address. (default &quot;127.0.0.1:3306&quot;)
+      --component strings       Generated model code's for specified component. (default [mb])
+  -d, --db string               Database name to connect to. (default &quot;miniblog&quot;)
+  -h, --help                    Show this help message.
+      --model-pkg-path string   Generated model code's package name.
+  -p, --password string         Password to use when connecting to the database. (default &quot;miniblog1234&quot;)
+  -u, --username string         Username to connect to the database. (default &quot;miniblog&quot;)
+</code></pre>
+<p>运行以下命令来生成 GORM Model 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ cd cmd/gen-gorm-model/
+$ go run gen_gorm_model.go -a 127.0.0.1:3306 -u 'miniblog' -p 'miniblog1234'
+</code></pre>
+<p>生成的 Model 文件位于 internal/apiserver/model/目录中。</p>
+<h2 id="添加-gorm-钩子">添加 GORM 钩子</h2>
+<p>在生成了 GORM Model 结构体之后，可根据需要给这些结构体添加一些 GORM 钩子。常用的 GORM 钩子见表 9-1 所示。</p>
+<p><img src="../../../assets/md-images/S7KgbYLYZozj4uxqPkUcWqLcnxf.png" alt="图片是一张表格，展示了常用的GORM钩子。表格有两列，左列是返回头，右列是说明。包括BeforeCreate（执行INSERT语句前触发，如数据校验等）、AfterCreate（执行INSERT语句后触发，如生成关联值等）、BeforeFind、AfterFind等多个钩子，分别在执行相应数据库操作（查询、更新、删除、保存等）的前后触发，并有着不同的应用场景，如数据校验、日志记录等。该表格与上文提到的在GORM Model结构体中添加GORM钩子的内容相关联。"></p>
+<p>miniblog 项目在 <a href="https://github.com/onexstack/miniblog/blob/feature/s16/internal/apiserver/model/hook.go">internal/apiserver/model/hook.go</a> 文件中，添加了数据库表 userID 和 postID 字段的自动生成钩子，用来生成并保存记录的唯一标识符，如代码清单 9-1 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package model
+
+import (
+    &quot;gorm.io/gorm&quot;
+
+    &quot;github.com/onexstack/miniblog/internal/pkg/rid&quot;
+)
+
+// AfterCreate 在创建数据库记录之后生成 postID.
+func (m *PostM) AfterCreate(tx *gorm.DB) error {
+    m.PostID = rid.PostID.New(uint64(m.ID))
+
+    return tx.Save(m).Error
+}
+
+// AfterCreate 在创建数据库记录之后生成 userID.
+func (m *UserM) AfterCreate(tx *gorm.DB) error {
+    m.UserID = rid.UserID.New(uint64(m.ID))
+
+    return tx.Save(m).Error
+}
+</code></pre>
+<p>上述代码在创建完数据库表记录之后，会调用 rid 包，基于数据库生成的自增 ID 生成一个形如 user-uvalgf 的英文唯一 ID，并调用 tx.Save() 方法将 ID 更新到表记录中。</p>
+<blockquote>
+<p>提示：</p>
+<p>用户名本质上是用户提供的信息，用户可能因各种原因需要修改（例如微信支持修改微信号）。如果系统完全依赖用户名作为标识，修改用户名时会对数据库中的外键关联、缓存、日志记录或权限管理等造成影响。而 UserID 不可变，即使用户名修改，UserID 仍能稳定地标识同一用户。</p>
+</blockquote>
+<p>Go 项目开发中，需要为每一个条 REST 资源生成唯一标识符（Unique Identifier,UID），以唯一定位该 REST 资源。例如更新资源、删除资源时，需要提供该唯一 ID。生成唯一标识符时，有以下几点事项需要注意：</p>
+<ul>
+<li>**冲突问题：**无论使用何种策略，需要确保生成的标识符在业务范围内不冲突。在分布式环境中生成标识符时，需要特别注意跨节点冲突问题，例如雪花算法中机器 ID 的正确配置；</li>
+<li>**性能瓶颈：**对于高并发系统中，大量请求同时生成 ID 可能会成为瓶颈。需要选择性能较高的算法（如雪花算法），避免依赖数据库的自增主键；</li>
+<li>**信息泄露：**ID 不应透露敏感信息。避免直接使用数据库主键作为唯一 ID 并暴露给用户，同时要考虑攻击者通过分析逻辑标识符推断出系统内部数据；</li>
+<li>**唯一性范围：**如果使用时间戳等生成 ID，需结合业务需求分析唯一性范围（全局唯一、表级唯一还是某特定场景唯一）；</li>
+<li>**可扩展性：**唯一标识符的生成应具备足够的扩展能力，例如未来新增资源或迁移到分布式环境时，仍然能生成唯一标识。</li>
+</ul>
+<p>有很多种方法可以生成资源的唯一 ID，以下是可能使用到的方法：</p>
+<ul>
+<li>**使用数据库主键（Primary Key）：**数据库中的每条记录通常有一个主键（Primary Key），用来唯一标识一条记录。然而，我们通常不会直接使用数据库的自增主键。因为使用主键作为 ID，会暴露系统的数据规模，并且数据库 ID 是可预测的，攻击者可以轻松的基于当前的 ID，模拟一个存在的 ID，并尝试访问；</li>
+<li>**使用 36 位 UUID：**UUID 是一种广泛使用的通用唯一标识符，能够在时间和空间上保证唯一性。在 Go 项目开发中，可以使用 github.com/google/uuid 包来生成全球唯一的 UUID。使用 UUID 的最大好处是生成方式简单。缺点是长度较长不易记忆，占用存储空间大。示例代码如下：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    &quot;github.com/google/uuid&quot;
+)
+
+func GenerateUUID() string {
+    return uuid.New().String() // 生成一个新的 UUID，并转为字符串格式
+}
+</code></pre>
+<ul>
+<li>**雪花算法（Snowflake Algorithm）：**雪花算法是 Twitter 提出的分布式 ID 生成算法，通过时间戳、机器编号和自增序列号组合生成唯一标识符。生成的 ID 通常是 64 位整数，按时间递增排序。可以使用 github.com/sony/sonyflake 包来生成 ID。雪花算法适合高性能、高并发的分布式场景。其优点是基于时间排序，生成的 ID 一定时间内是有序的。缺点是现相对复杂，可能受机器时钟漂移影响，需要引入额外的依赖（如机器编号）。示例代码如下：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    &quot;github.com/sony/sonyflake&quot;
+    &quot;log&quot;
+)
+
+func GenerateSnowflakeID() uint64 {
+    flake := sonyflake.NewSonyflake(sonyflake.Settings{})
+    id, err := flake.NextID()
+    if err != nil {
+        log.Fatalf(&quot;failed to generate ID: %v&quot;, err)
+    }
+    return id
+}
+</code></pre>
+<ul>
+<li>**数据库自增 ID 配合随机化：**使用数据库的自增 ID（如递增主键）加上一个随机后缀（或编码）生成唯一标识符。这是一种简单且实用的方法。在绝大部分项目中，全局使用一个数据库，数据库不存在主键冲突问题。其优点是可以生成短小的唯一 ID，例如：user-uvalgf。缺点是并非完全去中心化，需要依赖数据库生成初始 ID。示例代码如下：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    &quot;crypto/rand&quot;
+    &quot;encoding/hex&quot;
+    &quot;fmt&quot;
+)
+
+func GenerateRandomID(dbID int64) string {
+    // 随机生成 4 字节的随机值，作为自增 ID 的后缀
+    randomBytes := make([]byte, 4)
+    _, _ = rand.Read(randomBytes) // 生成随机数
+    randomSuffix := hex.EncodeToString(randomBytes) // 转为十六进制
+
+    return fmt.Sprintf(&quot;ID-%d-%s&quot;, dbID, randomSuffix) // 组合生成唯一 ID
+}
+</code></pre>
+<ul>
+<li>**基于时间戳的自定义生成：**按时间生成标识符，用当前时间戳加一定后缀或随机值的方式实现。该方法优点是简单直观，适合对时间敏感的业务。缺点是 ID 可预测，有可能出现冲突，需结合随机数后缀或机器编号。示例代码如下：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    &quot;fmt&quot;
+    &quot;time&quot;
+)
+
+func GenerateTimestampID() string {
+    timestamp := time.Now().UnixNano() // 当前时间戳 (纳秒级)
+    return fmt.Sprintf(&quot;TS-%d&quot;, timestamp)
+}
+</code></pre>
+<ul>
+<li>**分布式 ID：**在分布式系统或微服务中，数据库的自增主键仅在单个服务或数据库表中唯一。但多个服务或数据源需要统一标识一个记录时，自增主键可能会冲突。唯一标识符可以跨系统、跨服务维度保证唯一性。</li>
+</ul>
+<p>自定义的唯一标识符可以包含更丰富的信息，例如时间戳、数据中心编号、业务类型等。这可以增强标识符的可读性，方便用作业务日志、用户界面或跨服务传递的数据。另外，唯一标识符的生成一般不依赖于数据库，可以在程序中独立生成。这种去中心化的设计减少了对数据库的依赖，提升了系统的扩展能力，特别是在分布式环境中。</p>
+<p>基于上述唯一 ID 生成注意事项和方法，miniblog 开发了 onexstack/miniblog/internal/pkg/rid 包用来生成唯一 ID。</p>
+<p>rid（resource id）包实现如下述代码所示：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package rid
+
+import (
+    &quot;github.com/onexstack/onexstack/pkg/id&quot;
+)
+
+const defaultABC = &quot;abcdefghijklmnopqrstuvwxyz1234567890&quot;
+
+type ResourceID string
+
+const (
+    // UserID 定义用户资源标识符.
+    UserID ResourceID = &quot;user&quot;
+    // PostID 定义博文资源标识符.
+    PostID ResourceID = &quot;post&quot;
+)
+
+// String 将资源标识符转换为字符串.
+func (rid ResourceID) String() string {
+    return string(rid)
+}
+
+// New 创建带前缀的唯一标识符.
+func (rid ResourceID) New(counter uint64) string {
+    // 使用自定义选项生成唯一标识符
+    uniqueStr := id.NewCode(
+        counter,
+        id.WithCodeChars([]rune(defaultABC)),
+        id.WithCodeL(6),
+        id.WithCodeSalt(Salt()),
+    )
+    return rid.String() + &quot;-&quot; + uniqueStr
+}
+</code></pre>
+<p>代码清单 9-2，定义了一个 ResourceID 数据类型，其 String 方法和 New 方法，分别用来返回资源的字符串标识和资源的唯一 ID，格式为 &lt;资源标识符&gt;-&lt;6 位随机数&gt;。使用带资源前缀的唯一 ID，有利于通过唯一 ID 辨别资源类型，通过前缀避免可能的随机数冲突。</p>
+<p>ResourceID 是一个简单的、可扩展的统一表示形式，未来可根据需要添加更多的自定义资源，并复用 ResourceID 的方法，生成新资源的唯一 ID，例如 comment-w6irkg。New(counter uint64) 方法中的 counter 通常为数据库自增 ID，基于数据库自增 ID 生成唯一标识，不仅可以生成短小、易读的唯一 ID，还可以隐藏掉自增 ID 的背后的数据规模。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web 服务核心功能：添加 gRPC 拦截器</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="web-服务核心功能添加-grpc-拦截器">Web 服务核心功能：添加 gRPC 拦截器</h1>
+<h2 id="web-中间件介绍">Web 中间件介绍</h2>
+<p>中间件（Middleware）是位于应用程序请求-响应处理循环中的一个特殊函数。它可以在请求到达业务逻辑处理之前修改/处理请求，或是在响应返回给客户端之前修改/处理响应。中间件根据使用方又可分为客户端中间件和服务端中间件，两者在实现原理和使用方式上是一致的。</p>
+<p>中间件的核心作用是对请求或响应进行预处理、后处理或监控。它允许在请求和响应被发送或接收之前或之后插入自定义逻辑，从而实现多种功能，例如认证、授权、日志记录、性能监控、错误处理、请求验证、跨域支持、限流等。以下是核心使用场景的详细说明：</p>
+<ul>
+<li>**认证和授权：**使用中间件可以实现认证和授权逻辑。在中间件中，可以验证请求者的身份、权限等信息，并根据情况决定是否允许请求继续进行；</li>
+<li>**日志记录：**中间件可以用于记录请求和响应的详细信息，从而实现日志记录和监控。可以记录请求的内容、调用的方法、响应的结果等，以便于调试和分析；</li>
+<li>**错误处理：**在中间件中可以捕获和处理 gRPC 调用过程中可能发生的错误，以提供更友好的错误信息或进行恢复操作；</li>
+<li>**性能监视：**使用中间件可以监视 Web 调用的性能指标，如调用时间、响应时间等，从而实现性能监控和优化。</li>
+</ul>
+<p>使用 Web 中间件能够带来诸多优点，主要包括以下几点：</p>
+<ul>
+<li>**提升代码复用性：**中间件可以在多个路由、甚至不同项目中被重复使用。通过提取通用功能为中间件，不但减少了重复代码，还降低了开发和维护成本；</li>
+<li>**提高代码的模块化：**中间件允许开发者将应用程序的通用功能抽象为独立的模块。每个模块在一个独立的处理中间层中实现，可以专注于特定功能，而无需杂糅到主业务逻辑中。另外，代码模块化，也可以增强代码可维护性，修改某个功能时，只需调整相关的中间件，而不会影响主代码逻辑；</li>
+<li>**方便处理全局功能：**中间件可以拦截和处理所有请求，非常适合用来实现一些通用的功能。例如错误处理、数据验证、CORS 支持等，都可以在中间件层处理，而不需要在每个业务逻辑中重复实现；</li>
+<li>**支持中间件链式调用，便于扩展功能：**中间件通过链式调用机制，可以轻松扩展新功能，而无需改动现有代码。例如，在一条请求处理中，可以先进行身份验证，然后验证权限，最后记录日志。通过中间件链的组合，扩展新的功能就像添加新的链环一样简单。</li>
+</ul>
+<p>目前主流 Web 框架均支持中间件功能。尽管在不同框架中可能有不同的称谓，例如 Filter（过滤器）、Middleware（中间件）、Interceptor（拦截器）等，但其核心机制相似。</p>
+<p>Web 中间件工作原理如图 8-1 所示。</p>
+<p><img src="../../../assets/md-images/VFpCbsoM9ohT7MxGiXucwNKpnQf.png" alt="图片展示了Web请求的执行流程，从开始到结束依次经过中间件A、中间件B、处理器函数和中间件B、中间件A。中间件A和中间件B分别位于请求的开始和结束阶段，处理器函数位于中间，整个流程类似于栈结构。图片在上下文中用于说明Web中间件的工作原理，强调中间件在请求处理过程中的前置拦截和后置拦截功能。"></p>
+<p>图 8-1 中，有两个中间件：中间件 A 和中间件 B。一个 Web 请求从开始到结束时的执行流程为：中间件 A-&gt;中间件 B-&gt;处理器函数-&gt;中间件 B-&gt;中间件 A，其执行顺序类似于栈结构。</p>
+<p>Web 中间件的作用实际上是实现对请求的前置拦截和对响应的后置拦截功能：</p>
+<ul>
+<li>**请求前置拦截：**在 Web 请求到达定义的处理器函数之前，对请求进行拦截并执行相应的处理；</li>
+<li>**请求后置拦截：**在完成请求的处理并响应客户端后，拦截响应并进行相应的处理。</li>
+</ul>
+<p>需要注意的是，中间件会附加到每个请求的链路上，因此如果中间件性能较差或不稳定，将会影响所有 API 接口。因此，在开发中间件时，应确保其稳定性和性能，同时建议仅添加必要的中间件。</p>
+<h2 id="grpc-添加拦截器">gRPC 添加拦截器</h2>
+<p>gRPC 框架也支持 Web 中间件，在 gRPC 框架中，Web 中间件叫拦截器。本节会详细介绍如何实现并添加 gRPC 拦截器。</p>
+<h3 id="grpc-拦截器介绍">gRPC 拦截器介绍</h3>
+<p>gRPC 拦截器是一个 Web 中间件。利用拦截器，开发者可以在不侵入业务逻辑的前提下修改或者记录服务端或客户端的请求与响应，利用拦截器可以实现诸如日志记录、权限认证、限流等诸多功能。</p>
+<p>gRPC 的通信模式分为 Unary 和 Streaming 两种模式，拦截器也分为两种：UnaryInterceptor（一元拦截器）和 StreamInterceptor（流式拦截器）。这两种拦截器可以分别应用在服务端和客户端，所以 gRPC 框架中，一共提供了四种拦截器：</p>
+<ul>
+<li>**UnaryServerInterceptor：**服务端一元拦截器，适用于简单 RPC 调用。它会在服务端接收到请求时执行拦截逻辑，通常用于对请求进行预处理、授权、认证、日志记录、错误处理等；</li>
+<li>**StreamServerInterceptor：**服务端流式拦截器，适用于流式 RPC 调用，例如客户端流式、服务端流式和双向流式 RPC 调用。它会在服务端接收到流式请求时进行拦截，允许开发者对流式数据进行操作和处理；</li>
+<li>**UnaryClientInterceptor：**客户端一元拦截器，适用于简单 RPC 调用（Unary RPC）。它会拦截客户端发起的调用，通常用于操控请求或响应，比如：请求重试、请求参数的统一注入、加密、客户端的日志记录等；</li>
+<li>**StreamClientInterceptor：**客户端流式拦截器，适用于流式 RPC 调用（客户端流式、服务端流式、双向流式）。它允许在流式调用时通过拦截客户端流（ClientStream）创建过程自定义逻辑，开发者可以围绕流式数据进行操作。</li>
+</ul>
+<p>本课程只介绍 miniblog 项目使用的 gRPC 拦截器类型：UnaryServerInterceptor 和 UnaryClientInterceptor。另外两种拦截器类型，你可自行查找资料学习。</p>
+<h3 id="实现请求-id-拦截器">实现请求 ID 拦截器</h3>
+<p>在实际应用开发中，常会遇到如下场景：某用户执行某次操作失败，并向开发人员寻求问题定位和修复。这时，用户通常会提供一些基本的请求信息，供开发人员进行问题排查。</p>
+<p>在定位问题时，大多数情况下需要通过查找日志来发现问题。然而，用户提供的信息可能不足以精确定位问题，或者查找到的日志并非与用户请求对应的日志记录。在这种情况下，该如何处理？</p>
+<p>目前最优的解决方案是：为每次请求注入一个唯一的 RequestID（或者 TraceID），并在每条日志中输出该 RequestID。这样，用户只需提供一个唯一的 RequestID，开发人员即可快速定位与该请求相关的所有日志记录，从而提高问题修复的效率和准确性。为应用添加 RequestID 具体需要实现以下功能：</p>
+<ul>
+<li>在请求中注入 RequestID；</li>
+<li>在日志中打印 RequestID。</li>
+</ul>
+<p>因为每个请求都需要添加 RequestID，所以很自然的，考虑使用 gRPC 拦截器来实现。因为 miniblog 实现了简单模式的 gRPC 服务，并且 RequestID 是在服务端收到请求时添加，所以需要实现 UnaryServerInterceptor 类型的拦截器。</p>
+<p>新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s14/internal/pkg/middleware/grpc/requestid.go">internal/pkg/middleware/grpc/requestid.go</a> 文件，在该文件中实现一个 <a href="https://github.com/onexstack/miniblog/blob/feature/s14/internal/pkg/middleware/grpc/requestid.go#L22">RequestIDInterceptor</a> 拦截器，用来给每个请求生成 RequestID。考虑到代码的可维护性和可复用性，将拦截器统一保存在 internal/pkg/middleware 目录中。miniblog 同时使用了 Gin 框架和 gRPC 框架，两种框架的中间实现方法不同，所以需要将 gRPC 拦截器和 Gin 中间件分别保存在 grpc 目录和 gin 目录中。</p>
+<p>internal/pkg/middleware/grpc/requestid.go 文件内容如代码清单 8-2 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// RequestIDInterceptor 是一个 gRPC 拦截器，用于设置请求 ID.
+func RequestIDInterceptor() grpc.UnaryServerInterceptor {
+    return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+        var requestID string
+        md, _ := metadata.FromIncomingContext(ctx)
+
+        // 从请求中获取请求 ID
+        if requestIDs := md[known.XRequestID]; len(requestIDs) &gt; 0 {
+            requestID = requestIDs[0]
+        }
+
+        // 如果没有请求 ID，则生成一个新的 UUID
+        if requestID == &quot;&quot; {
+            requestID = uuid.New().String()
+            md.Append(known.XRequestID, requestID)
+        }
+
+        // 将元数据设置为新的 incoming context
+        ctx = metadata.NewIncomingContext(ctx, md)
+
+        // 将请求 ID 设置到响应的 Header Metadata 中
+        // grpc.SetHeader 会在 gRPC 方法响应中添加元数据（Metadata），
+        // 此处将包含请求 ID 的 Metadata 设置到 Header 中。
+        // 注意：grpc.SetHeader 仅设置数据，它不会立即发送给客户端。
+        // Header Metadata 会在 RPC 响应返回时一并发送。
+        grpc.SetHeader(ctx, md)
+
+        // 将请求 ID 添加到 ctx 中
+        //nolint: staticcheck
+        ctx = contextx.WithRequestID(ctx, requestID)
+
+        // 继续处理请求
+        res, err := handler(ctx, req)
+        // 错误处理，附加请求 ID
+        if err != nil {
+            return res, errorsx.FromError(err).WithRequestID(requestID)
+        }
+
+        return res, nil
+    }
+}
+</code></pre>
+<p>代码清单 8-2 实现了一个针对服务端一元调用（Unary RPC）的服务端一元拦截器 RequestIDInterceptor。</p>
+<p>RequestIDInterceptor() 方法会返回一个 grpc.UnaryServerInterceptor 类型的函数。该函数，会先尝试从 gRPC 请求的元数据中获取键为 x-request-id 的请求 ID，如果没有获取到就调用 uuid.New().String() 方法生成一个请求 ID，并将生成的请求 ID 保存在 gRPC 请求和返回的元数据中。</p>
+<blockquote>
+<p>提示：</p>
+<p>在 gRPC 通信中，元数据（metadata）是一种轻量级、灵活的机制，用于通过上下文传递额外的信息（如认证信息、追踪 ID 等），类似于 HTTP 中的 Header。Metadata 本质上是一组键值对，可以在 RPC 调用的请求和响应双方进行交换。这些键值对通常被用作元信息，而不是直接与业务数据相关。</p>
+</blockquote>
+<p>gRPC 框架中的 google.golang.org/grpc/metadata 包，提供了 FromIncomingContext(ctx) 方法用来从 context 中获取元数据。提供了 grpc.SetHeader 方法用于将元数据设置到 Header 中。</p>
+<p>在代码清单 8-2 中，通过 contextx.WithRequestID(ctx, requestID) 调用，将请求 ID 添加到自定义的上下文中，便于后续业务代码或日志记录使用。上述代码，还会判断 gRPC 请求是否成功，如果失败会将请求 ID 添加到错误信息中。gRPC 请求的返回元数据中，已经包含了请求 ID，这里再次将请求 ID 添加到 gRPC 的返回错误中，原因如下：</p>
+<p>错误中包含请求 ID 更易定位问题：在 Go 项目开发中，逻辑代码基本都会对错误进行处理，例如打印错误。所以将请求 ID 包含在错误信息中，在客户端请求报错后，能够通过错误信息，直接获取到请求 ID，从而根据请求 ID 快速定位问题；</p>
+<p>gRPC 元数据很少被处理：在 Go 项目开发中，有不少开发者不会处理 gRPC 元数据，所以将请求 ID 保存在元数据中，可能并不会被处理。</p>
+<h3 id="grpc-服务加载拦截器">gRPC 服务加载拦截器</h3>
+<p>在开发了 RequestIDInterceptor 拦截器之后，还需要将该拦截器添加到 gRPC 请求链中。修改 internal/apiserver/grpcserver.go 文件，添加以下代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    ...
+    mw &quot;github.com/onexstack/miniblog/internal/pkg/middleware/grpc&quot;
+    ...
+)
+
+func (c *ServerConfig) NewGRPCServerOr() (server.Server, error) {
+    // 配置 gRPC 服务器选项，包括拦截器链
+    serverOptions := []grpc.ServerOption{
+        // 注意拦截器顺序！
+        grpc.ChainUnaryInterceptor(
+            // 请求 ID 拦截器
+            mw.RequestIDInterceptor(),
+        ),
+    }
+
+    // 创建 gRPC 服务器
+    grpcsrv, err := server.NewGRPCServer(
+        c.cfg.GRPCOptions,
+        serverOptions,
+        func(s grpc.ServiceRegistrar) {
+            apiv1.RegisterMiniBlogServer(s, handler.NewHandler())
+        },
+    )
+    ...
+}
+</code></pre>
+<p>上述代码创建了一个 grpc.ServerOption 类型的数组，数组中包含了一个 gRPC 请求拦截器链，拦截器链中包含了开发的请求 ID 拦截器。</p>
+<p>修改 internal/pkg/server/grpc_server.go 文件中的 NewGRPCServer 方法，添加 <code>serverOptions []grpc.ServerOption</code> 类型的入参，并将传入的 gRPC 服务器配置项列表传给 grpc.NewServer() 方法，从而在启动服务时，加载 gRPC 拦截器链。</p>
+<h3 id="请求日志中打印请求-id">请求日志中打印请求 ID</h3>
+<p>通过 RequestIDInterceptor 拦截器给请求上下文注入了请求 ID，还需要修改日志包，用来在每条日志中输出请求 ID。修改 <a href="https://github.com/onexstack/miniblog/blob/feature/s14/internal/pkg/log/log.go#L198">internal/pkg/log/log.go</a> 文件，添加以下代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package log
+
+import (
+    ...
+    &quot;github.com/onexstack/miniblog/internal/pkg/contextx&quot;
+    &quot;github.com/onexstack/miniblog/internal/pkg/known&quot;
+)
+
+// W 解析传入的 context，尝试提取关注的键值，并添加到 zap.Logger 结构化日志中.
+func W(ctx context.Context) Logger {
+    return std.W(ctx)
+}
+
+func (l *zapLogger) W(ctx context.Context) Logger {
+    lc := l.clone()
+
+    // 定义一个映射，关联 context 提取函数和日志字段名。
+    contextExtractors := map[string]func(context.Context) string{
+        known.XRequestID: contextx.RequestID, // 提取请求 ID
+        known.XUserID:    contextx.UserID,    // 提取用户 ID
+    }
+
+    // 遍历映射，从 context 中提取值并添加到日志中。
+    for fieldName, extractor := range contextExtractors {
+        if val := extractor(ctx); val != &quot;&quot; {
+            lc.z = lc.z.With(zap.String(fieldName, val))
+        }
+    }
+
+    return lc
+}
+
+// clone 深度拷贝 zapLogger.
+func (l *zapLogger) clone() *zapLogger {
+    logger := l.z.WithOptions(zap.AddCallerSkip(-1))
+    return &amp;zapLogger{z: logger}
+}
+</code></pre>
+<p>日志包新增了 W 方法，W 是 WithContext 的简称，之所以用简称是因为将函数名缩短，可以有效减小日志打印代码的宽度，减少日志行代码折行概率，利于阅读。这种简写以节省代码宽度的函数命名方法，在 Go 项目开发中经常会被用到。日志包是基础的 Go 包，开发者在使用日志包时，理解这种简写函数名成本并不高。由于 log 包会被多个请求并发调用，为防止请求 ID 被污染，每个请求都会对 log 包深拷贝一个 *zapLogger 对象，然后再添加请求 ID。</p>
+<p>在 RequestIDInterceptor 拦截器中，请求 ID 被注入到自定义上下文中，所以在 W 方法中，就可以使用 contextx.RequestID(ctx) 便捷的从自定义上下文中获取请求 ID。W 方法中，还尝试读取 UserID，并将 UserID 加到日志输出字段中。UserID 是 miniblog 的租户 ID，是关键信息，所以这里也提前实现了 UserID 的日志输出。</p>
+<p>在 log 包中，日志字段的键从 known 包中获取。Go 项目开发中，经常会将一些共享常量统一保存在常量包，例如 known、constant 这类包中，以便集中管理和引用。通过从常量包引用共享常量，可以确保代码中相同变量值的一致性，如果后面常量值需要变更，只需变更一个地方即可更新所有引用了该常量的代码，从而降低代码的维护成本。</p>
+<p>在 known 包中，定义了以下常量：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">const (
+    // XRequestID 用来定义上下文中的键，代表请求 ID.
+    XRequestID = &quot;x-request-id&quot;
+
+    // XUserID 用来定义上下文的键，代表请求用户 ID. UserID 整个用户生命周期唯一.
+    XUserID = &quot;x-user-id&quot;
+)
+</code></pre>
+<p>gRPC 底层使用了 HTTP/2 作为传输协议，而 HTTP/2 规范规定 Header 的键名必须为小写。因此，在 gRPC 中，所有 Header 键都会被强制转换为小写以符合 HTTP/2 的要求。而在 HTTP/1.x 中，许多实现会保留用户设置的键名大小写格式，但某些 HTTP 框架或工具库（如某些 Web 服务器或代理）可能会自动将 Header 键转换为小写，以简化处理逻辑。考虑到兼容性，在所有场景下统一将 Header 键设置为小写。此外，以 x-开头的 Header 键表明其为自定义 Header。</p>
+<h2 id="测试-requestidinterceptor-拦截器">测试 RequestIDInterceptor 拦截器</h2>
+<p>为了测试 RequestIDInterceptor 拦截器的执行效果，需要在 <a href="https://github.com/onexstack/miniblog/blob/feature/s14/internal/apiserver/handler/grpc/healthz.go#L21">internal/apiserver/handler/grpc/healthz.go</a> 文件中的 Healthz 处理器方法中添加以下日志打印：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">log.W(ctx).Infow(&quot;Healthz handler is called&quot;, &quot;method&quot;, &quot;Healthz&quot;, &quot;status&quot;, &quot;healthy&quot;)
+</code></pre>
+<p>通过以下命令来测试请求 ID 是否被正确生成并注入到 context 中：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ make
+$ _output/mb-apiserver # 需修改 $HOME/.miniblog/mb-apiserver.yaml文件中server-mode为grpc
+</code></pre>
+<p>打开一个新的 Linux 终端，执行以下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ go run examples/client/interceptor/main.go
+2025/02/01 14:45:13 [UnaryClientInterceptor] Invoking method: /v1.MiniBlog/Healthz
+Response Header (key: x-request-id, value: [5ba31a82-8519-492f-a198-d294aef4ef76])
+Response Header (key: interceptor-header, value: [interceptor-value])
+Response Header (key: content-type, value: [application/grpc])
+{&quot;timestamp&quot;:&quot;2025-02-01 14:45:13&quot;}
+</code></pre>
+<p>可以看到，在 gRPC 返回的 Header 中，成功返回了 x-request-id。在服务端会输出以下日志：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JSON">{&quot;level&quot;:&quot;info&quot;,&quot;timestamp&quot;:&quot;2025-02-01 14:45:13.105&quot;,&quot;caller&quot;:&quot;v1/apiserver_grpc.pb.go:117&quot;,&quot;message&quot;:&quot;Healthz handler is called&quot;,&quot;x-request-id&quot;:&quot;5ba31a82-8519-492f-a198-d294aef4ef76&quot;,&quot;method&quot;:&quot;Healthz&quot;,&quot;status&quot;:&quot;healthy&quot;}
+</code></pre>
+<p>可以看到，log 包从自定义上下文中获取到了 x-request-id，并在日志中输出。</p>
+<h2 id="unaryclientinterceptor-示例">UnaryClientInterceptor 示例</h2>
+<p>feature/s14 分支的 <a href="https://github.com/onexstack/miniblog/blob/feature/s14/examples/client/interceptor/main.go">examples/client/interceptor/main.go</a> 文件中，实现了一个 UnaryClientInterceptor 拦截器，如代码清单 8-3 所示。</p>
+<p>代码清单 8-3 UnaryClientInterceptor 拦截器示例</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">func unaryClientInterceptor() grpc.UnaryClientInterceptor {
+    return func(ctx context.Context,
+        method string,
+        req, reply interface{},
+        cc *grpc.ClientConn,
+        invoker grpc.UnaryInvoker,
+        opts ...grpc.CallOption,
+    ) error {
+        // 打印请求方法和请求参数
+        log.Printf(&quot;[UnaryClientInterceptor] Invoking method: %s&quot;, method)
+
+        // 添加自定义元数据
+        md := metadata.Pairs(&quot;interceptor-header&quot;, &quot;interceptor-value&quot;)
+        ctx = metadata.NewOutgoingContext(ctx, md)
+
+        // 调用实际的 gRPC 方法
+        err := invoker(ctx, method, req, reply, cc, opts...)
+        if err != nil {
+            log.Printf(&quot;[UnaryClientInterceptor] Method: %s, Error: %v&quot;, method, err)
+            return err
+        }
+
+        return nil
+    }
+}
+</code></pre>
+<p>在代码清单 8-3 中，实现了一个 gRPC 一元（Unary）客户端拦截器 unaryClientInterceptor。在 unaryClientInterceptor 拦截器中，可以获取以下信息：</p>
+<ul>
+<li>ctx：上下文对象，包含请求的元数据和链路信息，可将新元数据传入 gRPC 方法调用时使用；</li>
+<li>method：调用的 gRPC 方法的名称，例如 /package.Service/Method；</li>
+<li>req, reply：请求参数和响应结果（它们是具体的结构体，通常由 .proto 定义的服务方法生成）；</li>
+<li>cc：客户端连接对象（*grpc.ClientConn），表示连接的 gRPC 服务端；</li>
+<li>invoker：gRPC 的实际调用方法，客户端拦截器需要调用它来完成请求的转发，例如向 gRPC 服务端发送请求并获取响应；</li>
+<li>opts：可选的 gRPC 调用选项（grpc.CallOption），如超时时间、拦截机制等，通过它可以传递额外配置。</li>
+</ul>
+<p>这里需要注意，unaryClientInterceptor 拦截器中重新创建的 Outgoing Metadata，会覆盖 main 函数中的 Outgoing Metadata。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

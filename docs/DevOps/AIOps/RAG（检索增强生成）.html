@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG（检索增强生成）</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="rag检索增强生成">RAG（检索增强生成）</h1>
+<p>RAG 全称是“Retrieval-Augmented Generation”，即“检索增强的生成”。是一种结合了检索和生成的技术，用于增强语言模型的能力。RAG 的核心思想是利用外部知识库或数据集来辅助模型的生成过程。它通过以下两个步骤来生成更准确和相关的回答：</p>
+<ol>
+<li><strong>检索</strong>：从外部知识库或文档中检索与输入问题相关的信息。</li>
+<li><strong>生成</strong>：利用检索到的信息，生成更精确和上下文相关的回答。</li>
+</ol>
+<p>通俗地讲，就是用户问 AI 一个问题，然后 AI 马上去知识库（类似于翻书、翻词典）找到对应的词条，然后根据这个词条回答用户。</p>
+<p>看过其他文章的同学可能会问，为什么这里少了两个阶段：</p>
+<ol>
+<li>编码阶段：检索到的文档或文本片段会与原始查询一起被编码成高维向量（多维数组的专业说法，只不过这里的多维多到几百、上千的那种）。</li>
+<li>融合阶段：编码后的向量会进行融合，以生成一个综合的表示，这个表示同时包含了原始查询和检索到的相关信息。</li>
+</ol>
+<p>的确很多 RAG 应用（包括这门课后面的实战案例）是包含以上两个步骤的，也就是说会包含四个阶段：</p>
+<ol>
+<li>检索阶段</li>
+<li>编码阶段</li>
+<li>融合阶段</li>
+<li>生成阶段</li>
+</ol>
+<p>但是我们的实战案例 1 并不需要编码和融合阶段，所以我们可以看出，编码和融合阶段并不是 RAG 应用必需的，检索和生成阶段才是 RAG 应用必需的。</p>
+<p>根据奥卡姆剃刀原则，如无必要，勿增实体。我们在规划设计一个 RAG 应用的时候，也尽量勿增实体，如果不需要添加编码和融合阶段，那我们就不添加。</p>
+<h1 id="rag-索引">RAG-索引</h1>
+<p><img src="../../../assets/md-images/WPqGbtmKxopFq2xteECcT1x4nVc.jpg" alt=""></p>
+<p>步骤：</p>
+<ol>
+<li>
+<p>拆分：按一定规则把文档拆分成小块，借助文档拆分器实现</p>
+<ol>
+<li>加载：加载不同格式的文档，借助文档加载器实现</li>
+</ol>
+</li>
+<li>
+<p>存储：对文档块进行向量化，并存储在向量数据库中</p>
+</li>
+</ol>
+<h1 id="rag-检索和生成">RAG-检索和生成</h1>
+<p><img src="../../../assets/md-images/A490bV53yoCZzsx7C9xct7IwnLb.jpg" alt=""></p>
+<p>步骤：</p>
+<ol>
+<li>检索：根据用户的输入，借助检索器从向量数据库中检索出相关的块</li>
+<li>生成：LLM 使用包含问题答案的块进行问答</li>
+</ol>
+<h1 id="rag-分片核心代码">RAG 分片核心代码</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 读取 ./data/data.md 文件作为运维知识库
+file_path = os.path.join('data', 'data.md')
+with open(file_path, 'r', encoding='utf-8') as file:
+    docs_string = file.read()
+
+# Split the document into chunks base on markdown headers.
+headers_to_split_on = [
+    (&quot;#&quot;, &quot;Header 1&quot;),
+    (&quot;##&quot;, &quot;Header 2&quot;),
+    (&quot;###&quot;, &quot;Header 3&quot;),
+]
+
+text_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
+splits = text_splitter.split_text(docs_string)
+
+print(&quot;Length of splits: &quot; + str(len(splits)))
+print(splits)
+</code></pre>
+<p>原理：</p>
+<ol>
+<li>借助 LangChain text_splitter 对 Markdown 运维专家知识库进行分片</li>
+<li>再将分片的段落进行 Embedding 向量化</li>
+</ol>
+<h1 id="rag-embedding-核心代码">RAG Embedding 核心代码</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 向量检索时会把 input Embedding 之后转成向量
+from openai import OpenAI
+client = OpenAI()
+
+response = client.embeddings.create(
+    input=&quot;payment 服务是谁维护的？&quot;,
+    model=&quot;text-embedding-3-small&quot;
+)
+
+print(response.data[0].embedding)
+
+# 输出 1536 维向量
+[0.013615109957754612, -0.03324897587299347, 0.055096786469221115, 0.008762987330555916, -0.004749380052089691, -0.0022156040649861097, -0.015192712657153606, 0.051093120127916336,
+......
+]
+</code></pre>
+<p>原理：</p>
+<ol>
+<li>借助 OpenAI Embedding 模型对每个分片进行向量化，返回特定维度的向量</li>
+<li>Embedding 模型可选：text-embedding-3-small、text-embedding-3-large</li>
+</ol>
+<h1 id="rag-embedding-模型选择">RAG Embedding 模型选择</h1>
+<h1 id="基础概念">基础概念</h1>
+<p>最基础的两个概念：对话模式和返回结构化数据</p>
+<p>三个重要概念——元数据、文本摘要、机器翻译</p>
+<p>三个重要概念：向量与嵌入模型、向量数据库、通过相似度来检索知识</p>
+<h2 id="对话模式">对话模式</h2>
+<p>用户与 AI 进行对话</p>
+<h2 id="用户ai-与系统">用户、AI 与系统</h2>
+<p>三种角色：用户（User）、助手（assistant）、系统（system）</p>
+<p>系统消息是可选的。目前除了 OpenAI 之外，很多大模型都不支持系统这一角色。</p>
+<h2 id="记忆">记忆</h2>
+<p>AI 的记忆是有上限的，不同的大模型甚至同一个大模型在不同版本所支持的记忆上限是不同的，但是有一点是肯定的，就是记忆是有上限的，区别只是上限有多高而已。就像天才和普通人一样，都是会遗忘，只不过天才能够记住的东西更多而已。</p>
+<h1 id="rag-向量检索原理">RAG 向量检索原理</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install langchain
+pip install langchain-openai
+pip install langchain-community
+</code></pre>
+<p>计算距离的几个方法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class EmbeddingDistance(str, Enum):
+    &quot;&quot;&quot;Embedding Distance Metric.
+
+    Attributes:
+        COSINE: Cosine distance metric.
+        EUCLIDEAN: Euclidean distance metric.
+        MANHATTAN: Manhattan distance metric.
+        CHEBYSHEV: Chebyshev distance metric.
+        HAMMING: Hamming distance metric.
+    &quot;&quot;&quot;
+
+    COSINE = &quot;cosine&quot;
+    EUCLIDEAN = &quot;euclidean&quot;
+    MANHATTAN = &quot;manhattan&quot;
+    CHEBYSHEV = &quot;chebyshev&quot;
+    HAMMING = &quot;hamming&quot;
+</code></pre>
+<h3 id="rag-提示语">RAG 提示语</h3>
+<p>System Prompt： 您是问答任务的助手。使用以下检索到的上下文来回答问题。如果您不知道答案，就说您不知道。最多使用三句话并保持答案简洁。 问题：{question} # 用户输入的问题 上下文：{context} # 最近似的 N 个分片 答案：</p>
+<h3 id="rag-运维知识库示例">RAG 运维知识库示例</h3>
+<p>module_4/demo_7/simple_rag.ipynb</p>
+<h3 id="rag-缺点">RAG 缺点</h3>
+<ol>
+<li>由于文本分片会把上下文逻辑截断，可能导致无法回答内在逻辑关联的问题</li>
+<li>只能回答显式检索问题，无法回答全局性/总结性问题，例如：“谁维护的服务最多？”</li>
+</ol>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

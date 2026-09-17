@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraform</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="terraform">Terraform</h1>
+<h1 id="terraform-架构和核心概念">Terraform 架构和核心概念</h1>
+<h2 id="什么是-terraform">什么是 Terraform</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">resource aws_instance &quot;app&quot; {
+  ami = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  tags = {
+    Name = &quot;${var.prefix}-meow&quot;
+  }
+}
+</code></pre>
+<ul>
+<li>全新的配置语言 HCL(HashiCorp Configuration Language)</li>
+<li>可执行的文档</li>
+<li>人类和机器可读</li>
+<li>简单、易学易用</li>
+<li>测试、共享、重用、自动化</li>
+<li>适用于几乎所有的云厂商</li>
+</ul>
+<h2 id="什么是-hcl">什么是 HCL</h2>
+<p>HCL2 toolkit: https://github.com/hashicorp/hcl</p>
+<h2 id="terraform-使用范式">Terraform 使用范式</h2>
+<p>Terraform + Ansible</p>
+<p>Terraform + Kubernetes，Terraform可以用来管理 K8s</p>
+<h1 id="terraform-架构">Terraform 架构</h1>
+<p>config 是期望状态</p>
+<p><img src="../../../../assets/md-images/IW96bx4Oro5UyNxObsIct0Iongd.png" alt="图片展示了Terraform架构中的关键部分。左侧有“Terraform State”和“Terraform Config”两个文件图标，分别对应配置文件和状态文件。右侧是“Terraform Core”模块，其上标注了“diff”字样。箭头指向表明Terraform State和Terraform Config与Terraform Core交互，Terraform Core通过provider与云厂商进行交互。该图与上下文介绍的Terraform架构内容相呼应，直观呈现了各部分的关系。"></p>
+<p><img src="../../../../assets/md-images/XopPb05wjohEEGxxO5UccITznph.png" alt="图片展示了Terraform架构，核心部分为Terraform Core，其与Terraform State文件交互。Terraform Core通过Tencent Provider和Cloudflare Provider分别与腾讯云和Cloudflare云厂商交互。Terraform Config文件也与Terraform Core相连。图片直观呈现了Terraform在配置语言、期望状态、Core与云厂商交互等方面的核心架构，与上下文介绍的Terraform架构内容相契合。"></p>
+<p>Core 不直接跟云厂商进行交互，而是通过 provider。</p>
+<p>provider 相当于插件.</p>
+<h1 id="provider-获取">Provider 获取</h1>
+<p>https://registry.terraform.io/browse/providers</p>
+<p><img src="../../../../assets/md-images/KAyQbhmUJo0QEqxtqRxcUe7KnRe.png" alt="图片展示了Terraform的Provider相关内容。上方文字说明Provider是上游API的逻辑抽象，负责理解API交互并暴露资源。下方有六个方块，分别代表AWS、Azure、Google Cloud Platform、Kubernetes、Alibaba Cloud、Oracle Cloud Infrastructure等Provider，每个方块内有对应平台的图标及名称。该图片与文档中介绍Provider获取的内容相关，直观呈现了Terraform可使用的部分Provider。"></p>
+<p>https://registry.terraform.io/providers/hashicorp/aws/latest/docs</p>
+<p><img src="../../../../assets/md-images/PteGb2X4FoNKQTxczg8cTgsPnpg.png" alt="图片展示了Terraform中AWS Provider的相关页面。页面顶部有Terraform和Registry的标志，搜索框内显示“Search all resources”。页面中部列出AWS Provider的版本信息，当前版本为1.5.0，还显示了“Latest Version”。下方是AWS Provider的文档内容，介绍其用于与AWS交互，需配置相关凭证，目前支持1255个资源和118个数据源。页面右侧有“Documentation”“Overview”“Use Terraform Cloud for free”等选项，还展示了使用示例代码。该图片与文档中介绍Provider获取的内容相关，直观呈现了AWS Provider的页面样式及部分信息。"></p>
+<h1 id="provider-版本控制">Provider 版本控制</h1>
+<ul>
+<li>建议固定版本，防止上游更新导致异常</li>
+<li>不指定则使用最新版</li>
+<li>版本操作符：=、!=、\&gt;, &gt;=, &lt;, &lt;=、~&gt;。~&gt; 表示允许小版本号的更新，但是会限制大版本号的更新。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">terraform {
+  required_providers {
+    aws = {
+      source  = &quot;hashicorp/aws&quot;
+      version = &quot;~&gt; 5.0&quot;
+    }
+  }
+}
+</code></pre>
+<h1 id="terraform-核心命令">Terraform 核心命令</h1>
+<h2 id="terraform-基本命令">Terraform 基本命令</h2>
+<ul>
+<li>
+<p>terraform init</p>
+</li>
+<li>
+<p>terraform plan</p>
+</li>
+<li>
+<p>terraform apply</p>
+</li>
+<li>
+<p>terraform destroy</p>
+</li>
+<li>
+<p>terraform init --plugin-dir .terraform/providers</p>
+<ul>
+<li>如果增加、修改或更新了依赖，都需要重新执行 init</li>
+</ul>
+</li>
+<li>
+<p>terraform apply -auto-approve</p>
+</li>
+<li>
+<p>terraform destroy -auto-approve</p>
+</li>
+<li>
+<p>生成依赖关系的svg</p>
+</li>
+</ul>
+<p>terraform graph | dot -Tsvg &gt; graph.svg</p>
+<h3 id="terraform-init">Terraform init</h3>
+<p><img src="../../../../assets/md-images/JBUAbyPaNoPS7sxNxe7c1T4rnCb.jpg" alt="图片展示了Terraform配置文件中provider相关部分的内容。在目录下，和目录被突出显示。目录下有，其下有，再下有，版本为，最后是，包含、、和文件。该图片与文档中介绍Terraform配置文件结构的内容相关，直观呈现了provider配置部分的层级及文件信息。"></p>
+<p><img src="../../../../assets/md-images/As4ubrpQeosmnIxzZ5PcPkiEntc.jpg" alt="图片展示了Terraform模块结构中的providers目录内容。目录下有registry.terraform.io、hashicorp、null、tencentcloudstack等子目录，其中registry.terraform.io下有cloudflare、null等子目录，cloudflare目录下有cloudflare、4.8.0等子目录，4.8.0目录下有darwin_arm64等子目录，包含CHANGELOG.md、LICENSE、README.md等文件，以及terraform-provider-cloudflare_v4.8.0文件。该图片与文档中Terraform核心命令中Terraform init相关，展示了Terraform初始化时会读取的provider目录结构。"></p>
+<h3 id="terraform-plan">Terraform plan</h3>
+<p><img src="../../../../assets/md-images/PZVPb6mM0oI54sxlXVScANKNn9f.png" alt="图片展示了Terraform配置与状态的关系。左侧上方是Terraform Config（期待状态），下方是服务器和数据库图标；右侧上方是Terraform State（当前状态），下方也是服务器和数据库图标。底部蓝色框内显示“Plan: 增加一台虚拟机”。该图与文档中Terraform计划命令的内容相关，直观呈现了从配置到当前状态的计划操作，帮助理解Terraform在基础设施管理中的状态更新过程。"></p>
+<h3 id="terraform-apply">Terraform apply</h3>
+<p><img src="../../../../assets/md-images/GF3PbDj11oQzIRxkYYicDc7lnaf.png" alt="图片展示了Terraform在Tencent Cloud平台的运行状态。左侧为Terraform Config（期待状态），包含服务器、数据库等图标；下方是Tencent Provider图标。右侧为Terraform State（当前状态），同样有服务器、数据库图标；下方是Tencent Cloud图标。中间有双向箭头，表示Tencent Provider与Tencent Cloud之间的数据交互。该图与文档中Terraform State File部分内容相关，直观呈现了Terraform配置与状态在Tencent Cloud平台上的对应关系。"></p>
+<h3 id="terraform-destroy">Terraform destroy</h3>
+<p><img src="../../../../assets/md-images/L8zUbLfgPoVp5vxQO2VcT3j8nLg.png" alt="图片展示了Terraform配置与状态的关联及Tencent Cloud的存储关系。左侧为Terraform Config（期待状态），包含服务器、数据库图标；右侧为Terraform State（当前状态），同样有服务器、数据库图标。下方有Tencent Provider图标，箭头指向Tencent Cloud，表明Tencent Provider与Tencent Cloud进行数据交互。此图与文档中Terraform State File部分内容相关，直观呈现了Terraform配置与状态存储在Tencent Cloud中的关系。"></p>
+<h1 id="terraform-state-file">Terraform State File</h1>
+<ul>
+<li>terraform.tfstate 文件</li>
+<li>json 格式，记录了真实世界所有的状态</li>
+<li>包括敏感信息，如虚拟机密码</li>
+<li>可以存储在本地或者远端（非 Git）</li>
+<li>随着 destroy 命令而清空</li>
+</ul>
+<p><img src="../../../../assets/md-images/D0m2bSq3NoqxIix03IUcymTgnEw.jpg" alt="图片展示的是Terraform的terraform.tfstate文件内容。文件以JSON格式呈现，包含version、terraform_version、serial、lineage等信息，其中resources部分列出了一条资源记录，type为tencentcloud_availability_zones_by_product，name为default，provider为tencentcloud，instances下有id、include_unavailable、name、product、result_output_file、zones等属性，还包含一个zones数组。该图片与文档中介绍Terraform State File的内容相关，直观呈现了tfstate文件的结构与部分数据。"></p>
+<h2 id="remote-backend-远端存储">Remote Backend 远端存储</h2>
+<h3 id="remote-backendterraform-cloud">Remote Backend（Terraform cloud）</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">terraform {
+  backend &quot;remote&quot; {
+    organization = &quot;devops-camp&quot;
+    woraspaces {
+      name = &quot;course&quot;
+    }
+  }
+}
+</code></pre>
+<p><img src="../../../../assets/md-images/GhJAbn0Feo4of1x1No9cAmzKnnd.jpg" alt="图片展示的是Terraform Cloud中“Projects &amp; workspaces”页面。页面上方有“Projects &amp; workspaces”标题，右上角有“New”按钮。下方“Workspaces”区域显示了Workspace Name、Run Status、Repo、Latest Change等列信息，其中“Default Project”状态为“Running”，Repo为“devops - camp”，最新变更时间为“a few seconds ago”。页面还设有搜索框、标签筛选、状态筛选等工具栏。该图与文档中介绍Terraform Cloud中Remote Backend（Terraform cloud）的内容相关，展示了其工作空间管理界面。"></p>
+<h3 id="remote-backendaws">Remote Backend（AWS）</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">terraform {
+  backend &quot;s3&quot; {
+    bucket = &quot;&quot;
+    key = &quot;&quot;
+    region = &quot;&quot;
+    dynamodb_table = &quot;&quot;
+    encrypt = true
+  }
+}
+</code></pre>
+<h3 id="remote-backendtencent-cos">Remote Backend（Tencent COS）</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">terraform {
+  backend &quot;cso&quot; {
+    region = &quot;&quot;
+    bucket = &quot;&quot;
+    prefix = &quot;terraform/state&quot;
+  }
+}
+</code></pre>
+<h2 id="关于-state-的其他命令">关于 State 的其他命令</h2>
+<ul>
+<li>terraform refresh：从基础设施实际状态更新 state 状态</li>
+<li>terraform state list：列出 state 记录的资源</li>
+<li>terraform state rm：删除某些 state 状态</li>
+<li>terraform state pull：从远端拉取状态到本地（灾备）</li>
+<li>terraform state push：更新本地的状态到远端（灾备）</li>
+</ul>
+<h1 id="terraform-layout推荐布局">Terraform Layout（推荐布局）</h1>
+<ul>
+<li>main.tf：主要的业务逻辑（main.tf 并不是必须的入口文件）</li>
+<li>outputs.tf：定义输出内容</li>
+<li>variables.tf：定义变量参数</li>
+<li>version.tf：定义依赖和版本</li>
+</ul>
+<h2 id="maintf">main.tf</h2>
+<ul>
+<li>
+<p>定义基础设施</p>
+</li>
+<li>
+<p>main.tf 也可以超分为多个子文件，terraform 会统一进行加载</p>
+<ul>
+<li>cos.tf</li>
+<li>cvm.tf</li>
+<li>k8s.tf</li>
+</ul>
+</li>
+</ul>
+<h2 id="outputstf">outputs.tf</h2>
+<ul>
+<li>定义运行结束后所需要输出的内容</li>
+<li>可设置是否为敏感数据，敏感数据将不输出</li>
+<li>来源于其他的 resource 的输出内容</li>
+</ul>
+<p><img src="../../../../assets/md-images/VO6DbNUbRoxcqFxAtxUc6yronEb.jpg" alt="图片展示的是Terraform中outputs.tf文件中定义输出内容的代码示例。代码中定义了名为“public_ip”的输出，其描述为“vm public ip address”，值为tencentcloud_instance.web0.public_ip，且设置为敏感数据（sensitive = true）。该图片与文档中介绍outputs.tf定义运行结束后所需输出内容的上下文对应，直观呈现了输出内容的定义方式。"></p>
+<h2 id="variablestf">variables.tf</h2>
+<ul>
+<li>定义参数变量，用于在代码中引用</li>
+<li>可定义类型、默认值、描述、验证函数、是否敏感数据（不在 plan 中显示）</li>
+</ul>
+<p><img src="../../../../assets/md-images/Mad0bMt8uo21nTxk62gcmHwtnjb.jpg" alt="图片展示的是Terraform中定义变量参数的代码示例。代码中定义了一个名为“prefix”的变量，其类型为string，默认值为“demo”，描述为“this is prefix”。在validation部分，设置了条件为变量长度大于3，若不满足则报错“prefix must be longer than 3”。sensitive属性被设置为true。该图片与文档中“如何设置variables？”部分对应，直观呈现了设置变量参数的代码格式和关键属性配置。"></p>
+<ul>
+<li>访问变量</li>
+</ul>
+<p><img src="../../../../assets/md-images/OFQDbx3NfomGd0x87bLc8Xkynpc.jpg" alt="图片展示的是Terraform代码片段，用于配置Cloudflare记录。代码中定义了名为“jenkins”的Cloudflare记录，其zone_id取自data.cloudflare_zone.this.id，name为jenkins后跟变量prefix和domain，value为tencentcloud_instance.ubuntu0.public_ip，type为“A”，ttl为60，allow_overwrite设为true。该图片与文档中“如何设置variables？”部分相关，用于示例变量在Terraform配置中的应用。"></p>
+<h3 id="如何设置-variables">如何设置 variables？</h3>
+<ol>
+<li>通过在命令行配置：terraform apply -var=&quot;prefix=values&quot;</li>
+<li>指定配置文件：terraform apply -var-file=&quot;testing.tfvars&quot;</li>
+<li>环境变量：export TF_VAR_prefix=values</li>
+<li>定义的默认值</li>
+<li>交互式输入</li>
+</ol>
+<p>优先级从上（1最高）到下（5最低）对值进行覆盖。</p>
+<h2 id="versiontf">version.tf</h2>
+<ul>
+<li>统一定义项目的 provider 依赖和版本</li>
+<li>定义 Terraform Cli 最低要求版本</li>
+</ul>
+<p><img src="../../../../assets/md-images/XW0CbTtI7oyeJExNcXscGHVxnDe.jpg" alt="图片展示的是Terraform配置文件中的内容。其中定义了Terraform CLI最低要求版本为“&gt; 0.13.0”，并统一定义了项目的provider依赖和版本，包括tencentcloud和cloudflare两个provider，tencentcloud的source为“tencentcloudstack/tencentcloud”，version为“1.81.5”，cloudflare的source为“cloudflare/cloudflare”，version为“~&gt; 4.0”。该图片与文档中介绍Terraform配置文件内容相关，直观呈现了配置文件中provider依赖和版本的定义。"></p>
+<h1 id="进阶实战">进阶实战</h1>
+<h2 id="表达式和函数">表达式和函数</h2>
+<h3 id="表达式">表达式</h3>
+<ul>
+<li>模板变量</li>
+<li>值引用</li>
+<li>运算符<code>（!, *, /, +, -, &gt;=, ==, !=, &amp;&amp;）</code></li>
+<li>条件表达式<code>（&lt;CONDITION&gt; ? &lt;TRUE VAL&gt; : &lt;FALSE VAL&gt;）</code></li>
+<li>For 表达式<code>（ [for s in var.list : upper(s)] ）</code></li>
+<li>Splat 表达式<code>（var.list[*].id）</code></li>
+<li>动态块</li>
+<li>条件约束（变量类型、版本）</li>
+</ul>
+<h3 id="函数">函数</h3>
+<ul>
+<li>数值函数（abs、floor、log、max、min、pow）</li>
+<li>字符串函数（format、join、lower、regex、replace、split、substr）</li>
+<li>集合函数（concat、containers、flatten、list、map、merge、reverse、sort）</li>
+<li>编码函数（base64、json、urlencode、yaml）</li>
+<li>文件系统函数（dirname、abspath、file、basename、templatefile）</li>
+<li>时间日期函数（timestamp、formatdate、timeadd）</li>
+<li>哈希和加密函数（sha1、md5、sha256、sha512、uuiid）</li>
+<li>类型转换函数（tolist、tomap、toset、tostring、type）</li>
+</ul>
+<h3 id="meta-arguments元参数">Meta Arguments（元参数）</h3>
+<p>作用域</p>
+<ul>
+<li>resource 块</li>
+<li>modules</li>
+<li>depends_on（下一个没有引用上一个的值，但是又想要控制顺序时）</li>
+<li>count</li>
+<li>for_each</li>
+<li>lifecycle</li>
+</ul>
+<h3 id="depends_on">depends_on</h3>
+<ul>
+<li>Terraform 会自动生成资源的依赖关系图（DAG：有向无环图）</li>
+<li>根据 DAG 来控制创建和销毁过程（有顺序）</li>
+<li>可以通过 depends_on 显式指定依赖关系，以控制自愈创建和销毁顺序</li>
+<li>可用 terraform graph | dot -Tsvg &gt; graph.svg 生成依赖图（graphviz）</li>
+</ul>
+<p><img src="../../../../assets/md-images/QSw4bE5GYoEusqxU8DTcKdBinof.jpg" alt="图片展示了一段Terraform配置代码，用于创建一个名为“argo_cd”的Helm发布资源。代码中定义了Helm发布资源的名称、仓库地址、图表名称、命名空间等属性，其中仓库地址为“https://argoproj.github.io/argo-helm”，图表名称为“argo-cd”，命名空间为“argocd”。还指定了依赖关系，即“argo_cd”资源依赖于“module.k3s”模块。该图片与文档中介绍Terraform表达式和函数中depends_on功能的内容相关，直观呈现了通过depends_on显式指定依赖关系的配置方式。"></p>
+<p><img src="../../../../assets/md-images/JEcqbGa5IoSlbzxQjRLcQo1xn5b.jpg" alt="图片展示的是Terraform生成的资源依赖关系图（DAG）。图中以节点形式呈现资源，如“app-server-1”“web”等，节点间通过箭头连接，表示依赖关系。图中还标注了“root”“meta”“provider”等类别，以及“count”“null”“file”“remote-exec”等provider类型。该图与文档中介绍Terraform自动生成资源依赖关系图的内容相关，直观呈现了资源间的依赖关系，帮助理解Terraform根据DAG控制创建和销毁过程的机制。"></p>
+<h3 id="count">count</h3>
+<ul>
+<li>指定创建 N 个资源</li>
+<li>当需要创建多个相同资源的时候非常有用</li>
+<li>web 这个名称会在后面加 [index]，避免 id 冲突</li>
+</ul>
+<p><img src="../../../../assets/md-images/PfOhbhhiho68kAxsKomcsldknu4.jpg" alt="图片展示了一段Terraform配置代码，用于创建4个web实例。代码中“count”参数被设置为4，表示将创建4个web实例，其余参数如instance_name、availability_zone等也分别被赋值。该图片与文档中介绍Terraform表达式和函数中“count”功能的内容相关，直观呈现了使用count指定创建多个相同资源的配置方式，体现了其在创建多个相同资源时的实用价值。"></p>
+<h3 id="for_each">for_each</h3>
+<ul>
+<li>在单个块中创建多个资源</li>
+<li>比 count 实现更好的控制</li>
+</ul>
+<p><img src="../../../../assets/md-images/HEsbbHNAAoTTpsxjfkQcGhtonDh.jpg" alt="图片展示了一段Terraform配置代码。在locals部分，定义了subnet_ids变量，其值为一个包含两个子网ID的集合。在resource部分，使用aws_instance &quot;server&quot;块，通过for_each参数引用local.subnet_ids，为每个子网ID创建一个aws_instance资源实例。代码中还设置了ami、instance_type等属性，以及为每个实例添加Name标签，标签值为“Server ${each.key}”。该图片与文档中介绍Terraform表达式和函数中for_each功能的内容相关，展示了其在实际配置中的应用。"></p>
+<h3 id="lifecycle">lifecycle</h3>
+<ul>
+<li>
+<p>create_before_destroy</p>
+<ul>
+<li>在销毁资源前先进行创建，实现 0 停机</li>
+</ul>
+</li>
+<li>
+<p>prevent_destroy</p>
+<ul>
+<li>阻止删除</li>
+</ul>
+</li>
+<li>
+<p>ignore_changes</p>
+<ul>
+<li>忽略差异</li>
+</ul>
+</li>
+<li>
+<p>replace_triggered_by</p>
+<ul>
+<li>当引用项目发生变化时候替换资源</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/UBB0bEAx6oqUYsx1xMXc15VFnDb.jpg" alt="图片展示了一段Terraform代码，定义了一个名为“example”的Azure资源组。代码中使用了lifecycle块，其中create_before_destroy属性被设置为true。这表明在销毁资源时，Terraform会先进行创建操作，实现0停机，与文档中介绍的lifecycle属性相关内容相呼应，直观呈现了其在Terraform配置中的应用示例。"></p>
+<h3 id="provisioners">Provisioners</h3>
+<p>在本地或者远端虚拟机中执行动作</p>
+<ul>
+<li>file</li>
+<li>local-exec</li>
+<li>remote-exec</li>
+<li>vendor</li>
+</ul>
+<h4 id="file">file</h4>
+<p>将本地文件或目录复制到远端虚拟机</p>
+<p><img src="../../../../assets/md-images/MHpzb8mh0o7eKoxSEDOc8DsInrd.jpg" alt="图片展示的是Terraform配置代码中使用file provisioner的示例。代码中定义了名为“web”的aws_instance资源，其下有file provisioner，用于将本地“conf/myapp.conf”文件复制到远端虚拟机的“/etc/myapp.conf”路径。此图与文档中介绍Terraform Provisioners部分的file provisioner内容对应，直观呈现了其配置方式和作用。"></p>
+<h4 id="local-exec">local-exec</h4>
+<p>在本地执行一段命令</p>
+<p>注意平台差异</p>
+<p><img src="../../../../assets/md-images/LHHibfIn5oqqNYxsJ8HcyJCCnJg.jpg" alt="图片展示了一段Terraform配置代码，定义了名为“web”的AWS实例资源。其中包含一个“local-exec”类型的Provisioner，用于在本地执行命令。命令为“echo ${self.private_ip} &gt;&gt; private_ips.txt”，即通过echo命令将实例的私有IP地址写入名为“private_ips.txt”的文件中。该图片与文档中介绍Provisioners部分的内容相关，具体展示了local-exec Provisioner的配置示例。"></p>
+<h4 id="remote-exec">remote-exec</h4>
+<p>在远端虚拟机中执行命令</p>
+<p>可以是 inline shell 命令，也可以指定 bash 脚本文件（通常配合 file）</p>
+<p><img src="../../../../assets/md-images/P9koblvpsovio0x3VsDcqLV0nZf.jpg" alt="图片展示了一段Terraform配置代码，用于在远端虚拟机中执行动作。代码中使用了块，其属性下包含两条命令。第一条是，用于执行Puppet配置；第二条是，在Consul中加入指定的私有IP地址。该图片与文档中介绍Terraform Provisioners部分相关，具体是remote-exec配置示例，展示了在远端虚拟机中执行命令的操作方式。"></p>
+<h1 id="思考如何创建多环境基础设施">思考：如何创建多环境基础设施</h1>
+<h2 id="方案一使用目录区分">方案一：使用目录区分</h2>
+<p>在远端虚拟机中执行命令</p>
+<p>可以是 inline shell 命令，也可以指定 bash 脚本文件（通常配合 file）</p>
+<p><img src="../../../../assets/md-images/DgP5boTNHoD8KfxnRHDcHEUKnJb.jpg" alt="图片展示了Terraform代码组织结构中的目录隔离示例。左侧为目录结构，包含README.md、dev和testing两个环境目录。dev目录下有helm.tf、k3s.tf、main.tf等文件，testing目录内容相同。该图片与文档中“方案一：使用目录区分”部分上下文对应，直观呈现了使用目录隔离方式时，不同环境代码的组织形式，帮助理解代码如何按环境分别存放。"></p>
+<h3 id="继续深入修改环境怎么办">继续深入：修改环境怎么办？</h3>
+<p>需要同时修改 dev 和 testing 的代码</p>
+<p>可维护性差、代码复用性差</p>
+<h2 id="方案二使用-terraform-workspace">方案二：使用 Terraform Workspace</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ terraform workspace list # 列出当前 workspace
+* default # default 为默认的 workspace
+
+$ terraform workspace new dev # 创建 dev workspace
+Created and switched to workspace &quot;dev&quot;!
+
+$ terraform apply -auto-approve # 在 dev workspace 中创建资源
+
+$ terraform workspace new testing # 创建 testing workspace
+Created and switched to workspace &quot;testing&quot;!
+
+$ terraform apply -auto-approve # 在 testing workspace 中创建资源
+
+$ terraform workspace list # 列出所有的 workspace
+$ terraform destroy -auto-approve # 删除 testing workspace 的资源
+$ terraform workspace select dev # 切换到 dev workspace
+$ terraform destroy -auto-approve # 删除 dev workspace 的资源
+</code></pre>
+<p><img src="../../../../assets/md-images/OUZEb5a5BoxfwOxlOyacm0QZn9m.jpg" alt="图片展示了Terraform代码组织结构中的部分文件和目录。其中，、、、、、、等文件以红色字体呈现，目录以蓝色字体突出显示，其下有和两个子目录，每个子目录下都有对应的文件。该图片与文档中介绍Terraform代码组织结构的内容相关，直观呈现了代码组织中的状态文件存放位置。"></p>
+<h3 id="继续深入workspace-vs-目录隔离">继续深入：workspace VS 目录隔离</h3>
+<p>Workspace</p>
+<ul>
+<li>一套代码 N 个环境，实现了代码复用</li>
+<li>增加了执行上下文的概念，容易出错</li>
+<li>需通过 terraform workspace list 查看当前上下文</li>
+<li>通过 terraform.tfstate.d 目录区分状态文件</li>
+</ul>
+<p>目录隔离</p>
+<ul>
+<li>需要同时修改 dev 和 testing 的代码</li>
+<li>环境目录清晰，不容易出错</li>
+<li>可维护性差、代码复用性差</li>
+</ul>
+<h3 id="继续深入module--目录隔离">继续深入：Module + 目录隔离</h3>
+<p>Module</p>
+<ul>
+<li>
+<p>模块是重用 Terraform 代码的主要方式</p>
+</li>
+<li>
+<p>更好地组织和管理 IaC 源码</p>
+<ul>
+<li>配置</li>
+<li>微服务</li>
+<li>人员角色</li>
+</ul>
+</li>
+</ul>
+<p>Module 的类型</p>
+<ul>
+<li>
+<p>根模块：包含所有工作目录下 .tf 文件，默认模块</p>
+</li>
+<li>
+<p>子模块：通过 .tf 文件引用的外部模块</p>
+<ul>
+<li>本地</li>
+<li>Terraform Registry</li>
+<li>HTTP</li>
+<li>Git</li>
+<li>S3</li>
+</ul>
+</li>
+</ul>
+<h3 id="继续深入module-和代码组织结构">继续深入：Module 和代码组织结构</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">├── modules                                                子模块目录
+│ ├── cvm                                                CVM 模块
+│ │ ├── main.tf
+│ │ ├── outputs.tf
+│ │ ├── variables.tf
+│ │ └── version.tf
+│ └── k3s                                                K3s 模块
+│ ├── main.tf
+│ ├── outputs.tf
+│ └── variables.tf
+└── testing                                                testing 环境目录
+│ ├── main.tf
+│ └── variables.tf
+├── dev                                                        dev 环境目录
+│ ├── main.tf
+│ └── variables.tf
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">dev/main.tf
+module &quot;cvm&quot; {
+  source = &quot;../modules/cvm&quot;
+  secret_id = var.secret_id
+  secret_key = var.secret_key
+  password = var.password
+}
+module &quot;k3s&quot; {
+  source = &quot;../modules/k3s&quot;
+  public_ip = module.cvm.public_ip
+  private_ip = module.cvm.private_ip
+}
+</code></pre>
+<h3 id="demo6module--目录隔离">Demo6：Module + 目录隔离</h3>
+<h3 id="module-抽象原则">Module 抽象原则</h3>
+<ul>
+<li>以使用逻辑、功能拆分模块</li>
+<li>为模块设置必要的入参和组合</li>
+<li>为模块提供有用的默认值</li>
+<li>设置输出，便于进一步集成</li>
+</ul>
+<h1 id="terragrunt">Terragrunt</h1>
+<ul>
+<li>Terraform 的包装器</li>
+<li>减少重复代码</li>
+<li>多账户支持</li>
+<li>大规模场景组织 IaC 代码</li>
+<li>IaC 生成器</li>
+</ul>
+<p><img src="../../../../assets/md-images/BSLUbQHT1okomXxH415c66D4nzd.jpg" alt="图片背景为蓝色，上方大字体显示“DRY and maintainable Terraform code.”。下方文字说明Terragrunt是一个轻量级包装器，提供额外工具以保持配置的DRY（减少重复），可处理多个Terraform模块以及管理远程状态。底部有一个白色的“GET STARTED”按钮。图片与上文内容相呼应，直观展示了Terragrunt作为Terraform包装器减少重复代码等特性，强调其可让代码更易维护。"></p>
+<h2 id="demoterragrunt-实践">Demo：Terragrunt 实践</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">.
+├── deploy
+│ ├── department1
+│ │ ├── team1
+│ │ │ ├── account.hcl
+│ │ │ └── cvm
+│ │ │ └── terragrunt.hcl
+│ │ └── team2
+│ │ ├── account.hcl
+│ │ └── cvm
+│ │ └── terragrunt.hcl
+│ ├── department2
+│ │ ├── team1
+│ │ └── team2
+│ └── terragrunt.hcl
+├── modules
+</code></pre>
+<h2 id="terragrunt-建议">Terragrunt 建议</h2>
+<ul>
+<li>谨慎使用</li>
+<li>对 Terraform 版本支持的问题</li>
+<li>社区和维护问题</li>
+<li>Terraform + Modules 仍是主流</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

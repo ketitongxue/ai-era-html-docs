@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jenkins 触发器</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="jenkins-触发器">Jenkins 触发器</h1>
+<h1 id="jenkins触发器简介及实现">Jenkins触发器简介及实现</h1>
+<ul>
+<li>
+<p>Jenkins触发器分类：</p>
+<ul>
+<li>
+<p>远程触发构建：</p>
+<ul>
+<li>基于API远程触发</li>
+</ul>
+</li>
+<li>
+<p>其他工程构建后触发：</p>
+<ul>
+<li>执行完成A工程再执行B工程</li>
+</ul>
+</li>
+<li>
+<p>定时构建：</p>
+<ul>
+<li>基于定时任务构建</li>
+</ul>
+</li>
+<li>
+<p>轮询SCM(source code management)：</p>
+<ul>
+<li>每间隔指定的时间去检查代码仓库是否变更，如果变更就执行构建</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/Kk2ZbTdmJoU5cMx7nKtcUSr1nFc.jpg" alt="图片展示了GitLab、Jenkins及Environment之间的交互关系。左侧GitLab图标旁有“webhook”标识，中间是Jenkins图标，右侧是Environment图标，两者间有双向箭头。该图与文档中基于API远程触发Jenkins构建的内容相关，直观呈现了GitLab通过webhook触发Jenkins构建，再由Jenkins与Environment交互的流程，辅助理解Jenkins触发器的实现机制。"></p>
+<ul>
+<li>
+<p>系统管理-管理插件-可选插件-Gitlab</p>
+</li>
+<li>
+<p>注意事项：</p>
+<ul>
+<li>
+<p>在 jenkins 系统管理--全局安全设置，认证改为登录用户可以做任何事情且匿名用户具有可读权限</p>
+</li>
+<li>
+<p>启用代理兼容、取消跨站请求伪造保护的勾选项(早期jenkins)</p>
+</li>
+<li>
+<p>Gitlab Hook Plugin以纯文本形式存储和显示GitLab API令牌</p>
+<ul>
+<li><a href="https://jenkins.io/security/advisory/2018-05-09/#SECURITY-263">https://jenkins.io/security/advisory/2018-05-09/#SECURITY-263</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>生成认证 token 并验证：</p>
+<ul>
+<li>
+<p>root@jenkins:~# openssl rand -hex 12</p>
+<ul>
+<li>5ca3642cf94eb64b6a0d6897</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Jenkins 配置远程触发</p>
+<ul>
+<li>Jenkins 全局安全配置需要勾选 “匿名用户具有可读权限”</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/JAtjbxiDloj8EOx4kpxcBCOLnHf.jpg" alt="图片展示了Jenkins配置远程触发时的“触发远程构建”设置界面。在“身份验证令牌”处，显示了5ca3642cf94eb64b6a0d6897这一令牌。下方提示使用指定URL远程触发构建，URL为JENKINS_URL/job/magedu - app1 - deploy - test1/build?token=TOKEN_NAME或/buildWithParameters?token=TOKEN_NAME，还可附加&amp;cause=Cause+Text以记录构建原因。该图片与上下文紧密相关，是对Jenkins配置远程触发操作中身份验证令牌设置的直观呈现。"></p>
+<ul>
+<li>
+<p>curl测试</p>
+<ul>
+<li>
+<p>root@gitlab:~# curl --head <a href="http://172.31.5.102:8080/job/magedu-app1-deploy-test1/build?token=5ca3642cf94eb64b6a0d6897">http://172.31.5.102:8080/job/magedu-app1-deploy-test1/build?token=5ca3642cf94eb64b6a0d6897</a></p>
+<ul>
+<li>HTTP/1.1 201 Created</li>
+<li>Date: Mon, 24 Oct 2022 09:41:50 GMT</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>gitlab 自动触发：</p>
+</li>
+</ul>
+<p><img src="../../../../assets/md-images/Ul2YbVZU1o6isUxND0VchB6nn9g.jpg" alt="图片展示的是GitLab系统中“系统钩子”页面。页面左上角显示网址为172.31.5.101/admin/hooks。左侧导航栏有“管理中心”“概览”“分析”“监控”“消息”“系统钩子”等选项，当前选中“系统钩子”。右侧页面上方提示“Hook executed successfully: HTTP 201”，下方标题为“系统钩子”，其下文字说明系统钩子允许针对某个群组或项目中的事件发送通知到web应用程序。该图片与文档中介绍GitLab系统钩子的内容相关，直观呈现了系统钩子页面界面。"></p>
+<ul>
+<li>
+<p>python 测试远程触发：</p>
+<ul>
+<li>管理员--系统钩子(System Hooks)</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">pip3 install jenkinsapi
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cat xxx.py
+#!/usr/bin/env python
+#coding:utf-8
+#Author:Zhang ShiJie
+from jenkinsapi.jenkins import Jenkins
+conn = Jenkins('http://172.31.5.102:8080', username='jenkinsadmin', password='zhang@123',useCrumb='9c88c3b473854c7c8bb28543')
+conn.build_job('magedu-app1-deploy-test1')
+#conn.build_job('magedu-web1-deploy')
+~# python3 xxx.py
+</code></pre>
+<h1 id="手动实现镜像更新">手动实现镜像更新:</h1>
+<p>基于代码 frontend.tar.gz 演示代码更新流程</p>
+<p>1.在开发机器(gitlab本机为例)编写代码：</p>
+<p>ubuntu-dockerfile-case中的frontend.tar.gz文件解压并上传至gitlab app1项目</p>
+<p>2.在镜像构建服务器(jenkins)clone app1项目并打包:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@jenkins:~# cd /data/magedu/
+root@jenkins:/data/magedu# git clone git@172.31.5.101:magedu/app1.git
+root@jenkins:/data/magedu# cd app1/
+root@jenkins:/data/magedu/app1# tar czvf frontend.tar.gz --exclude=.git --exclude=.gitignore --exclude=README.md ./
+root@jenkins:/data/magedu/app1# scp frontend.tar.gz 172.31.6.201:/opt/ubuntu-dockerfile/
+</code></pre>
+<p>3.在镜像构建服务器(docker-server1)构建镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">root@docker-server1:/opt/ubuntu-dockerfile# bash build-command.sh # 构建并上传镜像到harbor镜像仓库
+</code></pre>
+<p>4.在web服务器(docker-server2)基于docker-compsoe运行服务</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">root@docker-server2:/data/magedu-app1# docker-compose pull
+root@docker-server2:/data/magedu-app1# docker-compose up -d
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

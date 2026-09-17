@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ConfigMaps</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="configmaps">ConfigMaps</h1>
+<p>ConfigMap 是一种 API 对象，用来将非机密性的数据保存到键值对中。使用时， <a href="https://kubernetes.io/zh-cn/docs/concepts/workloads/pods/">Pod</a> 可以将其用作环境变量、命令行参数或者存储卷中的配置文件。</p>
+<p>ConfigMap 将你的环境配置信息和<a href="https://kubernetes.io/zh-cn/docs/reference/glossary/?all=true#term-image">容器镜像</a>解耦，便于应用配置的修改。</p>
+<p>在实际的项目中，开发人员是不应该关心一些配置信息的，比如数据库的地址、用户名、密码等。</p>
+<h1 id="configmap-对象"><strong>ConfigMap 对象</strong></h1>
+<p>ConfigMap 是一个让你可以存储其他对象所需要使用的配置的 <a href="https://kubernetes.io/zh-cn/docs/concepts/overview/working-with-objects/#kubernetes-objects">API 对象</a>。 和其他 Kubernetes 对象都有一个 <code>spec</code> 不同的是，ConfigMap 使用 <code>data</code> 和 <code>binaryData</code> 字段。这些字段能够接收键-值对作为其取值。<code>data</code> 和 <code>binaryData</code> 字段都是可选的。<code>data</code> 字段设计用来保存 UTF-8 字符串，而 <code>binaryData</code> 则被设计用来保存二进制数据作为 base64 编码的字串。</p>
+<p>ConfigMap 的名字必须是一个合法的 <a href="https://kubernetes.io/zh-cn/docs/concepts/overview/working-with-objects/names#dns-subdomain-names">DNS 子域名</a>。</p>
+<p><code>data</code> 或 <code>binaryData</code> 字段下面的每个键的名称都必须由字母数字字符或者 <code>-</code>、<code>_</code> 或 <code>.</code> 组成。在 <code>data</code> 下保存的键名不可以与在 <code>binaryData</code> 下出现的键名有重叠。</p>
+<p>从 v1.19 开始，可以添加一个 <code>immutable</code> 字段到 ConfigMap 定义中， 创建<a href="https://kubernetes.io/zh-cn/docs/concepts/configuration/configmap/#configmap-immutable">不可变更的 ConfigMap</a>。</p>
+<h1 id="创建configmap-资源">创建ConfigMap 资源</h1>
+<p>创建ConfigMap对象的方法有两种</p>
+<ol>
+<li>命令式命令</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># 字面量
+kubectl create configmap NAME --from-literal=key1=value1 --from-literal=key2=value2
+# 从文件加载
+kubectl create configmap NAME --from-file=[key=]/PATH/TO/FILE
+# 从目录加载，在这种情况下，kubectl 会为文件夹中的每个文件单独创建条目，仅限于那些文件名可作为合法 ConfigMap 键名的文件
+kubectl create configmap NAME --from-file=[key=]/PATH/TO/DIR/
+</code></pre>
+<ol>
+<li>配置文件</li>
+</ol>
+<p>命令式：kubectl create -f<br>
+声明式：kubectl apply -f</p>
+<p>提示：基于文件内容生成时，可以使用命令式命令以dry-run模式生成并保存</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl get cm -n kube-system
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+      errors
+      health {
+        lameduck 5s
+      }
+      ready
+      kubernetes cluster.local in-addr.arpa ip6.arpa {
+        pods insecure
+        fallthrough in-addr.arpa ip6.arpa ttl 30
+      }
+      prometheus :9153
+      forward . /etc/resolv.conf {
+        max_concurrent 1000
+      }
+      cache 30
+      loop
+      reload
+      loadbalance
+    }
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 命令式命令示例：
+kubectl create configmap nginx-confs --from-file=./nginx-conf.d/myserver.conf --from-file=status.cfg=./nginx-conf.d/myserver-status.cfg
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-confs
+  namespace: default
+data:
+  status.cfg: |
+    location /nginx-status {
+      stub_status on;
+      access_log off;
+    }
+  myserver.conf: |
+    server {
+      listen 8080;
+      server_name www.ik8s.io;
+      include /etc/nginx/conf.d/myserver-*.cfg;
+      location / {
+        root /usr/share/nginx/html;
+      }
+    }
+</code></pre>
+<h1 id="configmaps-和-pods"><strong>ConfigMaps 和 Pods</strong></h1>
+<p>前提：Pod 和 ConfigMap 必须要在同一个 namespace 中。</p>
+<p>Pod 可以有以下四种方式来引用一个 ConfigMap：</p>
+<ol>
+<li>在容器命令和参数内</li>
+<li>容器的环境变量</li>
+<li>在只读卷里面添加一个文件，让应用来读取</li>
+<li>编写代码在 Pod 中运行，使用 Kubernetes API 来读取 ConfigMap</li>
+</ol>
+<p>这些不同的方法适用于不同的数据使用方式。 对前三个方法，<a href="https://kubernetes.io/docs/reference/generated/kubelet">kubelet</a> 使用 ConfigMap 中的数据在 Pod 中启动容器。</p>
+<p>第四种方法意味着你必须编写代码才能读取 ConfigMap 和它的数据。然而， 由于你是直接使用 Kubernetes API，因此只要 ConfigMap 发生更改， 你的应用就能够通过订阅来获取更新，并且在这样的情况发生的时候做出反应。 通过直接进入 Kubernetes API，这个技术也可以让你能够获取到不同的名字空间里的 ConfigMap。</p>
+<p>下面是一个 ConfigMap 的示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-demo
+  namespace: default
+data:
+  # 类属性键；每一个键都映射到一个简单的值
+  DBHOST: &quot;192.168.100.100&quot;
+  DBNAME: &quot;root&quot;
+</code></pre>
+<h2 id="在-pod-中通过环境变量引用">在 Pod 中通过环境变量引用</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  namespace: default
+spec:
+  containers:
+  - name: my-container
+    image: nginx  # 这里使用 nginx 作为示例，实际使用时应替换为需要的镜像
+    env:
+        # 定义环境变量
+        - name: DBHOST  # 请注意这里和 ConfigMap 中的键名是不一样的
+          valueFrom:
+            configMapKeyRef:
+              name: cm-demo  # 这个值来自 ConfigMap
+              key: DBHOST  # 需要取值的键
+        - name: DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: cm-demo
+              key: DBNAME
+  restartPolicy: Always
+</code></pre>
+<p>也可以直接将一整个 ConfigMap 直接引用到 Pod 中。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  namespace: default
+spec:
+  containers:
+  - name: my-container
+    image: nginx  # 这里使用 nginx 作为示例，实际使用时应替换为需要的镜像
+    envFrom:
+    - configMapRef:
+        name: cm-demo
+  restartPolicy: Always
+</code></pre>
+<h2 id="在-pod-中将-configmap-当做文件使用"><strong>在 Pod 中将 ConfigMap 当做文件使用</strong></h2>
+<p>要在一个 Pod 的存储卷中使用 ConfigMap:</p>
+<ol>
+<li>创建一个 ConfigMap 对象或者使用现有的 ConfigMap 对象。多个 Pod 可以引用同一个 ConfigMap。</li>
+<li>修改 Pod 定义，在 <code>spec.volumes[]</code> 下添加一个卷。 为该卷设置任意名称，之后将 <code>spec.volumes[].configMap.name</code> 字段设置为对你的 ConfigMap 对象的引用。</li>
+<li>为每个需要该 ConfigMap 的容器添加一个 <code>.spec.containers[].volumeMounts[]</code>。 设置 <code>.spec.containers[].volumeMounts[].readOnly=true</code> 并将 <code>.spec.containers[].volumeMounts[].mountPath</code> 设置为一个未使用的目录名， ConfigMap 的内容将出现在该目录中。</li>
+<li>更改你的镜像或者命令行，以便程序能够从该目录中查找文件。ConfigMap 中的每个 <code>data</code> 键会变成 <code>mountPath</code> 下面的一个文件名。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  namespace: default
+spec:
+  containers:
+  - name: mypod
+    image: redis
+    volumeMounts:
+    - name: foo
+      mountPath: &quot;/etc/foo&quot;
+      readOnly: true
+  volumes:
+  - name: foo
+    configMap:
+      name: cm-demo
+</code></pre>
+<p>将 ConfigMap 当做文件的情况下，如果 ConfigMap 中的内容发生了变化，在一定时间后，会自动同步到 Pod 中。更新的时间跨度可能与 kubelet 的同步周期加上高速缓存的传播延迟相等。 这里的传播延迟取决于所选的高速缓存类型 （分别对应 watch 操作的传播延迟、高速缓存的 TTL 时长或者 0）。</p>
+<p>以环境变量方式使用的 ConfigMap 数据不会被自动更新。 更新这些数据需要重新启动 Pod。</p>
+<h1 id="示例">示例</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-init-script
+  ......
+data:
+  CreateDB.sql: |-
+    CREATE TABLE text (
+        id serial PRIMARY KEY,
+        text VARCHAR ( 100 ) UNIQUE NOT NULL
+    );
+</code></pre>
+<p>这段 ConfigMap 主要描述了两个重要的信息。首先，ConfigMap 的名称为 pg-init-script，它是这段 ConfigMap 名称标识。其次，data 字段指定了 Key 和 Value 键值对，在这个例子中，CreateDB.sql 实际上是 Key，Value 值是一段 SQL 代码，这段 SQL 代码非常简单，它创建一个 text 表，并定义了 id 和 text 字段。</p>
+<p>这段 ConfigMap 其实就可以认为是业务的配置文件，当我们将这段 ConfigMap 应用到集群之后，就可以在工作负载中进行引用了。引用的方式可以参考示例应用 Postgres Deployment：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Postgres
+  ......
+spec:
+  ......
+  template:
+    ......
+    spec:
+      containers:
+      - name: Postgres
+        image: Postgres
+        volumeMounts:
+        - name: sqlscript
+          mountPath: /docker-entrypoint-initdb.d
+        ......
+      volumes:
+        - name: sqlscript
+          configMap:
+            name: pg-init-script
+</code></pre>
+<p>容器的 /docker-entrypoint-initdb.d 目录将会出现 CreateDB.sql 文件，内容是 ConfigMap 的 SQL 语句，这个文件是通过 ConfigMap 挂载的方式“动态注入”到容器内的。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

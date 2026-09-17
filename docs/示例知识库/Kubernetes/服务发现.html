@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>服务发现</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="服务发现">服务发现</h1>
+<p>现代业务应用发展至今，大部分系统都逐渐发展成为了大型的分布式微服务应用。每一个微服务各司其职，用户的一个请求往往需要由多个微服务之间相互调用才能够完成。当应用迁移到 K8s 时，我们一般会将业务系统中的每一个微服务以某种 K8s 工作负载的形式进行部署，比如最常见的 Deployment。也就是说， <strong>在 K8s 环境下，微服务之间的调用可以理解为是工作负载之间的调用。</strong></p>
+<p><strong>换句话说，在 K8s 环境下，微服务之间的调用实际上是 Pod 之间的调用。</strong></p>
+<p>要让 Pod 之间能够顺利相互调用，我们面临两个重要的挑战：</p>
+<ul>
+<li>Pod 之间如何找到对方？</li>
+<li>Pod 在重启、更新、销毁的过程中，如何确保 Pod 之间的调用不受影响？</li>
+</ul>
+<p>我们知道 Pod 的生命周期是有限的。可以用 ReplicaSet 和Deployment 来动态的创建和销毁 Pod，每个 Pod 都有自己的 IP 地址，但是如果 Pod 重建了的话那么他的 IP 很有可能也就变化了。</p>
+<p>这就会带来一个问题：比如我们有一些后端的 Pod 集合为集群中的其他应用提供 API 服务，如果我们在前端应用中把所有的这些后端的 Pod 的地址都写死，然后以某种方式去访问其中一个 Pod 的服务，这样看上去是可以工作的，但是如果这个 Pod 挂掉了，然后重新启动起来了，是不是 IP 地址非常有可能就变了，这个时候前端就极大可能访问不到后端的服务了。</p>
+<p>为解决这个问题 Kubernetes 就为我们提供Service对象，Service 是一种抽象的对象，它定义了一组 Pod 的逻辑集合和一个用于访问它们的策略，其实这个概念和微服务非常类似。一个 Serivce 下面包含的 Pod 集合是由 Label Selector 来决定的。</p>
+<p><img src="../../../assets/md-images/EOR4bBvslozQInxWaBPc0YmRn4b.png" alt="图片展示了Kubernetes中Service对象的工作原理。Client通过ServiceIP访问Backend Pod，Backend Pod有相同的app标签和端口。ServiceIP由iptables实现，iptables将Client的请求转发到Backend Pod。apiserver和kube-proxy也参与其中，apiserver负责管理Service，kube-proxy在Node上运行，负责将Client的请求转发到Backend Pod。此图直观呈现了Service对象定义Pod集合及访问策略的功能。"></p>
+<h1 id="kube-proxy">kube-proxy</h1>
+<p>service在很多情况下只是一个概念，真正起作用的其实是kube-proxy服务进程，每个node节点上都运行一个kube-proxy服务进程，当创建service的时候会通过api-server向etcd写入创建的service信息，而kube-proxy会基于监听的机制发现这种service的变动，然后会将最新的service信息转换成对应的访问规则。</p>
+<p><img src="../../../assets/md-images/ZQNybcQFgoVATUxEwVvcOR3OnBg.png" alt="图片展示了Kubernetes中服务发现的架构。左侧为控制节点，包含ApiServer和etcd，其中ApiServer通过箭头指向etcd。右侧为node节点，kube-proxy监听etcd，基于监听机制发现service变动，将最新service信息转换成访问规则，再将访问规则分配给pod。该图直观呈现了kube-proxy在服务发现中的作用及与etcd、pod的关系，与文档中kube-proxy基于监听机制发现service变动并转换访问规则的内容相契合。"></p>
+<p><a href="../../DevOps/Kubernetes/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/kube-proxy.html">kube-proxy</a></p>
+<h1 id="service">Service</h1>
+<p>为了解决 Pod IP 不稳定的问题，Service 将一组来自同一个 ReplicaSet 创建的 Pod 组合在一起，并提供 DNS 的访问能力。也就是说，Pod 之间可以通过 Service 域名来进行访问，这种访问方式的好处是，无论 Service 背后一组的 Pod 如何变化，对于其他服务来说都是透明的，服务只需要关注访问 Service 即可，不用关心这个服务是由哪个 Pod 提供的。</p>
+<p>这种集群内部的 DNS 能力非常重要，它除了能为我们提供稳定的访问能力，还能够提供负载均衡和会话保持的能力。</p>
+<p>Service ➡️ Endpoints ➡️ Pod。</p>
+<p>Service 同样在集群内拥有唯一的 IP 地址，并且这个 IP 是稳定的。此外，Service 本身并没有直接提供服务发现的能力，它需要借助 Endpoints 来实现。Endpoints 记录了一组 Pod 的 IP 地址，Service 只需要查看自身所对应的 Endpoints 便能够找到具体的 Pod。</p>
+<p><a href="../../DevOps/Kubernetes/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/Service.html">Service</a></p>
+<h1 id="ingress">Ingress</h1>
+<p>Ingress 是 Kubernetes 的一个内置对象，通常我们把 Ingress 看作 <strong>Service 之上的 Service。</strong> Ingress 对象只用来声明路由策略，并不处理具体的流量转发。要使得 Ingress 生效，我们还需要额外安装 Ingress-Controller，例如 Ingress-Nginx。</p>
+<p>在生产环境中，Ingress-Nginx 一般就是以 Loadbalancer 类型来对外暴露的，Ingress-Nginx 实际上充当的是网关的角色，这样做的好处是， <strong>我们只需要一个负载均衡器实例，通过路由策略，就可以对外暴露所有的业务服务。</strong></p>
+<p><a href="../../DevOps/Kubernetes/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/Ingress.html">Ingress</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

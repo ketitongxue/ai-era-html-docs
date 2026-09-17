@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crossplane</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="crossplane">Crossplane</h1>
+<ul>
+<li>K8s 控制器，CRD 方式定义资源</li>
+<li>无需代码，声明式 API</li>
+<li>基础设施控制平面</li>
+<li>多云和混合云支持</li>
+<li>在 K8s 里运行 “Terraform”</li>
+</ul>
+<p>Operator = CRD + Custom Controller</p>
+<p><img src="../../../assets/md-images/MRDpbjo7Zo9dWexSFwDcc0ytnBc.png" alt="图片展示了Crossplane的Controller控制循环及架构。左侧为Controller控制循环，以橙色箭头呈现观察、计划、执行三个步骤的循环。右侧是架构图，CRD位于最上层，下方是Crossplane，再往下是Provider，最后连接EC2、VPC、S3等服务。该图与文档中介绍Crossplane的内容相关，直观呈现了其工作流程和架构，帮助理解其在基础设施控制平面中的运作机制。"></p>
+<p>http://marketplace.upbound.io/</p>
+<h2 id="安装-crossplane">安装 Crossplane</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">helm repo add crossplane-stable https://charts.crossplane.io/stable
+helm repo update
+helm install crossplane \
+--namespace crossplane-system \
+--create-namespace crossplane-stable/crossplane
+kubectl get pods -n crossplane-system
+</code></pre>
+<h2 id="借助-crossplane-快速自建-pass-平台">借助 Crossplane 快速自建 PaSS 平台</h2>
+<p><img src="../../../assets/md-images/DSaAbawvGo9dQmxppP3cCFiBnUb.png" alt="图片展示了使用Crossplane在Kubernetes集群中管理云资源的架构。左侧为Git仓库，存储YAML IaC代码，通过Argo与Kubernetes集群同步。右侧是Kubernetes集群，包含Tencent Cloud Provider、Core Controller、Provider、ProviderConfig等组件，以及CVM、VPC、Subnet等云资源。箭头表示创建和监控CRD（自定义资源定义）等操作，直观呈现了Crossplane在Kubernetes中管理云资源的流程。"></p>
+<h2 id="yaml-to-infragitops">YAML to Infra(GitOps)</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">#拉起 KIND 和 Argo CD
+export KUBECONFIG=&quot;$(pwd)/test-cluster-config&quot;
+kubectl apply -f setup
+get argo secret
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=&quot;{.data.password}&quot; | base64 -d
+kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:80
+delete argocd application
+</code></pre>
+<h3 id="思考使用-terraform-能否实现">思考：使用 Terraform 能否实现？</h3>
+<ul>
+<li>Jenkins or Tekton Other CI</li>
+<li>https://hub.docker.com/r/hashicorp/terraform</li>
+<li>UI -&gt; IaC Code</li>
+<li>在容器里运行 IaC 代码即可</li>
+</ul>
+<h2 id="crossplane--terraform">Crossplane + Terraform</h2>
+<p><img src="../../../assets/md-images/ANXobd3GtoFrd7xYfF8cMLhHnic.png" alt="图片展示了Crossplane与Terraform在Kubernetes集群中的工作流程。左侧为Tencent Cloud标识。右侧是Kubernetes Cluster，包含Terraform Code、Terraform Provider、Core Controller等组件。Terraform Code与Terraform Provider、Core Controller交互，Core Controller分别与Workspace、Provider、ProviderConfig交互。箭头表示数据流动方向，如Create操作从Tencent Cloud指向Terraform Code。此图直观呈现了Crossplane与Terraform在基础设施管理中的协同关系。"></p>
+<h2 id="crossplane--terraform--gitops">Crossplane + Terraform + GitOps</h2>
+<p><img src="../../../assets/md-images/ZiZSbWm3VoMcqGxM4TmcgDPgnzh.png" alt="图片展示了Crossplane + Terraform + GitOps的架构。左侧为Git仓库，包含YAML IaC代码，通过Sync与Argo同步。中间是Kubernetes集群，有Terraform代码。右侧是Tencent Cloud，包含Terraform Provider、Core Controller、Workspace、Provider、ProviderConfig等组件。箭头表示数据流向，如Terraform Provider和Core Controller分别通过Watch CRD与Workspace、Provider、ProviderConfig交互。该图直观呈现了各组件间的关系及数据流转，与上下文介绍的架构相契合。"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

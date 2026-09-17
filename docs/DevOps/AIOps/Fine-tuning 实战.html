@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fine-tuning 实战</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="fine-tuning-实战">Fine-tuning 实战</h1>
+<p>微调通过输入给大模型更多的样本数据来改进模型的表现，使其在一些特定的任务上输出更好的结果。</p>
+<p>使用场景：</p>
+<ul>
+<li>要求输出特定的风格和格式等</li>
+<li>提高输出的可靠性</li>
+<li>纠正无法遵循复杂提示语的问题</li>
+<li>执行一项难以用语言表达的新技能或任务</li>
+</ul>
+<h1 id="fine-tuning-日志分析专家">Fine-tuning 日志分析专家</h1>
+<p>使用真实的已标注数据进行 Fine-tuning，使模型具备判断日志故障优先级的能力</p>
+<p>需要将表格处理成如下的格式：</p>
+<p>执行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import csv
+import json
+import os
+
+
+def convert_csv_to_jsonl(csv_file_path, jsonl_file_path):
+    with open(csv_file_path, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+
+        with open(jsonl_file_path, mode=&quot;w&quot;, encoding=&quot;utf-8&quot;) as jsonl_file:
+            for row in csv_reader:
+                log = row[&quot;log&quot;]
+                priority = row[&quot;优先级&quot;]
+
+                jsonl_entry = {
+                    &quot;messages&quot;: [
+                        {
+                            &quot;role&quot;: &quot;system&quot;,
+                            &quot;content&quot;: &quot;你现在是一个日志告警专家，请根据日志内容去识别紧急程度，直接输出 P0 P1 或 P2，输出：&quot;,
+                        },
+                        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: log},
+                        {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: priority},
+                    ]
+                }
+
+                jsonl_file.write(json.dumps(jsonl_entry, ensure_ascii=False) + &quot;\n&quot;)
+
+
+csv_file_path = os.path.join(os.path.dirname(__file__), &quot;data&quot;, &quot;log.csv&quot;)
+print(f&quot;csv_file_path:{csv_file_path}&quot;)
+jsonl_file_path = &quot;log.jsonl&quot;
+print(f&quot;jsonl_file_path:{jsonl_file_path}&quot;)
+convert_csv_to_jsonl(csv_file_path, jsonl_file_path)
+</code></pre>
+<p><img src="../../../assets/md-images/ECFIbxsCLonvkoxNfs1cWRtlnV5.jpg" alt=""></p>
+<p>lesson/module_4/demo_6/process_data.py</p>
+<p>Fine-tuning 数据格式：jsonl</p>
+<p>包含 system prompt、user、assistant每行代表一条日志标注数据</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 02finetune.py
+from openai import OpenAI
+
+client = OpenAI()
+
+# 上传微调数据
+file_name = client.files.create(file=open(&quot;log.jsonl&quot;, &quot;rb&quot;), purpose=&quot;fine-tune&quot;)
+file_id = file_name.id
+print(&quot;file_id is: &quot;, file_id)
+
+# 创建微调任务
+finetune_job = client.fine_tuning.jobs.create(
+    training_file=file_id, model=&quot;gpt-4o-mini-2024-07-18&quot;
+)
+job_id = finetune_job.id
+print(&quot;job_id is: &quot;, job_id)
+</code></pre>
+<p>流程：</p>
+<ul>
+<li>准备微调数据</li>
+<li>上传微调文件</li>
+<li>创建微调任务</li>
+<li>获取微调后的模型 ID</li>
+</ul>
+<p>注意：</p>
+<ul>
+<li>微调时间取决于微调数据量大小，耗时较长</li>
+<li>可微调模型包括：gpt-4o-mini-2024-07-18、gpt-3.5-turbo-0125 等</li>
+</ul>
+<h1 id="fine-tuning-日志分析专家-推理">Fine-tuning 日志分析专家-推理</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 04chat.py
+from openai import OpenAI
+
+client = OpenAI()
+
+model_id = &quot;ft:gpt-4o-mini-2024-07-18:he3::9tbKC81t&quot;
+
+completion = client.chat.completions.create(
+    model=model_id,
+    messages=[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: &quot;你现在是一个日志告警专家，请根据日志内容去识别紧急程度，直接输出 P1 P2 或 P3，输出：&quot;,
+        },
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Disk I/O error&quot;},
+    ],
+)
+
+print(&quot;ChatGPT resp: &quot;, completion.choices[0].message.content)
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

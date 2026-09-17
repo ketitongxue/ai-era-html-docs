@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>容器技术的核心原理 Namespace &amp; cgroup</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="容器技术的核心原理-namespace--cgroup">容器技术的核心原理 Namespace &amp; cgroup</h1>
+<p><strong>容器基于 namespace 实现资源隔离，基于 cgroup 实现资源限制。</strong></p>
+<p>我们知道虚拟机使用的是Hypervisor（KVM、Xen等），那么，容器是怎么实现和下层计算机硬件和操作系统交互的呢？为什么它会具有高效轻便的隔离特性呢？</p>
+<p>其实奥秘就在于Linux操作系统内核之中，为资源隔离提供了三种技术： <strong>namespace、cgroup、chroot</strong>，虽然这三种技术的初衷并不是为了实现容器，但它们三个结合在一起就会发生奇妙的“化学反应”。</p>
+<p>namespace是2002年从Linux 2.4.19开始出现的，和编程语言里的namespace有点类似，它可以创建出独立的文件系统、主机名、进程号、网络等资源空间，相当于给进程盖了一间小板房，这样就实现了系统全局资源和进程局部资源的<strong>隔离</strong>。</p>
+<p>cgroup是2008年从Linux 2.6.24开始出现的，它的全称是Linux Control Group，用来实现对进程的CPU、内存等资源的优先级和<strong>配额限制</strong>，相当于给进程的小板房加了一个天花板。</p>
+<p>chroot的历史则要比前面的namespace、cgroup要古老得多，早在1979年的UNIX V7就已经出现了，它可以更改进程的根目录，也就是限制访问文件系统，相当于给进程的小板房铺上了地砖。</p>
+<h1 id="namespace">Namespace</h1>
+<p>namespace 是 Linux 系统的底层概念，在内核层实现，即有一些不同类型的命名空间被部署在核内，各个docker容器运行在同一个docker主进程并且共 用同一个宿主机系统内核，各docker容器运行在宿主机的用户空间，每个容器都要有类似于虚拟机一样的相互隔离的运行空间，但是容器技术是在一个 进程内实现运行指定服务的运行环境，并且还可以保护宿主机内核不受其他进程的干扰和影响，如文件系统空间、网络空间、进程空间等，目前主要通过以下技术实现容器运行空间的相互隔离：</p>
+<h2 id="mnt-namespace">MNT Namespace:</h2>
+<ul>
+<li>
+<p>提供磁盘挂载点和文件系统的隔离：</p>
+<ul>
+<li>每个容器都要有独立的根文件系统有独立的用户空间，以实现在容器里面启动服务并且使 用容器的运行环境，即一个宿 主机是 ubuntu 的服务器，可以在里面启动一个 centos 运行环 境的容器并且在容器里面启动一个 Nginx 服务，此 Nginx 运行时使用的运行环境就是 centos 系统目录的运行环境，即在容器里面是不能直接访问宿主机的文件系统。</li>
+<li>宿主机是使用了 chroot 技术把容器锁定到一个指定的运行目录里面并作为容器的根运行环境。</li>
+</ul>
+</li>
+</ul>
+<h2 id="ipc-namespace">IPC Namespace：</h2>
+<ul>
+<li>
+<p>提供进程间通信的隔离：</p>
+<ul>
+<li>IPC namespce 隔离进程间通信资源(同一个 IPC namespace 的进程可实现内存等资源共享，但是不同的 IPC namespace 则严格隔离)</li>
+</ul>
+</li>
+</ul>
+<h2 id="uts-namespace">UTS Namespace：</h2>
+<ul>
+<li>
+<p>提供主机名隔离：</p>
+<ul>
+<li>UTS namespace（UNIX Timesharing System 包含了运行内核的名称、版本、底层体系结构类型等信息）用于系统标识， 其中包含了 hostname 和域名 domainname ，它使得一个容器拥有属于自己 hostname 标识，这个主机名标识独立于宿主机系统和其上的其他容器。</li>
+</ul>
+</li>
+</ul>
+<h2 id="pid-namespace">PID Namespace：</h2>
+<ul>
+<li>
+<p>提供进程隔离：</p>
+<ul>
+<li>Linux系统中，有一个PID为1的进程(init/systemd)是其他所有进程的父进程，那么在每个容器内也要有一个父进程来管理其下属的子进程，那么多个容器的进程通 PID namespace进程隔离(比如 PID编号重复、器内的主进程生成与回收子进程等)。</li>
+</ul>
+</li>
+</ul>
+<h2 id="net-namespace">Net Namespace：</h2>
+<ul>
+<li>
+<p>提供网络隔离：</p>
+<ul>
+<li>每一个容器都类似于虚拟机一 样有自己的网卡、监听端口、 TCP/IP协议栈等，docker使用 network namespace启动一 个vethX接口，这样你的容器 将拥有它自己的桥接ip地址， 通常是docker0，而docker0 实质就是Linux的虚拟网桥,网 桥是在OSI七层模型的数据链 路层的网络设备，通过mac地 址对网络进行划分，并且在不 同网络直接传递数据。</li>
+</ul>
+</li>
+</ul>
+<h2 id="user-namespace">User Namespace：</h2>
+<ul>
+<li>
+<p>提供用户隔离：</p>
+<ul>
+<li>各个容器内可能会出现重名的用户和用户组名称，或重复的用户 UID 或者 GID，那么怎么隔离各个容器内的用户空间呢？</li>
+<li>User Namespace 允许在各个宿 主机的各个容器空间内创建相同的 用户名以及相同的用户 UID 和 GID，只是会把用户的作用范围限 制在每个容器内，即A容器和B容 器可以有相同的用户名称和ID的账 户，但是此用户的有效范围仅是当前容器内，不能访问另外一个容器 内的文件系统，即相互隔离、互不影响</li>
+</ul>
+</li>
+</ul>
+<h1 id="cgroups">Cgroups：</h1>
+<p>在一个容器，如果不对其做任何资源限制，则宿主机会允许其占用无限大的内存空间，有时候会因为代码bug程序会一直申请内存，直到把宿主机内存占完。或者一个进城可以创建成百上千个线程，可以轻易地消耗完一台计算机的所有CPU资源和内存资源。</p>
+<p>为了避免此类的问题出现，宿主机有必要对容器进行资源分配限制，比如CPU、内存等.</p>
+<p><code>Linux Cgroups</code> 的全称是 <code>Linux Control Groups</code>，它最主要的作用，就是限制一个进程组能够使用的资源上限，包括CPU、内存、磁盘I/O、网络带宽等等。此外，还能够对进程进行优先级设置，以及将进程挂起和恢复等操作。</p>
+<p>Cgroups通过不同的子系统限制了不同的资源，每个子系统限制一种资源。每个子系统限制资源的方式都是类似的，就是把相关的一组进程分配到一个控制组里，然后通过 <strong>树结构</strong> 进行管理，每个控制组都设有自己的资源控制参数。</p>
+<p>完整的Cgroups子系统的介绍，你可以查看 <a href="https://man7.org/linux/man-pages/man7/cgroups.7.html">Linux Programmer's Manual</a> 中Cgroups的定义。</p>
+<p>这里呢，我们只需要了解几种比较常用的Cgroups子系统：</p>
+<ul>
+<li>CPU子系统，用来限制一个控制组（一组进程，你可以理解为一个容器里所有的进程）可使用的最大CPU。</li>
+<li>memory子系统，用来限制一个控制组最大的内存使用量。</li>
+<li>pids子系统，用来限制一个控制组里最多可以运行多少个进程。</li>
+<li>cpuset子系统， 这个子系统来限制一个控制组里的进程可以在哪几个物理CPU上运行。</li>
+</ul>
+<p><img src="../../../assets/md-images/WtEMb3Zx7oa1tZxrWnhcEY53nVy.png" alt=""></p>
+<p>Cgroups 在内核层默认已经开启，从 centos 和 ubuntu 对比结果来看，内核较新的 ubuntu 支持的功能更多。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># cat /boot/config-6.8.0-51-generic | grep -i cgroup | grep -v &quot;^#&quot; | wc -l
+23
+
+# cat /boot/config-6.8.0-51-generic | grep MEM | grep CG | grep -v &quot;^#&quot;
+CONFIG_MEMCG=y
+CONFIG_MEMCG_KMEM=y
+
+$ cat /proc/filesystems | grep cg
+nodev   cgroup
+nodev   cgroup2    # 如果看到 cgroup2，表示支持cgroup v2；
+</code></pre>
+<p>对于启动的每个容器，都会在Cgroups子系统下建立一个目录，在Cgroups中这个目录也被称作控制组，比如下图里的 docker-&lt;id1&gt; docker-&lt;id2&gt; 等。然后我们设置这个控制组的参数，通过这个方式，来限制这个容器的内存资源。</p>
+<p><img src="../../../assets/md-images/NvELbBEC2ocLLbxmKB3cXGOnnZd.png" alt=""></p>
+<p>在每个Cgroups子系统下，对应这个容器就会有一个目录docker- c5a9ff78d9c1…… 这个容器的ID号，容器中所有的进程都会储存在这个控制组中cgroup.procs 这个参数里。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml"># cd /sys/fs/cgroup/system.slice/docker-dc816177c2362359891cb264c93adc32346cdb3032de9da7c5f83509e07c3c05.scope
+
+keti@devops:/sys/fs/cgroup/system.slice/docker-dc816177c2362359891cb264c93adc32346cdb3032de9da7c5f83509e07c3c05.scope$ cat cgroup.procs
+42160
+42211
+42212
+42213
+42214
+42215
+42216
+42217
+42218
+
+$ ps -ef | grep nginx
+root       42160   42140  0 10:05 ?        00:00:00 nginx: master process nginx -g daemon off;
+message+   42211   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42212   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42213   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42214   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42215   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42216   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42217   42160  0 10:05 ?        00:00:00 nginx: worker process
+message+   42218   42160  0 10:05 ?        00:00:00 nginx: worker process
+</code></pre>
+<p>我们实际看一下这个例子里的<code>memory Cgroups</code>，它可以控制Memory的使用量。比如说，我们将这个控制组Memory的最大用量设置为2GB。</p>
+<p>具体操作是这样的，我们把（2* 1024 * 1024 * 1024 = 2147483648）这个值，写入memory Cgroup控制组中的memory.limit_in_bytes里， **这样设置后，cgroup.procs里面所有进程Memory使用量之和，最大也不会超过2GB。</p>
+<p>启动一个 nginx 容器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml"># docker run -d --rm nginx
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">keti@devops:/sys/fs/cgroup/system.slice/docker-dc816177c2362359891cb264c93adc32346cdb3032de9da7c5f83509e07c3c05.scope$ echo 2147483648 &gt; memory.limit_in_bytes keti@devops:/sys/fs/cgroup/system.slice/docker-dc816177c2362359891cb264c93adc32346cdb3032de9da7c5f83509e07c3c05.scope$ cat memory.limit_in_bytes 2147483648
+</code></pre>
+<p>我们通过memory Cgroups定义了容器的memory可以使用的最大值。其他的子系统稍微复杂一些，但用法也和memory类似。</p>
+<p>这里我们还要提一下 <strong>Cgroups有v1和v2两个版本</strong>：</p>
+<p>Cgroups v1在Linux中很早就实现了，各种子系统比较独立，每个进程在各个Cgroups子系统中独立配置，可以属于不同的group。</p>
+<p>虽然这样比较灵活，但是也存在问题，会导致对 <strong>同一进程的资源协调比较困难</strong>（比如memory Cgroup与blkio Cgroup之间就不能协作）。虽然v1有缺陷，但是在主流的生产环境中，大部分使用的还是v1。</p>
+<p>Cgroups v2 做了设计改进， <strong>解决了v1的问题，使各个子系统可以协调统一地管理资源。</strong></p>
+<p>不过Cgroups v2在生产环境的应用还很少，因为该版本很多子系统的实现需要较新版本的Linux内核，还有无论是主流的Linux发行版本还是容器云平台，比如Kubernetes，对v2的支持也刚刚起步。</p>
+<h2 id="cpu-cgroup">CPU Cgroup</h2>
+<p><a href="%E5%AE%B9%E5%99%A8%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%20Namespace%20&amp;%20cgroup/CPU%20Cgroup.html">CPU Cgroup</a></p>
+<h2 id="memory-cgroup">Memory Cgroup</h2>
+<p><a href="%E5%AE%B9%E5%99%A8%E6%8A%80%E6%9C%AF%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%20Namespace%20&amp;%20cgroup/Memory%20Cgroup.html">Memory Cgroup</a></p>
+<h2 id="容器资源限制验证">容器资源限制验证：</h2>
+<ol>
+<li>cgroup验证：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">root@docker-server1:~# cat /sys/fs/cgroup/docker/b7b3755f22962538418dc56c23c03941cd7f97178ed8e25c7d02fbc4ca9878ed/memory.max
+536870912
+
+root@docker-server1:~# cat /sys/fs/cgroup/docker/b7b3755f22962538418dc56c23c03941cd7f97178ed8e25c7d02fbc4ca9878ed/cpu.max
+200000 100000
+</code></pre>
+<ol>
+<li>systemd限制验证:</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">root@docker-server1:~# docker start b7b3755f2296
+b7b3755f2296
+root@docker-server1:~# ps -ef | grep nginx #过滤出目的服务的进程号
+root 18770 18736 1 17:08 ? 00:00:00 nginx: master process nginx -g daemon off;
+systemd+ 18816 18770 0 17:08 ? 00:00:00 nginx: worker process
+root@docker-server1:~# cat /proc/18770/cpuset #查询进程的限制
+/system.slice/docker-b7b3755f22962538418dc56c23c03941cd7f97178ed8e25c7d02fbc4ca9878ed.scope
+root@docker-server1:~# cat /sys/fs/cgroup/system.slice/dockerb7b3755f22962538418dc56c23c03941cd7f97178ed8e25c7d02fbc4ca9878ed.scope/cpu.max #查询cpu限制范围
+200000 100000
+root@docker-server1:~# cat /sys/fs/cgroup/system.slice/dockerb7b3755f22962538418dc56c23c03941cd7f97178ed8e25c7d02fbc4ca9878ed.scope/memory.max #查询内存限制范围
+536870912
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

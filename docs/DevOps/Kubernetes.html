@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="kubernetes">Kubernetes</h1>
+<h1 id="理论知识">理论知识</h1>
+<h2 id="kubernetes-基础介绍">Kubernetes 基础介绍</h2>
+<p><a href="Kubernetes/Kubernetes%20%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D.html">Kubernetes 基础介绍</a></p>
+<h2 id="本地部署-k8s-集群">本地部署 K8s 集群</h2>
+<p>社区当前有很多部署 Kubernetes 的方案和工具，每种方案和工具都有其自身的特点、优缺点和适用场景。我们可以根据需要选择合适的方式来部署 Kubernetes 集群。当前社区常用的部署工具有：minikube、kind、kubeadam、k3d、microk8s、二进制部署、Kops、Kubespray、Terraform 等。其中，用的最多的是 minikube、kind、kubeadam 和二进制部署。当然，如果你舍得花钱，也可以直接在云服务提供商一键创建一个生产级的 Kubernetes 集群。</p>
+<p><a href="Kubernetes/%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%20K8s%20%E9%9B%86%E7%BE%A4.html">本地部署 K8s 集群</a></p>
+<h2 id="kubectl-命令详解">kubectl 命令详解</h2>
+<p><a href="Kubernetes/kubectl%20%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3.html">kubectl 命令详解</a></p>
+<h2 id="node">Node</h2>
+<p>Node 是 Pod 真正运行的主机，可以物理机，也可以是虚拟机。</p>
+<p>为了管理 Pod，每个 Node 节点上至少要运行 container runtime（比如 docker 或者 Rkt）、kubelet 和 kube-proxy 服务。</p>
+<h2 id="namespace">Namespace</h2>
+<p>Namespace 是对一组资源和对象的抽象集合，比如可以用来将系统内部的对象划分为不同的项目组或用户组。</p>
+<p>常见的 Pod，services，replication(复制) controllers 和 deployments 等都是属于某一个 Namespace 的（默认是 default），而 Node、persistentVolumes 等则不属于任何 Namespace。</p>
+<p><a href="Kubernetes/Namespace.html">Namespace</a></p>
+<h2 id="pod">Pod</h2>
+<ul>
+<li>
+<p>Pod 是一组紧密关联的容器集合，它们共享 PID、IPC、Network 和 UTS namespace，是 Kubernetes 调度的基本单位。</p>
+</li>
+<li>
+<p>Pod 的设计理念是支持多个容器在一个 Pod 中共享网络和文件系统，可以通过进程间通信和文件共享这种简单高效的方式组合完成任务。</p>
+</li>
+<li>
+<p>同一个 Pod 中的不同容器可共享资源：</p>
+<ul>
+<li>共享网络 Namespace</li>
+<li>可通过挂载存储卷共享存储</li>
+<li>共享 Security Context。</li>
+</ul>
+</li>
+</ul>
+<p><a href="Kubernetes/Pod.html">Pod</a></p>
+<h2 id="pod-进阶replicasetdeploymentstatefulsetdaemonsetjobcronjob">Pod 进阶：Replicaset、Deployment、Statefulset、Daemonset、Job、CronJob</h2>
+<p><a href="Kubernetes/%E5%B7%A5%E4%BD%9C%E8%B4%9F%E8%BD%BD.html">工作负载</a></p>
+<h2 id="存储卷">存储卷</h2>
+<p><a href="Kubernetes/%E5%AD%98%E5%82%A8.html">存储</a></p>
+<h2 id="网络">网络</h2>
+<p><a href="Kubernetes/Kubernetes%20%E7%BD%91%E7%BB%9C.html">Kubernetes 网络</a></p>
+<h2 id="应用配置envcmsecret">应用配置（env、cm、secret）</h2>
+<p><a href="Kubernetes/%E5%BA%94%E7%94%A8%E9%85%8D%E7%BD%AE%EF%BC%88env%E3%80%81cm%E3%80%81secret%EF%BC%89.html">应用配置（env、cm、secret）</a></p>
+<h2 id="用户user-account-服务账户service-account">用户（User Account）&amp; 服务账户（Service Account）</h2>
+<ul>
+<li>
+<p>顾名思义，用户账户为人提供账户标识，而服务账户为计算机进程和 Kubernetes 集群中运行的 Pod 提供账户标识。</p>
+</li>
+<li>
+<p>用户账户和服务账户的一个区别是作用范围：</p>
+<ul>
+<li>用户账户对应的是人的身份，人的身份与服务的 Namespace 无关，所以用户账户是跨Namaspace 的；</li>
+<li>而服务账户对应的是一个运行中程序的身份，与特定 Namespace 是相关的。</li>
+</ul>
+</li>
+</ul>
+<h2 id="服务发现kube-proxyserviceingress">服务发现：Kube-proxy、Service、Ingress</h2>
+<p><a href="Kubernetes/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0.html">服务发现</a></p>
+<h2 id="customresourcedefinition">CustomResourceDefinition</h2>
+<ul>
+<li>CRD 就像数据库的开放式表结构，允许用户自定义 Schema。</li>
+<li>有了这种开放式设计，用户可以基于 CRD 定义一些需要的模型，满足不同业务的需求。</li>
+<li>社区鼓励基于 CRD 的业务抽象，众多主流的扩展引用都是基于 CRD 构建的，比如 Istio、Knative。</li>
+<li>甚至基于 CRD 推出了 Operator Model 和 Operator SDK，可以以极低的开发成本定义新对象，并构建新对象的控制器。</li>
+</ul>
+<h2 id="kubernetes-yaml-文件详解">Kubernetes Yaml 文件详解</h2>
+<p><a href="Kubernetes/Kubernetes%20Yaml%20%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3.html">Kubernetes Yaml 文件详解</a></p>
+<hr>
+<h1 id="提高篇">提高篇</h1>
+<h2 id="etcd">etcd</h2>
+<p><a href="Kubernetes/etcd.html">etcd</a></p>
+<h2 id="kube-apiserver">Kube-apiserver</h2>
+<p>Kube-apiserver 是 Kubernetes 最重要的核心组件之一，主要提供以下功能：</p>
+<ul>
+<li>提供集群管理的 REST API 接口，包括认证授权、数据校验以及集群状态变更等</li>
+<li>提供其他模块之间的数据交互和通信的枢纽（其他模块通过 API Server 查询或修改数据，只有 API Server 才能直接操作 etcd）</li>
+</ul>
+<p><a href="Kubernetes/kube-apiserver.html">kube-apiserver</a></p>
+<h2 id="kustomize">Kustomize</h2>
+<p>在实际使用 Kubernetes 时，我们一般都会面临多环境的问题。例如通常我们会把环境分为开发、测试、预发布和生产环境。由于 YAML 是一种“静态”的配置语言，它并不像编程语言一样使用变量来计算最终结果，所以在多环境的情况下，常规方式需要我们编写多套应用定义。</p>
+<p>显然，这种直接把多套应用部署到不同环境的方式并不优雅。一是因为多套应用定义很难维护和统一，最后会导致环境之间的差异越来越大；二是因为在大部分情况下，不同环境的 Kubernetes 对象都是相同的，只在一些和环境相关的配置上有差异，编写多套应用定义会导致维护成本增加。</p>
+<p>而 Kustomize 正是针对这种场景而设计的应用定义模型。我们只需要定义一套 Kustomize 应用就能够实现对多环境的适配。</p>
+<p><a href="Kubernetes/Kustomize.html">Kustomize</a></p>
+<hr>
+<h1 id="实战篇">实战篇</h1>
+<p><a href="Kubernetes/%E5%A6%82%E4%BD%95%E5%B0%86%E5%AE%B9%E5%99%A8%E9%95%9C%E5%83%8F%E9%83%A8%E7%BD%B2%E5%88%B0%20K8s.html">如何将容器镜像部署到 K8s</a></p>
+<p><a href="Kubernetes/Kubernetes%20%E9%9B%86%E6%88%90%20Jenkins.html">Kubernetes 集成 Jenkins</a></p>
+<p><a href="Kubernetes/%E4%BB%85%E5%9C%A8%E6%9F%90%E4%BA%9B%E8%8A%82%E7%82%B9%E4%B8%8A%E8%BF%90%E8%A1%8C%20Pod.html">仅在某些节点上运行 Pod</a></p>
+<p><a href="Kubernetes/finalizers%20%E5%AD%97%E6%AE%B5.html">finalizers 字段</a></p>
+<hr>
+<h1 id="补充内容">补充内容</h1>
+<p><a href="Kubernetes/CNCF.html">CNCF</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

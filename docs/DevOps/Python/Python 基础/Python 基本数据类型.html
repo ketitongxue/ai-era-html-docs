@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python 基本数据类型</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="python-基本数据类型">Python 基本数据类型</h1>
+<h1 id="字符串">字符串</h1>
+<p>字符串英文 string ，是 python 中随处可见的数据类型，字符串的识别也非常的简单，就是用<code>引号</code>括起来的。</p>
+<p>引号包括单引号 <code>' '</code> ，双引号 <code>&quot; &quot;</code> 和 三引号 <code>''' '''</code> ，比如 <code>'abc'</code> ，<code>&quot;123&quot;</code> 等等。</p>
+<p>这里请注意，单引号 <code>''</code> 或双引号 <code>&quot;&quot;</code> 本身只是一种表示方式，不是字符串的一部分，因此，字符串 <code>'abc'</code> 只有 a，b，c 这 3 个字符。</p>
+<p>那么我们先来看下这三种方式，来定义同样内容的字符串，再把它打印出来，看看是怎样的。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str1 = '柯提'
+str1 = &quot;柯提&quot;
+str1 = '''柯提'''
+
+print(str1)
+print(str2)
+print(str3)
+</code></pre>
+<p>打印出来的结果是一样的。</p>
+<h2 id="字符串操作">字符串操作</h2>
+<h3 id="字符串的基本操作">字符串的基本操作</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>x in s</th>
+<th>如果 s 中的某项等于 x，那么结果为 True，否则为 False</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x not in s</td>
+<td>如果 s 中的某项等于 x，那么结果为 False，否则为 True</td>
+</tr>
+<tr>
+<td>s + t</td>
+<td>s 与 t 相拼接</td>
+</tr>
+<tr>
+<td>s * n 或 n * s</td>
+<td>相当于 s 与自身进行 n 次拼接</td>
+</tr>
+<tr>
+<td>s[i]</td>
+<td>s 的第 i 项，起始为 0，-1 为最后一个字符</td>
+</tr>
+<tr>
+<td>s[i:j]</td>
+<td>s 从 i 到 j 的切片</td>
+</tr>
+<tr>
+<td>s[i:j:k]</td>
+<td>s 从 i 到 j 步长为 k 的切片</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="字符串的常用方法">字符串的常用方法</h3>
+<h4 id="join">join</h4>
+<p>str.join(iterable)</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str = &quot;,&quot;.join(&quot;abcdefg&quot;)
+print(str)
+
+//输出
+'a,b,c,d,e,f,g'
+</code></pre>
+<h4 id="split">split</h4>
+<p>str.split(sep=None, maxsplit=-1)</p>
+<p>返回一个由字符串内单词组成的列表。使用 <code>,</code> 作为分隔字符串</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">&quot;a,b,c,d&quot;.split(&quot;,&quot;)
+
+//输出
+['a', 'b', 'c', 'd']
+</code></pre>
+<h4 id="startswith">startswith</h4>
+<p>tr.startswith(prefix[, start[, end]])</p>
+<p>如果字符串以指定的 prefix 开始，那么返回 True，否则返回 False。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str = &quot;a,b,c,d&quot;
+result = str.startswith(&quot;a&quot;)
+print(result)
+</code></pre>
+<p>字符串所有方法: https://docs.python.org/zh-cn/3.10/library/stdtypes.html#string-methods</p>
+<h4 id="lower">Lower</h4>
+<p>将字符串全体小写</p>
+<p>newstr = string.lower()</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str = &quot;ABCD&quot;
+newstr = str.lower()
+print(newstr)
+
+// 输出
+abcd
+</code></pre>
+<h4 id="upper">upper</h4>
+<p>将字符串全体大写</p>
+<p>big_str = string.upper()</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str = &quot;abcd&quot;
+newstr = str.upper()
+print(newstr)
+
+// 输出
+ABCD
+</code></pre>
+<h4 id="find">find</h4>
+<p>返回想寻找的成员的位置</p>
+<p>string.find(item)</p>
+<p>注意：字符串里的位置是从左向右，以 0 开始的，空格也算。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">str = &quot;abcd&quot;
+position = str.find(&quot;b&quot;)
+print(position)
+
+// 输出
+1
+</code></pre>
+<h4 id="index">index</h4>
+<p>返回想寻找的成员的位置</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">string.index(item)
+</code></pre>
+<h2 id="python-字符串的编码问题">Python 字符串的编码问题</h2>
+<p>我们都知道计算机只能处理数字，如果要处理文本，就必须先把文本转换为数字才能处理。最早的计算机在设计时采用8个比特（bit）作为一个字节（byte），所以，一个字节能表示的最大的整数就是255（二进制11111111=十进制255），0 - 255被用来表示大小写英文字母、数字和一些符号，这个编码表被称为ASCII编码，比如大写字母 A 的编码是 65，小写字母 z 的编码是 122。</p>
+<p>如果要表示中文，显然一个字节是不够的，至少需要两个字节，而且还不能和 ASCII 编码冲突，所以，中国制定了 GB2312 编码，用来把中文编进去。</p>
+<p>类似的，日文和韩文等其他语言也有这个问题。为了统一所有文字的编码，Unicode 应运而生。Unicode 把所有语言都统一到一套编码里，这样就不会再有乱码问题了。</p>
+<p>Unicode 通常用两个字节表示一个字符，原有的英文编码从单字节变成双字节，只需要把高字节全部填为 0 就可以。</p>
+<p>因为 Python 的诞生比 Unicode 标准发布的时间还要早，所以最早的 Python 只支持 ASCII 编码，普通的字符串 ‘ABC’ 在 Python 内部都是 ASCII 编码的。</p>
+<p>Python 在后来添加了对 Unicode 的支持，以 Unicode 表示的字符串用<code>u'...'</code>表示。</p>
+<p>不过在最新的 Python 3 版本中，字符串是以 Unicode 编码的，也就是说，Python 的字符串支持多语言。就像上面的例子一样，我的代码中没有加 <code>u'...'</code>，也能正常显示。</p>
+<p>不过由于 Python 源代码也是一个文本文件，所以，当你的源代码中包含中文的时候，在保存源代码时，就需要务必指定保存为 UTF-8 编码。当 Python 解释器读取源代码时，为了让它按 UTF-8 编码读取，我们通常在文件开头写上这两行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+</code></pre>
+<p>第一行注释是为了告诉 Linux/OS X 系统，这是一个 Python 可执行程序，Windows 系统会忽略这个注释；</p>
+<p>第二行注释是为了告诉 Python 解释器，按照 UTF-8 编码读取源代码，否则，你在源代码中写的中文输出可能会有乱码。</p>
+<p>申明了 UTF-8 编码并不意味着你的 .py 文件就是 UTF-8 编码的，必须并且要确保文本编辑器正在使用 UTF-8 without BOM 编码。</p>
+<h2 id="字符串的格式化">字符串的格式化</h2>
+<h3 id="字符串格式化使用操作符--来实现">字符串格式化使用操作符 % 来实现</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">'my name is %s, my age is %s' % ('zhangsan', 18)
+</code></pre>
+<h3 id="字符串格式化函数-format">字符串格式化函数 format</h3>
+<ul>
+<li>string.format 函数用来格式化字符串</li>
+<li>使用format的字符串主体使用 {} 大括号来替代格式符</li>
+<li>string.format(data, data, data...)</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">info = 'my name is {0}, my age is {1}, my book is {2}'
+print(info.format(&quot;zhangsan&quot;, 18, &quot;python&quot;))
+</code></pre>
+<h3 id="f-strings">f-strings</h3>
+<ul>
+<li>定义一个变量</li>
+<li>字符串前加f符号</li>
+<li>需要格式化的位置使用 {变量名}</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">name = &quot;zhangsan&quot;
+age = 18
+info = f'my name is {name}, my age is {age}'
+print(info)
+</code></pre>
+<h2 id="转义字符">转义字符</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>符号</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>\n</td>
+<td>换行，一般用于末尾，strip对其也有效</td>
+</tr>
+<tr>
+<td>\t</td>
+<td>横向制表符（可以认为是一个间隔符）</td>
+</tr>
+<tr>
+<td>\v</td>
+<td>纵向制表符（会有一个男性符号）</td>
+</tr>
+<tr>
+<td>\a</td>
+<td>响铃</td>
+</tr>
+<tr>
+<td>\b</td>
+<td>退格符，将光标前移，覆盖（删除前一个）</td>
+</tr>
+<tr>
+<td>\r</td>
+<td>回车</td>
+</tr>
+<tr>
+<td>\f</td>
+<td>翻页（几乎用不到，会出现一个女性符号）</td>
+</tr>
+<tr>
+<td>\\'</td>
+<td>转义字符串中的单引号</td>
+</tr>
+<tr>
+<td>\\&quot;</td>
+<td>转义字符串中的双引号</td>
+</tr>
+<tr>
+<td>\\\</td>
+<td>转义斜杠</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="整数">整数</h1>
+<p>整数英文为 integer 。代码中的整数跟我们平常认识的整数一样，包括正整数、负整数和零，是没有小数点的数字。</p>
+<p>Python 可以处理任意大小的整数，例如：<code>1</code>，<code>100</code>，<code>-8080</code>，<code>0</code>，等等。</p>
+<p>当然，要注意了，如果数字你用引号括起来了，那就属于字符串，而不属于整数。比如 <code>'100'</code> , 这 100 是字符串，不是整数。</p>
+<h1 id="浮点数">浮点数</h1>
+<p>浮点数的英文名是 float ，是指带小数的数字。</p>
+<p>浮点数跟整数有很多类似的地方，但是浮点数是最折磨人的，也是最难让人捉摸透的。</p>
+<p>就好比世界级的大佬 Herb Sutter 说的：「世上的人可以分为3类：一种是知道自己不懂浮点运算的；一种是以为自己懂浮点运算的；最后一种是极少的专家级人物，他们想知道自己是否有可能，最终完全理解浮点运算。</p>
+<h1 id="布尔值">布尔值</h1>
+<p>布尔值和布尔代数的表示完全一致，一个布尔值只有 <code>True</code> 、 <code>False</code>两种值，要么是 <code>True</code>，要么是 <code>False</code>，在 Python 中，可以直接用 True、False 表示布尔值（请注意大小写），也可以通过布尔运算计算出来。</p>
+<p>布尔值可以用 <code>and</code>、<code>or</code> 和 <code>not</code> 运算。</p>
+<p><code>and</code> 运算是与运算，只有所有都为 True，and 运算结果才是 True。</p>
+<p><code>or</code> 运算是或运算，只要其中有一个为 True，or 运算结果就是 True。</p>
+<p><code>not</code> 运算是非运算，它是一个单目运算符，把 True 变成 False，False 变成 True。</p>
+<h1 id="空值">空值</h1>
+<p>基本上每种编程语言都有自己的特殊值——空值，在 Python 中，用 None 来表示。</p>
+<h1 id="列表-list">列表 List</h1>
+<h2 id="什么是-list">什么是 List</h2>
+<p>List （列表）是 Python 内置的一种数据类型。 它是一种有序的集合，可以随时添加和删除其中的元素，且列表中的元素可以重复。</p>
+<p>在实际开发中，经常需要将一组（不只一个）数据存储起来，以便后边的代码使用。列表就是这样的一个数据结构。</p>
+<h2 id="如何创建-list"><strong>如何创建 List</strong></h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">listname = [element1, element2, element3, ..., elementn]
+</code></pre>
+<p>其实列表就是用中括号 <code>[]</code> 括起来的数据，里面的每一个数据就叫做元素。每个元素之间使用逗号分隔。</p>
+<blockquote>
+<p>不同于<code>C</code>，<code>java</code>等语言的数组，python的列表可以存放不同的，任意的数据类型对象。</p>
+</blockquote>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">list1=['张三', 'lisi', 123]
+</code></pre>
+<p>使用列表推导式创建列表，如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">[x for x in range(1, 10)]
+</code></pre>
+<h2 id="如何访问-list-中的值">如何访问 List 中的值</h2>
+<p>我们可以通过列表的下标索引来访问列表中的值，同样你也可以使用方括号的形式截取字符。</p>
+<p>例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">name = ['张三', '李四', '王五']
+
+# 通过索引来访问列表
+print(name[1])
+
+# 切片操作
+# 通过方括号的形式来截取列表中的数据
+print(name[0:2]) // 左闭右开，从第 0 个开始取，取到第 2 个，但是不包含第 2 个。
+print(name[1:-1])
+</code></pre>
+<h2 id="如何更新-list">如何更新 List</h2>
+<p>可以通过索引对列表的数据项进行修改或更新，也可以使用 append() 方法来添加列表项。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">name = ['张三', '李四', '王五']
+
+# 通过索引对列表的数据项进行修改或更新
+name[1] = '李4'
+print(name)
+
+# 使用 append() 方法来添加列表项
+name.append('小明')
+print(name)
+
+// 输出
+['张三', '李4', '王五']
+['张三', '李4', '王五', '小明']
+</code></pre>
+<h2 id="如何删除-list-里面的元素">如何删除 List 里面的元素</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">name = ['张三', '李四', '王五']
+
+print(name)
+
+# 使用 del 语句来删除列表的的元素
+del name[2]
+print(name)
+
+// 输出
+['张三', '李四', '王五']
+['张三', '李四']
+</code></pre>
+<h2 id="list-内置方法">List 内置方法</h2>
+<h3 id="lenlist">len(list)</h3>
+<p>列表元素个数</p>
+<h3 id="maxlist">max(list)</h3>
+<p>返回列表元素最大值</p>
+<h3 id="minlist">min(list)</h3>
+<p>返回列表元素最小值</p>
+<h3 id="listseq">list(seq)</h3>
+<p>将元组转换为列表</p>
+<h3 id="append">append</h3>
+<p>list.append(obj) 在列表末尾添加新的元素</p>
+<h3 id="count">Count</h3>
+<p>list.count(obj) 统计某个元素在列表中出现的次数</p>
+<h3 id="insert">Insert</h3>
+<p>list.insert(index, obj) 在 index 位置插入 obj 元素</p>
+<h3 id="pop">Pop</h3>
+<p>list.pop(index) 移除索引对应的元素并且返回该元素的值，不指定索引移除最后一个元素</p>
+<h3 id="remove">remove</h3>
+<p>list.remove(obj) 移除列表中的一个元素（参数是列表中元素），并且不返回任何值</p>
+<h3 id="sort">sort</h3>
+<p>list.sort([func]) 对原列表进行排序</p>
+<h3 id="clear">Clear</h3>
+<p>list.clear 将当前列表清空</p>
+<h1 id="元组-tuple">元组 Tuple</h1>
+<h2 id="什么是元组">什么是元组</h2>
+<p>tuple 和 List 非常类似，但是 tuple 一旦初始化就不能修改，也就是说它也没有 append()，insert() 这样的方法，但它也有获取某个索引值的方法，但是不能赋值。</p>
+<p>所以建议能用 tuple 代替 list 就尽量用 tuple 。</p>
+<h2 id="如何创建元组">如何创建元组</h2>
+<p>元组创建很简单，只需要在<code>括号</code>中添加元素，并使用<code>逗号</code>隔开即可。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tuple1=('张三','李四','王五',123,456)
+tuple2='张三','李四','王五',123,456
+</code></pre>
+<p>创建空元组</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tuple3=()
+</code></pre>
+<p>元组中只包含一个元素时，需要在元素后面添加逗号</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tuple4=(123,)
+</code></pre>
+<p>如果不加逗号，创建出来的就不是 元组（tuple），而是指 <code>123</code> 这个数了。</p>
+<p>这是因为括号 () 既可以表示元组（tuple），又可以表示数学公式中的小括号，这就产生了歧义。</p>
+<p>所以如果只有一个元素时，你不加逗号，计算机就根本没法识别你是要进行整数或者小数运算还是表示元组。</p>
+<p>因此，Python 规定，这种情况下，按小括号进行计算，计算结果自然是 <code>123</code> ，而如果要表示元组的时候，就需要加个逗号。</p>
+<h2 id="如何访问元组中的值"><strong>如何访问</strong>元组中的值</h2>
+<p>元组下标索引也是从 0 开始，元组（tuple）可以使用下标索引来访问元组中的值。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#-*-coding:utf-8-*-
+
+tuple1=('张三','李四','王五',123,456)
+tuple2='张三','李四','王五',123,456
+
+print(tuple1[1])
+print(tuple2[0])
+</code></pre>
+<h2 id="如何修改元组">如何修改元组</h2>
+<p>可能看到这个小标题有人会疑问，上面不是说 tuple 是不可变的吗？这里怎么又修改 tuple 了。</p>
+<p>那是因为元组中的元素值是不允许修改的，但我们可以对元组进行连接组合，还有通过修改其他列表的值从而影响 tuple 的值。</p>
+<p>具体看下面的这个例子：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#-*-coding:utf-8-*-
+list1=[123,456]
+tuple1=('张三','李四','王五',list1)
+print(tuple1)
+list1[0]=789
+list1[1]=100
+print(tuple1)
+
+// 输出
+('张三', '李四', '王五', [123, 456])
+('张三', '李四', '王五', [789, 100])
+</code></pre>
+<p>可以看到，两次输出的 tuple 值是变了的。</p>
+<p>可以看到，tuple1 有四个元素，最后一个元素是一个 List ，List 列表里有两个元素。</p>
+<p>当我们把 List 列表中的两个元素 <code>124</code> 和 <code>456</code> 修改为 <code>789</code> 和 <code>100</code> 的时候，从输出来的 tuple1 的值来看，好像确实是改变了。</p>
+<p>但其实变的不是 tuple 的元素，而是 list 的元素。</p>
+<p>tuple 一开始指向的 list 并没有改成别的 list，所以，tuple 所谓的“不变”是说，tuple 的每个元素，指向永远不变。注意是 tupe1 中的第四个元素还是指向原来的 list ，是没有变的，我们修改的只是列表 List 里面的元素。</p>
+<h2 id="如何删除元组">如何删除元组</h2>
+<p>tuple 元组中的元素值是不允许删除的，但我们可以使用 del 语句来删除整个元组</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#-*-coding:utf-8-*-
+
+tuple1=('张三','zhangsan',[123,456])
+print(tuple1)
+del tuple1
+</code></pre>
+<h2 id="tuple-内置方法">Tuple 内置方法</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>len(tuple)</td>
+<td>计算元组元素个数</td>
+</tr>
+<tr>
+<td>max(tuple)</td>
+<td>返回元组中元素最大值</td>
+</tr>
+<tr>
+<td>min(tuple)</td>
+<td>返回元组中元素最小值</td>
+</tr>
+<tr>
+<td>tuple(seq)</td>
+<td>将列表转换为元组</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="集合-set">集合 Set</h1>
+<p>python 的 set 和其他语言类似, 是一个无序不重复元素集, 基本功能包括关系测试和消除重复元素。</p>
+<p>set 和 dict 类似，但是 set 不存储 value 值的。</p>
+<h2 id="如何创建-set">如何创建 set</h2>
+<p>创建一个 set，需要提供一个 list 作为输入集合</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">set1=set([123,456,789])
+print(set1)
+
+// 输出
+{456, 123, 789}
+</code></pre>
+<p>传入的参数 <code>[123,456,789]</code> 是一个 list，而显示的 <code>{456, 123, 789}</code> 只是告诉你这个 set 内部有 456, 123, 789 这 3 个元素，显示的顺序跟你参数中的 list 里的元素的顺序是不一致的，这也说明了 set 是无序的。</p>
+<p>还有一点，我们观察到输出的结果是在大括号中的，经过之前的学习，可以知道，tuple (元组) 使用小括号，list (列表) 使用方括号, dict (字典) 使用的是大括号，dict 也是无序的，只不过 dict 保存的是 key-value 键值对值，而 set 可以理解为只保存 key 值。</p>
+<p>在 dict （字典） 中创建时，有重复的 key ，会被后面的 key-value 值覆盖的，而 重复元素在 set 中自动被过滤的。</p>
+<h2 id="如何更新-set">如何更新 set</h2>
+<p>通过 add(key) 方法可以添加元素到 set 中，可以重复添加，但不会有效果</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">set1=set([123,456,789])
+print(set1)
+set1.add(100)
+print(set1)
+set1.add(100)
+print(set1)
+</code></pre>
+<h2 id="删除-set-里面的元素">删除 set 里面的元素</h2>
+<p>通过 remove(key) 方法可以删除 set 中的元素</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">set1=set([123,456,789])
+print(set1)
+set1.remove(456)
+print(set1)
+</code></pre>
+<h1 id="字典-dict">字典 Dict</h1>
+<h2 id="什么是-dict字典"><strong>什么是 dict（字典）</strong></h2>
+<p>字典是Python提供的唯一内建的映射(Mapping Type)数据类型。</p>
+<h2 id="如何创建-dict">如何创建 dict</h2>
+<p>字典是另一种可变容器模型，且可存储任意类型对象。</p>
+<p>python使用 { } 创建字典，由于字典中每个元素都包含键（key）和值（value）两部分，因此在创建字典时，键和值之间使用冒号<code>:</code>分隔，相邻元素之间使用逗号<code>,</code>分隔，所有元素放在大括号<code>{ }</code>中。</p>
+<p>格式如下所示：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">dictname = {'key':'value1', 'key2':'value2', ...}
+</code></pre>
+<blockquote>
+<p>1、同一字典中的各个键必须唯一，不能重复。</p>
+<p>2、字典是键值对是无序的，但在3.6版本后，字典默认做成有序的了，这是新的版本特征。</p>
+</blockquote>
+<p>创建 dict（字典）实例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">dict1={'张三':'111111' ,'zhangsan':'222222' ,'sanzhang':'333333'}
+dict2={'abc':1234,1234:'abc'}
+</code></pre>
+<h2 id="如何访问-dict">如何访问 dict</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">name = {'张三': '131456780001', '李四': '131456780002', '王五': '131456780003', '赵六': '131456780004'}
+print(name['李四'])
+
+// 输出
+131456780002
+</code></pre>
+<p>这里需要注意的一点是：如果字典中没有这个键，是会报错的。</p>
+<h2 id="如何修改-dict">如何修改 dict</h2>
+<p>向字典添加新内容的方法是增加新的键/值对，修改或删除已有键/值对</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">dict1={'张三':'131456780001' ,'李四':'131456780002' ,'王五':'131456780003'}
+print(dict1)
+# 新增一个键值对
+dict1['jack']='444444'
+print(dict1)
+# 修改键值对
+dict1['王五']='555555'
+print(dict1)
+</code></pre>
+<h2 id="删除-dict-字典">删除 dict （字典）</h2>
+<p>通过 <code>del</code> 可以删除 dict （字典）中的某个元素，也能删除 dict （字典）</p>
+<p>通过调用 <code>clear()</code> 方法可以清除字典中的所有元素</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">dict1={'张三':'111111' ,'李四':'222222' ,'王五':'333333'}
+print(dict1)
+# 通过 key 值，删除对应的元素
+del dict1['张三']
+print(dict1)
+# 删除字典中的所有元素
+dict1.clear()
+print(dict1)
+</code></pre>
+<h2 id="dict-字典使用时注意的事项">dict （字典）使用时注意的事项</h2>
+<ol>
+<li>dict （字典）是不允许一个键创建两次的，但是在创建 dict （字典）的时候如果出现了一个键值赋予了两次，会以最后一次赋予的值为准</li>
+<li>dict （字典）键必须不可变，可是键可以用数字，字符串或元组充当，但是就是不能使用列表</li>
+<li>dict 内部存放的顺序和 key 放入的顺序是没有任何关系</li>
+</ol>
+<p>和 list 比较，dict 有以下几个特点：</p>
+<ul>
+<li>查找和插入的速度极快，不会随着key的增加而变慢</li>
+<li>需要占用大量的内存，内存浪费多</li>
+</ul>
+<p>而list相反：</p>
+<ul>
+<li>查找和插入的时间随着元素的增加而增加</li>
+<li>占用空间小，浪费内存很少</li>
+</ul>
+<h2 id="dict-字典-的函数和方法">dict （字典） 的函数和方法</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>方法和函数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>len(dict)</td>
+<td>计算字典元素个数</td>
+</tr>
+<tr>
+<td>str(dict)</td>
+<td>输出字典可打印的字符串表示</td>
+</tr>
+<tr>
+<td>type(variable)</td>
+<td>返回输入的变量类型，如果变量是字典就返回字典类型</td>
+</tr>
+<tr>
+<td>dict.get(&quot;key&quot;,None)</td>
+<td>查询字典某键的值，取不到返回默认值</td>
+</tr>
+<tr>
+<td>dict.setdefault()</td>
+<td>查询字典某键的值，取不到给字典设置键值，同时返回设置的值</td>
+</tr>
+<tr>
+<td>dict.clear()</td>
+<td>删除字典内所有元素</td>
+</tr>
+<tr>
+<td>dict.update()</td>
+<td>更新字典</td>
+</tr>
+<tr>
+<td>dict.copy()</td>
+<td>返回一个字典的浅复制</td>
+</tr>
+<tr>
+<td>dict.values()</td>
+<td>以列表返回字典中的所有值</td>
+</tr>
+<tr>
+<td>dict.pop()</td>
+<td>删除字典指定的键值对</td>
+</tr>
+<tr>
+<td>dict.popitem()</td>
+<td>随机返回并删除字典中的一对键和值</td>
+</tr>
+<tr>
+<td>dict.items()</td>
+<td>以列表返回可遍历的(键, 值) 元组数组</td>
+</tr>
+<tr>
+<td>dict.keys()</td>
+<td>返回字典所有 key 的伪列表</td>
+</tr>
+<tr>
+<td>mail_list |= new_mail_list</td>
+<td>用新字典的“键”和“值”更新旧的字典，新字典的“键”和“值”优先</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="字典进阶使用">字典进阶使用</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 案例1：列表嵌套字典
+
+data = [
+    {&quot;name&quot;: &quot;rain&quot;, &quot;age&quot;: 22},
+    {&quot;name&quot;: &quot;eric&quot;, &quot;age&quot;: 32},
+    {&quot;name&quot;: &quot;alvin&quot;, &quot;age&quot;: 24},
+]
+
+# 循环data，每行按着格式『姓名：rain,年龄：22』将每个学生的信息逐行打印
+
+
+for stu_dic in data:  # data是一个列表
+    # print(stu_dic) #
+    print(&quot;『姓名：%s,年龄：%s』&quot; % (stu_dic.get(&quot;name&quot;), stu_dic.get(&quot;age&quot;)))
+
+# 将data中第二个学生的年龄查询出来
+
+print(data[1].get(&quot;age&quot;))
+
+# 案例2：字典嵌套字典
+
+
+data2 = {
+    1001: {&quot;name&quot;: &quot;rain&quot;, &quot;age&quot;: 22},
+    1002: {&quot;name&quot;: &quot;eric&quot;, &quot;age&quot;: 32},
+    1003: {&quot;name&quot;: &quot;alvin&quot;, &quot;age&quot;: 24},
+}
+
+# 循环data2，每行按着格式『学号1001, 姓名：rain,年龄：22』将每个学生的信息逐行打印
+
+for stu_id, stu_dic in data2.items():
+    # print(stu_id,stu_dic)
+    name = stu_dic.get(&quot;name&quot;)
+    age = stu_dic.get(&quot;age&quot;)
+
+    print(&quot;『学号: %s, 姓名 %s,年龄：%s』&quot; % (stu_id, name, age))
+
+# name = &quot;yuan&quot;
+# age = 22
+# sex = &quot;male&quot;
+#
+# print(&quot;『姓名:&quot;, name, &quot;年龄：&quot;, age, &quot;性别:&quot;, sex, &quot;』&quot;)
+# print(&quot;『姓名: %s 年龄: %s  性别: %s 』&quot; % (name, age, sex))
+# print(&quot;姓名:name&quot;)
+</code></pre>
+<h1 id="常见错误错误">常见错误错误</h1>
+<ol>
+<li>访问错误</li>
+</ol>
+<p>使用内置方法，访问到某个类型不存在的元素</p>
+<ul>
+<li>列表：IndexError: list index out of range</li>
+<li>字典：KsyError: 'xxx'</li>
+</ul>
+<p>解决办法：</p>
+<p>先判断该元素是否存在，再进行操作</p>
+<p>元素 in 对象</p>
+<ol>
+<li>不同数据类型之间操作报错</li>
+</ol>
+<p>不同的数据类型之间，能够支持不同功能但相同写法的元素符，如：</p>
+<p>\&gt; 、 &lt;、 == 、+、 -</p>
+<p>不同类型之间操作会出现报错，如：</p>
+<p>1 + 'a'</p>
+<p>TypeError: unsupported operatorted operand type(s) for +: 'int' and 'str'</p>
+<p>解决办法：</p>
+<p>转换为相同的类型</p>
+<ol>
+<li>对只读类型进行写入</li>
+</ol>
+<p>这种错误经常出现在元组类型中，如：</p>
+<p>t.append('new_element')</p>
+<p>AttributeError: 'tuple' object has no attribute 'append'</p>
+<p>解决办法：</p>
+<p>写入之前判断类型，type(t)</p>
+<ol>
+<li>引用错误</li>
+</ol>
+<p>常用于不可哈希对象作为字典的键</p>
+<p>典型报错：TypeError: unhashable type: 'list'</p>
+<p>解决办法：</p>
+<p>使用元组、字符串、数字作为字典的键</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数据库索引：为什么MySQL用B+树而不用B树？</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="数据库索引为什么mysql用b树而不用b树">数据库索引：为什么MySQL用B+树而不用B树？</h1>
+<h1 id="索引">索引</h1>
+<p>索引是用来加速查找的数据结构。绝大多数跟存储、查找有关的中间件都有索引功能，但是它们的原理不尽相同。</p>
+<h1 id="b-树">B+ 树</h1>
+<p>B+ 树是一种多叉树，一棵 m 阶的 B+ 树定义如下：</p>
+<ol>
+<li>每个节点最多有 m 个子女。</li>
+<li>除根节点外，每个节点至少有 [m/2] 个子女，根节点至少有两个子女。</li>
+<li>有 k 个子女的节点必有 k 个关键字。</li>
+</ol>
+<p>这里的关键字你可以直观地理解为就是索引全部列的值。B+ 树还有两个特征。</p>
+<ul>
+<li><strong>叶子存放了数据</strong>，而非叶子节点只是存放了关键字。</li>
+<li><strong>叶子节点被链表串联起来了。</strong></li>
+</ul>
+<p><img src="../../../../../assets/md-images/QjHPbU27Io5pCkxyli3cKdqNn8a.png" alt="图片展示了B+树的结构示例。最上方的节点包含3和5两个关键字，下方有三个叶子节点，分别包含1、2、3、4、5、6、7等关键字及对应的数据d1、d2、d3、d4、d5、d6、d7。每个节点的右侧都有指向下一个节点的箭头。该图与上下文紧密相关，通过直观呈现B+树的节点与叶子节点关系，帮助理解B+树中关键字与数据的存放方式，以及叶子节点被链表串联起来的特点。"></p>
+<p>一棵 B+ 树就像是一个部门。部门分成管理人员（非叶子节点）和基层员工（叶子节点），而管理人员只是负责传达命令（只放索引关键字），具体的事务（存放数据）都是由基层员工来执行的。</p>
+<p>基层员工之间为了合作顺畅，私底下互相都有联系，对应到 B+ 树上就是叶子节点被链表连在一起。</p>
+<p>B+ 树用于数据库索引有 3 大优势。</p>
+<ol>
+<li>B+ 树的高度和二叉树之类的比起来更低，树的高度代表了查询的耗时，所以<strong>查询性能更好</strong>。</li>
+<li>B+ 树的叶子节点都被串联起来了，<strong>适合范围查询</strong>。</li>
+<li>B+ 树的非叶子节点没有存放数据，所以<strong>适合放入内存中</strong>。</li>
+</ol>
+<p>很多人都能记住 B+ 树的前两个优势，但是很容易忽略第三个优势。事实上，我们在讨论使用索引提高查询性能的时候，一个默认的前提就是索引本身会全部装进内存中，只有真实的数据行会放在磁盘上。否则，索引也放在磁盘上的话，使用索引的效果也就不明显了。</p>
+<h2 id="索引分类">索引分类</h2>
+<p>MySQL 的索引站在不同的角度，就有不同的说法。</p>
+<ul>
+<li>根据叶子节点是否存储数据来划分，可以分成<strong>聚簇索引</strong>和<strong>非聚簇索引</strong>。</li>
+<li>如果某个索引包含某个查询的所有列，那么这个索引就是<strong>覆盖索引</strong>。</li>
+<li>如果索引的值必须是唯一的，不能重复，那么这个索引就是<strong>唯一索引。</strong></li>
+<li>如果索引的某个列，只包含该列值的前一部分，那么这个索引就是<strong>前缀索引</strong>。比如说在一个类型是 varchar(128) 的列上，选择前 64 个字符作为索引。</li>
+<li>如果某个索引由多个列组成，那么这个索引就是**组合索引，**也叫做联合索引。</li>
+<li><strong>全文索引</strong>是指用于支持文本模糊查询的索引。</li>
+<li><strong>哈希索引</strong>是指使用哈希算法的索引，但是 MySQL 的 InnoDB 引擎并不支持这种索引。</li>
+</ul>
+<p>一个索引可以同时是覆盖索引、唯一索引、前缀索引和组合索引，你站在不同的角度去看待索引就会有不同的说法。</p>
+<h3 id="聚簇索引和非聚簇索引">聚簇索引和非聚簇索引</h3>
+<p>如果索引叶子节点存储的是数据行，那么它就是聚簇索引，否则就是非聚簇索引。</p>
+<p>简单来说，某个数据表本身你就可以看作是一棵使用主键搭建起来 B+ 树，这棵树的叶子节点放着表的所有行。而其他索引也是 B+ 树，不同的是它们的叶子节点存放的是主键。</p>
+<p><img src="../../../../../assets/md-images/RjsTbmwttoc3GnxAEDHcCTK7nxf.png" alt="图片展示了聚簇索引和非聚簇索引的区别，通过B+树结构呈现。上半部分为非聚簇索引，叶子节点存放的是行；下半部分为聚簇索引，叶子节点存放的是主键。图中用数字10、20、30等表示索引节点，5、6、7等表示行，10、11等表示主键。该图与上下文紧密相关，直观说明了聚簇索引和非聚簇索引在叶子节点存放内容上的不同，帮助理解查询时先在索引中找到主键，再根据主键查找数据的原理。"></p>
+<p>有了这种区分，你就能理解所谓的<strong>回表</strong>了。如果你查询一张表，用到了索引，那么数据库就会先在索引里面找到主键，然后再根据主键去聚簇索引中查找，最终找出数据。</p>
+<p><img src="../../../../../assets/md-images/AOZpbVaxioWZozxOSZucyJFenhh.png" alt="图片展示了数据库查询时的回表过程。上方为非聚簇索引，包含多个节点，节点内有数字；下方为聚簇索引，同样包含多个节点，节点内也有数字。绿色线条代表查询时先在非聚簇索引中找到主键，蓝色圆圈标注主键位置。橙色线条则表示根据主键在聚簇索引中查找数据。该图与上文“回表”概念相关，直观呈现了查询时先在索引中找到主键，再通过主键在聚簇索引中查找数据的流程。"></p>
+<p>如图所示，查询的时候先沿着绿色的线条在非聚簇索引中找到主键。然后拿着主键再去下面沿着黄色的线条找到数据行。这个数据行存放在磁盘里，所以触发磁盘 IO 之后能够读取出来。磁盘 IO 是非常慢的，因此回表性能极差，你在实践中要尽可能避免回表。</p>
+<h3 id="覆盖索引">覆盖索引</h3>
+<p>如果你查询的列全部都在某个索引里面，那么数据库可以直接把索引存储的这些列的值给你，而不必回表。</p>
+<p>比如说你有一个用户表 user_tab，在上面的 id 和 name 两列上创建了一个组合索引 &lt;id, name&gt;，那么对于这个查询来说 SELECT id, name FROM user_tab WHERE id = 123, SELECT 关键字后面的 id 和 name 两列都在这个索引里，那么就可以直接用索引的数据，不必回表查询了。</p>
+<p><img src="../../../../../assets/md-images/SXR9bBI9doeXPPxK3O3cMCNIn4c.png" alt="图片展示了用户表user_tab在id和name两列上创建组合索引&lt;id,name&gt;时的索引结构。图中以B+树形式呈现，主键为蓝色圆圈，id和name列数据按值排序。当执行查询“SELECT id,name FROM user_tab WHERE id=123”时，因id和name都在索引中，可直接用索引数据，无需回表查询，这即为覆盖索引。该图与上下文紧密相关，直观说明了覆盖索引的原理。"></p>
+<p>那么，<strong>这个索引在这个查询下就是一个覆盖索引</strong>。所以覆盖索引并不是一个独立的索引，而是某个索引相对于某个查询而言的。</p>
+<p>针对这个特性，优化 SQL 性能里面有两种常见的说法。</p>
+<ol>
+<li>只查询需要的列。</li>
+<li>针对最频繁的查询来设计覆盖索引。</li>
+</ol>
+<p>这两种说法本质上都是为了避免回表。</p>
+<h3 id="索引的最左匹配原则">索引的最左匹配原则</h3>
+<p>索引在查询中是按照最左匹配原则来使用的，细究起来这个原则还是有点难以理解。我用一个例子来给你解释最左匹配原则的运行机制。比如说你创建了一个在 A、B、C 三个列上的组合索引 &lt;A, B, C&gt;。我用一个表格来展示一下索引列的值的关系。</p>
+<p><img src="../../../../../assets/md-images/GEL9b679Rozbfyx9Seuc6zctnfd.png" alt="图片展示了一张表格，包含A、B、C三列。A列有1、2两个值，B列有23、44、31三个值，C列有141、151、122、132、109五个值。该表格与上下文内容相关，用于说明在A、B、C值确定或不确定的情况下，它们的有序性，以辅助理解索引的最左匹配原则。"></p>
+<p>我们可以看到：A 是绝对有序的；在 A 确定的情况下，B 是有序的；在 A 和 B 都确定的情况下，C 是有序的。</p>
+<p>那么反过来说：</p>
+<ul>
+<li>如果 A 的值不确定，那么 B 和 C 都是无序的。例如当 A 取值可能为 1 或者 2 的时候，B 的取值可能是 (23, 44, 31)。</li>
+<li>如果 A 的值确定，但是 B 的值不确定，那么 C 是无序的。例如当 A=1 而 B 可能是 44 或者 31 的时候，C 的值可能是 (122, 132, 109)。</li>
+</ul>
+<p>所以执行一个 WHERE A=a1 AND B=b1 AND C=c1 的查询就类似于：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">for a in A {
+  if a == a1 {
+    for b in B {
+      if b == b1 {
+        for c in C {
+          if c == c1 {
+            // 这就是你要的数据，拿到主键之后去磁盘里面加载出来
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>你从这个角度出发，就能理解其他最左匹配原则的情况了。</p>
+<p>如果查询条件是 WHERE A = a1 AND B = b1，那么你可以推断出来，数据库只会应用外层的两重循环，不会对 C 进行过滤。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">for a in A {
+  if a == a1 {
+      for b in B {
+        if b == b1 {
+          // 这就是你要的结果，去磁盘里面读取
+        }
+      }
+  }
+}
+</code></pre>
+<p>如果查询条件是 WHERE A = a1 OR B = b1，那么这个查询并不会使用这个索引。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">for a in A {
+  if a == a1 {
+      as = append(as, a)
+  }
+}
+for b in B {
+  if b == b1 {
+      bs = append(bs, b)
+  }
+}
+// as 和 bs 的并集就是你要的结果
+</code></pre>
+<p>如果查询条件是 WHERE A=a1 AND B &gt; b1 AND C = c1，那么这个查询只会使用索引的 A 和 B 两列。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">for a in A {
+  if a == a1 {
+      for b in B {
+        if b &gt; b1 {
+          // C 是无序的，所以用不了。你可以从前面的表格里面看出来
+          // 比如说 b &gt; 23 之后，对应的 C 是乱序的
+          // 这就是你要的结果，去磁盘里面读取
+        }
+      }
+  }
+}
+</code></pre>
+<p>如果查询条件是 WHERE A !=a1，那么这个查询也不会使用索引。</p>
+<p>我给你整理了一个简单的口诀用于判断会不会使用索引。按照组成索引的列的顺序，从左往右：<strong>AND 用 OR 不用，正用反不用，范围则中断</strong>。</p>
+<p>这个口诀是一个简化之后的版本，还有一些意外情况是不符合这个口诀描述的规律的。比如说 M = 1 OR N = 2，如果单列 M 上有一个索引，并且单列 N 上也有一个索引，那么还是可能会使用 M 和 N 上的两个索引。</p>
+<p>在实践中，用索引还是不用索引，就一个原则：<strong>看 EXPLAIN 命令的输出</strong>。</p>
+<h3 id="索引的代价">索引的代价</h3>
+<p>索引并不是没有代价的，它会消耗很多的系统资源。</p>
+<ol>
+<li>索引本身需要存储起来，消耗磁盘空间。</li>
+<li>在运行的时候，索引会被加载到内存里面，消耗内存空间。</li>
+<li>在增删改的时候，数据库还需要同步维护索引，引入额外的消耗。</li>
+</ol>
+<h2 id="面试准备">面试准备</h2>
+<p>首先你要弄清楚公司内使用索引的情况，或者你所在公司使用过的各种索引，以及有没有出现索引设计不当引发的线上故障。</p>
+<p>如果你有意为自己打造掌握了高性能架构的人设，那么你面试索引的最佳策略就是在自我介绍或者介绍项目的时候提及索引和索引优化。</p>
+<p>在面试中有一种情况是比较棘手的，即面试官给出一个表定义，然后手写一个 SQL，要你判断这个 SQL 会不会使用索引。你平时要刻意练习一下，省得面试的时候被打个措手不及。遇到这种题目，你还要注意强调一点，就是你的回答都是建立在<strong>一般情况</strong>下。因为有些面试官会故意不告诉你表中数据大小，有没有其他索引等情况。</p>
+<p>在你回答完之后，他可能会批评你没有考虑到数据库压根不使用索引的可能性。所以回答完他的问题之后，你加一段话。</p>
+<blockquote>
+<p>我刚才的分析都是基于一般情况，但是如果说数据库还有别的索引，或者查询条件过滤效果不好导致数据库压根不使用索引的情况，那就是另外一个问题了。</p>
+</blockquote>
+<p>这个“免责声明”也能够将面试官引导到后面的进阶亮点“为什么数据库不使用索引”中。</p>
+<p>如果面试官问到了这些问题，那么你可以将话题引导到索引下。</p>
+<ul>
+<li>你有没有做过性能优化？</li>
+<li>你是否了解 B 树、B+ 树？</li>
+<li>你知道聚簇索引、覆盖索引吗？</li>
+<li>数据库一定会使用索引吗？</li>
+<li>使用索引性能一定好吗？这个问题你要综合考虑索引本身的开销，以及数据库压根不用索引的情况。</li>
+</ul>
+<h2 id="基本思路">基本思路</h2>
+<p>如果你在简历、自我介绍或者项目介绍任何一个地方提及了自己懂索引原理、索引设计和优化技巧，那么面试官肯定就会问你索引有关的东西。</p>
+<p>如果面试官问索引问得非常细，例如“什么是覆盖索引”这种，只需要按照前置知识里面的内容回答就可以。</p>
+<p>如果面试官问得比较笼统，你就可以用这里我给你的这个介绍索引的话术，你可以根据自己的需要选择回答全部或者只使用一部分。这个话术由 <strong>B+ 树、索引分类、最左匹配原则</strong>三个部分组成。</p>
+<blockquote>
+<p>从数据结构上来说，在 MySQL 里面索引主要是 B+ 树索引。它的查询性能更好，适合范围查询，也适合放在内存里。</p>
+<p>MySQL 的索引又可以从不同的角度进一步划分。比如说根据叶子节点是否包含数据分成聚簇索引和非聚簇索引，还有包含某个查询的所有列的覆盖索引等等。数据库使用索引遵循最左匹配原则。但是最终数据库会不会用索引，也是一个比较难说的事情，跟查询有关，也跟数据量有关。在实践中，是否使用索引以及使用什么索引，都要以 EXPLAIN 为准。</p>
+</blockquote>
+<p>在这样一个话术中，我设计了几个可以引导的点，面试官是比较有可能进一步追问的。</p>
+<ol>
+<li>为什么 MySQL 用了 B+ 树，而没有用 B 树？在这个问题的基础上，面试官可能会进一步问，二叉树、红黑树和跳表之类的数据结构用作索引是否合适。</li>
+<li>回表以及和回表密切相关的覆盖索引。从这一个问题又可以进一步引申到索引优化和 SQL 优化上。</li>
+<li>数据库不使用索引的几种可能。</li>
+</ol>
+<h2 id="亮点-1mysql-为什么使用-b-树">亮点 1：MySQL 为什么使用 B+ 树？</h2>
+<p>回答这个问题，你就不能仅仅局限在 B+ 树和 B 树上，你要连带着二叉树、红黑树、跳表一起讨论。总结起来，在用作索引的时候，其他数据结构都有一些难以容忍的缺陷。</p>
+<ul>
+<li>与 B+ 树相比，平衡二叉树、红黑树在同等数据量下，<strong>高度更高，性能更差</strong>，而且它们会频繁执行再平衡过程，来保证树形结构平衡。</li>
+<li>与 B+ 树相比，跳表在极端情况下会退化为链表，<strong>平衡性差</strong>，而数据库查询需要一个可预期的查询时间，并且跳表需要更多的内存。</li>
+<li>与 B+ 树相比，B 树的数据存储在全部节点中，**对范围查询不友好。**非叶子节点存储了数据，<strong>导致内存中难以放下全部非叶子节点</strong>。如果内存放不下非叶子节点，那么就意味着查询非叶子节点的时候都需要磁盘 IO。</li>
+</ul>
+<p>因此一个数据结构是否适合数据库索引，取决于这种数据结构的增删改查性能。并且在关系型数据库里面，还额外要求对范围查询友好，减少内存消耗。</p>
+<h2 id="为什么数据库不使用索引">为什么数据库不使用索引？</h2>
+<p>实际上，数据库在一些特殊的情况下可能并不会使用任何索引。例如在前面的索引 &lt;A, B, C&gt; 的例子中，假设 A 的所有值都是正数，然后查询条件 WHERE A &gt; -1，那么这个时候数据库会觉得还不如直接全表扫描，那么虽然有一个索引看起来能用，但是最终并不会用。</p>
+<p>我也在面试准备那部分提醒过你，要小心面试官挖坑让你掉下去。总结起来，数据库可能不使用索引的原因有以下几种：</p>
+<ul>
+<li>使用了 !=、LIKE 之类的查询。</li>
+<li>字段区分度不大。比如说你的 status 列只有 0 和 1 两个值，那么数据库也有可能不用。</li>
+<li>使用了特殊表达式，包括数学运算和函数调用。</li>
+<li>数据量太小，或者 MySQL 觉得全表扫描反而更快的时候。</li>
+</ul>
+<p>我稍微强调一下，这里说的是“<strong>可能</strong>不使用索引”，不是说一定不使用索引。比如说 LIKE 查询，如果只是 LIKE abc% 这种前缀查询，那么还是可能用索引的。</p>
+<p>你还可以进一步解释 FORCE INDEX（强迫使用索引）、USE INDEX（使用索引）或者 IGNORE INDEX（忽略索引）之类的 SQL 提示，关键词是<strong>取决于数据库。</strong></p>
+<blockquote>
+<p>虽然很多数据库都支持类似于 FORCE INDEX 、USE INDEX 和 IGNORE INDEX 之类的特性，但是使用这一类功能的时候，要千万注意数据库是怎么支持的。有些数据库是根本不管这些提示，有些则是特定情况下不管。当然最佳实践还是不要用这些东西，逼不得已的时候比如说要优化性能了再考虑使用。</p>
+</blockquote>
+<p>然后你可以以一种比较轻松的语气来引导到下一个亮点。</p>
+<blockquote>
+<p>有一种说法是含有 NULL 的列上的索引会失效，不过这个说法并不准确，实际上 MySQL 还是会尽可能用索引的。</p>
+</blockquote>
+<p>之所以要让语气比较轻松，是害怕对面的面试官就抱有这种错误的观点。你语气轻松比较不容易激起逆反心理。</p>
+<h2 id="亮点-3索引与-null">亮点 3：索引与 NULL</h2>
+<p>我们通常用 NULL 来表达“不知道”“不存在”“不合法”等语义。而数据库通常也会针对 NULL 来做一些特殊的处理。</p>
+<p>MySQL 的索引对 NULL 的支持稍微有点与众不同。首先 MySQL 本身会尽可能使用索引，即便索引的某个列里面有零值，并且 IS NULL 和 IS NOT NULL 都可以使用索引。</p>
+<p>其次 MySQL 的唯一索引允许有多行的值都是 NULL。也就是说你可以有很多行唯一索引的列的值都是 NULL。但是不管怎么说，使用 NULL 都是一个比较差的实践。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

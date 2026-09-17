@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>如何给应用添加配置功能？</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="如何给应用添加配置功能">如何给应用添加配置功能？</h1>
+<h1 id="如何配置-miniblog-应用">如何配置 miniblog 应用</h1>
+<p>在 Go 应用开发中，使用配置最便捷的方式是将应用配置项都定义在一个配置项结构体中。通过将配置项定义在配置项结构体中，不仅方便在程序中使用这些配置项，还可以统一管理这些配置项，降低程序维护的成本。所以，在 miniblog 项目的应用构建模型中，会在 cmd/mb-apiserver/app/options 目录中存放跟配置项相关的代码，例如：创建默认的配置项、配置项校验、配置项绑定命令行选项等。通过目录级别的隔离，可以提高代码的可维护性。</p>
+<p>miniblog 项目，通过定义一个 ServerOptions 结构体类型，来定义应用需要的配置项，ServerOptions 结构体定义如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// ServerOptions 包含服务器配置选项。
+type ServerOptions struct {
+    // ServerMode 定义服务器模式：gRPC、Gin HTTP、HTTP Reverse Proxy。
+    ServerMode string `json:&quot;server-mode&quot; mapstructure:&quot;server-mode&quot;`
+    // JWTKey 定义 JWT 密钥。
+    JWTKey string `json:&quot;jwt-key&quot; mapstructure:&quot;jwt-key&quot;`
+    // Expiration 定义 JWT Token 的过期时间。
+    Expiration time.Duration `json:&quot;expiration&quot; mapstructure:&quot;expiration&quot;`
+}
+</code></pre>
+<p>定义应用配置项结构体类型之后，还需要提供一种途径来给配置项结构体中各个字段设置期望的值。在 Go 项目开发中，有三种方式，来给这些配置项设置值：创建默认的配置项、通过命令行选项设置配置项、通过配置文件设置配置项。</p>
+<h2 id="创建默认的配置项">创建默认的配置项</h2>
+<p>可以通过类似 NewServerOptions 这样的函数，来创建具有默认值的配置项结构体变量，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// NewServerOptions 创建带有默认值的 ServerOptions 实例。
+func NewServerOptions() *ServerOptions {
+    return &amp;ServerOptions{
+        ServerMode: &quot;grpc-gateway&quot;,
+        JWTKey:     &quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;,
+        Expiration: 2 * time.Hour,
+    }
+}
+</code></pre>
+<p>设置具有默认值的配置项能够显著提升程序的可用性和稳定性。通过提供合理的初始设置，程序即使在未提供配置或配置文件丢失的情况下仍能正常运行，避免因缺少配置而导致的异常。同时，默认值降低了配置输入的依赖，使程序可以快速启动，尤其适用于开发、调试和测试阶段，可以大幅提高开发效率。</p>
+<p>默认值不仅为开发者和运维人员提供了参考，有助于理解和管理配置项，还允许用户通过环境变量、命令行选项或配置文件灵活覆盖默认值。而且，默认值通常反映最常见或推荐的设置，能够作为文档说明的重要补充，从而提升配置的可读性，使应用更易操作和维护。</p>
+<h2 id="通过命令行选项设置配置项">通过命令行选项设置配置项</h2>
+<p>除了可以创建带默认值的配置项结构体变量来配置应用外，还可以通过命令行选项来配置应用。使用命令行选项配置应用，可以带来以下好处：</p>
+<p>**零成本获知应用程序的配置项：**只需要执行 mb-apiserver -h 就能够知道 mb-apiserver 命令有哪些配置项，以及配置项的说明和默认值；</p>
+<p>**可快速启动程序：**如果应用程序配置项比较少，可以不用编写配置文件，仅通过指定命令行选项即可快速启动程序，例如：_output/mb-apiserver --server-mode=gin；</p>
+<p>维护成本低：不需要维护额外的配置文件，仅限于参数很少的情况下；</p>
+<p>**可以通过 Shell 脚本灵活配置应用：**可以通过 Shell 脚本灵活指定应用启动时的各项命令行选项，例如_output/mb-apiserver --server-mode=${server_mode}。</p>
+<p>在实际的 Go 应用开发中，可以通过将配置项绑定到某个命令行选项，从而通过命令行选项来设置配置项的值，进而在程序中使用这些配置项。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// AddFlags 将 ServerOptions 的选项绑定到命令行标志。
+// 通过使用 pflag 包，可以实现从命令行中解析这些选项的功能。
+func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
+    fs.StringVar(&amp;o.ServerMode, &quot;server-mode&quot;, o.ServerMode, fmt.Sprintf(&quot;Server mode, available options: %v&quot;, availableServerModes.UnsortedList()))
+    fs.StringVar(&amp;o.JWTKey, &quot;jwt-key&quot;, o.JWTKey, &quot;JWT signing key. Must be at least 6 characters long.&quot;)
+    // 绑定 JWT Token 的过期时间选项到命令行标志。
+    // 参数名称为 `--expiration`，默认值为 o.Expiration
+    fs.DurationVar(&amp;o.Expiration, &quot;expiration&quot;, o.Expiration, &quot;The expiration duration of JWT tokens.&quot;)
+}
+</code></pre>
+<p>上述代码，将命令行选项 --server-mode、--jwt-key、--expiration 分别绑定到 ServerOptions 结构体中的 ServerMode、JWTKey、Expiration 字段。从而支持通过命令行选项来给 ServerOptions 结构体中绑定的字段设置期望的值，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ _output/mb-apiserver --expiration=4h
+</code></pre>
+<p>在 Go 应用启动时，可以直接通过命令行选项来设置配置项的值，这种方式最大的优点是便捷。但当配置项太多时，如果都通过命令行选项来设置，会使应用启动参数很长，不便于维护，反而会增加运维复杂度。所以，miniblog 项目仅使用命令行选项来设置核心的配置项，其他配置项通过更易维护的配置文件来设置。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ _output/mb-apiserver -h
+...
+Flags:
+  -c, --config string         Path to the miniblog configuration file. (default &quot;/home/colin/.miniblog/mb-apiserver.yaml&quot;)
+      --expiration duration   The expiration duration of JWT tokens. (default 2h0m0s)
+  -h, --help                  help for mb-apiserver
+      --jwt-key string        JWT signing key. Must be at least 6 characters long. (default &quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;)
+      --server-mode string    Server mode, available options: [grpc grpc-gateway gin] (default &quot;grpc-gateway&quot;)
+</code></pre>
+<h2 id="通过配置文件设置配置项">通过配置文件设置配置项</h2>
+<p>还可以通过结构化（例如 JSON 格式或 YAML 格式）的配置文件来配置应用。通过结构化的配置文件，开发者可以清晰的了解到应用的所有配置项，从而降低应用配置的维护成本。另外，配置文件也很适合在不同环境下分发。通过配置文件来配置应用，可以带来以下好处：</p>
+<ul>
+<li>**配置文件更易部署：**可以将应用需要的所有配置，聚合在一个配置文件中，部署时，只需要部署、加载这个配置文件即可启动程序，不用配置一大堆命令行选项；</li>
+<li>**配置文件更易维护：**可以将应用需要的所有配置都保存在配置文件中，加上详细的配置说明，不需要的配置可以注释掉。一个具有全量配置项、详细说明的配置文件，更易于理解。并且在修改时，只需要修改配置项的值，而不需要修改配置项名称，更不易出错；</li>
+<li>**配置文件可以实现热加载能力：**应用程序监听配置文件的变更，有变更时重新加载程序配置，可以实现配置热加载能力；</li>
+<li>**配置层次表达更清晰：**命令行选项无法直接表达“层次”，但配置文件可以。层次化的配置表达，更易于理解。因为具有“层次”，所以配置文件也可以表达更复杂的配置内容。</li>
+</ul>
+<p>使用配置文件的方式很简单，只需要给应用添加 --config 命令行选项，在应用启动时，通过 --config 选项指定配置文件，并在程序内将配置文件中的配置项解析到所绑定的配置项结构体字段即可。之后，程序中就可以通过配置项结构体变量来访问这些配置项。整个代码实现逻辑如代码清单 5-4 所示。</p>
+<p>代码清单 5-4 配置文件解析示例代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">var configFile string // 配置文件路径
+
+// NewMiniBlogCommand 创建一个 *cobra.Command 对象，用于启动应用程序。
+func NewMiniBlogCommand() *cobra.Command {
+    // 创建默认的应用命令行选项
+    opts := options.NewServerOptions()
+
+    cmd := &amp;cobra.Command{
+        // 指定命令的名字，该名字会出现在帮助信息中
+        Use: &quot;mb-apiserver&quot;,
+        ...
+        RunE: func(cmd *cobra.Command, args []string) error {
+            // 将 viper 中的配置解析到选项 opts 变量中。
+            if err := viper.Unmarshal(opts); err != nil {
+                return err
+            }
+            ...
+            return nil
+        },
+        ...
+    }
+
+    // 初始化配置函数，在每个命令运行时调用
+    cobra.OnInitialize(onInitialize)
+
+    // cobra 支持持久性标志（PersistentFlag），该标志可用于它所分配的命令以及该命令下的每个子命令
+    // 推荐使用配置文件来配置应用，便于管理配置项
+    cmd.PersistentFlags().StringVarP(&amp;configFile, &quot;config&quot;, &quot;c&quot;, filePath(), &quot;Path to the miniblog configuration file.&quot;)
+    ...
+    return cmd
+}
+</code></pre>
+<p>上述代码，通过 cmd.PersistentFlags()。StringVarP() 调用，给应用添加了 --config/-c 命令行选项，用来指定配置文件的路径，并将配置文件路径保存在 configFile 变量中。configFile 默认值由  filePath() 函数生成，默认值为$HOME/.miniblog/mb-apiserver.yaml。</p>
+<p>通过 cobra.OnInitialize(onInitialize) 调用，可以确保程序运行时，会将 --config 命令行选项指定的配置文件内容加载到 viper 中。通过 viper.Unmarshal(opts) 调用，将 viper 中的配置项解析到初始化配置变量 opts 中。</p>
+<p>在使用配置文件配置应用的时候，可以根据需要选择多种配置文件格式，例如：JSON、YAML、TOML、INI 等，这里建议使用 YAML，理由如下：</p>
+<ul>
+<li>YAML 语法简单、格式易读、程序易处理；</li>
+<li>YAML 格式可以表达非常丰富、复杂的配置结构；</li>
+<li>YAML 格式普适性高，新人零理解成本。</li>
+</ul>
+<h2 id="选择合适的配置方式">选择合适的配置方式</h2>
+<p>通过上面的分析，我建议在配置项少的时候（例如 5 个以内），可以采用命令行选项的方式来配置应用。配置项较多的时候，适合从配置文件读取。考虑到一个应用程序，即使刚开始配置项较少，随着应用的不断的迭代，配置项可能越来越多，使用命令行选项来配置会越来越复杂。所以建议首先创建一个默认的配置，之后分别通过命令行选项和配置文件 2 种方式，来覆盖指定的默认配置项。其中，命令行选项只添加核心、必要的配置，例如 --config。太多命令行选项不易维护。其他应用配置均通过配置文件进行统一配置。</p>
+<h1 id="编码实现配置读取功能">编码实现配置读取功能</h1>
+<h2 id="创建配置项结构体">创建配置项结构体</h2>
+<p>miniblog 的所有初始化配置，均聚合定义在配置项结构体类型 <a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/options/options.go#L28">ServerOptions</a> 中。为了便于维护这些配置项，我将配置项实现相关的代码统一保存在 <a href="https://github.com/onexstack/miniblog/tree/feature/s03/cmd/mb-apiserver/app/options">cmd/mb-apiserver/app/options</a> 目录中，例如：默认配置项创建、配置项校验等。开发完成后的代码如代码清单 5-5 所示。</p>
+<p>代码清单 5-5 配置项代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package options
+
+import (
+    &quot;errors&quot;
+    &quot;fmt&quot;
+    &quot;time&quot;
+
+    &quot;github.com/spf13/pflag&quot;
+    utilerrors &quot;k8s.io/apimachinery/pkg/util/errors&quot;
+    &quot;k8s.io/apimachinery/pkg/util/sets&quot;
+)
+
+// 定义支持的服务器模式集合.
+var availableServerModes = sets.New(
+    &quot;grpc&quot;,
+    &quot;grpc-gateway&quot;,
+    &quot;gin&quot;,
+)
+
+// ServerOptions 包含服务器配置选项.
+type ServerOptions struct {
+    // ServerMode 定义服务器模式：gRPC、Gin HTTP、HTTP Reverse Proxy.
+    ServerMode string `json:&quot;server-mode&quot; mapstructure:&quot;server-mode&quot;`
+    // JWTKey 定义 JWT 密钥.
+    JWTKey string `json:&quot;jwt-key&quot; mapstructure:&quot;jwt-key&quot;`
+    // Expiration 定义 JWT Token 的过期时间.
+    Expiration time.Duration `json:&quot;expiration&quot; mapstructure:&quot;expiration&quot;`
+}
+
+// NewServerOptions 创建带有默认值的 ServerOptions 实例.
+func NewServerOptions() *ServerOptions {
+    return &amp;ServerOptions{
+        ServerMode: &quot;grpc-gateway&quot;,
+        JWTKey:     &quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;,
+        Expiration: 2 * time.Hour,
+    }
+}
+
+// AddFlags 将 ServerOptions 的选项绑定到命令行标志.
+// 通过使用 pflag 包，可以实现从命令行中解析这些选项的功能.
+func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
+    fs.StringVar(&amp;o.ServerMode, &quot;server-mode&quot;, o.ServerMode, fmt.Sprintf(&quot;Server mode, available options: %v&quot;, availableServerModes.UnsortedList()))
+    fs.StringVar(&amp;o.JWTKey, &quot;jwt-key&quot;, o.JWTKey, &quot;JWT signing key. Must be at least 6 characters long.&quot;)
+    // 绑定 JWT Token 的过期时间选项到命令行标志。
+    // 参数名称为 `--expiration`，默认值为 o.Expiration
+    fs.DurationVar(&amp;o.Expiration, &quot;expiration&quot;, o.Expiration, &quot;The expiration duration of JWT tokens.&quot;)
+}
+
+// Validate 校验 ServerOptions 中的选项是否合法.
+func (o *ServerOptions) Validate() error {
+    errs := []error{}
+
+    // 校验 ServerMode 是否有效
+    if !availableServerModes.Has(o.ServerMode) {
+        errs = append(errs, fmt.Errorf(&quot;invalid server mode: must be one of %v&quot;, availableServerModes.UnsortedList()))
+    }
+
+    // 校验 JWTKey 长度
+    if len(o.JWTKey) &lt; 6 {
+        errs = append(errs, errors.New(&quot;JWTKey must be at least 6 characters long&quot;))
+    }
+
+    // 合并所有错误并返回
+    return utilerrors.NewAggregate(errs)
+}
+</code></pre>
+<p>在代码清单 5-5 中，定义了 ServerOptions 结构体类型，该结构体类型保存了应用程序所有的初始化配置项。通过 ServerOptions 结构体变量，可以方便的在程序中访问其内置的配置项字段。ServerOptions 结构体字段都有 json 和 mapstructure 标签。其中，mapstructure 标签用于将配置文件中的配置项与 Go 结构体字段进行映射，在调用 viper.Unmarshal 函数时，viper 会将配置文件中配置项的值赋值给对应的结构体字段。</p>
+<p><a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/options/options.go#L48">AddFlags</a> 方法用来将 ServerOptions 中的字段绑定到命令行标志中。在绑定时，指定了默认值和命令行选项描述。<a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/options/options.go#L57">Validate</a> 方法用来验证 ServerOptions 中的配置项字段值是否合法。因为配置项有多个，在校验时，可能有多个配置项不合法，所以代码中，使用了 error 类型的数组来保存这些错误，并通过 utilerrors 包将这些错误聚合为一个错误并返回。utilerrors 是 Kubernetes 生态中的一个包，被大量使用，miniblog 项目这里也是借鉴了 Kubernetes 项目中处理错误的方法。</p>
+<p>Kubernetes 项目及其生态中有大量易用的 Go 包，在 Go 项目开发中，可以复用这些 Go 包以提高 Go 代码开发的质量和效率。如果你想提高自己的 Go 开发技能，也建议你多阅读下 Kubernetes 项目的源码及其软件架构方法。</p>
+<h2 id="绑定命令行选项">绑定命令行选项</h2>
+<p>在 cmd/mb-apiserver/app/options/options.go 文件中，定义了 ServerOptions 结构体类型，接下来还需要将 ServerOptions 结构体中的特定字段绑定到 *cobra.Command 实例的全局标志集（FlagSet）中。绑定方法很简单，只需要在 NewMiniBlogCommand 方法中添加以下代码即可：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// NewMiniBlogCommand 创建一个 *cobra.Command 对象，用于启动应用程序。
+func NewMiniBlogCommand() *cobra.Command {
+    ...
+    // cobra 支持持久性标志（PersistentFlag），该标志可用于它所分配的命令以及该命令下的每个子命令
+    // 推荐使用配置文件来配置应用，便于管理配置项
+    cmd.PersistentFlags().StringVarP(&amp;configFile, &quot;config&quot;, &quot;c&quot;, filePath(), &quot;Path to the miniblog configuration file.&quot;)
+
+    // 将 ServerOptions 中的选项绑定到命令标志
+    opts.AddFlags(cmd.PersistentFlags())
+
+    return cmd
+}
+</code></pre>
+<p>上述代码，调用 opts.AddFlags() 方法，将 ServerOptions 中选定的字段绑定到了 cmd.PersistentFlags() 标志集中。</p>
+<h2 id="添加并解析配置文件">添加并解析配置文件</h2>
+<p>应用的绝大部分配置优先考虑使用配置文件来配置，并且配置文件格式建议采用易读性更好的 YAML 格式。本节来详细介绍下，在 Go 应用开发的过程中，具体如何编码实现配置文件的读取。</p>
+<p>cobra 支持通过 cobra.OnInitialize(y ...func()) 函数注册一个回调函数，该回调函数在每次运行任意命令时都会被调用。可以借助该方法，来注册一个配置文件加载函数，在每次运行命令时，加载配置文件。加载代码如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">func NewMiniBlogCommand() *cobra.Command {
+    // 创建默认的应用命令行选项
+    opts := options.NewServerOptions()
+
+    cmd := &amp;cobra.Command{
+        ...
+    }
+
+    // 初始化配置函数，在每个命令运行时调用
+    cobra.OnInitialize(onInitialize)
+    ...
+    return cmd
+}
+</code></pre>
+<p><a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/config.go#L28">onInitialize</a> 函数实现位于 <a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/config.go">cmd/mb-apiserver/app/config.go</a> 文件中，内容如代码清单 5-6 所示。</p>
+<p>代码清单 5-6 onInitialize 函数代码实现</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">const (
+    // defaultHomeDir 定义放置 miniblog 服务配置的默认目录。
+    defaultHomeDir = &quot;.miniblog&quot;
+
+    // defaultConfigName 指定 miniblog 服务的默认配置文件名。
+    defaultConfigName = &quot;mb-apiserver.yaml&quot;
+)
+
+// onInitialize 设置需要读取的配置文件名、环境变量，并将其内容读取到 viper 中。
+func onInitialize() {
+    if configFile != &quot;&quot; {
+        // 从命令行选项指定的配置文件中读取
+        viper.SetConfigFile(configFile)
+    } else {
+        // 使用默认配置文件路径和名称
+        for _, dir := range searchDirs() {
+            // 将 dir 目录加入到配置文件的搜索路径
+            viper.AddConfigPath(dir)
+        }
+
+        // 设置配置文件格式为 YAML
+        viper.SetConfigType(&quot;yaml&quot;)
+
+        // 配置文件名称（没有文件扩展名）
+        viper.SetConfigName(defaultConfigName)
+    }
+
+    // 读取环境变量并设置前缀
+    setupEnvironmentVariables()
+
+    // 读取配置文件。如果指定了配置文件名，则使用指定的配置文件，否则在注册的搜索路径中搜索
+    if err := viper.ReadInConfig(); err != nil {
+        log.Printf(&quot;Failed to read viper configuration file, err: %v&quot;, err)
+    }
+
+    // 打印当前使用的配置文件，方便调试
+    log.Printf(&quot;Using config file: %s&quot;, viper.ConfigFileUsed())
+}
+
+// setupEnvironmentVariables 配置环境变量规则。
+func setupEnvironmentVariables() {
+    // 允许 viper 自动匹配环境变量
+    viper.AutomaticEnv()
+    // 设置环境变量前缀
+    viper.SetEnvPrefix(&quot;MINIBLOG&quot;)
+    // 替换环境变量 key 中的分隔符 '。' 和 '-' 为 '_'
+    replacer := strings.NewReplacer(&quot;.&quot;, &quot;_&quot;, &quot;-&quot;, &quot;_&quot;)
+    viper.SetEnvKeyReplacer(replacer)
+}
+
+// searchDirs 返回默认的配置文件搜索目录。
+func searchDirs() []string {
+    // 获取用户主目录
+    homeDir, err := os.UserHomeDir()
+    // 如果获取用户主目录失败，则打印错误信息并退出程序
+    cobra.CheckErr(err)
+    return []string{filepath.Join(homeDir, defaultHomeDir), &quot;.&quot;}
+}
+</code></pre>
+<p>在代码清单 5-6 中，viper 包会优先从 configFile 中指定的配置文件中加载配置。如果 configFile 为空，则会加载默认的配置文件。viper.AddConfigPath(dir) 用来指定默认配置文件的加载路径。配置文件加载路径通过 <a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/config.go#L70">searchDirs()</a> 函数返回，searchDirs() 函数代码实现如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// searchDirs 返回默认的配置文件搜索目录。
+func searchDirs() []string {
+    // 获取用户主目录
+    homeDir, err := os.UserHomeDir()
+    // 如果获取用户主目录失败，则打印错误信息并退出程序
+    cobra.CheckErr(err)
+    return []string{filepath.Join(homeDir, defaultHomeDir), &quot;.&quot;}
+}
+</code></pre>
+<p>在代码清单 5-6 中，viper.SetConfigType(&quot;yaml&quot;) 用来指定配置文件格式（YAML），viper.SetConfigName() 用来指定配置文件名。最终，当 configFile 为空时，默认会从当前目录（.）和$HOME/.miniblog/ 目录下加载名为 mb-apiserver.yaml 的配置文件，并且以 YAML 格式处理配置文件。在设置了配置文件路径加载规则后，便可以使用 viper.ReadInConfig() 函数来读取配置文件。</p>
+<p>在代码清单 5-6 中，<a href="https://github.com/onexstack/miniblog/blob/feature/s03/cmd/mb-apiserver/app/config.go#L59">setupEnvironmentVariables()</a> 函数用来配置环境变量读取规则，其代码实现如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// setupEnvironmentVariables 配置环境变量规则。
+func setupEnvironmentVariables() {
+    // 允许 viper 自动匹配环境变量
+    viper.AutomaticEnv()
+    // 设置环境变量前缀
+    viper.SetEnvPrefix(&quot;MINIBLOG&quot;)
+    // 替换环境变量 key 中的分隔符 '。' 和 '-' 为 '_'
+    replacer := strings.NewReplacer(&quot;.&quot;, &quot;_&quot;, &quot;-&quot;, &quot;_&quot;)
+    viper.SetEnvKeyReplacer(replacer)
+}
+</code></pre>
+<p>上述代码中，viper.AutomaticEnv() 用来开启 viper 读取环境变量的功能。当多个服务同时在一台机器上运行时，可能会出现环境变量名称冲突，解决办法是给所有的环境变量添加一个环境变量前缀，例如：MINIBLOG_JWT_KEY，以此降低名称冲突的概率。可以通过 viper.SetEnvPrefix(&quot;MINIBLOG&quot;) 来给所有的环境变量添加一个 MINIBLOG_ 前缀。</p>
+<p>strings.NewReplacer(&quot;.&quot;， &quot;_&quot;， &quot;-&quot;， &quot;_&quot;) 用来进行键名转换（例如将。替换成 _，将 - 替换成 _），确保环境变量命名与配置键名兼容。</p>
+<p>在 Go 应用开发中，通过给变量设置默认值是一个好的开发习惯，通过设置默认值，可以简化应用启动时的配置，规避配置缺失时带来的程序异常。另外，在 onInitialize() 函数中，指定了默认加载的配置文件，通过这种设置默认值的方式，在开发、测试时，可以直接运行二进制程序，程序自行查找默认的配置，省去了指定配置文件的操作，可以方便开发者开发测试。但在生产环境，不建议使用这种不感知的配置加载方式，更建议明确指定加载的配置文件路径，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ _output/mb-apiserver -c $HOME/.miniblog/mb-apiserver.yaml
+</code></pre>
+<h2 id="更新配置文件内容">更新配置文件内容</h2>
+<p>通过 cobra.OnInitialize(onInitialize) 函数调用，加载了配置文件。这时候，还需要将配置文件内容更新到 ServerOptions 配置项变量中，供程序引用。方法如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">func NewMiniBlogCommand() *cobra.Command {
+    // 创建默认的应用命令行选项
+    opts := options.NewServerOptions()
+    cmd := &amp;cobra.Command{
+        ...
+        RunE: func(cmd *cobra.Command, args []string) error {
+            // 将 viper 中的配置解析到选项 opts 变量中。 
+            if err := viper.Unmarshal(opts); err != nil {
+                return err
+            }
+
+            // 对命令行选项值进行校验。
+            if err := opts.Validate(); err != nil {
+                return err
+            }
+            ...
+            return nil
+        },
+        ...
+    }
+    ...
+    return cmd
+}
+</code></pre>
+<p>上述代码中，viper.Unmarshal 方法可以将 viper 中加载的配置项及值解析到 opts 变量的绑定字段中。opts.Validate() 用来对配置项进行校验，确保初始化配置是合法可用的。</p>
+<h2 id="读取配置内容">读取配置内容</h2>
+<p>在添加完配置文件解析代码之后，便可以在代码中读取配置。有以下两种读取配置的方式：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">func NewMiniBlogCommand() *cobra.Command {
+    // 创建默认的应用命令行选项
+    opts := options.NewServerOptions()
+    cmd := &amp;cobra.Command{
+        ...
+        // 指定调用 cmd.Execute() 时，执行的 Run 函数
+        RunE: func(cmd *cobra.Command, args []string) error {
+            ...
+            fmt.Printf(&quot;ServerMode from ServerOptions: %s\n&quot;, opts.JWTKey)
+            fmt.Printf(&quot;ServerMode from Viper: %s\n\n&quot;, viper.GetString(&quot;jwt-key&quot;))
+          
+            jsonData, _ := json.MarshalIndent(opts, &quot;&quot;, &quot;  &quot;)
+            fmt.Println(string(jsonData))
+
+            return nil
+        },
+        ...
+    }
+    ...
+    return cmd
+}
+</code></pre>
+<p>在代码中建议使用更加显式的 opts.JWTKey 方式来引用配置项。viper.GetString 这种方式可以使用，但不建议使用。因为引用感知度不强，可能会带来潜在的问题，例如传给 viper.GetString 的配置项名称不存在。</p>
+<blockquote>
+<p>提示：</p>
+<p>在 Go 项目开发中，要慎重使用感知度不强的开发方式，例如：使用 init() 方法、全局变量、隐式错误处理等。这些隐式的实现，很可能会因为开发者感知不到，而带来理解、维护成本，甚至带来程序缺陷。</p>
+</blockquote>
+<p>viper 包提供了很多有用的函数，可以极大的方便我们读取 viper 中加载的配置。例如：</p>
+<ul>
+<li>使用 viper.AllSettings() 函数返回所有的配置内容；</li>
+<li>使用 viper.Get&lt;type&gt;(key) 获取指定 key 的配置值，&lt;type&gt; 指的是配置项的数据类型。key 支持缩进形式，例如 mysql.username 实际取的是 username 的值 miniblog：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># MySQL 数据库相关配置
+mysql:
+  # MySQL 机器 IP 和端口，默认 127.0.0.1：3306
+  addr: 127.0.0.1:3306
+  # MySQL 用户名（建议授权最小权限集）
+  username: miniblog
+</code></pre>
+<p>至此，miniblog 应用已经完成了配置功能的开发，完整源码位于 miniblog 项目的 <a href="https://github.com/onexstack/miniblog/tree/feature/s03">feature/s03</a> 分支。</p>
+<h2 id="测试配置读取功能">测试配置读取功能</h2>
+<p>新建一个测试配置文件 /tmp/mb-apiserver.yaml，内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># 服务器类型，可选值有：
+#   grpc：启动一个 gRPC 服务器
+#   grpc-gateway: 启动一个 gRPC 服务器 + HTTP 反向代理服务器
+#   gin：基于 gin 框架启动一个 HTTP 服务器
+# 服务器模式选择：
+#   - 应用内调用选择 grpc
+#   - 如果有外部服务调用选择 grpc-gateway
+#   - 学习 Gin 框架时选择 gin
+server-mode: grpc-gateway
+# JWT 签发密钥
+jwt-key: Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5
+</code></pre>
+<p>在创建配置文件时，建议给配置项添加详细的说明，可以降低配置文件的理解成本。</p>
+<p>执行以下命令编译并运行 mb-apiserver 程序，测试配置是否被正确读取：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ make build
+$ _output/mb-apiserver -c /tmp/mb-apiserver.yaml #读取配置文件及配置项的值
+...
+{
+  &quot;server-mode&quot;: &quot;grpc&quot;,
+  &quot;jwt-key&quot;: &quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;,
+  &quot;expiration&quot;: 7200000000000
+}
+$ _output/mb-apiserver -c /tmp/mb-apiserver.yaml --expiration 3h #通过命令行选项设置配置项
+...
+{
+  &quot;server-mode&quot;: &quot;grpc&quot;,
+  &quot;jwt-key&quot;: &quot;Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5&quot;,
+  &quot;expiration&quot;: 10800000000000
+}
+$ export MINIBLOG_JWT_KEY=XXXXXXXXX #通过环境变量设置配置项
+$ _output/mb-apiserver -c /tmp/mb-apiserver.yaml 
+...
+{
+  &quot;server-mode&quot;: &quot;grpc&quot;,
+  &quot;jwt-key&quot;: &quot;XXXXXXXXX&quot;,
+  &quot;expiration&quot;: 7200000000000
+}
+</code></pre>
+<p>上述测试分别测试了通过配置文件设置配置项、通过环境变量设置配置项、通过命令行选项设置配置项 3 种应用配置方式，可以看到程序均能正确获取配置项的值。</p>
+<p>为了方便 air 热加载 mb-apiserver 应用，可以将/tmp/mb-apiserver.yaml 文件放置在 $HOME/.miniblog/ 目录中。当使用 air 运行 _output/mb-apiserver 命令时，应用会加载默认的 $HOME/.miniblog/mb-apiserver.yaml 配置文件。</p>
+<blockquote>
+<p>提示：</p>
+<p>本课程后边的内容，如果没有明确提示，默认加载的配置文件均为$HOME/.miniblog/mb-apiserver.yaml。</p>
+</blockquote>
+<h1 id="基于初始化配置创建应用">基于初始化配置创建应用</h1>
+<p>根据 miniblog 应用构建模型，在确保初始化配置可以正确加载并读取之后，就可以基于初始化配置来创建运行时配置，进而基于运行时配置创建出一个服务实例，并运行服务实例。</p>
+<p>在 Go 项目开发中，有两种启动服务的代码编写风格：面向对象风格和函数式风格。代码示例如代码清单 5-7 所示。</p>
+<p>代码清单 5-7 服务启动编写风格</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package server
+
+import (
+    &quot;fmt&quot;
+)
+
+// 风格一：面向对象风格
+// 运行服务：NewUnionServer()。Run()
+type UnionServer struct{}
+
+// NewUnionServer 根据配置创建联合服务器。
+func NewUnionServer() *UnionServer {
+    return &amp;UnionServer{}
+}
+
+// Run 运行应用。
+func (s *UnionServer) Run() {
+    fmt.Println(&quot;Run union server&quot;)
+    select {}
+}
+
+// 风格二：函数式风格
+// 运行服务：RunUnionServer()
+func RunUnionServer() {
+    fmt.Println(&quot;Run union server&quot;)
+    select {}
+}
+</code></pre>
+<p>在开发中，推荐的风格是面向对象风格。相较于函数式风格，面向对象风格通过 UnionServer 结构体封装服务相关的功能，便于扩展和维护，符合面向对象编程的思想，更适合复杂的大型项目。在面向对象风格中，如果服务的运行需要依赖某些属性或配置（比如数据库连接、运行时状态等），可以将这些属性作为 UnionServer 结构体的字段，统一管理，逻辑更加清晰。另外，面向对象风格的模块化设计，更有利于测试用例的编写。</p>
+<p>miniblog 项目采用了面向对象风格。miniblog 运行时代码保存在 internal/apiserver 目录下，在该目录下创建 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/internal/apiserver/server.go">server.go</a> 文件，代码内容如代码清单 5-8 所示。</p>
+<p>代码清单 5-8 实现运行时代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package apiserver
+
+import (
+    &quot;encoding/json&quot;
+    &quot;fmt&quot;
+    &quot;time&quot;
+
+    &quot;github.com/spf13/viper&quot;
+)
+
+// Config 配置结构体，用于存储应用相关的配置。
+// 不用 viper.Get，是因为这种方式能更加清晰的知道应用提供了哪些配置项。
+type Config struct {
+    ServerMode string
+    JWTKey     string
+    Expiration time.Duration
+}
+
+// UnionServer 定义一个联合服务器。 根据 ServerMode 决定要启动的服务器类型。
+type UnionServer struct {
+    cfg *Config
+}
+
+// NewUnionServer 根据配置创建联合服务器。
+func (cfg *Config) NewUnionServer() (*UnionServer, error) {
+    return &amp;UnionServer{cfg: cfg}, nil
+}
+
+// Run 运行应用。
+func (s *UnionServer) Run() error {
+    fmt.Printf(&quot;ServerMode from ServerOptions: %s\n&quot;, s.cfg.JWTKey)
+    fmt.Printf(&quot;ServerMode from Viper: %s\n\n&quot;, viper.GetString(&quot;jwt-key&quot;))
+
+    jsonData, _ := json.MarshalIndent(s.cfg, &quot;&quot;, &quot;  &quot;)
+    fmt.Println(string(jsonData))
+
+    select {}
+    return nil
+}
+</code></pre>
+<p>代码清单 5-8 中，创建了运行时配置 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/internal/apiserver/server.go#L19">Config</a>，Config 结构体类型实现了 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/internal/apiserver/server.go#L31">NewUnionServer()</a> 方法，该方法可以用来创建 *UnionServer 类型的服务实例，*UnionServer 实例的 Run 方法用来启动服务。</p>
+<blockquote>
+<p>提示：</p>
+<p>因为 miniblog 会同时实现 HTTP 服务和 gRPC 服务，所以将代表服务的结构体命名为 UnionServer（联合服务），以通过名字能来反映 miniblog 的服务特点。</p>
+</blockquote>
+<p>运行时配置是基于初始化配置创建的，所以可以直接给 ServerOptions 结构体添加一个 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/cmd/mb-apiserver/app/options/options.go#L77">Config</a> 方法，用来创建运行时配置，在 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/cmd/mb-apiserver/app/options/options.go">cmd/mb-apiserver/app/options/options.go</a> 文件中，添加以下代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package options
+
+import (
+    ...
+    &quot;github.com/ketitongxue/miniblog/internal/apiserver&quot;
+)
+...
+// Config 基于 ServerOptions 创建新的 apiserver.Config。
+func (o *ServerOptions) Config() (*apiserver.Config, error) {
+    return &amp;apiserver.Config{
+        ServerMode: o.ServerMode,
+        JWTKey:     o.JWTKey,
+        Expiration: o.Expiration,
+    }, nil
+}
+</code></pre>
+<p>这里要注意，cmd/mb-apiserver/app/ 目录下的文件导入了 internal/apiserver 目录下的包，也就是“控制面”依赖“数据面”。为了避免循环依赖，要避免反向导入。</p>
+<p>在 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/cmd/mb-apiserver/app/server.go">cmd/mb-apiserver/app/server.go</a> 文件中，添加以下代码来创建运行时配置，并基于运行时配置创建 UnionServer 服务实例，并运行 UnionServer 服务实例的 Run 方法启动服务，实现代码如代码清单 5-9 所示。</p>
+<p>代码清单 5-9 创建服务实例，并启动服务</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package app
+...
+// NewMiniBlogCommand 创建一个 *cobra.Command 对象，用于启动应用程序。
+func NewMiniBlogCommand() *cobra.Command {
+    ...
+    cmd := &amp;cobra.Command{
+        RunE: func(cmd *cobra.Command, args []string) error {
+            return run(opts)
+        },
+        ...
+    }
+    ...
+    return cmd
+}
+
+// run 是主运行逻辑，负责初始化日志、解析配置、校验选项并启动服务器。
+func run(opts *options.ServerOptions) error {
+    ...
+    // 获取应用配置。
+    // 将命令行选项和应用配置分开，可以更加灵活的处理 2 种不同类型的配置。
+    cfg, err := opts.Config()
+    if err != nil {
+        return err
+    }
+
+    // 创建服务器实例。
+    // 注意这里是联合服务器，因为可能同时启动多个不同类型的服务器。
+    server, err := cfg.NewUnionServer()
+    if err != nil {
+        return err
+    }
+
+    // 启动服务器
+    return server.Run()
+}
+</code></pre>
+<p>代码清单 5-9 中，*cobra.Command 类型的 RunE 方法中，添加的代码逻辑越来越多，为了保持 cmd 功能的专一性：构建应用框架。这里将服务器启动的代码逻辑单独放在了 <a href="https://github.com/onexstack/miniblog/blob/feature/s04/cmd/mb-apiserver/app/server.go#L77">run</a> 方法中，便于管理。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

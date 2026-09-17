@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>容器技术基础</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="容器技术基础">容器技术基础</h1>
+<h1 id="容器是什么">容器是什么</h1>
+<p>简单来说，容器就是个小工具，可以把你想跑的程序，库文件，配置文件都一起“打包”。然后，我们在任何一个计算机的节点上，都可以使用这个打好的包。有了容器，一个命令就能把你想跑的程序跑起来，做到了一次打包，就可以到处使用。 比如我们可以把整套 <code>zabbix</code> 环境<code>（httpd+php+mysql+zabbix-server）</code> 一起打包，然后给它搬到其它机器上直接运行。</p>
+<p><strong>容器类似于虚拟化，但和虚拟化有本质区别。</strong> 虚拟化会使用虚拟机监控程序模拟硬件，从而使多个操作系统能够并行运行。但这不如容器轻便。相较于虚拟机，Linux 容器在运行时所占用的资源更少，使用的是标准接口（启动、停止、环境变量等），并会与应用隔离开。</p>
+<h1 id="docker-的诞生">Docker 的诞生</h1>
+<p>现在我们都已经对Container、Kubernetes这些技术名词耳熟能详了，但你知道这一切的开端——Docker，第一次在世界上的亮相是什么样子的吗？</p>
+<p>2013年3月15日，在北美的圣克拉拉市召开了一场Python开发者社区的主题会议PyCon，研究和探讨各种Python开发技术和应用，与我们常说的“云”“PaaS”“SaaS”根本毫不相关。</p>
+<p>在当天的会议日程快结束时，有一个“闪电演讲”（lighting talk）的小环节。其中有一位开发者，用了5分钟的时间，做了题为 “The future of Linux Containers” 的演讲，不过临近末尾因为超时而被主持人赶下了台，场面略显尴尬（你可以在 <a href="https://www.youtube.com/watch?v=wW9CAH9nSLs">这里</a> 回看这段具有历史意义的视频）。</p>
+<p>相信你一定猜到了，这个只有短短5分钟的技术演示，就是我们目前所看到的、席卷整个业界的云原生大潮的开端。正是在这段演讲里，Solomon Hykes（dotCloud公司，也就是Docker公司的创始人）首次向全世界展示了Docker技术。</p>
+<p>5分钟的时间非常短，但演讲里却包含了几个现在已经普及，但当时却非常新奇的概念，比如容器、镜像、隔离运行进程等，信息量非常大。</p>
+<p>PyCon2013大会之后，许多人都意识到了容器的价值和重要性，发现它能够解决困扰了云厂商多年的打包、部署、管理、运维等问题，Docker也就迅速流行起来，成为了GitHub上的明星项目。然后在几个月的时间里，Docker更是吸引了Amazon、Google、Red Hat等大公司的关注，这些公司利用自身的技术背景，纷纷在容器概念上大做文章，最终成就了我们今天所看到的至尊王者Kubernetes的出现。</p>
+<h1 id="docker的形态">Docker的形态</h1>
+<p>目前使用Docker基本上有两个选择： <strong>Docker Desktop</strong> 和 <strong>Docker Engine</strong>。</p>
+<p>Docker Desktop是专门针对个人使用而设计的，支持Mac和Windows快速安装，具有直观的图形界面，还集成了许多周边工具，方便易用。</p>
+<p>不过，我个人不是太推荐使用Docker Desktop，原因有两个。第一个，它是商业产品，难免会带有Docker公司的“私人气息”，有一些自己的、非通用的东西，不利于我们后续的Kubernetes学习。第二个，它只是对个人学习免费，受条款限制不能商用，我们在日常工作中难免会“踩到雷区”。</p>
+<p>Docker Engine则和Docker Desktop正好相反，完全免费，但只能在Linux上运行，只能使用命令行操作，缺乏辅助工具，需要我们自己动手DIY运行环境。不过要是较起真来，它才是Docker当初的真正形态，“血脉”最纯正，也是现在各个公司在生产环境中实际使用的Docker产品，毕竟机房里99%的服务器跑的都是Linux。</p>
+<p>所以，在接下来的学习过程里，我推荐使用Docker Engine。</p>
+<h1 id="计算机领域中的容器">计算机领域中的容器：</h1>
+<ul>
+<li>docker</li>
+<li>containerd，有替换 docker 的趋势，目前来说还主要是 docker</li>
+<li>gvisor</li>
+<li>podman</li>
+</ul>
+<h1 id="容器的优势">容器的优势：</h1>
+<p>Build -&gt; Share -&gt; Run        一次构建，共享后可以到处运行</p>
+<p>镜像-&gt;镜像仓库-&gt;容器</p>
+<h1 id="技术的演进">技术的演进</h1>
+<ul>
+<li>1979年，Unix v7 系统支持 chroot，为应用构建一个独立的虚拟文件系统环境。</li>
+<li>1999年，FreeBSD 4.0 支持 jail，是第一个商用化的 OS 虚拟化技术。</li>
+<li>2002年，Linux Namespaces 进程隔离</li>
+<li>2004年，Solaris 10支持 Solaris Zone，第二个商用化的 OS 虚拟化技术。快照，克隆</li>
+<li>2004年 ~ 2007年，Google 内部大规模使用Cgroups等OS虚拟化技术。</li>
+<li>2006年，Google开源内部使用的 Google Process Container 技术，后续更名为cgroup。资源隔离（CPU、内存、IO、网络）</li>
+<li>2007年，Linux Control Group。Process Containers 重命名并合并到 Kernel 2.6.24</li>
+<li>2008年，Cgroups进入了Linux内核主线。</li>
+<li>2008年，LXC（Linux Container）项目具备了Linux容器的雏型。使用 namespace 和 cgroups 实现的第一个容器管理</li>
+<li>2013年，Docker项目正式发布，让Linux容器技术逐步席卷天下。</li>
+<li>2014年，Kubernetes项目正式发布，容器技术开始和编排系统起头并进。</li>
+<li>2015年，由Google，Redhat、Microsoft及一些大型云厂商共同创立了CNCF(Cloud Native Computing Foundation)。</li>
+<li>2016年-2017年，容器生态开始模块化、规范化，CNCF接受Containerd、rkt项目，OCI发布1.0，CRI/CNI得到广泛支持。</li>
+<li>2017年-2018年，容器服务商业化，AWS、Google云、阿里云、华为云、VMware，Redhat和Rancher等公司开始提供基于 Kubernetes的商业服务产品。</li>
+<li>2019年-2021年，容器引擎技术飞速发展，新技术不断涌现，CNCF日益庞大。</li>
+<li>截止2022年，CNCF聚集的贡献者超过17万、有130+项目、涉及全球187个国家。</li>
+</ul>
+<h1 id="docker的架构">Docker的架构</h1>
+<p>下面的这张图来自Docker官网（ <a href="https://docs.docker.com/get-started/overview/">https://docs.docker.com/get-started/overview/</a> ）Engine的内部角色和工作流程，对我们的学习研究非常有指导意义。</p>
+<p><img src="../../../assets/md-images/GM4lbSlPxoni9hxKz6Kc4Ct1n3g.png" alt=""></p>
+<p>Docker 实际上是一个客户端 client ，它会与 Docker Engine 里的后台服务 Docker daemon 通信，而镜像则存储在远端的仓库 Registry 里，客户端并不能直接访问镜像仓库。</p>
+<p>Docker client 可以通过 <code>build</code>、 <code>pull</code>、 <code>run</code> 等命令向 Docker daemon 发送请求，而 Docker daemon 则是容器和镜像的“大管家”，负责从远端拉取镜像、在本地存储镜像，还有从镜像生成容器、管理容器等所有功能。</p>
+<p>所以，在 Docker Engine 里，真正干活的其实是默默运行在后台的 Docker daemon，而我们实际操作的命令行工具 docker 只是个传声筒的角色。</p>
+<h1 id="docker-的组成">Docker 的组成：</h1>
+<p><a href="https://docs.docker.com/engine/docker-overview/">https://docs.docker.com/engine/docker-overview/</a></p>
+<ul>
+<li>Docker 主机(Host)：一个物理机或虚拟机，用于运行 Docker服务进程和容器。</li>
+<li>Docker 服务端(Server)：Docker 守护进程，运行 docker 容器。</li>
+<li>Docker 客户端(Client)：客户端使用 docker 命令或其他工具调用 docker API。</li>
+<li>Docker 仓库(Registry)：保存镜像的仓库，类似于 git 或 svn 这样的版本控制系</li>
+<li>Docker 镜像(Images)：镜像可以理解为创建实例使用的模板。</li>
+<li>Docker 容器(Container)：容器是从镜像生成对外提供服务的一个或一组服务</li>
+</ul>
+<p>官方仓库: <a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
+<h1 id="容器对比虚拟机">容器对比虚拟机：</h1>
+<p>其实容器和虚拟机面对的都是相同的问题，使用的也都是虚拟化技术，只是所在的层次不同，我们可以参考Docker官网上的两张图，把这两者对比起来会更利于学习理解。</p>
+<p><img src="../../../assets/md-images/JqpSb4Urto09u8xRXcncA2vgn4e.png" alt=""></p>
+<p>（Docker官网的 <a href="https://www.docker.com/resources/what-container">图示</a> 其实并不太准确，容器并不直接运行在Docker上，Docker只是辅助建立隔离环境，让容器基于Linux操作系统运行）</p>
+<p>首先，容器和虚拟机的目的都是隔离资源，保证系统安全，然后是尽量提高资源的利用率。</p>
+<p>从实现的角度来看，虚拟机虚拟化出来的是硬件，需要在上面再安装一个操作系统后才能够运行应用程序，而硬件虚拟化和操作系统都比较“重”，会消耗大量的CPU、内存、硬盘等系统资源，但这些消耗其实并没有带来什么价值，属于“重复劳动”和“无用功”，不过好处就是隔离程度非常高，每个虚拟机之间可以做到完全无干扰。</p>
+<p><strong>容器（即图中的Docker），它直接利用了下层的计算机硬件和操作系统</strong>，因为比虚拟机少了一层，所以自然就会节约CPU和内存，显得非常轻量级，能够更高效地利用硬件资源。不过，因为多个容器共用操作系统内核，应用程序的隔离程度就没有虚拟机那么高了。</p>
+<p><strong>运行效率</strong>，可以说是容器相比于虚拟机最大的优势，在这个对比图中就可以看到，同样的系统资源，虚拟机只能跑3个应用，其他的资源都用来支持虚拟机运行了，而容器则能够把这部分资源释放出来，同时运行6个应用。</p>
+<p><img src="../../../assets/md-images/WixEbX3Mfo4lr0xMtSqc97Vrneh.png" alt=""></p>
+<p><strong>容器不是虚拟机</strong></p>
+<h1 id="补充资料">补充资料</h1>
+<p><a href="https://nickjanetakis.com/blog/docker-tip-70-gain-access-to-the-mobylinux-vm-on-windows-or-macos">Gain Access to the MobyLinux VM on Windows or MacOS</a></p>
+<h1 id="容器的优缺点">容器的优缺点:</h1>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>快速部署：短时间内可以部署成百上千个应用，更快速交付到线上。</li>
+<li>高效虚拟化：不需要额外的hypervisor支持，直接基于linux 实现应用虚拟化，相比虚拟机大幅提高性能和效率。</li>
+<li>节省开支：提高服务器利用率，降低IT支出。</li>
+<li>简化配置：将运行环境打包保存至容器，使用时直接启动即可。</li>
+<li>快速迁移和扩展：可夸平台运行在物理机、虚拟机、公有云等环境，良好的兼容性可以方便将应用从A宿主机迁移 到B宿主机，甚至是A平台迁移到B平台。</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>隔离性</li>
+<li>安全性</li>
+</ul>
+</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实现一个 gRPC 服务</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="实现一个-grpc-服务">实现一个 gRPC 服务</h1>
+<p>miniblog 使用 gRPC 框架实现了一个 gRPC 服务器。使用 grpc-gateway 框架实现了一个 HTTP 反向代理服务器，用来将 HTTP 请求转化为 gRPC 请求。</p>
+<h1 id="rpc-介绍">RPC 介绍</h1>
+<p>gRPC 是 RPC 协议的 Go 语言实现，因此在介绍 gRPC 之前，有必要先了解 RPC 协议的基本概念。</p>
+<p>根据维基百科的定义，RPC（Remote Procedure Call，远程过程调用）是一种计算机通信协议。该协议允许运行在一台计算机上的程序调用另一台计算机上的子程序，而开发者无需为这种交互编写额外的代码。</p>
+<p>通俗来说，RPC 的核心思想是：服务端实现一个函数，客户端通过 RPC 框架提供的接口，可以像调用本地函数一样调用该函数，并获取返回值。RPC 屏蔽了底层的网络通信细节，使开发人员无需关注网络编程的复杂性，从而能够将更多精力投入到业务逻辑的实现中，大幅提升开发效率。</p>
+<p>RPC 的调用过程如图</p>
+<p><img src="../../../assets/md-images/DFzKbCs89oMZWcx8w3Uc3K65nCg.png" alt=""></p>
+<p>RPC 调用的具体流程如下：</p>
+<ol>
+<li>客户端通过本地调用的方式调用客户端存根（Client Stub）；</li>
+<li>客户端存根将参数打包（也称为 Marshalling）成一个消息，并发送该消息；</li>
+<li>客户端所在的操作系统（OS）将消息发送到服务端；</li>
+<li>服务端接收到消息后，将消息传递给服务端存根（Server Stub）；</li>
+<li>服务端存根将消息解包（也称为 Unmarshalling），得到参数；</li>
+<li>服务端存根调用服务端的子程序（函数），完成处理后，将结果按照相反的步骤返回给客户端。</li>
+</ol>
+<p>需要注意的是，Stub 负责处理参数和返回值的序列化（Serialization）、参数的打包与解包，以及网络层的通信。在 RPC 中，客户端的 Stub 通常被称为“Stub”，而服务端的 Stub 通常被称为“Skeleton”。Stub 是存根（代理的意思）。</p>
+<p>目前，业界有很多优秀的 RPC 协议，例如腾讯的 Tars、阿里的 Dubbo、微博的 Motan、Facebook 的 Thrift、RPCX 等。但使用最多的还是 gRPC。</p>
+<h1 id="grpc-介绍">gRPC 介绍</h1>
+<p>gRPC （google Remote Procedure Call）是由谷歌开发的一种高性能、开源且支持多种编程语言的通用 RPC 框架，基于 HTTP/2 协议开发，并默认采用 Protocol Buffers 作为数据序列化协议。gRPC 具有以下特性：</p>
+<ul>
+<li>**语言中立：**支持多种编程语言，例如 Go、Java、C、C++、C#、Node.js、PHP、Python、Ruby 等；</li>
+<li>**基于 IDL 定义服务：**通过 IDL（Interface Definition Language）文件定义服务，并使用 proto3 工具生成指定语言的数据结构、服务端接口以及客户端存根。这种方法能够解耦服务端和客户端，实现客户端与服务端的并行开发；</li>
+<li>**基于 HTTP/2 协议：**通信协议基于标准的 HTTP/2 设计，支持双向流、消息头压缩、单 TCP 的多路复用以及服务端推送等能力；</li>
+<li>**支持 Protocol Buffer 序列化：**Protocol Buffer（简称 Protobuf）是一种与语言无关的高性能序列化框架，可以减少网络传输流量，提高通信效率。此外，Protobuf 语法简单且表达能力强，非常适合用于接口定义。</li>
+</ul>
+<p>与许多其他 RPC 框架类似，gRPC 也通过 IDL 语言来定义接口（包括接口名称、传入参数和返回参数等）。在服务端，gRPC 服务实现了预定义的接口。在客户端，gRPC 存根提供了与服务端相同的方法。</p>
+<h1 id="protocol-buffers-介绍">Protocol Buffers 介绍</h1>
+<p>Protocol Buffers（简称 Protobuf）是由谷歌开发的一种用于对数据结构进行序列化的方法，可用于数据通信协议、数据存储格式等，也是一种灵活且高效的数据格式，与 XML 和 JSON 类似。由于 Protobuf 具有出色的传输性能，因此常被用于对数据传输性能要求较高的系统中。Protobuf 的主要特性如下：</p>
+<ul>
+<li>**更快的数据传输速度：**Protobuf 在传输过程中会将数据序列化为二进制格式，相较于 XML 和 JSON 的文本传输格式，这种序列化方式能够显著减少 I/O 操作，从而提升数据传输的速度；</li>
+<li>**跨平台多语言支持：**Protobuf 自带的编译工具 protoc 可以基于 Protobuf 定义文件生成多种语言的客户端或服务端代码，供程序直接调用，因此适用于多语言需求的场景；</li>
+<li>**良好的扩展性和兼容性：**Protobuf 能够在不破坏或影响现有程序的基础上，更新已有的数据结构，提高系统的灵活性；</li>
+<li>**基于 IDL 文件定义服务：**通过 proto3 工具可以生成特定语言的数据结构、服务端和客户端接口。</li>
+</ul>
+<p>在 gRPC 框架中，Protocol Buffers 主要有以下四个作用。</p>
+<p>**第一，可以用来定义数据结构。**举个例子，下面的代码定义了一个 LoginRequest 数据结构：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// LoginRequest 表示登录请求
+message LoginRequest {
+    // username 表示用户名称
+    string username = 1;
+    // password 表示用户密码
+    string password = 2;
+}
+</code></pre>
+<p>**第二，可以用来定义服务接口。**下面的代码定义了一个 MiniBlog 服务：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">service MiniBlog {
+   rpc Login(LoginRequest) returns (LoginResponse) {}
+} 
+</code></pre>
+<p><strong>第三，可以通过 protobuf 序列化和反序列化，提升传输效率。</strong></p>
+<p>使用 XML 或 JSON 编译数据时，虽然数据文本格式可读性更高，但在进行数据交换时，设备需要耗费大量的 CPU 资源进行 I/O 操作，从而影响整体传输速率。而 Protocol Buffers 不同于前者，它会将字符串序列化为二进制数据后再进行传输。这种二进制格式的字节数比 JSON 或 XML 少得多，因此传输速率更高。</p>
+<p>**第四，Protobuf 是标准化的。**我们可以基于标准的 Protobuf 文件生成多种编程语言的客户端、服务端代码。在 Go 项目开发中，可以基于这种标准化的语言开发多种 protoc 编译插件，从而大大提高开发效率。</p>
+<h1 id="miniblog-实现-grpc-服务器">miniblog 实现 gRPC 服务器</h1>
+<p>为了展示如何实现一个 gRPC 服务器，并展示如何通信，miniblog 模拟了一个场景：miniblog 配套一个运营系统，运营系统需要通过接口获取所有的用户，进行注册用户统计。为了提高内部接口通信的性能，运营系统通过 gRPC 接口访问 miniblog 的 API 接口。为此，miniblog 需要实现一个 gRPC 服务器。那么如何实现一个 gRPC 服务器呢？其实很简单，可以通过以下几步来实现：</p>
+<ol>
+<li>定义 gRPC 服务；</li>
+<li>生成客户端和服务器代码；</li>
+<li>实现 gRPC 服务端；</li>
+<li>实现 gRPC 客户端；</li>
+<li>测试 gRPC 服务。</li>
+</ol>
+<p>grpc-go 官方仓库中提供了许多代码实现供参考，例如 <a href="https://github.com/grpc/grpc-go/tree/master/examples">examples</a> 目录。gRPC 官方文档也包含了大量 gRPC 框架的使用教程。建议在学习后续内容之前，先根据官方的 <a href="https://grpc.io/docs/languages/go/quickstart/">Quick start 文档</a>完成一次 gRPC 服务的创建和使用流程，这将有助于你更好地理解后续内容。</p>
+<h2 id="1定义-grpc-服务">（1）定义 gRPC 服务</h2>
+<p>我们需要编写.proto 格式的 Protobuf 文件来描述一个 gRPC 服务。服务内容包括以下部分：</p>
+<p>**服务定义：**描述服务包含的 API 接口；</p>
+<p>**请求和返回参数的定义：**服务定义了一系列 API 接口，每个 API 接口都需要指定请求参数和返回参数。</p>
+<blockquote>
+<p>提示：</p>
+<p>考虑到课程中不适合展示很大的代码段，下文所示的 Protobuf 文件只展示了一部分代码。Protobuf 文件的完整代码见 miniblog 项目 feature/s09 分支 pkg/api/apiserver/v1/ 目录中的同名文件。</p>
+</blockquote>
+<p>由于 gRPC 接口需要提供给外部用户调用，而调用过程依赖于 gRPC API 接口的请求参数和返回参数，因此我将 miniblog Protobuf 定义文件存放 pkg/api/apiserver/v1/目录下。路径中的 v1 表示这是第一个版本的接口定义，给未来接口升级预留扩展能力。</p>
+<p>新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/apiserver.proto">pkg/api/apiserver/v1/apiserver.proto</a> 文件，其内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-ProtoBuf">syntax = &quot;proto3&quot;; // 告诉编译器此文件使用什么版本的语法
+
+package v1;
+
+import &quot;google/protobuf/empty.proto&quot;;       // 导入空消息
+import &quot;apiserver/v1/healthz.proto&quot;;        // 健康检查消息定义
+
+option go_package = &quot;github.com/ketitongxue/miniblog/pkg/api/apiserver/v1;v1&quot;;
+
+// MiniBlog 定义了一个 MiniBlog RPC 服务
+service MiniBlog {
+    // Healthz 健康检查
+    rpc Healthz(google.protobuf.Empty) returns (HealthzResponse) {}
+}
+</code></pre>
+<p>apiserver.proto 是一个 Protobuf 定义文件，定义了一个 MiniBlog 服务器。其首个非空、非注释的行必须注明 Protobuf 的版本。通过 syntax = &quot;proto3&quot; 可以指定当前使用的版本号，这里采用的是 proto3 版本。</p>
+<p>package 关键字用于指定生成的 .pb.go 文件所属的包名。import 关键字用来导入其他 Protobuf 文件。option 关键字用于对 .proto 文件进行配置，其中 go_package 是必需的配置项，其值必须设置为包的导入路径。</p>
+<p>service 关键字用来定义一个 MiniBlog 服务，服务中包含了所有的 RPC 接口。在 MiniBlog 服务中，使用 rpc 关键字定义服务的 API 接口。接口中包含了请求参数 google.protobuf.Empty 和返回参数 HealthzResponse。在上述 Protobuf 文件中，google.protobuf.Empty 是谷歌提供的一个特殊的 Protobuf 消息类型，其作用是表示一个“空消息”。它来自于谷歌的 Protocol Buffers 标准库，定义在 <a href="https://github.com/golang/protobuf/tree/master/ptypes/empty">google/protobuf/empty.proto</a> 文件中。</p>
+<blockquote>
+<p>提示：</p>
+<p>miniblog 项目依赖了一些 Protobuf 文件，为了降低读者学习的难度，miniblog 项目将依赖的 Protobuf 文件统一保存在 third_party/protobuf/ 目录下。</p>
+</blockquote>
+<p>gRPC 支持定义四种类型的服务方法。上述示例中定义的是简单模式的服务方法，也是 miniblog 使用的 gRPC 模式。以下是四种服务方法的具体介绍：</p>
+<ul>
+<li>**简单模式（Simple RPC）：**这是最基本的 gRPC 调用形式。客户端发起一个请求，服务端返回一个响应。定义格式为 <code>rpc SayHello (HelloRequest) returns (HelloReply) {}</code>；</li>
+<li>**服务端流模式（Server-side streaming RPC）：**客户端发送一个请求，服务端返回数据流，客户端从流中依次读取数据直到流结束。定义格式为 <code>rpc SayHello (HelloRequest) returns (stream HelloReply) {}</code>；</li>
+<li>**客户端流模式（Client-side streaming RPC）：**客户端以数据流的形式连续发送多条消息至服务端，服务端在处理完所有数据之后返回一次响应。定义格式为 <code>rpc SayHello (stream HelloRequest) returns (HelloReply) {}</code>；</li>
+<li>**双向数据流模式（Bidirectional streaming RPC）：**客户端和服务端可以同时以数据流的方式向对方发送消息，实现实时交互。定义格式为 <code>rpc SayHello (stream HelloRequest) returns (stream HelloReply) {}</code>。</li>
+</ul>
+<p>在 apiserver.proto 文件中，定义了 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/apiserver.proto#L20">Healthz</a> 接口，还需要为这些接口定义请求参数和返回参数。考虑到代码未来的可维护性，这里建议将不同资源类型的请求参数定义保存在不同的文件中。在 Go 项目开发中，将不同资源类型相关的结构体定义和方法实现分别保存在不同的文件中，是一个好的开发习惯，代码按资源分别保存在不同的文件中，可以提高代码的维护效率。</p>
+<p>同样，为了提高代码的可维护性，建议接口的请求参数和返回参数都定义成固定的格式：</p>
+<ul>
+<li><strong>请求参数格式：</strong>&lt;接口名&gt;Request，例如 LoginRequest；</li>
+<li><strong>返回参数格式：</strong>&lt;接口名&gt;Response，例如 LoginResponse。</li>
+</ul>
+<p>根据上面的可维护性要求，新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/healthz.proto">pkg/api/apiserver/v1/healthz.proto</a> 文件，在文件中定义健康检查相关的请求参数，内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Java">// Healthz API 定义，包含健康检查响应的相关消息和状态
+syntax = &quot;proto3&quot;; // 告诉编译器此文件使用什么版本的语法
+
+package v1;
+
+option go_package = &quot;github.com/ketitongxue/miniblog/pkg/api/apiserver/v1&quot;;
+
+// ServiceStatus 表示服务的健康状态
+enum ServiceStatus {
+    // Healthy 表示服务健康
+    Healthy = 0;
+    // Unhealthy 表示服务不健康
+    Unhealthy = 1;
+}
+
+// HealthzResponse 表示健康检查的响应结构体
+message HealthzResponse {
+    // status 表示服务的健康状态
+    ServiceStatus status = 1;
+
+    // timestamp 表示请求的时间戳
+    string timestamp = 2;
+
+    // message 表示可选的状态消息，描述服务健康的更多信息
+    string message = 3;
+}
+</code></pre>
+<p>在 healthz.proto 文件中，使用 message 关键字定义消息类型（即接口参数）。消息类型由多个字段组成，每个字段包括字段类型和字段名称。位于等号（=）右侧的值并非字段默认值，而是数字标签，可理解为字段的唯一标识符（类似于数据库中的主键），不可重复。标识符用于在编译后的二进制消息格式中对字段进行识别。一旦 Protobuf 消息投入使用，字段的标识符就不应再修改。数字标签的取值范围为 [1, 536870911]，其中 19000 至 19999 为保留数字，不能使用。</p>
+<p>在定义消息时，还可以使用 singular、optional 和 repeated 三个关键字修饰字段：</p>
+<ul>
+<li>singular：默认值，表示该字段可出现 0 次或 1 次，但不能超过 1 次；</li>
+<li>optional：表示该字段为可选字段；</li>
+<li>repeated：表示该字段可以重复多次，包括 0 次，可以看作是一个数组。</li>
+</ul>
+<p>在实际项目开发中，最常用的是 optional 和 repeated 关键字。Protobuf 更多的语法示例请参考 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/example.proto">pkg/api/apiserver/v1/example.proto</a> 文件，更多 Protobuf 语法请参考 Protobuf 的官方文档。</p>
+<h3 id="2生成客户端和服务器代码">（2）生成客户端和服务器代码</h3>
+<p>编写好 Protobuf 文件后，需要使用 protoc 工具对 Protobuf 文件进行编译，以生成所需的客户端和服务端代码。由于在项目迭代过程中，Protobuf 文件可能会经常被修改并需要重新编译，为了提高开发效率和简化项目维护的复杂度，我们可以将编译操作定义为 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/Makefile#L66">Makefile</a> 中的一个目标。在 Makefile 文件中，添加以下代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-TypeScript">...
+# Protobuf 文件存放路径
+APIROOT=$(PROJ_ROOT_DIR)/pkg/api
+...
+.PHONY: protoc
+protoc: # 编译 protobuf 文件.
+    @echo &quot;===========&gt; Generate protobuf files&quot;
+    @protoc                                              \
+        --proto_path=$(APIROOT)                          \
+        --proto_path=$(PROJ_ROOT_DIR)/third_party/protobuf    \
+        --go_out=paths=source_relative:$(APIROOT)        \
+        --go-grpc_out=paths=source_relative:$(APIROOT)   \
+        $(shell find $(APIROOT) -name *.proto)
+</code></pre>
+<p>上述 protoc 规则的命令中，protoc 是 Protocol Buffers 文件的编译器工具，用于编译 .proto 文件生成代码。需要先安装 protoc 命令后才能使用。protoc 通过插件机制实现对不同语言的支持。例如，使用 --xxx_out 参数时，protoc 会首先查询是否存在内置的 xxx 插件。如果没有内置的 xxx 插件，则会继续查询系统中是否存在名为 protoc-gen-xxx 的可执行程序。例如 --go_out 参数使用的插件名为 protoc-gen-go。</p>
+<p>以下是 protoc 命令参数的说明：</p>
+<ul>
+<li>
+<p>--proto_path 或 -I：用于指定编译源码的搜索路径，类似于 C/C++中的头文件搜索路径，在构建 .proto 文件时，protoc 会在这些路径下查找所需的 Protobuf 文件及其依赖；</p>
+</li>
+<li>
+<p>--go_out：用于生成与 gRPC 服务相关的 Go 代码，并配置生成文件的路径和文件结构。例如 --go_out=plugins=grpc,paths=import:.。主要参数包括 plugins 和 paths。分别表示生成 Go 代码所使用的插件，以及生成的 Go 代码的位置。这里我们使用到了 paths 参数，它支持以下两个选项：</p>
+<ul>
+<li>import（默认值）：按照生成的 Go 代码包的全路径创建目录结构；</li>
+<li>source_relative：表示生成的文件应保持与输入文件相对路径一致。假设 Protobuf 文件位于 pkg/api/apiserver/v1/example.proto，启用该选项后，生成的代码也会位于 pkg/api/apiserver/v1/目录。如果没有设置 paths=source_relative，默认情况下，生成的 Go 文件的路径可能与包含路径有直接关系，并不总是与输入文件相对路径保持一致。</li>
+</ul>
+</li>
+<li>
+<p>--go-grpc_out：功能与 --go_out 类似，但该参数用于指定生成的 *_grpc.pb.go 文件的存放路径。</p>
+</li>
+</ul>
+<p>在 pkg/api/apiserver/v1/apiserver.proto 文件中，通过以下语句导入了 empty.proto 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import &quot;google/protobuf/empty.proto&quot;;
+</code></pre>
+<p>因此，需要将 empty.proto 文件保存在匹配的路径下，并通过以下参数将其添加到 Protobuf 文件的搜索路径中：--proto_path=$(PROJ_ROOT_DIR)/third_party/protobuf。</p>
+<p>由于 empty.proto 是第三方项目的文件，根据目录结构规范，应将其存放在项目根目录下的 third_party 目录中。</p>
+<p>执行以下命令编译 Protobuf 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ make protoc
+</code></pre>
+<p>上述命令会在 <a href="https://github.com/onexstack/miniblog/tree/feature/s09/pkg/api/apiserver/v1">pkg/api/apiserver/v1/</a> 目录下生成以下两类文件：</p>
+<ul>
+<li>*.pb.go：包含与 Protobuf 文件中定义的消息类型（使用 message 关键字）对应的 Go 语言结构体、枚举类型、以及与这些结构体相关的序列化、反序列化代码。主要功能是将 Protobuf 数据格式与 Go 语言中的结构体进行映射，并支持 Protobuf 协议的数据序列化与反序列化操作；</li>
+<li>*_grpc.pb.go：包含与 Protobuf 文件中定义的服务（使用 service 关键字）对应的 gRPC 服务代码。该文件会定义客户端和服务端用到的接口（interface），并包含注册服务的方法（如 RegisterService）。</li>
+</ul>
+<blockquote>
+<p>提示：</p>
+<p>由于编译 Protobuf 文件不是每次构建都需要执行的操作，因此未将 protoc 目标添加为 Makefile 中 all 目标的依赖项。</p>
+</blockquote>
+<h3 id="3实现-grpc-服务端">（3）实现 gRPC 服务端</h3>
+<p>启动 gRPC 服务，需要指定一些核心配置，例如 gRPC 服务监听的端口。所以，需要先给应用添加 gRPC 服务配置。根据 miniblog 应用构建模型，需要先添加初始化配置，再添加运行时配置，之后根据运行时配置创建一个 gRPC 服务实例。代码实现如代码清单 7-1 所示（位于 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/cmd/mb-apiserver/app/options/options.go#L25">cmd/mb-apiserver/app/options/options.go</a> 文件中）。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package options
+
+import (
+    ...
+
+    &quot;github.com/ketitongxue/miniblog/internal/apiserver&quot;
+    genericoptions &quot;github.com/onexstack/onexstack/pkg/options&quot;
+    stringsutil &quot;github.com/onexstack/onexstack/pkg/util/strings&quot;
+    
+    ...
+)
+
+// 定义支持的服务器模式集合.
+var availableServerModes = sets.New(
+    apiserver.GinServerMode,
+    apiserver.GRPCServerMode,
+    apiserver.GRPCGatewayServerMode,
+)
+
+// ServerOptions 包含服务器配置选项.
+type ServerOptions struct {
+    ...
+    // GRPCOptions 包含 gRPC 配置选项.
+    GRPCOptions *genericoptions.GRPCOptions `json:&quot;grpc&quot; mapstructure:&quot;grpc&quot;`
+}
+
+// NewServerOptions 创建带有默认值的 ServerOptions 实例.
+func NewServerOptions() *ServerOptions {
+    opts := &amp;ServerOptions{
+        ...
+        GRPCOptions: genericoptions.NewGRPCOptions(),
+    }
+    opts.GRPCOptions.Addr = &quot;:6666&quot;
+    return opts
+}
+
+// AddFlags 将 ServerOptions 的选项绑定到命令行标志.
+// 通过使用 pflag 包，可以实现从命令行中解析这些选项的功能.
+func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
+    ...
+    o.GRPCOptions.AddFlags(fs)
+}
+
+// Validate 校验 ServerOptions 中的选项是否合法.
+func (o *ServerOptions) Validate() error {
+    ...
+    // 如果是 gRPC 或 gRPC-Gateway 模式，校验 gRPC 配置
+    if stringsutil.StringIn(o.ServerMode, []string{apiserver.GRPCServerMode, apiserver.GRPCGatewayServerMode}) {
+        errs = append(errs, o.GRPCOptions.Validate()...)
+    }
+
+    // 合并所有错误并返回
+    return utilerrors.NewAggregate(errs)
+}
+
+// Config 基于 ServerOptions 构建 apiserver.Config.
+func (o *ServerOptions) Config() (*apiserver.Config, error) {
+    return &amp;apiserver.Config{
+        ...
+        GRPCOptions: o.GRPCOptions,
+    }, nil
+}
+</code></pre>
+<p>代码清单 7-1 中，新增了 GRPCOptions 配置项，类型为 *genericoptions.GRPCOptions。这里有个开发技巧，像 HTTP、gRPC、MySQL、TLS、Redis、PostgreSQL 等项目中常的组件，其配置基本都是相同的，为了提高代码的复用度和开发效率，可以将这些配置定义为对应的配置结构体，以 options 包的形式统一对外提供。这样，其他项目不用再定义这些配置，直接使用即可。对应的 options 包，可以给个别名 genericoptions，说明这是通用的基础选项包。例如 github.com/onexstack/onexstack/pkg/options 包就预定义了很多此类配置：HTTPOptions、GRPCOptions、TLSOptions、MySQLOptions 等。上述配置类型命名格式为&lt;XXX&gt;Options，并且都有 New&lt;XXX&gt;Options 方法用来创建默认的配置实例。同时，上述配置类型都满足以下接口定义：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// IOptions defines methods to implement a generic options.
+type IOptions interface {
+    // Validate validates all the required options. 
+    // It can also used to complete options if needed.
+    Validate() []error
+
+    // AddFlags adds flags related to given flagset.
+    AddFlags(fs *pflag.FlagSet, prefixes ...string)
+}
+</code></pre>
+<p>通过以上规范化、标准化定义，进一步提高代码的规范度，并能在一定程度上提高开发效率、减小代码理解成本。</p>
+<p>代码中支持了 gRPC 配置项后，配置文件 $HOME/.miniblog/mb-apiserver.yaml 需要新增 gRPC 配置：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># GRPC 服务器相关配置
+grpc:
+  # GRPC 服务器监听地址
+  addr: :6666
+</code></pre>
+<p>apiserver.proto 被 protoc 编译器编译后，生成了 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/apiserver_grpc.pb.go">apiserver_grpc.pb.go</a> 文件，该文件中包含了启动 gRPC 服务所需的必要函数。可以在 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/internal/apiserver/server.go#L60">internal/apiserver/server.go</a> 文件中添加代码以启动一个 gRPC 服务器，代码如代码清单 7-2 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import (
+    ...
+    handler &quot;github.com/ketitongxue/miniblog/internal/apiserver/handler/grpc&quot;
+    ...
+)
+...
+// NewUnionServer 根据配置创建联合服务器.
+func (cfg *Config) NewUnionServer() (*UnionServer, error) {
+    lis, err := net.Listen(&quot;tcp&quot;, cfg.GRPCOptions.Addr)
+    if err != nil {
+        log.Fatalw(&quot;Failed to listen&quot;, &quot;err&quot;, err)
+        return nil, err
+    }
+
+    // 创建 GRPC Server 实例
+    grpcsrv := grpc.NewServer()
+    apiv1.RegisterMiniBlogServer(grpcsrv, handler.NewHandler())
+
+    return &amp;UnionServer{srv: grpcsrv, lis: lis}, nil
+}
+
+// Run 运行应用.
+func (s *UnionServer) Run() error {
+    // 打印一条日志，用来提示 GRPC 服务已经起来，方便排障
+    log.Infow(&quot;Start to listening the incoming requests on grpc address&quot;, &quot;addr&quot;, s.cfg.GRPCOptions.Addr)
+    return s.srv.Serve(s.lis)
+}
+</code></pre>
+<p>代码清单 7-2 使用 grpc.NewServer() 函数创建了一个 gRPC 服务实例 grpcsrv，并使用 apiv1.RegisterMiniBlogServer() 方法将 MiniBlog 服务的处理器注册到 gRPC 服务器中。handler.NewHandler() 返回一个服务处理器实例，该实例实现了 MiniBlog 服务的业务逻辑。</p>
+<p>reflection.Register(grpcsrv) 的作用是向 gRPC 服务器注册反射服务，从而使得 gRPC 服务支持服务反射功能。gRPC 服务反射（gRPC Server Reflection）是 gRPC 框架提供的一种功能，它允许客户端动态查询 gRPC 服务器上的服务信息，而无需事先拥有 Protobuf 文件。这种功能在调试和测试 gRPC 服务时非常有用。另外，一些动态 gRPC 客户端（如某些语言的 gRPC 实现）可以通过服务反射动态生成客户端代码，而无需依赖预编译的 Protobuf 文件。以下是使用 gRPC 服务反射功能的一个示例，使用 grpcurl 工具动态查询服务信息：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+$ grpcurl -plaintext localhost:6666 list # 需要先启动 miniblog gRPC服务，可以稍后测试
+grpc.reflection.v1.ServerReflection
+grpc.reflection.v1alpha.ServerReflection
+v1.MiniBlog
+</code></pre>
+<p>在实现了 gRPC 启动框架之后，还需要根据 MiniBlog RPC 服务的定义，实现其定义的 API 接口：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">service MiniBlog {
+    // Healthz 健康检查
+    rpc Healthz(google.protobuf.Empty) returns (HealthzResponse) {}
+}
+</code></pre>
+<p>根据 miniblog 简洁架构设计，将 gRPC 接口在处理器层实现，代码位于 <a href="https://github.com/onexstack/miniblog/tree/feature/s09/internal/apiserver/handler">internal/apiserver/handler</a> 目录中。miniblog 项目同时实现了 gRPC 服务和 HTTP 服务，为了提高代码可维护性，本课程将两类处理器层代码分别保存在 internal/apiserver/handler/grpc 和 internal/apiserver/handler/http 目录中。</p>
+<p>新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/internal/apiserver/handler/grpc/handler.go">internal/apiserver/handler/grpc/handler.go</a> 文件，实现 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/internal/apiserver/handler/grpc/handler.go#L14">Handler</a> 结构体类型，该结构体类型用来实现 MiniBlog 服务定义的 RPC 接口。handler.go 文件内容如代码清单 7-3 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package handler
+
+import (
+    apiv1 &quot;github.com/onexstack/miniblog/pkg/api/apiserver/v1&quot;
+)
+
+// Handler 负责处理博客模块的请求.
+type Handler struct {
+    apiv1.UnimplementedMiniBlogServer
+}
+
+// NewHandler 创建一个新的 Handler 实例.
+func NewHandler() *Handler {
+    return &amp;Handler{}
+}
+</code></pre>
+<p>代码清单 7-3 中，github.com/onexstack/miniblog/pkg/api/apiserver/v1 被重命名为 apiv1，并且在 miniblog 项目的所有文件中，都会被重命名为 apiv1。这样重命名是为了跟其他包名为 v1 的包进行命名区分，例如：k8s.io/api/core/v1、k8s.io/apimachinery/pkg/apis/meta/v1。</p>
+<p>Handler 结构体必须内嵌 apiv1.UnimplementedMiniBlogServer 类型。这是为了提供默认实现，确保未实现的 gRPC 方法返回“未实现”错误，同时满足接口要求，简化服务端开发和向后兼容性。内嵌 apiv1.UnimplementedMiniBlogServer 更详细的介绍见 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/docs/book/unimplemented.md">docs/book/unimplemented.md</a> 文件或者自行咨询 GPT 类工具。</p>
+<p>新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/internal/apiserver/handler/grpc/healthz.go">internal/apiserver/handler/grpc/healthz.go</a> 文件，在该文件中实现 Healthz 接口，代码如代码清单 7-4 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package handler
+
+import (
+    &quot;context&quot;
+    &quot;time&quot;
+
+    emptypb &quot;google.golang.org/protobuf/types/known/emptypb&quot;
+
+    apiv1 &quot;github.com/onexstack/miniblog/pkg/api/apiserver/v1&quot;
+)
+
+// Healthz 服务健康检查.
+func (h *Handler) Healthz(ctx context.Context, rq *emptypb.Empty) (*apiv1.HealthzResponse, error) {
+    return &amp;apiv1.HealthzResponse{
+        Status:    apiv1.ServiceStatus_Healthy,
+        Timestamp: time.Now().Format(time.DateTime),
+    }, nil
+}
+</code></pre>
+<p>为了提高代码的可维护性，这里建议将代码按资源分类保存在不同的文件中。例如健康类接口保存在 healthz.go 文件中，用户类接口保存在 user.go 文件中，博客类接口保存在 post.go 文件中。</p>
+<h3 id="4实现-grpc-客户端">（4）实现 gRPC 客户端</h3>
+<p>在实现了 gRPC 服务端之后，可以开发一个 gRPC 客户端，连接 gPRC 服务器，并调用其提供的 RPC 接口，测试服务是否开发成功。gRPC 客户端实现代码如代码清单 7-5 所示。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;context&quot;
+    &quot;encoding/json&quot;
+    &quot;flag&quot;
+    &quot;fmt&quot;
+    &quot;log&quot;
+    &quot;time&quot;
+
+    &quot;google.golang.org/grpc&quot;
+    &quot;google.golang.org/grpc/credentials/insecure&quot;
+
+    apiv1 &quot;github.com/onexstack/miniblog/pkg/api/apiserver/v1&quot;
+)
+
+var (
+    // 定义命令行选项
+    addr  = flag.String(&quot;addr&quot;, &quot;localhost:6666&quot;, &quot;The grpc server address to connect to.&quot;) // gRPC 服务的地址
+    limit = flag.Int64(&quot;limit&quot;, 10, &quot;Limit to list users.&quot;)                                 // 限制列出用户的数量
+)
+
+func main() {
+    flag.Parse() // 解析命令行参数
+
+    // 建立与 gRPC 服务器的连接
+    conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+    // grpc.Dial 用于建立客户端与 gRPC 服务端的连接
+    // grpc.WithTransportCredentials(insecure.NewCredentials()) 表示使用不安全的传输（即不使用 TLS）
+    if err != nil {
+        log.Fatalf(&quot;Failed to connect to grpc server: %v&quot;, err) // 如果连接失败，记录错误并退出程序
+    }
+    defer conn.Close() // 确保在函数结束时关闭连接，避免资源泄漏
+
+    // 创建 MiniBlog 客户端
+    client := apiv1.NewMiniBlogClient(conn) // 使用连接创建一个 MiniBlog 的 gRPC 客户端实例
+
+    // 设置上下文，带有 3 秒的超时时间
+    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    // context.WithTimeout 用于设置调用的超时时间，防止请求无限等待
+    defer cancel() // 在函数结束时取消上下文，释放资源
+
+    // 调用 MiniBlog 的 Healthz 方法，检查服务健康状况
+    resp, err := client.Healthz(ctx, nil) // 发起 gRPC 请求，Healthz 是一个简单的健康检查方法
+    if err != nil {
+        log.Fatalf(&quot;Failed to call healthz: %v&quot;, err) // 如果调用失败，记录错误并退出程序
+    }
+
+    // 将返回的响应数据转换为 JSON 格式
+    jsonData, _ := json.Marshal(resp) // 使用 json.Marshal 将响应对象序列化为 JSON 格式
+    fmt.Println(string(jsonData))     // 输出 JSON 数据到终端
+}
+</code></pre>
+<p>代码清单 7-5，通过 apiv1.NewMiniBlogClient(conn) 创建了一个 gRPC 客户端，之后就可以像调用本地函数一样调用 gRPC 服务端提供的各种 API 接口，例如：client.Healthz(ctx, nil)。根据目录规范，需要将代码清单 7-5 中的代码保存在文件 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/examples/client/health/main.go">examples/client/health/main.go</a> 中。</p>
+<h3 id="5测试-grpc-服务">（5）测试 gRPC 服务</h3>
+<p>打开 Linux 终端执行以下命令启动 gRPC 服务：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ make protoc
+$ make build
+$ _output/mb-apiserver 
+</code></pre>
+<p>新建一个 Linux 终端，运行以下命令，测试 gRPC 服务是否成功启动、Healthz 接口是否可以成功访问：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ go run examples/client/health/main.go
+{&quot;timestamp&quot;:&quot;2025-06-15 08:22:08&quot;}
+</code></pre>
+<p>上述输出说明，Healthz 接口可以成功访问，并且返回的 status 字段值为 0，根据 healthz.proto 文件中 <a href="https://github.com/onexstack/miniblog/blob/feature/s09/pkg/api/apiserver/v1/healthz.proto#L15">ServiceStatus</a> 枚举类型定义，说明 gRPC 接口返回健康状态。</p>
+<p>至此，成功实现了一个简单的 gRPC 服务，完整代码见 <a href="https://github.com/onexstack/miniblog/tree/feature/s09">feature/s09</a> 分支。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

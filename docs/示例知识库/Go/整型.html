@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>整型</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="整型">整型</h1>
+<p>Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 <strong>平台无关整型</strong> 和 <strong>平台相关整型</strong> 这两种，它们的区别主要就在，这些整数类型在不同CPU架构或操作系统下面，它们的长度是否是一致的。</p>
+<p>我们先来看 <strong>平台无关整型</strong>，它们在任何CPU架构或任何操作系统下面，长度都是固定不变的。我在下面这张表中总结了Go提供的平台无关整型：</p>
+<p><img src="../../../assets/md-images/CzdbbXXP7oyp1lxeiG3cZEvTnzb.png" alt="图片是一张表格，展示了Go语言提供的平台无关整型类型、长度及取值范围。表格分为有符号整型和无符号整型两部分。有符号整型包括int8、int16、int32、int64，长度分别为1、2、4、8字节，取值范围分别为-128, 127、-32768, 32767、-2147483648, 2147483647、-9223372036854775808, 9223372036854775807。无符号整型包括uint8、uint16、uint32、uint64，长度同样为1、2、4、8字节，取值范围分别为0, 255、0, 65535、0, 4294967295、0, 18446744073709551615。该表与上下文紧密相关，直观呈现了文档中提到的平台无关整型类型及特性。"></p>
+<p>你可以看到，这些平台无关的整型也可以分成两类：有符号整型（int8 int64）和无符号整型（uint8 uint64）。两者的本质差别在于最高二进制位（bit位）是否被解释为符号位，这点会影响到无符号整型与有符号整型的取值范围。</p>
+<p>我们以下图中的这个8比特（一个字节）的整型值为例，当它被解释为无符号整型uint8时，和它被解释为有符号整型int8时表示的值是不同的：</p>
+<p><img src="../../../assets/md-images/FH5SbanmFo1CxlxRjapcvhVjndB.png" alt="图片展示了8比特整型值在uint8和int8两种解释方式下的表示。上半部分为uint8，其值为129，比特位为10000001；下半部分为int8，其值为-127，比特位同样为10000001，但标注了符号位。图片与上下文紧密相关，通过直观对比，解释了在同样比特位表示下，最高比特位被解释为符号位时，int8表示的值为-127，而非-1，直观呈现了有符号整型与无符号整型在最高比特位被解释为符号位时的值不同。"></p>
+<p>在同样的比特位表示下，当最高比特位被解释为符号位时，它代表一个有符号整型（int8），它表示的值为 -127；当最高比特位不被解释为符号位时，它代表一个无符号整型(uint8)，它表示的值为129。</p>
+<p>这里你可能就会问了：即便最高比特位被解释为符号位，上面的有符号整型所表示值也应该为-1啊，怎么会是 -127 呢？</p>
+<p>这是因为 Go 采用 <strong>2 的补码</strong>（Two’s Complement）作为整型的比特位编码方法。因此，我们不能简单地将最高比特位看成负号，把其余比特位表示的值看成负号后面的数值。Go的补码是通过原码逐位取反后再加1得到的。</p>
+<p>与平台无关整型对应的就是平台相关整型，它们的长度会根据运行平台的改变而改变。Go语言原生提供了三个 平台相关整型，它们是int、uint与uintptr，我同样也列了一张表：</p>
+<p><img src="../../../assets/md-images/I4j2bTMoyodKa5xQ3zdcDgaVn8f.png" alt="图片是一张表格，展示了Go语言中整型的分类及长度。表格分为类型、32位长度、64位长度三列。默认的有符号整型为int，32位长度为32位（4字节），64位长度为64位（8字节）；默认的无符号整型为uint，32位长度为32位（4字节），64位长度为64位（8字节）；无符号整型为uintptr，长度为“大到足以存储任意一个指针的值”。该表与上下文紧密相关，是对Go语言整型分类和长度的直观呈现。"></p>
+<p>在这里我们要特别注意一点，由于这三个类型的长度是平台相关的，所以我们 在编写有移植性要求的代码时，千万不要强依赖这些类型的长度。如果你不知道这三个类型在目标运行平台上的长度，可以通过unsafe包提供的SizeOf函数来获取，比如在x86-64平台上，它们的长度均为8：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-go">var a, b = int(5), uint(6)
+var p uintptr = 0x12345678
+fmt.Println(&quot;signed integer a's length is&quot;, unsafe.Sizeof(a)) // 8
+fmt.Println(&quot;unsigned integer b's length is&quot;, unsafe.Sizeof(b)) // 8
+fmt.Println(&quot;uintptr's length is&quot;, unsafe.Sizeof(p)) // 8
+</code></pre>
+<p>现在我们已经搞清楚Go语言中整型的分类和长度了，但是在使用整型的过程中，我们还会遇到一个常见问题：整型溢出。</p>
+<h3 id="整型的溢出问题">整型的溢出问题</h3>
+<p>无论哪种整型，都有它的取值范围，也就是有它可以表示的值边界。如果这个整型因为参与某个运算，导致结果超出了这个整型的值边界，我们就说发生了 <strong>整型溢出</strong> 的问题。由于整型无法表示它溢出后的那个“结果”，所以出现溢出情况后，对应的整型变量的值依然会落到它的取值范围内，只是结果值与我们的预期不符，导致程序逻辑出错。比如这就是一个无符号整型与一个有符号整型的溢出情况：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">var s int8 = 127
+s += 1 // 预期128，实际结果-128
+
+var u uint8 = 1
+u -= 2 // 预期-1，实际结果255
+</code></pre>
+<p>你看，有符号整型变量s初始值为127，在加1操作后，我们预期得到128，但由于128超出了int8的取值边界，其实际结果变成了-128。无符号整型变量u也是一样的道理，它的初值为1，在进行减2操作后，我们预期得到-1，但由于-1超出了uint8的取值边界，它的实际结果变成了255。</p>
+<p>这个问题最容易发生在循环语句的结束条件判断中，因为这也是经常使用整型变量的地方。无论无符号整型，还是有符号整型都存在溢出的问题，所以我们要十分小心地选择参与循环语句结束判断的整型变量类型，以及与之比较的边界值。</p>
+<p>在了解了整型的这些基本信息后，我们再来看看整型支持的不同进制形式的字面值，以及如何输出不同进制形式的数值。</p>
+<h3 id="字面值">字面值</h3>
+<p>Go语言在设计开始，就继承了C语言关于 <strong>数值字面值（Number Literal）</strong> 的语法形式。早期Go版本支持十进制、八进制、十六进制的数值字面值形式，比如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">a := 53        // 十进制
+b := 0700      // 八进制，以&quot;0&quot;为前缀
+c1 := 0xaabbcc // 十六进制，以&quot;0x&quot;为前缀
+c2 := 0Xddeeff // 十六进制，以&quot;0X&quot;为前缀
+</code></pre>
+<p>Go 1.13版本中，Go又增加了对二进制字面值的支持和两种八进制字面值的形式，比如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">d1 := 0b10000001 // 二进制，以&quot;0b&quot;为前缀
+d2 := 0B10000001 // 二进制，以&quot;0B&quot;为前缀
+e1 := 0o700      // 八进制，以&quot;0o&quot;为前缀
+e2 := 0O700      // 八进制，以&quot;0O&quot;为前缀
+</code></pre>
+<p>为提升字面值的可读性，Go 1.13版本还支持在字面值中增加数字分隔符“_”，分隔符可以用来将数字分组以提高可读性。比如每3个数字一组，也可以用来分隔前缀与字面值中的第一个数字：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">a := 5_3_7   // 十进制: 537
+b := 0b_1000_0111  // 二进制位表示为10000111
+c1 := 0_700  // 八进制: 0700
+c2 := 0o_700 // 八进制: 0700
+d1 := 0x_5c_6d // 十六进制：0x5c6d
+</code></pre>
+<p>不过，这里你要注意一下，Go 1.13中增加的二进制字面值以及数字分隔符，只在go.mod中的go version指示字段为Go 1.13以及以后版本的时候，才会生效，否则编译器会报错。 反过来，我们也可以通过标准库fmt包的格式化输出函数，将一个整型变量输出为不同进制的形式。比如下面就是将十进制整型值59，格式化输出为二进制、八进制和十六进制的代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-java">var a int8 = 59
+fmt.Printf(&quot;%b\n&quot;, a) //输出二进制：111011
+fmt.Printf(&quot;%d\n&quot;, a) //输出十进制：59
+fmt.Printf(&quot;%o\n&quot;, a) //输出八进制：73
+fmt.Printf(&quot;%O\n&quot;, a) //输出八进制(带0o前缀)：0o73
+fmt.Printf(&quot;%x\n&quot;, a) //输出十六进制(小写)：3b
+fmt.Printf(&quot;%X\n&quot;, a) //输出十六进制(大写)：3B
+</code></pre>
+<p>Go的二元操作符涵盖了算术、逻辑和比较等运算。按优先级的降序排列如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">*    /    %    &lt;&lt;(左移)    &gt;&gt;(右移)    &amp;(位运算 AND)    &amp;^(位清空 AND NOT)
++    -    |(位运算 OR)    ^(位运算 XOR)
+==    !=    &lt;    &lt;=    &gt;    &gt;=
+&amp;&amp;
+||
+</code></pre>
+<p>二元运算符分五大优先级。同级别的运算符满足左结合律，为求清晰，可能需要圆括号，或为使表达式内的运算符按指定次序计算，如mask&amp;(1&lt;&lt;28)。</p>
+<p>上述列表中前两行的运算符（如加法运算+）都有对应的赋值运算符（如+=）​，用于简写赋值语句。算术运算符+、-、*、/可应用于整数、浮点数和复数，而取模运算符％仅能用于整数。取模运算符％的行为因编程语言而异。就Go而言，取模余数的正负号总是与被除数一致，于是-5％3和-5％-3都得-2。除法运算(/)的行为取决于操作数是否都为整型，整数相除，商会舍弃小数部分，于是5.0/4.0得到1.25，而5/4结果是1。</p>
+<p>在移位运算x&lt;&lt;n和x&gt;&gt;n中，操作数n决定位移量，而且n必须为无符号型；操作数x可以是有符号型也可以是无符号型。算术上，左移运算x&lt;&lt;n等价于x乘以2^n；而右移运算x&gt;&gt;n等价于x除以2^n，向下取整。</p>
+<p>左移以0填补右边空位，无符号整数右移同样以0填补左边空位，但有符号数的右移操作是按符号位的值填补空位。因此，请注意，如果将整数以位模式处理，须使用无符号整型。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

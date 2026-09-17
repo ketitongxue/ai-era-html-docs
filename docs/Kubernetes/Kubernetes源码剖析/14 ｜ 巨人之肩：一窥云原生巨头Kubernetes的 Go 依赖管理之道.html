@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>14 | 巨人之肩：一窥云原生巨头Kubernetes的 Go 依赖管理之道</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="14--巨人之肩一窥云原生巨头kubernetes的-go-依赖管理之道">14 | 巨人之肩：一窥云原生巨头Kubernetes的 Go 依赖管理之道</h1>
+<p>Go 项目开发中，为了提高开发效率和代码可维护性，我们经常需要以 Go 包的形式导入项目外部或内部的许多包，并使用包所提供的函数/方法，来完成预期的功能。包也是 Go 语言的一个核心特性。</p>
+<p>因为包也是在不断地往前滚动演进的，包的更新可能会带来一些不兼容的代码变更，导致我们的程序编译失败或者运行异常，为此，我们在引用包的时候，需要指定包的版本，从而将包的代码实现固化。</p>
+<p>Go 包和版本，都需要我们像代码一样管理护起来，比如：对 Go 包进行添加、更新和删除等。Go 从 1.11 版本，引入了 Go Modules 用来管理 Go 包。</p>
+<p>Kubernetes 作为当前云原生生态系统中的领军项目，不仅在容器编排领域发挥着巨大作用，而且其自身的代码管理也成为了众多开发者和组织学习的典范。今天，我们就来看看 Kubernetes 是如何利用 Go 模块来管理其庞大而复杂的代码库的。通过学习 Kubernetes Go 模块的管理方法，来决策我们 Go 项目的 Go 模块更新方法。</p>
+<h1 id="kubernetes的转变">Kubernetes的转变</h1>
+<p>Kubernetes 在初期并没有采用 Go 模块，而是使用 dep 等第三方工具来管理依赖（见 <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/godep.md">Using godep to manage dependencies</a>）。随着 Go 模块的推广和稳定，Kubernetes 项目也在 1.14 版本中逐步迁移到了 Go 模块系统。这一转变标志着 Kubernetes 项目对 Go 官方工具链的信任和依赖，同时也为项目带来了更好的版本管理和模块兼容性。</p>
+<p>Kubernetes 在使用 Go Modules 时，有 2 个关注点，就是依赖的可预测性和可重现性。这 2 个特性对 Kubernetes 代码稳定性很重要。</p>
+<p>提示：本文介绍的 Go 模块管理适用于Kubernetes 1.14.x 及之后的版本。</p>
+<h1 id="kubernetes-go-模块更新策略">Kubernetes Go 模块更新策略</h1>
+<p>Kubernetes 项目的包更新遵循一些更新规范，并不是依赖包有新版本，就可以更新的。在更新 Kubernetes 包时，Kubernetes 社区建议你考虑以下各点，来最终判定是否有必要更新依赖包，你也可以理解为是 Kubernetes 包更新时的一些判断策略：</p>
+<p>我们需要目标版本中提供的一些新功能；</p>
+<p>目标版本中的新 API 或者 API 变更，可以显著改善 Kubernetes 的代码质量。这里的 API 通常是指函数、方法；</p>
+<p>目标版本有可以影响 Kubernetes 的代码修复。也就是说目标版本中的代码修复只有影响到 Kuberentes 时，才考虑更新；</p>
+<p>目标版本有安全类修复，即使这些安全类修复不会影响Kubernetes。（可以看到安全在项目开发中的重要性）；</p>
+<p>目标版本的代码性能、支持的规模、代码执行效率等有明显的改进；</p>
+<p>我们需要 A 模块，但是有一个传递性依赖 B 模块（也即 A 模块依赖 B 模块）；</p>
+<p>Kubernetes 的旧依赖包，阻止了 Kubernetes 与生态系统中的其他项目一起工作。</p>
+<h1 id="如何更新依赖">如何更新依赖？</h1>
+<p>Kubernetes 使用 Go Modules 来管理依赖，具体是通过 Kubernetes 项目仓库下的 go.mod 文件来管理以来的。go.mod 提供了以下 2 个指令用来管理依赖：</p>
+<ul>
+<li>require：指定了依赖包的首选版本（由 Go 工具自动更新为包的最大可用版本）；</li>
+<li>replace：将 Go 包固定到特定的版本。</li>
+</ul>
+<p>以下是 Kubernetes 仓库下 go.mod 文件的内容：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">module k8s.io/kubernetes
+
+go 1.24.0
+
+godebug default=go1.24
+
+require (
+        bitbucket.org/bertimus9/systemstat v0.5.0
+        github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab
+        github.com/Microsoft/go-winio v0.6.2
+        github.com/Microsoft/hnslib v0.1.1
+        ...
+        sigs.k8s.io/yaml v1.6.0
+)
+
+require (
+        cel.dev/expr v0.24.0 // indirect
+        github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
+        github.com/MakeNowJust/heredoc v1.0.0 // indirect
+        github.com/NYTimes/gziphandler v1.1.1 // indirect
+        ...
+        sigs.k8s.io/kustomize/kyaml v0.20.1 // indirect
+)
+
+replace (
+        k8s.io/api =&gt; ./staging/src/k8s.io/api
+        k8s.io/apiextensions-apiserver =&gt; ./staging/src/k8s.io/apiextensions-apiserver
+        k8s.io/apimachinery =&gt; ./staging/src/k8s.io/apimachinery
+        k8s.io/apiserver =&gt; ./staging/src/k8s.io/apiserver
+        ...
+        k8s.io/sample-cli-plugin =&gt; ./staging/src/k8s.io/sample-cli-plugin
+        k8s.io/sample-controller =&gt; ./staging/src/k8s.io/sample-controller
+)
+</code></pre>
+<h1 id="添加和更新一个go依赖包">添加和更新一个Go依赖包</h1>
+<p>管理 Go 依赖包的最常见操作是添加并更新 Go 依赖包，二者的操作方式类似。例如，我们发现了一个很棒的 Go包 example.com/go/frob，我们可以使用以下 2 个步骤来使用它：</p>
+<ol>
+<li>确保我们的代码已经使用了 Go包</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">import &quot;example.com/go/frob&quot;
+...
+frob.DoStuff()
+</code></pre>
+<ol>
+<li>确定想要使用的 Go 包版本，并添加到 go.mod 文件中</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ hack/pin-dependency.sh example.com/go/frob v1.0.4
+</code></pre>
+<p><a href="http://hack/pin-dependency.sh">hack/pin-dependency.sh</a> 脚本封装了 go mod edit -require和 go mod edit -replace命令，但是做了更多的工作：</p>
+<ol>
+<li>检查 Go 编译环境是否正确安装；</li>
+<li>检查 jq工具是否安装，因为 pin-dependency.sh 脚本中，会用到 jq工具从 go mod download 命令返回的 JSON 格式串中获取版本和错误，进行判断处理；</li>
+<li>检查添加 Go 依赖包的格式是否正确，如果不正确会给出正确的格式提示；</li>
+<li>执行 go mod download 命令下载依赖包，并检查依赖包是否下载成功。该步骤，可以确保依赖包一定下载的是我们期望的版本；</li>
+<li>执行 go mod edit -replace 和 go mod edit -require命令来添加或更新依赖包。</li>
+</ol>
+<p>脚本的最终效果是在 go.mod 文件中添加以下 2 个入口：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">require (
+    example.com/go/frob v1.0.4
+    ...
+)
+
+replace (
+    example.com/go/frob =&gt; example.com/go/frob v1.0.4
+    ...
+)
+</code></pre>
+<p>require 指定说明 Kubernetes 需要版本号为 v1.0.4 的 example.com/go/frob 模块。如果我们的模块作为其他模块的依赖模块，并且这些模块也依赖 example.com/go/frob，那么 Go 编译器会选择最高的版本（除非在其他模块的 go.mod 文件中，使用 replace 指定 example.com/go/frob 为某个固定版本）replace 指令，用来指定某个 Go 模块为某个固定的版本。</p>
+<p>Kubernetes 提供了 pin-dependency.sh 脚本来添加或更新依赖，当看到这个脚本时，我有点震惊，Kubernetes 对源码质量的控制，已经做到这么精细的粒度了吗？</p>
+<p>我还思考了添加 pin-dependency.sh 脚本的必要性。毫无疑问使用这个脚本来添加、更新依赖，可以让我们对依赖操作管理的更加精细化，并确保准确更新依赖。但是维护这么一个脚本，其实是有一些工作量的。好在该脚本，是通用的，意味着只需要一次性开发工作。</p>
+<p>另外一个原因，我觉得可能是 Kubernetes 使用 pin-dependency.sh 脚本来更新依赖的最主要原因：Kubernetes 暂存目录下有大量的 go.mod，这些 go.mod 中的依赖项也要同步更新，如果没有此脚本，就需要一个个手动更新，非常麻烦，且容易出问题。所以，使用 pin-dependency.sh 脚本来统一更新依赖包。</p>
+<p>OneX 项目也迁移了 pin-dependency.sh 脚本，OneX 项目因为没有暂存目录，所以，移除了更新暂存目录下 go.mod 文件的逻辑。</p>
+<ol>
+<li>重建 vendor 目录，更新所有暂存库的 go.mod 文件</li>
+</ol>
+<p>执行以下命令来重建 vendor 目录，并更新所有暂存库的 go.mod 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ hack/update-vendor.sh
+</code></pre>
+<ol>
+<li>检查新的依赖项是否需要更新我们已经固定的现有依赖项的新版本</li>
+</ol>
+<p>检查新的依赖项是否需要更新我们已经固定的现有依赖项的新版本。可以通过以下方式进行检查：</p>
+<p>运行 hack/lint-dependencies.sh 对比当前的分支和 master 分支，并比较结果;</p>
+<p>检查是否添加了任何新的 replace 指令到 staging 目录中组件的 go.mod 文件中；</p>
+<p>具有 replace 指令的 staging 组件是最棘手的，因为这些组件的使用者，可能会使用我们所变更依赖包的不同的版本。</p>
+<p>如果由于新的依赖项需要更新传递性依赖项，运行 hack/pin-dependency.sh 来更新它们的版本，并再次运行 hack/update-vendor.sh。重复此过程，直到 <strong>步骤4</strong> 显示与主分支相比没有新的传递性版本要求为止。</p>
+<h1 id="删除依赖">删除依赖</h1>
+<p>删除依赖非常简单，只需要运行 hack/update-vendor.sh 脚本，该脚本会自动发现不需要的依赖包，并删除任何未使用的依赖传递项。命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ hack/update-vendor.sh
+</code></pre>
+<h2 id="提交信息">提交信息</h2>
+<p>为了提高源码的可维护性，Kubernetes 社区还要求在更新依赖包时，在提交信息中添加包被更新的详细说明或原因。像 Update foo.org/bar to 0.42 这种提交信息很不利于项目的维护。因为开发者很难从这种提交信息中获知包被更新的原因，从而无法进行下一步判断或决策。</p>
+<p>为什么需要详细注明包更新的原因呢？这是因为，依赖包的更新往往会产生连锁反应，导致其他地方出现意外的故障。当因为包更新导致代码出现异常时，开发者的第一反应是回滚这次 commit。但是如果这个包更新时为了修复某个已知问题而更新的包。那么当开发者回滚这次 commit 时，就会导致之前的问题需要重新修复。如果最初的包更新提交记录中详细的记录了修复的问题，那么就可以避免此类情况：回滚包更新 commit，引入需要重新修复的 bug，但是却不知道哪里需要重新修复。</p>
+<h2 id="检查变更">检查变更</h2>
+<p>更新完依赖后，git status 可以展示修改的文件、增加或删除的文件状态。确保使用 git diff 来检查变更是否符合预期。可以根据需要，使用 git add 增加文件或者使用 git rm 删除文件。通常建议先进行一次git commit 用来提交依赖项、go.mod 和 go.sum 文件的变更。然后进行另外一次 git commit，包括对Kubernetes 代码的更改，以使用（或停止使用）新的/更新的/移除的依赖项。这些提交可以合并到单个 PR 请求中。</p>
+<p>在发送 PR 之前，最好再次检查 go.mod、go.sum 以及 vendor 目录下的变更内容。可以执行以下命令来检查：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ hack/verify-vendor.sh
+</code></pre>
+<h2 id="审查和批准依赖变更">审查和批准依赖变更</h2>
+<p>在审查和批准添加/移除/更新依赖项的 PR 时，应特别注意细节。因为引入新的依赖项在未来会带来一些额外的维护工作，所以，引入的依赖项应该要能够带来一定程度的价值。在引入新的依赖项时，需要留意以下几点：</p>
+<ul>
+<li>新的依赖项是否得到了维护？</li>
+<li>新的依赖项是否为项目带来价值？是否可以在不引入新依赖项的情况下完成相同的功能？</li>
+<li>新的依赖项是原始来源还是分支？</li>
+<li>项目中是否已经有类似功能的依赖项？</li>
+<li>新依赖项的许可证是否与 Kubernetes 项目兼容？</li>
+</ul>
+<p>另外，还需要进行以下检查：</p>
+<ul>
+<li>查看 k8s.io/kubernetes 中的 go.mod 更改。确保 go.mod 的变更和 PR 说明中的变更是一致的；</li>
+<li>查看 staging 组件中的 go.mod 更改。避免在 staging 组件的 go.mod 文件中添加新的 replace 指令。replace 会将依赖包的版本固定为我们所指定的版本，如果这些库的使用者依赖了相同的包，并且包的版本大于我们所指定的版本，这时候可能会带来一些问题（因为我们将依赖包固定到了一个较低的版本，而无视了 staging 组件使用者所指定的更高的版本）；</li>
+<li>检查我们是否可以指定依赖包某个具体的 Tag，而不是一个随机的哈希值；</li>
+<li>检查导入的代码，查看是否有类似 init() 这类函数；</li>
+<li>检查 Kubernetes 的代码更改，确保代码变更是符合预期的（例如，重命名导入或类似操作）。你无需进行功能代码审查；</li>
+<li>如果一切符合预期，可以批准 PR，但不要使用 LGTM，除非你还同时进行了代码审查，或者这次 PR 很简单（例如：包从 k/k/pkg/utils 移动到 k/utils）</li>
+</ul>
+<p>依赖项的许可证由 CNCF <a href="https://github.com/cncf/foundation/blob/master/allowed-third-party-license-policy.md">Allowlist Policy</a> 指定。所有新的依赖项许可证都应由 @kubernetes/dep-approvers 进行审查，以确保其与 Kubernetes 项目许可证兼容。同样重要的是，如果更新依赖项时许可证发生了变化，请注意并标记，以便进行审查。</p>
+<h2 id="kubernetes-go-模块管理方法的一些思考">Kubernetes Go 模块管理方法的一些思考</h2>
+<p>其实对于大部分开发者来说，我们可能根本不会去变更 Kubernetes 的依赖包，那么我们为什么还要学习Kubernetes 的 Go 模块管理方式？我想，通过学习 Kubernetes 的 Go 包管理方式，能够给我们带来以下提升：</p>
+<p>了解并借鉴复杂项目的 Go 包管理方式；</p>
+<ul>
+<li>Go 包管理规范化；</li>
+<li>Go 包管理工具化；</li>
+</ul>
+<p>结合项目特点，探寻业务项目的 Go 包管理最佳实践。</p>
+<p>尽管 Go 模块为 Kubernetes 提供了便利，但在管理如此多的依赖时，仍然面临挑战。例如，多模块仓库的管理、间接依赖的选择、版本兼容性问题等，都需要维护者投入大量的精力去解决。</p>
+<p>为了解决 Go 模块管理的问题，Kubernetes 项目维护者对于Go模块的变更制定了变更规范和变更步骤，并开发了一系列的工具，例如：hack/pin-dependency.sh、hack/verify-vendor.sh、hack/update-vendor.sh 等来确保规范得以正确执行，并提高我们的变更时的效率。</p>
+<p>另外，在使用 Go Modules 机制管理 Go 依赖包时，其实是用不到 vendor 目录的。但 Kubernetes 为了实现项目的可预测和可实现性，仍然使用了 vendor 机制。这也是你能在 Kubernetes 源码仓库中能够发现 vendor目录的原因。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

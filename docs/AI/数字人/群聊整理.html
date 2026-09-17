@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>群聊整理</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="群聊整理">群聊整理</h1>
+<p>live2d能用真人照片做数字人吗?</p>
+<p>这块我要跟一力辉老师确认一下。2号发布的 ADH 3.0.0 版前端部分变化很大，包括对 Live2D 数字人定制的支持。</p>
+<hr>
+<p>实时数字人分三类，2D、3D 还有基于 AI 模型生成的，有人叫 2.5D。目前只有 2D 数字人最现实，在普通机器上也可以跑起来。</p>
+<p>@李锟 老师，上面刚好有同学问，需要什么配置的电脑，辛苦您一起说下吧</p>
+<p>如果采用 ADH 的方案，跑前端应用目前主流的 PC、笔记本都可以，不需要独立显卡。</p>
+<p>后端如果不需要部署本地开源 LLM，直接调用云端 LLM，其实也不需要很高配置，不需要独立显卡。</p>
+<p>后端如果要部署本地开源的 LLM，需要 Nvidia RTX 3070以上显卡，32G内存。</p>
+<p>可以考虑采购 AutoDL 或者 UCloud 上的 GPU 主机，3090 GPU 的主机性价比最高。</p>
+<hr>
+<p>前期入门的时候也可以使用UCloud</p>
+<p>9.9元/天，29.9元/周，畅享DeepSeek全系列镜像！ https://www.ucloud.cn/site/active/gpu.html?cps_code=ImOihPxkcgIGAoG9w5ut2R</p>
+<hr>
+<p>https://github.com/wan-h/awesome-digital-human-live2d</p>
+<hr>
+<p>https://blog.cmyang.cn/archives/ollama-deepseek-amd 我使用 ollama 部署开源 LLM，ollama 也支持 AMD GPU，不过我没用过。</p>
+<hr>
+<p>qwen3 0.7b 太低了啊，只能作为玩具。至少要 8b 才能真正做些严肃应用。</p>
+<hr>
+<p>大家可能有些普遍的误解。这套课程中基于 Live2D 的 2D 数字人，其实对硬件要求是最低的 对显卡也没有特别的要求。需要配置独立显卡与 2D 数字人无关，而是要跑开源 LLM。</p>
+<p>3D 数字人或者由  AI 模型生成的数字人，才需要很高的硬件配置。而且在我看来目前还没有达到普及的门槛。按照著名的“鸿沟理论”，就是还没有准备好跨越鸿沟。这个可能是我的偏见，大家可以及时指正。</p>
+<p>@李锟 李老师，我们公司最近开发了一个数字人，用于解答客户各种流程方面的问题，还特意卖了一台机器放在前台，这也是2D的数字人吧？</p>
+<p>Live2D 数字人，可以在 B 站看看效果。</p>
+<p>老师怎么看硅基智能的数字人</p>
+<p>支持实时互动的数字人，和那种非实时数字人，我们需要分开讨论。</p>
+<p>实时互动的数字人，得自己搭建大模型，加入自己公司的知识库</p>
+<p>调用云端 LLM 也没有问题。</p>
+<p>我们公司现在还有个设想就是是利用数字人做直播，或者发视频，然后自动的将客户的相关信息发送到后端的CRM系统，再分析哪些是有效的客户，再调用一键外呼的Agent进行营销</p>
+<p>用数字人做直播的话，是不是还不太现实</p>
+<p>是的，直播带货这个领域，我感觉用数字人效果不会很好。</p>
+<p>这里面涉及到一个信用传递的问题，跟技术无关。</p>
+<p>那真人+数字人混合直播，或者直接用数字人发视频，是不是可行呢？</p>
+<p>这个很难说，可以试试。我只是感觉用数字人带货或者营销，效果不会很好。技术复杂度很可能超出决策者的想象，结果事倍功半。</p>
+<hr>
+<p>老师说的，优先选择轻量级开发框架，都有哪些？</p>
+<p>Agent SDK 是目前最轻量级的，先用这个。</p>
+<p>https://github.com/openai/openai-agents-python</p>
+<p>LangChain 有些尾大不掉，我有同事用过基于 LangChain 的 LangGraph，评价不高。</p>
+<p>不必过度争论，大家各玩各的，都开开心心，世界和平就有希望了。[偷笑]</p>
+<hr>
+<p>Vue 的设计思想和 React 差别较大。Vue 最初采用的是 Angular 那种 MVVM 设计模式。如果学过 Vue，学 React 也不难。</p>
+<p>前端开发用的其实是一个基于 React 的开发框架 Next.js，类似 Vite 这种。可以直接学习 Next.js。</p>
+<p>https://qufei1993.github.io/nextjs-learn-cn/ 这里有一个 Next.js 的中文教程。需要注意一下，必须学 Next.js 14 以上版本，13 以下的版本的教程都别看了。</p>
+<p>暂时无法兼顾 Java。花点时间学一下 Python 吧。可以从 Python 官方的教程入门。https://docs.python.org/zh-cn/3.13/tutorial/index.html</p>
+<hr>
+<p>咱们课程使用的是Agent SDK吗？</p>
+<p>主要用 Agent SDK，未来还会讲类 Manus 开发框架，用 OpenManus 来做个例子。</p>
+<p>https://www.tizi365.com/openai-agents-sdk/ 这里有个 Agent SDK 的中文教程，可以先看看。</p>
+<p>https://github.com/FoundationAgents/OpenManus OpenManus 是 MetaGPT 团队开发的“类 Manus 开发框架”。我取这个名字是暂时的，因为这类框架与 MetaGPT、AutoGPT、AutoGen、Agent SDK 有较大区别，而与 Dify、扣子这类低代码开发工具也不同。</p>
+<p>有 OpenAI 账号和 api key 当然最好。不过我们主要用开源 LLM Qwen3 和 DeepSeek-R1。</p>
+<p>DeepSeek 据说在憋大招，可能 DeepSeek-R2 也快出来了，或者叫其他名字。我估计 DeepSeek-V3、DeepSeek-R1 会合并起来搞一个新的 LLM。</p>
+<p>很多平台都部署了 DeepSeek-R1，我目前用阿里云百炼平台上的。因为百炼平台上还有 Qwen3 满血版。</p>
+<p>qwen3 真的蛮好用的，小巧精致，8b 版就可以做很多事了，普通配置的机器跑起来完全没问题。支持 deepseek-r1 那样的 think 模式，还支持 function call、对 json 输出的支持也很好。</p>
+<p>开源 LLM 方面，阿里巴巴就是世界领先，不用去满世界吹牛遥遥领先。</p>
+<hr>
+<p>我没有仔细看过A2A，不过从概念上A2A和MCP根本不是一个层面上的东西。</p>
+<p>MCP宇宙中的每个星球球内部国家的通信协议，A2A是宇宙中星球和星球的通信协议</p>
+<p>地球🌏如何和月亮通信，可以用A2A定义好</p>
+<p>MCP从概念上是和Assistants API一个层面的东西。解决的是 LLM 通过调用外部系统的功能来与现实世界中的各种数据和技能对接的问题。形象上说就是给 LLM 的大脑装上健壮的四肢，让 LLM 应用不仅可以对话，还可以完成复杂的任务。</p>
+<p>这样界王神大人就可以更加方便的使用和管理星球</p>
+<p>MCP 可以理解为更好的 Assistants API，有大量的应用场景。</p>
+<p>A2A 则有些尴尬，应用场景有限。A2A 是与那个 Agent Protocol 同等级别的概念。</p>
+<p>最近偶然我想发布一个S2S协议，比A2A更大，解决不同AI系统或者不同国家的AI系统的通信问题[偷笑][呲牙]</p>
+<p>https://agentprotocol.ai/</p>
+<p>这样全王大神就可以管理第一宇宙和第六宇宙的人了[呲牙][愉快]</p>
+<p>这些创造世界和平一类的宏大计划，我看还是交给更有能力的人来解决吧。[偷笑]</p>
+<hr>
+<p>我们的课程讲这些，都是结合着具体的实战例子来讲的，确保有可以运行的例子。风格跟其他老师的那种精讲有很大不同，我个人认为是互补的。其他老师讲 MCP、A2A，估计会把它们的来龙去脉讲的非常清楚，但是有可能在实战层面就会稍显薄弱。</p>
+<p>不过根据我的长期观察和学习，缺乏实战可运行的例子，其实是各种 AI Agent 教程、图书普遍存在的问题。所以从去年开始做 《LLM自主智能体实战课》时，我就有意来尝试解决好这个问题，确保课程是实例驱动的。虽然还达不到理想效果，这确实是我非常重视的努力方向。</p>
+<p>我们这套课程是一套视频实训课，如果不坚持采用实例驱动的方式，带领大家边学边做，而是那种完全讲 ppt 却不做演示的方式，我预感一定会失败。</p>
+<p>https://www.bilibili.com/video/BV1EgNnexEJB/?buvid=XUD631AD4748AE7766F75A16A443618B2C364&amp;from_spmid=default-value&amp;is_story_h5=false&amp;mid=4nwhqewYmizjBGvlXvV9ag%3D%3D&amp;plat_id=115&amp;share_from=ugc&amp;share_medium=android_i&amp;share_plat=android&amp;share_session_id=a3dd5241-3f25-4bb1-9200-0648f793e54e&amp;share_source=WEIXIN&amp;share_tag=s_i&amp;spmid=united.player-video-detail.0.0&amp;timestamp=1744727326&amp;unique_k=CwncWbj&amp;up_id=13260662&amp;vd_source=1dc36235eec13557c1ae4e275dcb5f63</p>
+<p>我极端赞赏奥特曼老师“边干边学”的理念，这个理念无论对于学习掌握新技术，还是对于职场发展甚至创业来说，都是金科玉律。做不到“边干边学”，就很难取得成功。</p>
+<hr>
+<p>https://github.com/alibaba/MNN/tree/master 分享阿里开源3D数字人。大家学习课程时一起学习了。</p>
+<hr>
+<p>老师，我用百炼平台是的大模型，就不必准备开发服务器了吧</p>
+<p>还是需要有一台 Ubuntu 主机，不过不需要独立显卡。课程里面使用本地开源 LLM 的代码，修改一下 base url 、api key、model id 就好了。</p>
+<hr>
+<p>大家统一用 node.js 22.16.0 这个版本。新版本对代码格式要求太严格。必须 build 成功之后才能使用。如果出错了，把 node_modules 目录删除，重新 pnpm install，然后 build 试试看。这些问题用一力辉老师的 ADH 项目也是一样。</p>
+<p>我也不是经常有时间在群里。大多数问题其实都是常见的问题。有同学提问过的问题解决之后，可以在群里说一下怎么解决的。有时间的话还可以协助其他同学解决相同的问题。我们应该多学习开源社区分享、互助的精神。其实分享的越多，自己成长的也越快。做个自了汉从来不分享，反而进步很慢。[微笑]</p>
+<p>DeepSeek团队发布在Ollama平台上的deepseek-r1版本，一个月前的默认版本是7b版。后来他们可能觉得7b版性能不好，把默认版本改成了8b版。和qwen3的默认版本参数量相同。01课里面我部署的是7b版，大家可以统一改成8b版。</p>
+<p>Ollama平台上的deepseek-v3只有满血版，对硬件要求太高了，所以我没有讲通过ollama部署deepseek-v3。因为deepseek-r1不支持Assistants API，很多开发工作必须结合deepseek-v3才能完成。</p>
+<p>https://developer.qiniu.com/aitokenapi/12912/deepseek-with-openai-sdk-build-agent</p>
+<p>七牛网站上分享的这个教程，function call 部分使用的是 deepseek-v3-tool。deepseek-r1 因为不支持 function call，不能作为 AI Agent 的主力 LLM ，而只能配合 deepseek-v3-tool 来工作。</p>
+<hr>
+<p>我整理了一下自己遇到的问题，可以参考看看。</p>
+<p>https://mp.weixin.qq.com/s/vGuVltrhSFqhwSVWTTqRIw</p>
+<hr>
+<p>@所有人 [呲牙]插播一条～</p>
+<p>[社会社会]各位同学大家好！感谢大家选择了我们的行动营进行数字人开发相关的学习，也为大家第一周就开了如此好的一个头点赞。</p>
+<p>🤔群里有很多同学提出了自己的问题，共享了自己的方法，都很有价值，因此发起这个「共享文档」，希望能起到一个记录和分享的作用，欢迎大家实时共建，学习开源社区精神，互帮互助，共同进步！</p>
+<p>👨🏻‍🏫对于大家的共性问题以及尚未解决的问题，我们会在每周五的直播间，请老师进行统一答疑，所以也欢迎大家留下自己的问题。</p>
+<p>📄查看文档请点击：https://shimo.im/docs/pmkxdBZZEdHnYWkN/ 《「实时数字人」开发共享文档》，可复制链接后用石墨文档 App 打开</p>
+<hr>
+<p>是的，开发服务器上要装 ffmpeg。ADH 后端用 ffmpeg 解码，转成 wav 发给 ADH 前端。</p>
+<p>https://zhuanlan.zhihu.com/p/20208901210</p>
+<p>Roo Code 其实做的也蛮好的。我不认为 AI 辅助编程工具就会一家独大，赢家通吃。因为对 AI 辅助编程工具的需求非常多样化。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

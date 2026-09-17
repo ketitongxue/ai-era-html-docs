@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes 网络</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="kubernetes-网络">Kubernetes 网络</h1>
+<h1 id="pod-网络">Pod 网络</h1>
+<p>Pod 的多个容器是共享网络 Namespace 的，这意味着：</p>
+<ul>
+<li>
+<p>同一个 Pod 中的不同容器可以彼此通过 Loopback 地址访问：</p>
+<ul>
+<li>在第一个容器中起了一个服务 http://127.0.0.1</li>
+<li>在第二个容器内，是可以通过 httpGet http://127.0.0.1 访问到该地址的。</li>
+</ul>
+</li>
+<li>
+<p>这种方法常用于不同容器间的互相协作。</p>
+</li>
+</ul>
+<h1 id="什么是cni">什么是CNI</h1>
+<p>Kubernetes定义的这个网络模型很完美，但要把这个模型落地实现就不那么容易了。所以Kubernetes就专门制定了一个标准： CNI（Container Networking Interface）。</p>
+<p>CNI为网络插件定义了一系列通用接口，开发者只要遵循这个规范就可以接入Kubernetes，为Pod创建虚拟网卡、分配IP地址、设置路由规则，最后就能够实现“IP-per-pod”网络模型。</p>
+<p>依据实现技术的不同，CNI插件可以大致上分成“ **Overlay**”“ **Route**”和“ **Underlay**”三种。</p>
+<p><strong>Overlay</strong> 的原意是“覆盖”，是指它构建了一个工作在真实底层网络之上的“逻辑网络”，把原始的Pod网络数据封包，再通过下层网络发送出去，到了目的地再拆包。因为这个特点，它对底层网络的要求低，适应性强，缺点就是有额外的传输成本，性能较低。</p>
+<p><strong>Route</strong> 也是在底层网络之上工作，但它没有封包和拆包，而是使用系统内置的路由功能来实现Pod跨主机通信。它的好处是性能高，不过对底层网络的依赖性比较强，如果底层不支持就没办法工作了。</p>
+<p><strong>Underlay</strong> 就是直接用底层网络来实现CNI，也就是说Pod和宿主机都在一个网络里，Pod和宿主机是平等的。它对底层的硬件和网络的依赖性是最强的，因而不够灵活，但性能最高。</p>
+<p>自从2015年CNI发布以来，由于它的接口定义宽松，有很大的自由发挥空间，所以社区里就涌现出了非常多的网络插件，我们之前在 <a href="https://time.geekbang.org/column/article/534762">第17讲</a> 里提到的Flannel就是其中之一。</p>
+<p><strong>Flannel</strong>（ <a href="https://github.com/flannel-io/flannel/">https://github.com/flannel-io/flannel/</a>）由CoreOS公司（已被Redhat收购）开发，最早是一种Overlay模式的网络插件，使用UDP和VXLAN技术，后来又用Host-Gateway技术支持了Route模式。Flannel简单易用，是Kubernetes里最流行的CNI插件，但它在性能方面表现不是太好，所以一般不建议在生产环境里使用。</p>
+<p>现在还有两个常用CNI插件：Calico、Cilium，我们做个简略的介绍。</p>
+<p><strong>Calico</strong>（ <a href="https://github.com/projectcalico/calico">https://github.com/projectcalico/calico</a>）是一种Route模式的网络插件，使用BGP协议（Border Gateway Protocol）来维护路由信息，性能要比Flannel好，而且支持多种网络策略，具备数据加密、安全隔离、流量整形等功能。</p>
+<p><strong>Cilium</strong>（ <a href="https://github.com/cilium/cilium">https://github.com/cilium/cilium</a>）是一个比较新的网络插件，同时支持Overlay模式和Route模式，它的特点是深度使用了Linux eBPF技术，在内核层次操作网络数据，所以性能很高，可以灵活实现各种功能。在2021年它加入了CNCF，成为了孵化项目，是非常有前途的CNI插件。</p>
+<h1 id="cni插件是怎么工作的">CNI插件是怎么工作的</h1>
+<p>Flannel比较简单，我们先以它为例看看CNI在Kubernetes里的工作方式。</p>
+<p>这里必须要说明一点，计算机网络很复杂，有IP地址、MAC地址、网段、网卡、网桥、路由等许许多多的概念，而且数据会流经多个设备，理清楚脉络比较麻烦，今天我们会做一个大概的描述，不会讲那些太底层的细节。</p>
+<p>我们先来在实验环境里用Deployment创建3个Nginx Pod，作为研究对象：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl create deploy ngx-dep --image=nginx:alpine --replicas=3
+</code></pre>
+<p>使用命令 <code>kubectl get pod</code> 可以看到，有两个Pod运行在master节点上，IP地址分别是“10.10.0.3”“10.10.0.4”，另一个Pod运行在worker节点上，IP地址是“10.10.1.77”：</p>
+<p><img src="../../../assets/md-images/YlKobqsaFo90pLxL9uCcSMy5n1f.png" alt="图片展示的是在Kubernetes实验环境中，使用kubectl get pod -o wide命令查看Pod信息的结果。显示了三个Nginx Pod的名称、状态、重启次数、运行时长、IP地址及所在节点。其中，nginx-dep-bfbb5f64b-6p2p5运行在worker节点，IP为10.10.1.77；nginx-dep-bfbb5f64b-j9n5n和nginx-dep-bfbb5f64b-jtcwk均运行在master节点，IP分别为10.10.0.3和10.10.0.4。该图片与上文提到的使用kubectl get pod命令查看Pod运行情况相呼应，直观呈现了Pod的运行状态及网络信息。"></p>
+<p>Flannel默认使用的是基于VXLAN的Overlay模式，整个集群的网络结构我画了一张示意图，你可以对比一下Docker的网络结构：</p>
+<p><img src="../../../assets/md-images/OlGZbdu54osK0DxJ0X1ckT29nUe.jpg" alt="图片展示了Flannel网络结构示意图，对比了Docker的网络结构。左侧Node 0中，两个Pod分别运行在10.10.0.3和10.10.0.4，通过cni0 bridge连接，flannel.1桥接MAC为36:34:5dbb:2f:40:a，eth0/ens160连接192.168.10.210。右侧Node 1中，Pod运行在10.10.1.77，MariaDB运行在10.10.1.0/24，同样通过cni0 bridge连接，flannel.1桥接MAC为9e:23:ee:5fa:4c:8，eth0/ens160连接192.168.10.220。该图与上下文介绍的Flannel网络结构相呼应，直观呈现其工作原理。"></p>
+<p>从单机的角度来看的话，Flannel的网络结构和Docker几乎是一模一样的，只不过网桥换成了“cni0”，而不是“docker0”。</p>
+<p>接下来我们来操作一下，看看Pod里的虚拟网卡是如何接入cni0网桥的。</p>
+<p>在Pod里执行命令 <code>ip addr</code> 就可以看到它里面的虚拟网卡“eth0”：</p>
+<p><img src="../../../assets/md-images/Qq6EbuaSWoGGD6xgBA1cPywfnnc.png" alt="图片展示了在Kubernetes集群中Pod里虚拟网卡“eth0”接入cni0网桥的操作结果。通过执行“kubectl exec ngx-dep-bfbb5f64b-j9n5n -- ip addr”命令，显示了Pod内虚拟网卡“eth0”的相关信息，其中“3: eth0@if45”部分被红框突出显示，表明该网卡序号为3，另一端连接的虚拟网卡序号为45。此图与上文操作步骤相呼应，直观呈现了Pod里虚拟网卡接入cni0网桥的网络配置情况。"></p>
+<p>你需要注意它的形式，第一个数字“3”是序号，意思是第3号设备，“@if45”就是它另一端连接的虚拟网卡，序号是45。</p>
+<p>因为这个Pod的宿主机是master，我们就要登录到master节点，看看这个节点上的网络情况，同样还是用命令 <code>ip addr</code>：</p>
+<p><img src="../../../assets/md-images/ZMycbZMqqoOvFhxZ9kTcoAQJnhc.png" alt="图片展示了在master节点上执行ip addr命令的结果。其中，关键信息是序号为45的设备，其形式为“veth41586979@if3:”，另一端连接的虚拟网卡序号是3。该图片与上文提到的操作相关，用于说明在Pod里执行ip addr命令看到的虚拟网卡“eth0”形式，以及登录master节点后用ip addr命令查看网络情况，以展示Pod里的虚拟网卡如何接入cni0网桥。"></p>
+<p>这里就可以看到宿主机（master）节点上的第45号设备了，它的名字是 <code>veth41586979@if3</code>，“veth”表示它是一个虚拟网卡，而后面的“@if3”就是Pod里对应的3号设备，也就是“eth0”网卡了。</p>
+<p><strong>那么“cni0”网桥的信息该怎么查看呢？这需要在宿主机（master）上使用命令</strong> <code>**brctl show**</code><strong>：</strong></p>
+<p><img src="../../../assets/md-images/Hz2Zb8wUgoEnoUxtfnBc0ZE7nDc.png" alt="图片展示了在宿主机（master）上使用命令“brctl show”获取的网络桥接信息。其中，“cni0”网桥上有4个虚拟网卡，分别为veth0d5287ff、veth2b3ef56d、veth41586979、veth9473899b，veth41586979被红框突出显示。该图片与上文提到的在宿主机上使用“brctl show”命令查看“cni0”网桥上的虚拟网卡信息相呼应，直观呈现了网卡与网桥的对应关系，帮助理解Pod、veth和cni0的引用关系。"></p>
+<p>从这张截图里，你可以发现“cni0”网桥上有4个虚拟网卡，第三个就是“veth41586979”，所以这个网卡就被“插”在了“cni0”网桥上，然后因为虚拟网卡的“结对”特性，Pod也就连上了“cni0”网桥。</p>
+<p>单纯用Linux命令不太容易看清楚网卡和网桥的联系，所以我把它们整合在了下面的图里，加上了虚线标记，这样你就能更清晰地理解Pod、veth和cni0的引用关系了：</p>
+<p><img src="../../../assets/md-images/Am72bh9cIojO8DxtRiQcmRqenTg.jpg" alt="图片展示了Kubernetes网络中Pod、veth和cni0网桥的引用关系。左侧是Linux命令行操作，显示了Pod的eth0网卡信息，以及master节点的veth网卡信息，其中veth41586979被“插”在cni0网桥上。右侧是图形化表示，以箭头连接Pod的eth0、vethA和cni0网桥，直观呈现了网卡与网桥的引用关系，与上文通过Linux命令理解Pod、veth和cni0引用关系的内容相呼应。"></p>
+<p>使用同样的方式，你可以知道另一个Pod “10.10.0.4”的网卡是 <code>veth2b3ef56d@if3</code>，它也在“cni0”网桥上，所以借助这个网桥，本机的Pod就可以直接通信。</p>
+<p>弄清楚了本机网络，我们再来看跨主机的网络，它的关键是节点的路由表，用命令 <code>route</code> 查看：</p>
+<p><img src="../../../assets/md-images/MqsnbcRYeoZkuXxiaCmcJT9Jneq.png" alt="图片展示的是在Ubuntu系统中使用“route”命令查看节点路由表的结果。表格中列出了Destination（目标地址）、Gateway（网关）、Genmask（生成掩码）、Flags、Metric、Ref、Use、Iface等信息。关键信息有：10.10.0.0网段数据需走cni0设备，10.10.1.0网段数据需走flannel.1设备，192.168.10.0网段数据需走ens160设备。该图与上下文紧密相关，用于说明跨主机网络中节点路由表的关键信息，帮助理解Pod间通信的网络路径。"></p>
+<p>它告诉我们有这些信息：</p>
+<ul>
+<li>10.10.0.0/24网段的数据，都要走cni0设备，也就是“cni0”网桥。</li>
+<li>10.10.1.0/24网段的数据，都要走flannel.1设备，也就是Flannel。</li>
+<li>192.168.10.0/24网段的数据，都要走ens160设备，也就是我们宿主机的网卡。</li>
+</ul>
+<p>假设我们要从master节点的“10.10.0.3”访问worker节点的“10.10.1.77”，因为master节点的“cni0”网桥管理的只是“10.10.0.0/24”这个网段，所以按照路由表，凡是“10.10.1.0/24”都要让flannel.1来处理，这样就进入了Flannel插件的工作流程。</p>
+<p>然后Flannel就要来决定应该如何把数据发到另一个节点，在各种表里去查询。因为这个过程比较枯燥，我就不详细说了，你可以参考下面的示意图，用到的命令有 <code>ip neighbor</code>、 <code>bridge fdb</code> 等等：</p>
+<p><img src="../../../assets/md-images/XeYNbuIVoogNHzxYF06c0IVPnub.png" alt="图片展示了Flannel在Kubernetes网络中处理数据传输的命令及结果。上半部分显示了使用和命令查询的网络信息，如10.10.1.0网段的MAC地址等。下半部分是命令输出的路由表，192.168.10.0网段的路由项中，列显示为。图片与上下文紧密相关，直观呈现了上下文中提到的Flannel决定数据发送目标节点、封装VXLAN报文等操作的网络信息。"></p>
+<p>Flannel得到的结果就是要把数据发到“192.168.10.220”，也就是worker节点，所以它就会在原始网络包前面加上这些额外的信息，封装成VXLAN报文，用“ens160”网卡发出去，worker节点收到后再拆包，执行类似的反向处理，就可以把数据交给真正的目标Pod了。</p>
+<h2 id="使用calico网络插件">使用Calico网络插件</h2>
+<p>看到这里，是不是觉得Flannel的Overlay处理流程非常复杂，绕来绕去很容易让人头晕，那下面我们就来看看另一个Route模式的插件Calico。</p>
+<p>你可以在Calico的网站（ <a href="https://www.tigera.io/project-calico/">https://www.tigera.io/project-calico/</a>）上找到它的安装方式，我选择的是“本地自助安装（Self-managed on-premises）”，可以直接下载YAML文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">wget &lt;https://projectcalico.docs.tigera.io/manifests/calico.yaml&gt;
+</code></pre>
+<p>由于Calico使用的镜像较大，为了加快安装速度，可以考虑在每个节点上预先使用 <code>docker pull</code> 拉取镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">docker pull calico/cni:v3.23.1
+docker pull calico/node:v3.23.1
+docker pull calico/kube-controllers:v3.23.1
+</code></pre>
+<p>Calico的安装非常简单，只需要用 <code>kubectl apply</code> 就可以（记得安装之前最好把Flannel删除）：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl apply -f calico.yaml
+</code></pre>
+<p>安装之后我们来查看一下Calico的运行状态，注意它也是在“kube-system”名字空间：</p>
+<p><img src="../../../assets/md-images/OZGhbLkSIobktTxbl6dcxpYLnJd.png" alt="图片展示了在Kubernetes集群中使用Calico网络插件后，kubectl get pod -n kube -system命令的执行结果。显示了三个Pod的状态，分别为calico - kube - controllers - 6b77fff45 - rprmm、calico - node - h2299、calico - node - snqtj，它们的READY均为1/1，STATUS均为Running。该图片与上文提到的安装Calico网络插件后查看其运行状态的内容相关，直观呈现了运行结果。"></p>
+<p>我们仍然创建3个Nginx Pod来做实验：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl create deploy ngx-dep --image=nginx:alpine --replicas=3
+</code></pre>
+<p>我们会看到master节点上有两个Pod，worker节点上有一个Pod，但它们的IP地址与刚才Flannel的明显不一样了，分别是“10.10.219.\*”和“10.10.171.\*”，这说明Calico的IP地址分配策略和Flannel是不同的：</p>
+<p><img src="../../../assets/md-images/JLJTbRq5yowvVlxqySjceZbAnEg.png" alt="图片展示了在Kubernetes集群中使用Calico网络插件时，通过命令获取的Pod信息。显示了三个Pod的名称、状态、重启次数、年龄、IP地址及所在节点，分别为“ngx-dep-bfbb5f64b-ckpgs”在“worker”节点的IP为“10.10.171.65”，“ngx-dep-bfbb5f64b-ctshv”和“ngx-dep-bfbb5f64b-flvzb”都在“master”节点，IP分别为“10.10.219.67”和“10.10.219.68”。该图片与上文提到的使用Calico网络插件后Pod IP地址与Flannel不同，且Pod里的网卡情况与Flannel有异等内容相关，直观呈现了Pod IP地址情况。"></p>
+<p>然后我们来看看Pod里的网卡情况，你会发现虽然还是有虚拟网卡，但宿主机上的网卡名字变成了 <code>calica17a7ab6ab@if4</code>，而且并没有连接到“cni0”网桥上：</p>
+<p><img src="../../../assets/md-images/U2uMbFZW4ok2dKxqXPjcWAAsnPT.jpg" alt="图片展示了使用Calico网络插件后Pod的网卡情况。左侧是Pod里网卡信息，显示有eth0网卡，IP为10.10.219.100，还有一条以calica17a7ab6ab@if4命名的网卡，IP为10.20.171.64。右侧是Pod的网络示意图，eth0连接vethA，vethA连接宿主机的calica17a7ab6ab@if4，但没有连接到cni0网桥。该图与上下文紧密相关，直观呈现了Calico网络插件下Pod的网卡及网络连接情况，与上文提到的Pod里网卡情况相呼应。"></p>
+<p>这是不是很奇怪？</p>
+<p>其实这是Calico的工作模式导致的正常现象。因为Calico不是Overlay模式，而是Route模式，所以它就没有用Flannel那一套，而是 **在宿主机上创建路由规则，让数据包不经过网桥直接“跳”到目标网卡去**。</p>
+<p>来看一下节点上的路由表就能明白：</p>
+<p><img src="../../../assets/md-images/B5wWbN85soH0auxLueUc1d7onbb.png" alt="图片展示了master节点上的路由表信息。其中，10.10.219.64、10.10.219.65、10.10.219.67、10.10.219.68等IP地址对应的Use Iface列显示为calica17a7ab6ab@if4，即宿主机上的网卡名字。这与上文提到的Calico在宿主机上创建路由规则，让数据包不经过网桥直接“跳”到目标网卡去的现象相呼应，直观呈现了Calico工作模式下路由规则的设置情况。"></p>
+<p>假设Pod A“10.10.219.67”要访问Pod B“10.10.219.68”，那么查路由表，知道要走“cali051dd144e34”这个设备，而它恰好就在Pod B里，所以数据就会直接进Pod B的网卡，省去了网桥的中间步骤。</p>
+<p>至于在Calico里跨主机通信是如何路由的，你完全可以对照着路由表，一步步地“跳”到目标Pod去（提示：tunl0设备）。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

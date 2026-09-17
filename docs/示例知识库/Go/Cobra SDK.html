@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cobra SDK</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="cobra-sdk">Cobra SDK</h1>
+<p>社区有很多优秀的 Go 包，例如 <a href="https://github.com/spf13/cobra">spf13/cobra</a>、<a href="https://github.com/urfave/cli">urfave/cli</a> 等。但当前用的最多的是 cobra。例如：Kubernetes、Docker、Etcd、Hugo 等，均使用 cobra 构建应用。</p>
+<h2 id="cobra-简介">Cobra 简介</h2>
+<p>Cobra 是一个用于创建 Golang CLI 应用程序的库，提供了命令行参数解析、自动生成帮助文档和命令补全功能。它简化了多级命令行结构的开发，使开发者能够轻松创建层级命令和子命令。</p>
+<h2 id="cobra-优势">Cobra 优势</h2>
+<ul>
+<li>
+<p>很容易实现子命令，类似于 kubectl get pod、kubectl get deployment</p>
+</li>
+<li>
+<p>自动生成 --help flag</p>
+</li>
+<li>
+<p>自动命令建议（针对输错命令的情况）</p>
+</li>
+<li>
+<p>自动生成 bash complete</p>
+</li>
+<li>
+<p>根据命令自动生成使用文档</p>
+</li>
+<li>
+<p>支持设置全局、本地和级联 flag</p>
+<ul>
+<li>例如对于 kubectl --kubeconfig flag 而言是全局的</li>
+</ul>
+</li>
+<li>
+<p>社区活跃：kubectl、helm、docker 等 cli 工具也用</p>
+</li>
+</ul>
+<h2 id="cobra-核心概念">Cobra 核心概念</h2>
+<ul>
+<li>命令（COMMAND）：命令表示要执行的操作</li>
+<li>参数（ARG）：命令的参数，一般用来表示操作的对象</li>
+<li>标志（FLAG）：是命令的修饰，可以调整操作的行为</li>
+</ul>
+<p><img src="../../../assets/md-images/BhvhbZQ3toPs5yxfw9PcI2Q6n0b.png" alt="图片展示了Cobra SDK中命令行参数的分类示例。左侧“kubectl”为AppName，右侧“kube-system”为命名空间。中间依次为“edit”（COMMAND）、“service”（SUB COMMAND）、“nginx”（ARG）、“-n”（FLAG）。该图与上下文介绍Cobra核心概念相关，直观呈现了命令、参数、标志等概念在实际命令行中的应用，帮助理解Cobra在命令行操作中的分类与作用。"></p>
+<h2 id="quick-start">Quick Start</h2>
+<ul>
+<li>
+<p>使用 cobra-cli 初始化项目</p>
+</li>
+<li>
+<p>安装 cobra</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>`go install ``github.com/spf13/cobra-cli@latest`
+</code></pre>
+</li>
+<li>
+<p>创建 k8scopilot</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>`go mod init ``github.com/ketitongxue/k8scopilot`
+</code></pre>
+</li>
+<li>
+<p>初始化项目：</p>
+</li>
+<li>
+<p>将 go 包安装路径导入到环境变量中</p>
+</li>
+</ul>
+<p><code>export PATH=/Users/keti/go/bin:$PATH</code></p>
+<p><code>cobra-cli init --author &quot;aiops&quot; --license mit</code></p>
+<ul>
+<li>修改 root.go 描述</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">var version = &quot;v0.0.1&quot;
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &amp;cobra.Command{
+    Use:   &quot;k8scopilot&quot;,
+    Short: &quot;A brief description of your application&quot;,
+    Long: `This is a K8s Copilot tool,以下是一些用法实例:
+        1. kubectl get pods -n &lt;namespace&gt;
+        2. kubectl get pods -n &lt;namespace&gt; -o wide
+        3. kubectl get pods -n &lt;namespace&gt; -o yaml
+        4. kubectl get pods -n &lt;namespace&gt; -o json`,
+    Version: version,
+    // Uncomment the following line if your bare application
+    // has an action associated with it:
+    // Run: func(cmd *cobra.Command, args []string) { },
+}
+</code></pre>
+<ul>
+<li>构建：go build -o k8scopilot</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% ./k8scopilot 
+This is a K8s Copilot tool,以下是一些用法实例:
+        1. kubectl get pods -n &lt;namespace&gt;
+        2. kubectl get pods -n &lt;namespace&gt; -o wide
+        3. kubectl get pods -n &lt;namespace&gt; -o yaml
+        4. kubectl get pods -n &lt;namespace&gt; -o json
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">% ./k8scopilot --version
+# 或者 ./k8scopilot -v
+k8scopilot version v0.0.1
+</code></pre>
+<ul>
+<li>添加第一个 command：hello</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">% cobra-cli add hello
+hello created at /Users/keti/Documents/aiops/aiops_Learning/10cobra-cli
+</code></pre>
+<p>会自动在 <code>~/k8scopilot/cmd/</code> 生成 <code>hello.go</code> 文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% go build -o k8scopilot
+% ./k8scopilot  hello
+hello called
+</code></pre>
+<h2 id="添加第多级子命令subcommand">添加第多级子命令(subcommand)</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">% cobra-cli add world -p 'helloCmd' 
+world created at /Users/keti/Documents/aiops/aiops_Learning/10cobra-cli
+</code></pre>
+<ul>
+<li>-p 指定子命令所属的父命令(parent)</li>
+<li>父命令只输出使用方法，不写业务逻辑</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">% go build -o k8scopilot
+% ./k8scopilot hello world           
+world called
+</code></pre>
+<h2 id="flag-类型">Flag 类型</h2>
+<ul>
+<li>
+<p>String 类型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- StringVar(&amp;variable, &quot;flag&quot;, &quot;default&quot;, &quot;description&quot;) ------------&gt; 不带缩写
+
+\- StringVarP(&amp;variable, &quot;flag&quot;, &quot;shorthand&quot;, &quot;default&quot;, &quot;description&quot;) --------&gt; 带缩写
+
+\- StringSliceVar(&amp;variable, &quot;flag&quot;, []string{}, &quot;description&quot;) ---------&gt; 可接受数组, cli 通过传多个 flag
+
+\- StringSliceVarP(&amp;variable, &quot;flag&quot;, &quot;shorthand&quot;, []string{}, &quot;description&quot;)
+</code></pre>
+</li>
+<li>
+<p>Bool 类型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- BoolVar(&amp;variable, &quot;flag&quot;, false, &quot;description&quot;)
+
+\- BoolVarP(&amp;variable, &quot;flag&quot;, &quot;shorthand&quot;, false, &quot;description&quot;)
+</code></pre>
+</li>
+<li>
+<p>Int 类型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- IntVar(&amp;variable, &quot;flag&quot;, 0, &quot;description&quot;)
+
+\- IntVarP(&amp;variable, &quot;flag&quot;, &quot;shorthand&quot;, 0, &quot;description&quot;)
+</code></pre>
+</li>
+<li>
+<p>Float 类型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- Float64Var(&amp;variable, &quot;flag&quot;, 0.0, &quot;description&quot;)
+
+\- Float64VarP(&amp;variable, &quot;flag&quot;, &quot;shorthand&quot;, 0.0, &quot;description&quot;)
+</code></pre>
+</li>
+</ul>
+<h2 id="添加-flag">添加 Flag</h2>
+<ul>
+<li>
+<p>PersistentFlags：持久 Flag，定义它的命令和子命令都可以使用，例如在 rootCmd 里添加全局 Flag</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- rootCmd.PersistentFlags().StringVarP(&amp;kubeconfig, &quot;kubeconfig&quot;, &quot;k&quot;, defaultKubeconfig, &quot;kubeconfig file&quot;)
+
+\- rootCmd.PersistentFlags().StringVarP(&amp;namespace, &quot;namespace&quot;, &quot;n&quot;, &quot;default&quot;, &quot;namespace&quot;)
+
+\- 在 world.go 里可以直接读取
+</code></pre>
+</li>
+<li>
+<p>本地 Flags：仅限于定义它的命令可以使用</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- worldCmd.Flags().StringVarP(&amp;Source, &quot;source&quot;, &quot;s&quot;, &quot;&quot;, &quot;Source directory to read from&quot;)
+</code></pre>
+</li>
+<li>
+<p>默认 Flag 都是可选的，如果是必须的 Flag 可通过以下方式设置</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>\- rootCmd.MarkFlagRequired(&quot;source&quot;)
+
+\- 不设置则会报错
+</code></pre>
+</li>
+</ul>
+<h3 id="示例">示例：</h3>
+<h4 id="全局">全局</h4>
+<p>修改 root.go</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">/*
+Copyright © 2025 aiops
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+package cmd
+
+import (
+    &quot;os&quot;
+    &quot;path/filepath&quot;
+
+    &quot;github.com/spf13/cobra&quot;
+)
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &amp;cobra.Command{
+    Use:   &quot;k8scopilot&quot;,
+    Short: &quot;这是一个K8s copilot 工具&quot;,
+    Long: `这是一个K8s copilot 工具，以下是一些用法示例：
+    1. 
+    2. 
+    `,
+    Version: &quot;v0.0.1&quot;,
+    // Uncomment the following line if your bare application
+    // has an action associated with it:
+    // Run: func(cmd *cobra.Command, args []string) { },
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+    err := rootCmd.Execute()
+    if err != nil {
+        os.Exit(1)
+    }
+}
+
+var kubeconfig string
+var namespace string
+
+func init() {
+    // Here you will define your flags and configuration settings.
+    // Cobra supports persistent flags, which, if defined here,
+    // will be global for your application.
+
+    // rootCmd.PersistentFlags().StringVar(&amp;cfgFile, &quot;config&quot;, &quot;&quot;, &quot;config file (default is $HOME/.k8scopilot.yaml)&quot;)
+
+    // Cobra also supports local flags, which will only run
+    // when this action is called directly.
+    // rootCmd.Flags().BoolP(&quot;toggle&quot;, &quot;t&quot;, false, &quot;Help message for toggle&quot;)
+    homeDir, _ := os.UserHomeDir()
+    defaultKubeconfig := filepath.Join(homeDir, &quot;.kube&quot;, &quot;config&quot;)
+    rootCmd.PersistentFlags().StringVarP(&amp;kubeconfig, &quot;kubeconfig&quot;, &quot;k&quot;, defaultKubeconfig, &quot;Path to the kubeconfig&quot;)
+    rootCmd.PersistentFlags().StringVarP(&amp;namespace, &quot;namespace&quot;, &quot;n&quot;, &quot;default&quot;, &quot;The namespace to use&quot;)
+}
+
+</code></pre>
+<p>测试效果</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">./k8scopilot --kubeconfig 
+Error: flag needs an argument: --kubeconfig
+Usage:
+  k8scopilot [command]
+
+Available Commands:
+  hello       A brief description of your command
+  help        Help about any command
+
+Flags:
+  -h, --help                help for k8scopilot
+  -k, --kubeconfig string   Path to the kubeconfig (default &quot;C:\\Users\\keti\\.kube\\config&quot;)
+  -n, --namespace string    The namespace to use (default &quot;default&quot;)
+  -v, --version             version for k8scopilot
+
+Use &quot;k8scopilot [command] --help&quot; for more information about a command.
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">./k8scopilot hello world --help
+A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.
+
+Usage:
+  k8scopilot hello world [flags]
+
+Flags:
+  -h, --help   help for world
+
+Global Flags:
+  -k, --kubeconfig string   Path to the kubeconfig (default &quot;C:\\Users\\keti\\.kube\\config&quot;)
+  -n, --namespace string    The namespace to use (default &quot;default&quot;)
+</code></pre>
+<p>如何传到子cmd中？</p>
+<p>在world中修改 <code>Run</code> 部分</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">/*
+Copyright © 2025 NAME HERE &lt;EMAIL ADDRESS&gt;
+*/
+package cmd
+
+import (
+    &quot;fmt&quot;
+
+    &quot;github.com/spf13/cobra&quot;
+)
+
+// worldCmd represents the world command
+var worldCmd = &amp;cobra.Command{
+    Use:   &quot;world&quot;,
+    Short: &quot;A brief description of your command&quot;,
+    Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+    Run: func(cmd *cobra.Command, args []string) {
+        fmt.Println(&quot;kubeconfig:&quot;, kubeconfig)
+        fmt.Println(&quot;namespace:&quot;, namespace)
+    },
+}
+
+func init() {
+    helloCmd.AddCommand(worldCmd)
+
+    // Here you will define your flags and configuration settings.
+
+    // Cobra supports Persistent Flags which will work for this command
+    // and all subcommands, e.g.:
+    // worldCmd.PersistentFlags().String(&quot;foo&quot;, &quot;&quot;, &quot;A help for foo&quot;)
+
+    // Cobra supports local flags which will only run when this command
+    // is called directly, e.g.:
+    // worldCmd.Flags().BoolP(&quot;toggle&quot;, &quot;t&quot;, false, &quot;Help message for toggle&quot;)
+}
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">./k8scopilot hello world hello world --kubeconfig abc
+kubeconfig: abc
+namespace: default
+
+./k8scopilot hello world hello world --kubeconfig abc -n demo
+kubeconfig: abc
+namespace: demo
+</code></pre>
+<h4 id="local">Local</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">var source string
+
+func init() {
+    helloCmd.AddCommand(worldCmd)
+
+    worldCmd.Flags().StringVarP(&amp;source, &quot;source&quot;, &quot;s&quot;, &quot;world&quot;, &quot;The source of the message&quot;)
+}
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">./k8scopilot hello world --help
+A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+This application is a tool to generate the needed files
+to quickly create a Cobra application.
+
+Usage:
+  k8scopilot hello world [flags]
+
+Flags:
+  -h, --help            help for world
+  -s, --source string   The source of the message (default &quot;world&quot;)
+</code></pre>
+<h2 id="其他基础设置">其他基础设置</h2>
+<ul>
+<li>
+<p>设置 Version</p>
+<ul>
+<li>在 root.go &amp;cobra.Command{} 里设置 Version</li>
+</ul>
+</li>
+<li>
+<p>标记命令已废弃</p>
+<ul>
+<li>在子命令中 &amp;cobra.Command{} 里设置 Deprecated，打印输出提示</li>
+</ul>
+</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

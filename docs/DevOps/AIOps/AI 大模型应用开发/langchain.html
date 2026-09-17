@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>langchain</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="langchain">langchain</h1>
+<ul>
+<li>
+<p>LangChain 101</p>
+<ul>
+<li>LangChain 是什么：通过组合模块和能力抽象来扩展 LLM 的助手</li>
+<li>为什么需要 LangChain</li>
+<li>LangChain 典型使用场景</li>
+<li>LangChain 基础概念与模块化设计</li>
+</ul>
+</li>
+<li>
+<p>LangChain 核心模块入门与实战</p>
+<ul>
+<li>
+<p>标准化的大模型抽象：Model I/O</p>
+<ul>
+<li>模板化输入：Prompts</li>
+<li>语言模型：Models</li>
+<li>规范化输出：Output Parsers</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>大模型应用的最佳实践 Chains</p>
+<ul>
+<li>上手你的第一个链：LLM Chain</li>
+<li>串联式编排调用链：Sequential Chain</li>
+<li>处理超长文本的转换链：Transform Chain</li>
+<li>实现条件判断的路由链：Router Chain</li>
+</ul>
+</li>
+<li>
+<p>赋予应用记忆的能力： Memory</p>
+<ul>
+<li>
+<p>Momory System 与 Chain 的关系</p>
+</li>
+<li>
+<p>记忆基类 BaseMemory 与 BaseChatMessageMemory</p>
+</li>
+<li>
+<p>服务聊天对话的记忆系统</p>
+<ul>
+<li>ConversationBufferMemory</li>
+<li>ConversationBufferWindowMemory</li>
+<li>ConversationSummaryBufferMemory</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="langchain-核心模块入门与实战">LangChain 核心模块入门与实战</h1>
+<h2 id="标准化的大模型抽象model-io">标准化的大模型抽象：Model I/O</h2>
+<h3 id="langchain-核心模块学习model-io">LangChain 核心模块学习：Model I/O</h3>
+<p><code>Model I/O</code> 是 LangChain 为开发者提供的一套面向 LLM 的标准化模型接口，包括模型输入（Prompts）、模型输出（Output Parsers）和模型本身（Models）。</p>
+<ul>
+<li>Prompts：模板化、动态选择和管理模型输入</li>
+<li>Models：以通用接口调用语言模型</li>
+<li>Output Parser：从模型输出中提取信息，并规范化内容</li>
+</ul>
+<p><img src="../../../../assets/md-images/OBSWbCqy7oAJJlxNauoc0rjInqb.jpg" alt=""></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">! pip install -U langchain
+</code></pre>
+<h2 id="模型抽象-model">模型抽象 Model</h2>
+<ul>
+<li>语言模型(LLMs): LangChain 的核心组件。LangChain并不提供自己的LLMs，而是为与许多不同的LLMs（OpenAI、Cohere、Hugging Face等）进行交互提供了一个标准接口。</li>
+<li>聊天模型(Chat Models): 语言模型的一种变体。虽然聊天模型在内部使用了语言模型，但它们提供的接口略有不同。与其暴露一个“输入文本，输出文本”的API不同，它们提供了一个以“聊天消息”作为输入和输出的接口。</li>
+</ul>
+<p>（注：对比 OpenAI Completion API和 Chat Completion API）</p>
+<h2 id="语言模型llms">语言模型（LLMs)</h2>
+<p>类继承关系：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">BaseLanguageModel --&gt; BaseLLM --&gt; LLM --&gt; &lt;name&gt;  # Examples: AI21, HuggingFaceHub, OpenAI
+</code></pre>
+<p>LLM 继承自 BaseLLM,BaseLLM 继承自 BaseLanguageModel.</p>
+<p>主要抽象:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">AgentType, AgentExecutor, AgentOutputParser, AgentExecutorIterator,
+AgentAction, AgentFinish
+</code></pre>
+<p>API 参考文档: https://api.python.langchain.com/en/latest/langchain_api_reference.html</p>
+<h3 id="baselanguagemodel-class">BaseLanguageModel Class</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/schema/language_model.py</p>
+<p>这个基类为语言模型定义了一个接口，该接口允许用户以不同的方式与模型交互（例如通过提示或消息）。<code>generate_prompt</code> 是其中的一个主要方法，它接受一系列提示，并返回模型的生成结果。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 定义 BaseLanguageModel 抽象基类，它从 Serializable, Runnable 和 ABC 继承
+class BaseLanguageModel(
+    Serializable, Runnable[LanguageModelInput, LanguageModelOutput], ABC
+):
+    &quot;&quot;&quot;
+    与语言模型交互的抽象基类。
+
+    所有语言模型的封装器都应从 BaseLanguageModel 继承。
+
+    主要提供三种方法：
+    - generate_prompt: 为一系列的提示值生成语言模型输出。提示值是可以转换为任何语言模型输入格式的模型输入（如字符串或消息）。
+    - predict: 将单个字符串传递给语言模型并返回字符串预测。
+    - predict_messages: 将一系列 BaseMessages（对应于单个模型调用）传递给语言模型，并返回 BaseMessage 预测。
+
+    每种方法都有对应的异步方法。
+    &quot;&quot;&quot;
+
+    # 定义一个抽象方法 generate_prompt，需要子类进行实现
+    @abstractmethod
+    def generate_prompt(
+        self,
+        prompts: List[PromptValue],  # 输入提示的列表
+        stop: Optional[List[str]] = None,  # 生成时的停止词列表
+        callbacks: Callbacks = None,  # 回调，用于执行例如日志记录或流式处理的额外功能
+        **kwargs: Any,  # 任意的额外关键字参数，通常会传递给模型提供者的 API 调用
+    ) -&gt; LLMResult:
+        &quot;&quot;&quot;
+        将一系列的提示传递给模型并返回模型的生成。
+
+        对于提供批处理 API 的模型，此方法应使用批处理调用。
+
+        使用此方法时：
+            1. 希望利用批处理调用，
+            2. 需要从模型中获取的输出不仅仅是最顶部生成的值，
+            3. 构建与底层语言模型类型无关的链（例如，纯文本完成模型与聊天模型）。
+
+        参数:
+            prompts: 提示值的列表。提示值是一个可以转换为与任何语言模型匹配的格式的对象（对于纯文本生成模型为字符串，对于聊天模型为 BaseMessages）。
+            stop: 生成时使用的停止词。模型输出在这些子字符串的首次出现处截断。
+            callbacks: 要传递的回调。用于执行额外功能，例如在生成过程中进行日志记录或流式处理。
+            **kwargs: 任意的额外关键字参数。通常这些会传递给模型提供者的 API 调用。
+
+        返回值:
+            LLMResult，它包含每个输入提示的候选生成列表以及特定于模型提供者的额外输出。
+        &quot;&quot;&quot;
+</code></pre>
+<h3 id="basellm-class">BaseLLM Class</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/llms/base.py</p>
+<p>这段代码定义了一个名为 BaseLLM 的抽象基类。这个基类的主要目的是提供一个基本的接口来处理大型语言模型 (LLM)。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 定义 BaseLLM 抽象基类，它从 BaseLanguageModel[str] 和 ABC（Abstract Base Class）继承
+class BaseLLM(BaseLanguageModel[str], ABC):
+    &quot;&quot;&quot;Base LLM abstract interface.
+    
+    It should take in a prompt and return a string.&quot;&quot;&quot;
+
+    # 定义可选的缓存属性，其初始值为 None
+    cache: Optional[bool] = None
+
+    # 定义 verbose 属性，该属性决定是否打印响应文本
+    # 默认值使用 _get_verbosity 函数的结果
+    verbose: bool = Field(default_factory=_get_verbosity)
+    &quot;&quot;&quot;Whether to print out response text.&quot;&quot;&quot;
+
+    # 定义 callbacks 属性，其初始值为 None，并从序列化中排除
+    callbacks: Callbacks = Field(default=None, exclude=True)
+
+    # 定义 callback_manager 属性，其初始值为 None，并从序列化中排除
+    callback_manager: Optional[BaseCallbackManager] = Field(default=None, exclude=True)
+
+    # 定义 tags 属性，这些标签会被添加到运行追踪中，其初始值为 None，并从序列化中排除
+    tags: Optional[List[str]] = Field(default=None, exclude=True)
+    &quot;&quot;&quot;Tags to add to the run trace.&quot;&quot;&quot;
+
+    # 定义 metadata 属性，这些元数据会被添加到运行追踪中，其初始值为 None，并从序列化中排除
+    metadata: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    &quot;&quot;&quot;Metadata to add to the run trace.&quot;&quot;&quot;
+
+    # 内部类定义了这个 pydantic 对象的配置
+    class Config:
+        &quot;&quot;&quot;Configuration for this pydantic object.&quot;&quot;&quot;
+
+        # 允许使用任意类型
+        arbitrary_types_allowed = True
+</code></pre>
+<p>这个基类使用了 Pydantic 的功能，特别是 Field 方法，用于定义默认值和序列化行为。BaseLLM 的子类需要提供实现具体功能的方法。</p>
+<h3 id="llm-class">LLM Class</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/llms/base.py</p>
+<p>这段代码定义了一个名为 LLM 的类，该类继承自 BaseLLM。这个类的目的是为了为用户提供一个简化的接口来处理LLM（大型语言模型），而不期望用户实现完整的 _generate 方法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">
+# 继承自 BaseLLM 的 LLM 类
+class LLM(BaseLLM):
+    &quot;&quot;&quot;Base LLM abstract class.
+
+    The purpose of this class is to expose a simpler interface for working
+    with LLMs, rather than expect the user to implement the full _generate method.
+    &quot;&quot;&quot;
+
+    # 使用 @abstractmethod 装饰器定义一个抽象方法，子类需要实现这个方法
+    @abstractmethod
+    def _call(
+        self,
+        prompt: str,  # 输入提示
+        stop: Optional[List[str]] = None,  # 停止词列表
+        run_manager: Optional[CallbackManagerForLLMRun] = None,  # 运行管理器
+        **kwargs: Any,  # 其他关键字参数
+    ) -&gt; str:
+        &quot;&quot;&quot;Run the LLM on the given prompt and input.&quot;&quot;&quot;
+        # 此方法的实现应在子类中提供
+
+    # _generate 方法使用了 _call 方法，用于处理多个提示
+    def _generate(
+        self,
+        prompts: List[str],  # 多个输入提示的列表
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -&gt; LLMResult:
+        &quot;&quot;&quot;Run the LLM on the given prompt and input.&quot;&quot;&quot;
+        # TODO: 在此处添加缓存逻辑
+        generations = []  # 用于存储生成的文本
+        # 检查 _call 方法的签名是否支持 run_manager 参数
+        new_arg_supported = inspect.signature(self._call).parameters.get(&quot;run_manager&quot;)
+        for prompt in prompts:  # 遍历每个提示
+            # 根据是否支持 run_manager 参数来选择调用方法
+            text = (
+                self._call(prompt, stop=stop, run_manager=run_manager, **kwargs)
+                if new_arg_supported
+                else self._call(prompt, stop=stop, **kwargs)
+            )
+            # 将生成的文本添加到 generations 列表中
+            generations.append([Generation(text=text)])
+        # 返回 LLMResult 对象，其中包含 generations 列表
+        return LLMResult(generations=generations)
+</code></pre>
+<h3 id="llms-已支持模型清单">LLMs 已支持模型清单</h3>
+<p>开发者文档：https://python.langchain.com/docs/integrations/llms/</p>
+<p>代码实现：https://github.com/langchain-ai/langchain/tree/master/libs/langchain/langchain/llms</p>
+<h3 id="使用-langchain-调用-openai-gpt-completion-api">使用 LangChain 调用 OpenAI GPT Completion API</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/llms/openai.py</p>
+<h4 id="baseopenai-class">BaseOpenAI Class</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class BaseOpenAI(BaseLLM):
+    &quot;&quot;&quot;OpenAI 大语言模型的基类。&quot;&quot;&quot;
+
+    @property
+    def lc_secrets(self) -&gt; Dict[str, str]:
+        return {&quot;openai_api_key&quot;: &quot;OPENAI_API_KEY&quot;}
+
+    @property
+    def lc_serializable(self) -&gt; bool:
+        return True
+
+    client: Any  #: :meta private:
+    model_name: str = Field(&quot;text-davinci-003&quot;, alias=&quot;model&quot;)
+    &quot;&quot;&quot;使用的模型名。&quot;&quot;&quot;
+    temperature: float = 0.7
+    &quot;&quot;&quot;要使用的采样温度。&quot;&quot;&quot;
+    max_tokens: int = 256
+    &quot;&quot;&quot;完成中生成的最大令牌数。 
+    -1表示根据提示和模型的最大上下文大小返回尽可能多的令牌。&quot;&quot;&quot;
+    top_p: float = 1
+    &quot;&quot;&quot;在每一步考虑的令牌的总概率质量。&quot;&quot;&quot;
+    frequency_penalty: float = 0
+    &quot;&quot;&quot;根据频率惩罚重复的令牌。&quot;&quot;&quot;
+    presence_penalty: float = 0
+    &quot;&quot;&quot;惩罚重复的令牌。&quot;&quot;&quot;
+    n: int = 1
+    &quot;&quot;&quot;为每个提示生成多少完成。&quot;&quot;&quot;
+    best_of: int = 1
+    &quot;&quot;&quot;在服务器端生成best_of完成并返回“最佳”。&quot;&quot;&quot;
+    model_kwargs: Dict[str, Any] = Field(default_factory=dict)
+    &quot;&quot;&quot;保存任何未明确指定的`create`调用的有效模型参数。&quot;&quot;&quot;
+    openai_api_key: Optional[str] = None
+    openai_api_base: Optional[str] = None
+    openai_organization: Optional[str] = None
+    # 支持OpenAI的显式代理
+    openai_proxy: Optional[str] = None
+    batch_size: int = 20
+    &quot;&quot;&quot;传递多个文档以生成时使用的批处理大小。&quot;&quot;&quot;
+    request_timeout: Optional[Union[float, Tuple[float, float]]] = None
+    &quot;&quot;&quot;向OpenAI完成API的请求超时。 默认为600秒。&quot;&quot;&quot;
+    logit_bias: Optional[Dict[str, float]] = Field(default_factory=dict)
+    &quot;&quot;&quot;调整生成特定令牌的概率。&quot;&quot;&quot;
+    max_retries: int = 6
+    &quot;&quot;&quot;生成时尝试的最大次数。&quot;&quot;&quot;
+    streaming: bool = False
+    &quot;&quot;&quot;是否流式传输结果。&quot;&quot;&quot;
+    allowed_special: Union[Literal[&quot;all&quot;], AbstractSet[str]] = set()
+    &quot;&quot;&quot;允许的特殊令牌集。&quot;&quot;&quot;
+    disallowed_special: Union[Literal[&quot;all&quot;], Collection[str]] = &quot;all&quot;
+    &quot;&quot;&quot;不允许的特殊令牌集。&quot;&quot;&quot;
+    tiktoken_model_name: Optional[str] = None
+    &quot;&quot;&quot;使用此类时传递给tiktoken的模型名。
+    Tiktoken用于计算文档中的令牌数量以限制它们在某个限制以下。
+    默认情况下，设置为None时，这将与嵌入模型名称相同。
+    但是，在某些情况下，您可能希望使用此嵌入类与tiktoken不支持的模型名称。
+    这可以包括使用Azure嵌入或使用多个模型提供商的情况，这些提供商公开了类似OpenAI的API但模型不同。
+    在这些情况下，为了避免在调用tiktoken时出错，您可以在此处指定要使用的模型名称。&quot;&quot;&quot;
+</code></pre>
+<h3 id="openai-llm-模型默认使用-gpt-35-turbo-instruct">OpenAI LLM 模型默认使用 gpt-3.5-turbo-instruct</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain_openai import OpenAI
+
+llm = OpenAI(model_name=&quot;gpt-3.5-turbo-instruct&quot;)
+</code></pre>
+<h4 id="对比直接调用-openai-api">对比直接调用 OpenAI API：</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from openai import OpenAI
+
+client = OpenAI()
+
+data = client.completions.create(
+  model=&quot;gpt-3.5-turbo-instruct&quot;,
+  prompt=&quot;Tell me a Joke&quot;,
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(llm.invoke(&quot;Tell me a Joke&quot;))
+print(llm.invoke(&quot;讲10个给程序员听得笑话&quot;))
+</code></pre>
+<h4 id="生成10个笑话显然超过了-max_token-默认值">生成10个笑话，显然超过了 max_token 默认值</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">llm.max_tokens
+# 修改 max_token 值为 1024
+llm.max_tokens = 1024
+llm.max_tokens
+</code></pre>
+<h4 id="langchain-的-llm-抽象维护了-openai-连接状态参数设定">LangChain 的 LLM 抽象维护了 OpenAI 连接状态（参数设定）</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">result = llm.invoke(&quot;讲10个给程序员听得笑话&quot;)
+print(result)
+</code></pre>
+<h4 id="再次生成10个笑话时成功了但是两次笑话不一样">再次生成10个笑话时成功了，但是两次笑话不一样<a href="http://localhost:8000/lab/tree/langchain/jupyter/model_io/model.ipynb#%E5%86%8D%E6%AC%A1%E7%94%9F%E6%88%9010%E4%B8%AA%E7%AC%91%E8%AF%9D%E6%97%B6%E6%88%90%E5%8A%9F%E4%BA%86%EF%BC%8C%E4%BD%86%E6%98%AF%E4%B8%A4%E6%AC%A1%E7%AC%91%E8%AF%9D%E4%B8%8D%E4%B8%80%E6%A0%B7">¶</a></h4>
+<p>将 <code>temperature</code> 参数设置为0（值越大生成多样性越高）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">llm.temperature=0
+result = llm.invoke(&quot;生成可执行的快速排序 Python 代码&quot;)
+print(result)
+</code></pre>
+<h4 id="使用-exec-定义-quick_sort-函数">使用 <code>exec</code> 定义 <code>quick_sort</code> 函数</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">exec(result)
+</code></pre>
+<h4 id="调用-gpt-生成的快排代码测试是否可用">调用 GPT 生成的快排代码，测试是否可用</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(quick_sort([3,6,8,10,1,2,1,1024]))
+</code></pre>
+<h2 id="聊天模型chat-models">聊天模型（Chat Models)</h2>
+<p>类继承关系：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">BaseLanguageModel --&gt; BaseChatModel --&gt; &lt;name&gt;  # Examples: ChatOpenAI, ChatGooglePalm
+</code></pre>
+<p>主要抽象：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">AIMessage, BaseMessage, HumanMessage
+</code></pre>
+<p>API 参考文档: https://api.python.langchain.com/en/latest/langchain_api_reference.html</p>
+<h3 id="basechatmodel-class">BaseChatModel Class</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chat_models/base.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
+    cache: Optional[bool] = None
+    &quot;&quot;&quot;是否缓存响应。&quot;&quot;&quot;
+    verbose: bool = Field(default_factory=_get_verbosity)
+    &quot;&quot;&quot;是否打印响应文本。&quot;&quot;&quot;
+    callbacks: Callbacks = Field(default=None, exclude=True)
+    &quot;&quot;&quot;添加到运行追踪的回调函数。&quot;&quot;&quot;
+    callback_manager: Optional[BaseCallbackManager] = Field(default=None, exclude=True)
+    &quot;&quot;&quot;添加到运行追踪的回调函数管理器。&quot;&quot;&quot;
+    tags: Optional[List[str]] = Field(default=None, exclude=True)
+    &quot;&quot;&quot;添加到运行追踪的标签。&quot;&quot;&quot;
+    metadata: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
+    &quot;&quot;&quot;添加到运行追踪的元数据。&quot;&quot;&quot;
+
+    # 需要子类实现的 _generate 抽象方法
+    @abstractmethod
+    def _generate(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -&gt; ChatResult:
+</code></pre>
+<h3 id="chatopenai-class调用-chat-completion-api">ChatOpenAI Class（调用 Chat Completion API）</h3>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chat_models/openai.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class ChatOpenAI(BaseChatModel):
+    &quot;&quot;&quot;OpenAI Chat大语言模型的包装器。
+
+    要使用，您应该已经安装了``openai`` python包，并且
+    环境变量``OPENAI_API_KEY``已使用您的API密钥进行设置。
+
+    即使未在此类上明确保存，也可以传入任何有效的参数
+    至openai.create调用。
+    &quot;&quot;&quot;
+
+    @property
+    def lc_secrets(self) -&gt; Dict[str, str]:
+        return {&quot;openai_api_key&quot;: &quot;OPENAI_API_KEY&quot;}
+
+    @property
+    def lc_serializable(self) -&gt; bool:
+        return True
+
+    client: Any = None  #: :meta private:
+    model_name: str = Field(default=&quot;gpt-3.5-turbo&quot;, alias=&quot;model&quot;)
+    &quot;&quot;&quot;要使用的模型名。&quot;&quot;&quot;
+    temperature: float = 0.7
+    &quot;&quot;&quot;使用的采样温度。&quot;&quot;&quot;
+    model_kwargs: Dict[str, Any] = Field(default_factory=dict)
+    &quot;&quot;&quot;保存任何未明确指定的`create`调用的有效模型参数。&quot;&quot;&quot;
+    openai_api_key: Optional[str] = None
+    &quot;&quot;&quot;API请求的基础URL路径，
+    如果不使用代理或服务仿真器，请留空。&quot;&quot;&quot;
+    openai_api_base: Optional[str] = None
+    openai_organization: Optional[str] = None
+    # 支持OpenAI的显式代理
+    openai_proxy: Optional[str] = None
+    request_timeout: Optional[Union[float, Tuple[float, float]]] = None
+    &quot;&quot;&quot;请求OpenAI完成API的超时。默认为600秒。&quot;&quot;&quot;
+    max_retries: int = 6
+    &quot;&quot;&quot;生成时尝试的最大次数。&quot;&quot;&quot;
+    streaming: bool = False
+    &quot;&quot;&quot;是否流式传输结果。&quot;&quot;&quot;
+    n: int = 1
+    &quot;&quot;&quot;为每个提示生成的聊天完成数。&quot;&quot;&quot;
+    max_tokens: Optional[int] = None
+    &quot;&quot;&quot;生成的最大令牌数。&quot;&quot;&quot;
+    tiktoken_model_name: Optional[str] = None
+    &quot;&quot;&quot;使用此类时传递给tiktoken的模型名称。
+    Tiktoken用于计算文档中的令牌数以限制
+    它们在某个限制之下。默认情况下，当设置为None时，这将
+    与嵌入模型名称相同。但是，在某些情况下，
+    您可能希望使用此嵌入类，模型名称不
+    由tiktoken支持。这可能包括使用Azure嵌入或
+    使用其中之一的多个模型提供商公开类似OpenAI的
+    API但模型不同。在这些情况下，为了避免在调用tiktoken时出错，
+    您可以在这里指定要使用的模型名称。&quot;&quot;&quot;
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain_openai import ChatOpenAI
+
+chat_model = ChatOpenAI(model_name=&quot;gpt-3.5-turbo&quot;)
+</code></pre>
+<p>对比调用 OpenAI API：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import openai
+
+data = openai.ChatCompletion.create(
+  model=&quot;gpt-3.5-turbo&quot;,
+  messages=[
+        {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a helpful assistant.&quot;},
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Who won the world series in 2020?&quot;},
+        {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;The Los Angeles Dodgers won the World Series in 2020.&quot;},
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Where was it played?&quot;}
+    ]
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
+messages = [SystemMessage(content=&quot;You are a helpful assistant.&quot;),
+ HumanMessage(content=&quot;Who won the world series in 2020?&quot;),
+ AIMessage(content=&quot;The Los Angeles Dodgers won the World Series in 2020.&quot;), 
+ HumanMessage(content=&quot;Where was it played?&quot;)]
+ 
+ print(messages)
+ chat_model.invoke(messages)
+ chat_result = chat_model.invoke(messages)
+ type(chat_result)
+</code></pre>
+<h2 id="模型输入-prompts">模型输入 Prompts</h2>
+<p>一个语言模型的提示是用户提供的一组指令或输入，用于引导模型的响应，帮助它理解上下文并生成相关和连贯的基于语言的输出，例如回答问题、完成句子或进行对话。</p>
+<ul>
+<li>提示模板（Prompt Templates）：参数化的模型输入</li>
+<li>示例选择器（Example Selectors）：动态选择要包含在提示中的示例</li>
+</ul>
+<h2 id="提示模板-prompt-templates">提示模板 Prompt Templates</h2>
+<p><strong>Prompt Templates 提供了一种预定义、动态注入、模型无关和参数化的提示词生成方式，以便在不同的语言模型之间重用模板。</strong></p>
+<p>一个模板可能包括指令、少量示例以及适用于特定任务的具体背景和问题。</p>
+<p>通常，提示要么是一个字符串（LLMs），要么是一组聊天消息（Chat Model）。</p>
+<p>类继承关系:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">BasePromptTemplate --&gt; PipelinePromptTemplate
+                       StringPromptTemplate --&gt; PromptTemplate
+                                                FewShotPromptTemplate
+                                                FewShotPromptWithTemplates
+                       BaseChatPromptTemplate --&gt; AutoGPTPrompt
+                                                  ChatPromptTemplate --&gt; AgentScratchPadChatPromptTemplate
+
+
+
+BaseMessagePromptTemplate --&gt; MessagesPlaceholder
+                              BaseStringMessagePromptTemplate --&gt; ChatMessagePromptTemplate
+                                                                  HumanMessagePromptTemplate
+                                                                  AIMessagePromptTemplate
+                                                                  SystemMessagePromptTemplate
+
+PromptValue --&gt; StringPromptValue
+                ChatPromptValue
+</code></pre>
+<p>代码实现：https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/prompts</p>
+<h3 id="使用-prompttemplate-类生成提升词">使用 PromptTemplate 类生成提升词</h3>
+<p><strong>通常，</strong><code>PromptTemplate</code> 类的实例，使用Python的<code>str.format</code><strong>语法生成模板化提示；也可以使用其他模板语法（例如jinja2）。</strong></p>
+<h4 id="使用-from_template-方法实例化-prompttemplate">使用 from_template 方法实例化 PromptTemplate</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain import PromptTemplate
+
+prompt_template = PromptTemplate.from_template(
+    &quot;Tell me a {adjective} joke about {content}.&quot;
+)
+
+# 使用 format 生成提示
+prompt = prompt_template.format(adjective=&quot;funny&quot;, content=&quot;chickens&quot;)
+print(prompt)
+
+# 输出
+Tell me a funny joke about chickens.
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(prompt_template)
+
+# 输出
+input_variables=['adjective', 'content'] template='Tell me a {adjective} joke about {content}.'
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">prompt_template = PromptTemplate.from_template(
+    &quot;Tell me a joke&quot;
+)
+# 生成提示
+prompt = prompt_template.format()
+print(prompt)
+
+Tell me a joke
+</code></pre>
+<h4 id="使用构造函数initializer实例化-prompttemplate">使用构造函数（Initializer）实例化 PromptTemplate</h4>
+<p>使用构造函数实例化 <code>prompt_template</code> 时必须传入参数：<code>input_variables</code> 和 <code>template</code>。</p>
+<p>在生成提示过程中，会检查输入变量与模板字符串中的变量是否匹配，如果不匹配，则会引发异常；</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">invalid_prompt = PromptTemplate(
+    input_variables=[&quot;adjective&quot;],
+    template=&quot;Tell me a {adjective} joke about {content}.&quot;
+)
+</code></pre>
+<p>传入 content 后才能生成可用的 prompt</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">valid_prompt = PromptTemplate(
+    input_variables=[&quot;adjective&quot;, &quot;content&quot;],
+    template=&quot;Tell me a {adjective} joke about {content}.&quot;
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(valid_prompt)
+
+input_variables=['adjective', 'content'] template='Tell me a {adjective} joke about {content}.'
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">valid_prompt.format(adjective=&quot;funny&quot;, content=&quot;chickens&quot;)
+
+'Tell me a funny joke about chickens.'
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">prompt_template = PromptTemplate.from_template(
+    &quot;讲{num}个给程序员听得笑话&quot;
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain_openai import OpenAI
+
+llm = OpenAI(model_name=&quot;gpt-3.5-turbo-instruct&quot;, max_tokens=1000)
+
+prompt = prompt_template.format(num=2)
+print(f&quot;prompt: {prompt}&quot;)
+
+result = llm.invoke(prompt)
+print(f&quot;result: {result}&quot;)
+</code></pre>
+<p>prompt: 讲2个给程序员听得笑话</p>
+<p>result:</p>
+<ol>
+<li>为什么程序员喜欢用黑客帝国里的人物作为用户名？因为他们喜欢用Neo、Trinity、Morpheus来重置密码。</li>
+<li>有一个程序员去买牛奶，店员问他需要几瓶，他回答说：“我只需要一个容器，容量为1L，里面装满牛奶即可。”</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(llm.invoke(prompt_template.format(num=3)))
+</code></pre>
+<ol>
+<li>为什么程序员喜欢用黑客帝国里的绿色数字做桌面壁纸？因为那样可以让电脑跑得更快。</li>
+<li>为什么程序员总是喜欢喝咖啡？因为咖啡是唯一能让他们的代码跑得更快的饮料。</li>
+<li>一个程序员去参加面试，面试官问他：&quot;如果你有10个苹果，你能用什么方法把它们平均分成5份？&quot;程序员回答：&quot;简单，我把苹果放进数组里，然后用循环把它们分成5份就可以了。&quot;面试官深思熟虑后说：&quot;那如果我只给你9个苹果呢？&quot;程序员回答：&quot;那就给我一个苹果，然后让我再写一个循环。&quot;</li>
+</ol>
+<h4 id="使用-jinja2-生成模板化提示">使用 jinja2 生成模板化提示</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">jinja2_template = &quot;Tell me a {{ adjective }} joke about {{ content }}&quot;
+prompt = PromptTemplate.from_template(jinja2_template, template_format=&quot;jinja2&quot;)
+
+prompt.format(adjective=&quot;funny&quot;, content=&quot;chickens&quot;)
+
+'Tell me a funny joke about chickens'
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(prompt)
+
+input_variables=['adjective', 'content'] template='Tell me a {{ adjective }} joke about {{ content }}' template_format='jinja2'
+</code></pre>
+<h4 id="实测生成多种编程语言版本的快速排序">实测：生成多种编程语言版本的快速排序</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">sort_prompt_template = PromptTemplate.from_template(
+    &quot;生成可执行的快速排序 {programming_language} 代码&quot;
+)
+print(llm.invoke(sort_prompt_template.format(programming_language=&quot;python&quot;)))
+print(llm.invoke(sort_prompt_template.format(programming_language=&quot;java&quot;)))
+print(llm.invoke(sort_prompt_template.format(programming_language=&quot;C++&quot;)))
+</code></pre>
+<h2 id="使用-chatprompttemplate-类生成适用于聊天模型的聊天记录">使用 ChatPromptTemplate 类生成适用于聊天模型的聊天记录</h2>
+<p><strong><code>ChatPromptTemplate</code> 类的实例，使用<code>format_messages</code>方法生成适用于聊天模型的提示。</strong></p>
+<h3 id="使用-from_messages-方法实例化-chatprompttemplate">使用 from_messages 方法实例化 ChatPromptTemplate</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.prompts import ChatPromptTemplate
+
+template = ChatPromptTemplate.from_messages([
+    (&quot;system&quot;, &quot;You are a helpful AI bot. Your name is {name}.&quot;),
+    (&quot;human&quot;, &quot;Hello, how are you doing?&quot;),
+    (&quot;ai&quot;, &quot;I'm doing well, thanks!&quot;),
+    (&quot;human&quot;, &quot;{user_input}&quot;),
+])
+
+# 生成提示
+messages = template.format_messages(
+    name=&quot;Bob&quot;,
+    user_input=&quot;What is your name?&quot;
+)
+
+print(messages)
+print(messages[0].content)
+print(messages[-1].content)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain_openai import ChatOpenAI
+chat_model = ChatOpenAI(model_name=&quot;gpt-3.5-turbo&quot;, max_tokens=1000)
+chat_model.invoke(messages)
+summary_template = ChatPromptTemplate.from_messages([
+    (&quot;system&quot;, &quot;你将获得关于同一主题的{num}篇文章（用-----------标签分隔）。首先总结每篇文章的论点。然后指出哪篇文章提出了更好的论点，并解释原因。&quot;),
+    (&quot;human&quot;, &quot;{user_input}&quot;),
+])
+messages = summary_template.format_messages(
+    num=3,
+    user_input='''1. [PHP是世界上最好的语言]
+PHP是世界上最好的情感派编程语言，无需逻辑和算法，只要情绪。它能被蛰伏在冰箱里的PHP大神轻易驾驭，会话结束后的感叹号也能传达对代码的热情。写PHP就像是在做披萨，不需要想那么多，只需把配料全部扔进一个碗，然后放到服务器上，热乎乎出炉的网页就好了。
+-----------
+2. [Python是世界上最好的语言]
+Python是世界上最好的拜金主义者语言。它坚信：美丽就是力量，简洁就是灵魂。Python就像是那个永远在你皱眉的那一刻扔给你言情小说的好友。只有Python，你才能够在两行代码之间感受到飘逸的花香和清新的微风。记住，这世上只有一种语言可以使用空格来领导全世界的进步，那就是Python。
+-----------
+3. [Java是世界上最好的语言]
+Java是世界上最好的德育课编程语言，它始终坚守了严谨、安全的编程信条。Java就像一个严格的老师，他不会对你怀柔，不会让你偷懒，也不会让你走捷径，但他教会你规范和自律。Java就像是那个喝咖啡也算加班费的上司，拥有对邪恶的深度厌恶和对善良的深度拥护。
+'''
+)
+
+print(messages[-1].content)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">chat_result = chat_model.invoke(messages)
+print(chat_result.content)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">messages = summary_template.format_messages(
+    num=2,
+    user_input='''1.认为“道可道”中的第一个“道”，指的是道理，如仁义礼智之类；“可道”中的“道”，指言说的意思；“常道”，指恒久存在的“道”。因此，所谓“道可道，非常道”，指的是可以言说的道理，不是恒久存在的“道”，恒久存在的“道”不可言说。如苏辙说：“莫非道也。而可道者不可常，惟不可道，而后可常耳。今夫仁义礼智，此道之可道者也。然而仁不可以为义，而礼不可以为智，可道之不可常如此。……而道常不变，不可道之能常如此。”蒋锡昌说：“此道为世人所习称之道，即今人所谓‘道理’也，第一‘道’字应从是解。《广雅·释诂》二：‘道，说也’，第二‘道’字应从是解。‘常’乃真常不易之义，在文法上为区别词。……第三‘道’字即二十五章‘道法自然’之‘道’，……乃老子学说之总名也”。陈鼓应说：“第一个‘道’字是人们习称之道，即今人所谓‘道理’。第二个‘道’字，是指言说的意思。第三个‘道’字，是老子哲学上的专有名词，在本章它意指构成宇宙的实体与动力。……‘常道’之‘常’，为真常、永恒之意。……可以用言词表达的道，就不是常道”。
+-----------
+2.认为“道可道”中的第一个“道”，指的是宇宙万物的本原；“可道”中的“道”，指言说的意思；“常道”，指恒久存在的“道”。因此，“道可道，非常道”，指可以言说的“道”，就不是恒久存在的“道”。如张默生说：“‘道’，指宇宙的本体而言。……‘常’，是经常不变的意思。……可以说出来的道，便不是经常不变的道”。董平说：“第一个‘道’字与‘可道’之‘道’，内涵并不相同。第一个‘道’字，是老子所揭示的作为宇宙本根之‘道’；‘可道’之‘道’，则是‘言说’的意思。……这里的大意就是说：凡一切可以言说之‘道’，都不是‘常道’或永恒之‘道’”。汤漳平等说：“第一句中的三个‘道’，第一、三均指形上之‘道’，中间的‘道’作动词，为可言之义。……道可知而可行，但非恒久不变之道”。
+--------
+3.认为“道可道”中的第一个“道”，指的是宇宙万物的本原；“可道”中的“道”，指言说的意思；“常道”，则指的是平常人所讲之道、常俗之道。因此，“道可道，非常道”，指“道”是可以言说的，但它不是平常人所谓的道或常俗之道。如李荣说：“道者，虚极之理也。夫论虚极之理，不可以有无分其象，不可以上下格其真。……圣人欲坦兹玄路，开以教门，借圆通之名，目虚极之理，以理可名，称之可道。故曰‘吾不知其名，字之曰道’。非常道者，非是人间常俗之道也。人间常俗之道，贵之以礼义，尚之以浮华，丧身以成名，忘己而徇利。”司马光说：“世俗之谈道者，皆曰道体微妙，不可名言。老子以为不然，曰道亦可言道耳，然非常人之所谓道也。……常人之所谓道者，凝滞于物。”裘锡圭说：“到目前为止，可以说，几乎从战国开始，大家都把‘可道’之‘道’……看成老子所否定的，把‘常道’‘常名’看成老子所肯定的。这种看法其实有它不合理的地方，……‘道’是可以说的。《老子》这个《道经》第一章，开宗明义是要讲他的‘道’。第一个‘道’字，理所应当，也是讲他要讲的‘道’：道是可以言说的。……那么这个‘恒’字应该怎么讲？我认为很简单，‘恒’字在古代作定语用，经常是‘平常’‘恒常’的意思。……‘道’是可以言说的，但是我要讲的这个‘道’，不是‘恒道’，它不是一般人所讲的‘道’。
+'''
+)
+print(messages)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">chat_result = chat_model.invoke(messages)
+print(chat_result.content)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">messages = summary_template.format_messages(
+    num=2,
+    user_input='''1.认为“道可道”中的第一个“道”，指的是道理，如仁义礼智之类；“可道”中的“道”，指言说的意思；“常道”，指恒久存在的“道”。因此，所谓“道可道，非常道”，指的是可以言说的道理，不是恒久存在的“道”，恒久存在的“道”不可言说。如苏辙说：“莫非道也。而可道者不可常，惟不可道，而后可常耳。今夫仁义礼智，此道之可道者也。然而仁不可以为义，而礼不可以为智，可道之不可常如此。……而道常不变，不可道之能常如此。”蒋锡昌说：“此道为世人所习称之道，即今人所谓‘道理’也，第一‘道’字应从是解。《广雅·释诂》二：‘道，说也’，第二‘道’字应从是解。‘常’乃真常不易之义，在文法上为区别词。……第三‘道’字即二十五章‘道法自然’之‘道’，……乃老子学说之总名也”。陈鼓应说：“第一个‘道’字是人们习称之道，即今人所谓‘道理’。第二个‘道’字，是指言说的意思。第三个‘道’字，是老子哲学上的专有名词，在本章它意指构成宇宙的实体与动力。……‘常道’之‘常’，为真常、永恒之意。……可以用言词表达的道，就不是常道”。
+-----------
+2.认为“道可道”中的第一个“道”，指的是宇宙万物的本原；“可道”中的“道”，指言说的意思；“常道”，指恒久存在的“道”。因此，“道可道，非常道”，指可以言说的“道”，就不是恒久存在的“道”。如张默生说：“‘道’，指宇宙的本体而言。……‘常’，是经常不变的意思。……可以说出来的道，便不是经常不变的道”。董平说：“第一个‘道’字与‘可道’之‘道’，内涵并不相同。第一个‘道’字，是老子所揭示的作为宇宙本根之‘道’；‘可道’之‘道’，则是‘言说’的意思。……这里的大意就是说：凡一切可以言说之‘道’，都不是‘常道’或永恒之‘道’”。汤漳平等说：“第一句中的三个‘道’，第一、三均指形上之‘道’，中间的‘道’作动词，为可言之义。……道可知而可行，但非恒久不变之道”。
+'''
+)
+chat_result = chat_model.invoke(messages)
+print(chat_result.content)
+</code></pre>
+<h3 id="使用-fewshotprompttemplate-类生成-few-shot-prompt">使用 FewShotPromptTemplate 类生成 Few-shot Prompt</h3>
+<p>构造 few-shot prompt 的方法通常有两种：</p>
+<ul>
+<li>从示例集（set of examples）中手动选择；</li>
+<li>通过示例选择器（Example Selector）自动选择.</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.prompts.prompt import PromptTemplate
+
+
+examples = [
+  {
+    &quot;question&quot;: &quot;谁活得更久，穆罕默德·阿里还是艾伦·图灵？&quot;,
+    &quot;answer&quot;: 
+&quot;&quot;&quot;
+这里需要进一步的问题吗：是的。
+追问：穆罕默德·阿里去世时多大了？
+中间答案：穆罕默德·阿里去世时74岁。
+追问：艾伦·图灵去世时多大了？
+中间答案：艾伦·图灵去世时41岁。
+所以最终答案是：穆罕默德·阿里
+&quot;&quot;&quot;
+  },
+  {
+    &quot;question&quot;: &quot;craigslist的创始人是什么时候出生的？&quot;,
+    &quot;answer&quot;: 
+&quot;&quot;&quot;
+这里需要进一步的问题吗：是的。
+追问：谁是craigslist的创始人？
+中间答案：Craigslist是由Craig Newmark创办的。
+追问：Craig Newmark是什么时候出生的？
+中间答案：Craig Newmark出生于1952年12月6日。
+所以最终答案是：1952年12月6日
+&quot;&quot;&quot;
+  },
+  {
+    &quot;question&quot;: &quot;乔治·华盛顿的外祖父是谁？&quot;,
+    &quot;answer&quot;:
+&quot;&quot;&quot;
+这里需要进一步的问题吗：是的。
+追问：谁是乔治·华盛顿的母亲？
+中间答案：乔治·华盛顿的母亲是Mary Ball Washington。
+追问：Mary Ball Washington的父亲是谁？
+中间答案：Mary Ball Washington的父亲是Joseph Ball。
+所以最终答案是：Joseph Ball
+&quot;&quot;&quot;
+  },
+  {
+    &quot;question&quot;: &quot;《大白鲨》和《皇家赌场》的导演是同一个国家的吗？&quot;,
+    &quot;answer&quot;:
+&quot;&quot;&quot;
+这里需要进一步的问题吗：是的。
+追问：谁是《大白鲨》的导演？
+中间答案：《大白鲨》的导演是Steven Spielberg。
+追问：Steven Spielberg来自哪里？
+中间答案：美国。
+追问：谁是《皇家赌场》的导演？
+中间答案：《皇家赌场》的导演是Martin Campbell。
+追问：Martin Campbell来自哪里？
+中间答案：新西兰。
+所以最终答案是：不是
+&quot;&quot;&quot;
+  }
+]
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">example_prompt = PromptTemplate(
+    input_variables=[&quot;question&quot;, &quot;answer&quot;],
+    template=&quot;Question: {question}\n{answer}&quot;
+)
+
+# **examples[0] 是将examples[0] 字典的键值对（question-answer）解包并传递给format，作为函数参数
+print(example_prompt.format(**examples[0]))
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(example_prompt)
+print(example_prompt.format(**examples[-1]))
+</code></pre>
+<h4 id="关于解包的示例">关于解包的示例</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">def print_info(question, answer):
+    print(f&quot;Question: {question}&quot;)
+    print(f&quot;Answer: {answer}&quot;)
+
+print_info(**examples[0]) 
+</code></pre>
+<h3 id="生成-few-shot-prompt">生成 Few-shot Prompt</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 导入 FewShotPromptTemplate 类
+from langchain.prompts.few_shot import FewShotPromptTemplate
+
+# 创建一个 FewShotPromptTemplate 对象
+few_shot_prompt = FewShotPromptTemplate(
+    examples=examples,           # 使用前面定义的 examples 作为范例
+    example_prompt=example_prompt, # 使用前面定义的 example_prompt 作为提示模板
+    suffix=&quot;Question: {input}&quot;,    # 后缀模板，其中 {input} 会被替换为实际输入
+    input_variables=[&quot;input&quot;]     # 定义输入变量的列表
+)
+
+# 使用给定的输入格式化 prompt，并打印结果
+# 这里的 {input} 将被 &quot;玛丽·波尔·华盛顿的父亲是谁?&quot; 替换
+print(few_shot_prompt.format(input=&quot;玛丽·波尔·华盛顿的父亲是谁?&quot;))
+</code></pre>
+<h2 id="示例选择器-example-selectors">示例选择器 Example Selectors</h2>
+<p><strong>如果你有大量的参考示例，就得选择哪些要包含在提示中。最好还是根据某种条件或者规则来自动选择，Example Selector 是负责这个任务的类。</strong></p>
+<p>BaseExampleSelector 定义如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">class BaseExampleSelector(ABC):
+    &quot;&quot;&quot;用于选择包含在提示中的示例的接口。&quot;&quot;&quot;@abstractmethod
+    def select_examples(self, input_variables: Dict[str, str]) -&gt; List[dict]:
+        &quot;&quot;&quot;根据输入选择要使用的示例。&quot;&quot;&quot;
+</code></pre>
+<p><code>ABC</code> 是 Python 中的 <code>abc</code> 模块中的一个缩写，它表示 &quot;Abstract Base Class&quot;（抽象基类）。在 Python 中，抽象基类用于定义其他类必须遵循的基本接口或蓝图，但不能直接实例化。其主要目的是为了提供一种形式化的方式来定义和检查子类的接口。</p>
+<p>使用抽象基类的几点关键信息：</p>
+<ol>
+<li><strong>抽象方法</strong>：在抽象基类中，你可以定义抽象方法，它没有实现（也就是说，它没有方法体）。任何继承该抽象基类的子类都必须提供这些抽象方法的实现。</li>
+<li><strong>不能直接实例化</strong>：你不能直接创建抽象基类的实例。试图这样做会引发错误。它们的主要目的是为了被继承，并在子类中实现其方法。</li>
+<li><strong>强制子类实现</strong>：如果子类没有实现所有的抽象方法，那么试图实例化该子类也会引发错误。这确保了继承抽象基类的所有子类都遵循了预定的接口。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 导入需要的模块和类
+from langchain.prompts.example_selector import SemanticSimilarityExampleSelector
+from langchain.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain.prompts import FewShotPromptTemplate, PromptTemplate
+
+# 定义一个提示模板
+example_prompt = PromptTemplate(
+    input_variables=[&quot;input&quot;, &quot;output&quot;],     # 输入变量的名字
+    template=&quot;Input: {input}\nOutput: {output}&quot;,  # 实际的模板字符串
+)
+
+# 这是一个假设的任务示例列表，用于创建反义词
+examples = [
+    {&quot;input&quot;: &quot;happy&quot;, &quot;output&quot;: &quot;sad&quot;},
+    {&quot;input&quot;: &quot;tall&quot;, &quot;output&quot;: &quot;short&quot;},
+    {&quot;input&quot;: &quot;energetic&quot;, &quot;output&quot;: &quot;lethargic&quot;},
+    {&quot;input&quot;: &quot;sunny&quot;, &quot;output&quot;: &quot;gloomy&quot;},
+    {&quot;input&quot;: &quot;windy&quot;, &quot;output&quot;: &quot;calm&quot;},
+]
+</code></pre>
+<h3 id="pandas-相关包首次导入错误后再次执行即可正确导入">Pandas 相关包首次导入错误后，再次执行即可正确导入</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 从给定的示例中创建一个语义相似性选择器
+example_selector = SemanticSimilarityExampleSelector.from_examples(
+    examples,                          # 可供选择的示例列表
+    OpenAIEmbeddings(),                # 用于生成嵌入向量的嵌入类，用于衡量语义相似性
+    Chroma,                            # 用于存储嵌入向量并进行相似性搜索的 VectorStore 类
+    k=1                                # 要生成的示例数量
+)
+
+# 创建一个 FewShotPromptTemplate 对象
+similar_prompt = FewShotPromptTemplate(
+    example_selector=example_selector,  # 提供一个 ExampleSelector 替代示例
+    example_prompt=example_prompt,      # 前面定义的提示模板
+    prefix=&quot;Give the antonym of every input&quot;, # 前缀模板
+    suffix=&quot;Input: {adjective}\nOutput:&quot;,     # 后缀模板
+    input_variables=[&quot;adjective&quot;],           # 输入变量的名字
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 输入是一种感受，所以应该选择 happy/sad 的示例。
+print(similar_prompt.format(adjective=&quot;worried&quot;))
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 输入是一种度量，所以应该选择 tall/short的示例。
+print(similar_prompt.format(adjective=&quot;long&quot;))
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">print(similar_prompt.format(adjective=&quot;rain&quot;))
+</code></pre>
+<h2 id="输出解析器-output-parser">输出解析器 Output Parser</h2>
+<p><strong>语言模型的输出是文本。</strong></p>
+<p>但很多时候，您可能希望获得比纯文本<strong>更结构化的信息</strong>。这就是输出解析器的价值所在。</p>
+<p>输出解析器是帮助结构化语言模型响应的类。它们必须实现两种主要方法：</p>
+<ul>
+<li>&quot;获取格式指令&quot;：返回一个包含有关如何格式化语言模型输出的字符串的方法。</li>
+<li>&quot;解析&quot;：接受一个字符串（假设为来自语言模型的响应），并将其解析成某种结构。</li>
+</ul>
+<p>然后还有一种可选方法：</p>
+<ul>
+<li>&quot;使用提示进行解析&quot;：接受一个字符串（假设为来自语言模型的响应）和一个提示（假设为生成此响应的提示），并将其解析成某种结构。在需要重新尝试或修复输出，并且需要从提示中获取信息以执行此操作时，通常会提供提示。</li>
+</ul>
+<h3 id="列表解析-list-parser">列表解析 List Parser</h3>
+<p>当您想要返回一个逗号分隔的项目列表时，可以使用此输出解析器。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.output_parsers import CommaSeparatedListOutputParser
+from langchain.prompts import PromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain_openai import OpenAI
+
+# 创建一个输出解析器，用于处理带逗号分隔的列表输出
+output_parser = CommaSeparatedListOutputParser()
+
+# 获取格式化指令，该指令告诉模型如何格式化其输出
+format_instructions = output_parser.get_format_instructions()
+
+# 创建一个提示模板，它会基于给定的模板和变量来生成提示
+prompt = PromptTemplate(
+    template=&quot;List five {subject}.\n{format_instructions}&quot;,  # 模板内容
+    input_variables=[&quot;subject&quot;],  # 输入变量
+    partial_variables={&quot;format_instructions&quot;: format_instructions}  # 预定义的变量，这里我们传入格式化指令
+)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 使用提示模板和给定的主题来格式化输入
+_input = prompt.format(subject=&quot;ice cream flavors&quot;)
+print(_input)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">llm = OpenAI(temperature=0)
+output = llm.invoke(_input)
+print(output)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 使用之前创建的输出解析器来解析模型的输出
+output_parser.parse(output)
+</code></pre>
+<h3 id="日期解析-datatime-parser">日期解析 Datatime Parser</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.output_parsers import DatetimeOutputParser
+from langchain.chains import LLMChain
+
+output_parser = DatetimeOutputParser()
+template = &quot;&quot;&quot;Answer the users question:
+
+{question}
+
+{format_instructions}&quot;&quot;&quot;
+
+prompt = PromptTemplate.from_template(
+    template,
+    partial_variables={&quot;format_instructions&quot;: output_parser.get_format_instructions()},
+)
+
+print(prompt)
+print(prompt.format(question=&quot;around when was bitcoin founded?&quot;))
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">llm = OpenAI()
+chain = prompt | llm
+output = chain.invoke(&quot;around when was bitcoin founded?&quot;)
+print(output)
+
+output_parser.parse(output)
+print(output_parser.parse(output))
+</code></pre>
+<h1 id="大模型应用的最佳实践-chains">大模型应用的最佳实践 Chains</h1>
+<p><img src="../../../../assets/md-images/DiI7btyVHorvYuxIbxEc6mFtnxd.jpg" alt=""></p>
+<h2 id="llmchain-整合语言模型和提示模板的最简单链">LLMChain: 整合语言模型和提示模板的最简单链</h2>
+<p><img src="../../../../assets/md-images/Utfbbium4otPMqxIWBYcSP5hnis.jpg" alt=""></p>
+<p>LLMChain 公司取名</p>
+<p><img src="../../../../assets/md-images/XOQybFnaFonjcuxbuFecZYIsnYg.jpg" alt=""></p>
+<h2 id="sequentialchain-串联式调用语言模型链">SequentialChain: 串联式调用语言模型链</h2>
+<p>串联式调用语言模型（将一个调用的输出作为另一个调用的输入）。</p>
+<p>顺序链（Sequential Chain ）允许用户连接多个链并将它们组合成执行特定场景的流水线（Pipeline）。有两种类型的顺序链：</p>
+<ul>
+<li>SimpleSequentialChain：最简单形式的顺序链，每个步骤都具有单一输入/输出，并且一个步骤的输出是下一个步骤的输入。</li>
+<li>SequentialChain：更通用形式的顺序链，允许多个输入/输出。</li>
+</ul>
+<h1 id="赋予应用记忆的能力-memory">赋予应用记忆的能力： Memory</h1>
+<h2 id="memory-system">Memory System</h2>
+<h2 id="memory-system-高度定制化">Memory System: 高度定制化</h2>
+<h2 id="chains--memory-有记忆能力的大模型应用">Chains + Memory: 有记忆能力的大模型应用</h2>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

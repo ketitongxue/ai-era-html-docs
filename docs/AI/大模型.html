@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大模型</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="大模型">大模型</h1>
+<h1 id="推理大模型与普通大模型的差异">推理大模型与普通大模型的差异</h1>
+<ol>
+<li>什么是推理模型？</li>
+<li>推理模型与通用大模型的应用场景有什么差异？</li>
+<li>访问推理大模型的方式</li>
+<li>如何从实用的角度来评测模型？</li>
+</ol>
+<h1 id="什么是推理模型">什么是推理模型？</h1>
+<ol>
+<li>在输出最终回答之前，模型会<strong>先输出一段思维链内容</strong>，以提升最终答案的准确性。</li>
+<li>集成规则引擎增强推理的可靠性,通过中间步骤（如数学推理中的分步计算）提升容错性,引入回溯机制修正错误推理分支,输出推理轨迹增强可解释性</li>
+<li>遵循 MIT License， 开源周：“显卡超频”,“降低延时”，“通用矩阵”，“负载均衡”，“数据加速”等</li>
+</ol>
+<h1 id="推理模型擅长的领域">推理模型擅长的领域</h1>
+<p>DeepSeek-R1 在数学、代码、自然语言推理等任务上，性能比肩 OpenAI o1 正式版。</p>
+<h1 id="推理模型的提示词设计原则与优化策略">推理模型的提示词设计原则与优化策略</h1>
+<h2 id="提示词公式">提示词公式</h2>
+<p>原则：使⽤⼝语表达、⽬标导向沟通、动态难度调节</p>
+<p>优化表达：不必刻意设计思维链 、先说&quot;要解决什么问题&quot;、⽤&quot;简单版/进阶版&quot;区分</p>
+<p>设计建议：直接说出你想要的效果，避免专业术语、交代场景、通过对话来设置开关</p>
+<h2 id="提示词对">提示词对⽐</h2>
+<p><strong>场景</strong>：⼩红书推⼴文案</p>
+<p><strong>通⽤⼤模型</strong>：你现在是⼩红书美妆赛道爆款写作专家，具备3年美妆⾏业内容运营经验，擅⻓将专业成分转化为通俗易懂的种草⽂案。</p>
+<p>品牌⽅计划在618⼤促期间推⼴⼀款玻尿酸⾯膜，⽬标⼈群是25-35岁职场⼥性，产品核⼼卖点是72⼩时⻓效保湿+便携次抛包装。</p>
+<p>请⽣成3个带emoji的爆款标题，并撰写500字正⽂。正⽂需包含使⽤场景（如出差急救）、成分解析（需⽤'玻尿酸⼩分⼦'等通俗表达）、价格锚点（原价199元/盒，活动价买⼆送⼀）</p>
+<p>采⽤闺蜜聊天⼝吻，每段不超过3⾏，适当穿插'咱就是说''救命这个真的绝了'等平台热词，重点语句⽤💦 ✨ 🔥等表情符号强化记忆点</p>
+<p>⾸轮⽣成后，针对敏感肌群体增加'医美后修复'使⽤场景描述，调整标题中的数字具象化（如'28天逆袭⽔光肌'→'7天告别沙漠⽪</p>
+<p><strong>推理⼤模型</strong>：⽬标：为某国产抗⽼⾯霜创作带货⽂案</p>
+<p>核⼼需求：</p>
+<ol>
+<li>
+<p>突出'平替雅诗兰黛'概念（价格仅1/3）</p>
+</li>
+<li>
+<p>植⼊实验室检测数据（28天胶原蛋⽩提升17.3%）</p>
+</li>
+<li>
+<p>设计3个互动话题：#你的第⼀瓶抗⽼霜# #国货真⾹现场#</p>
+</li>
+</ol>
+<p>创作要求：</p>
+<p>• 开篇⽤'25+⼥⽣集合！'等唤醒句式</p>
+<p>• 中段穿插before/after对⽐图描述</p>
+<p>• 结尾设计'戳左下⻆get同款'转化钩⼦</p>
+<p>避坑指南：</p>
+<p>避免'顶级成分'等夸⼤宣传词，改⽤'实验室实测有效'等合规表述</p>
+<h2 id="推理大模型的提示词公式">推理大模型的提示词公式</h2>
+<p>Goal、Return Format、Warnings、Contex Dump</p>
+<h1 id="怎样运用deepseek-r1进行文章创作和总结">怎样运用DeepSeek R1进行文章创作和总结</h1>
+<ol>
+<li>
+<p>引言：AI 写作范式变革与 DeepSeek R1 的定位</p>
+</li>
+<li>
+<p>创作文章给的两大核心机制</p>
+<ol>
+<li>结构化框架先行：创作前，先用 R1 生成文章大纲或思维导图。</li>
+<li>分块生成，避免限制输出</li>
+</ol>
+</li>
+<li>
+<p>去掉“AI 味儿”</p>
+<ol>
+<li>
+<p>风格适配与精准提示词设计</p>
+<ol>
+<li>指定平台调性</li>
+<li>强化背景信息</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>高效创作流程设计：从构思到成稿</p>
+</li>
+<li>
+<p>高效总结文章的进阶技巧</p>
+<ol>
+<li>
+<p>预处理阶段：精准指令设计</p>
+<ol>
+<li>
+<p>三要素法则：背景、需求、约束</p>
+</li>
+<li>
+<p>风格控制指令：</p>
+<ol>
+<li>学术场景：“按Nature 摘要格式输出，包含研究目标、方法、结论”</li>
+<li>新媒体场景：“生成小红书风格总结，包含3个 emoji 和话题标签”</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>执行阶段：分块处理策略</p>
+<ol>
+<li>
+<p>长文本切割技术</p>
+</li>
+<li>
+<p>多模型写作流程</p>
+<ol>
+<li>R1 提取核心观点 - Claude 验证数据准确性 - GPT 生成可视化描述</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>后处理阶段：自动化校验</p>
+<ol>
+<li>
+<p>双通道验证机制</p>
+<ol>
+<li>联网核对最新数据</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h1 id="借助-deepseek-r1-编写和调试代码">借助 DeepSeek R1 编写和调试代码</h1>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

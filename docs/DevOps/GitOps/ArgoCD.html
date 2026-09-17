@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArgoCD</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="argocd">ArgoCD</h1>
+<h1 id="安装-argocd">安装 ArgoCD</h1>
+<p>官方文档：https://argo-cd.readthedocs.io/en/stable/</p>
+<h2 id="直接使用yaml文件安装">直接使用yaml文件安装</h2>
+<ol>
+<li>创建 namespace</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl create namespace argocd
+</code></pre>
+<ol>
+<li>下载 yaml 并部署</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">wget https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd -f install.yaml -n argocd
+</code></pre>
+<ol>
+<li>等待 argocd 命名空间所有的工作负载处于就绪状态。</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl wait --for=condition=Ready pods --all -n argocd --timeout 300s
+pod/argocd-application-controller-0 condition met
+pod/argocd-applicationset-controller-57bfc6fdb8-x5jxc condition met
+......
+</code></pre>
+<ol>
+<li>查看是否安装完毕</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@devops01:~# kubectl get -n argocd all
+NAME                                                    READY   STATUS    RESTARTS   AGE
+pod/argocd-applicationset-controller-7d4b8488b8-6zm8n   1/1     Running   0          7m43s
+pod/argocd-notifications-controller-67bdc84d96-npqln    1/1     Running   0          7m43s
+pod/argocd-repo-server-6488456fd-mkhpg                  1/1     Running   0          7m43s
+pod/argocd-application-controller-0                     1/1     Running   0          7m43s
+pod/argocd-server-b7898877f-w6kzn                       1/1     Running   0          7m43s
+pod/argocd-redis-649b8bc987-hbsc7                       1/1     Running   0          7m43s
+pod/argocd-dex-server-67c94bf946-62k9f                  1/1     Running   0          7m43s
+
+NAME                                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+service/argocd-applicationset-controller          ClusterIP   10.43.154.157   &lt;none&gt;        7000/TCP,8080/TCP            7m43s
+service/argocd-dex-server                         ClusterIP   10.43.62.73     &lt;none&gt;        5556/TCP,5557/TCP,5558/TCP   7m43s
+service/argocd-metrics                            ClusterIP   10.43.35.21     &lt;none&gt;        8082/TCP                     7m43s
+service/argocd-notifications-controller-metrics   ClusterIP   10.43.200.6     &lt;none&gt;        9001/TCP                     7m43s
+service/argocd-redis                              ClusterIP   10.43.207.203   &lt;none&gt;        6379/TCP                     7m43s
+service/argocd-repo-server                        ClusterIP   10.43.15.103    &lt;none&gt;        8081/TCP,8084/TCP            7m43s
+service/argocd-server                             ClusterIP   10.43.104.76    &lt;none&gt;        80/TCP,443/TCP               7m43s
+service/argocd-server-metrics                     ClusterIP   10.43.107.39    &lt;none&gt;        8083/TCP                     7m43s
+
+NAME                                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/argocd-applicationset-controller   1/1     1            1           7m43s
+deployment.apps/argocd-notifications-controller    1/1     1            1           7m43s
+deployment.apps/argocd-repo-server                 1/1     1            1           7m43s
+deployment.apps/argocd-server                      1/1     1            1           7m43s
+deployment.apps/argocd-redis                       1/1     1            1           7m43s
+deployment.apps/argocd-dex-server                  1/1     1            1           7m43s
+</code></pre>
+<ol>
+<li>此时通过 ClusterIP 方式暴露的服务是无法在集群外访问的，需要修改 argocd-server 的 svc，将其变为 NodePort 形式。或者使用 Ingress。</li>
+</ol>
+<p>可以修改第2步下载的yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/part-of: argocd
+  name: argocd-server
+spec:
+  # 指定 NodePort 方式
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+    # 指定端口，需要在 kind 创建集群的时候也执行暴露对应端口
+    nodePort: 30080
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: argocd-server
+</code></pre>
+<ol>
+<li>获取默认登录密码，用户名为 admin</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=&quot;{.data.password}&quot; | base64 -d
+</code></pre>
+<ol>
+<li>登录页面</li>
+</ol>
+<p><img src="../../../assets/md-images/TY1EbpSeIo4lpHxZ7vGcHwXDndf.png" alt=""></p>
+<h2 id="helm-安装">helm 安装</h2>
+<p>values.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">configs:
+  secret:
+    argocdServerAdminPassword: $2a$10$.NeEDuo4qmMNzuwHBLMvDuIpvqT52TdzW.1Zg9/dDssaiSRN.xa3u #password123
+  cm:
+    timeout.reconciliation: 30s
+  params:
+    server.insecure: true
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - &quot;argocd.wangwei.devopscamp.us&quot;
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% helm repo add argo https://argoproj.github.io/argo-helm
+&quot;argo&quot; has been added to your repositories
+
+% helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the &quot;argo&quot; chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+edit ./vaules.yaml ingress host
+helm upgrade --install -n argocd argocd argo/argo-cd -f ./values.yaml --create-namespace
+access argocd.${prefix}.${domain}
+login with username: admin, password: password123
+</code></pre>
+<h1 id="gitops工作流">GitOps工作流</h1>
+<p>在创建 GitOps 工作流之前，我们先来认识一下一个完整 GitOps 工作流都需要哪些关键步骤。</p>
+<p><img src="../../../assets/md-images/PY3Gb532noFBzQxWG99capaincc.jpg" alt=""></p>
+<p>我们可以把这个完整的 GitOps 工作流分成三个部分来看。</p>
+<p>第一部分是开发者推送代码到 GitHub 仓库，然后触发 GitHub Action 自动构建。</p>
+<p>第二部分是 GitHub Action 自动构建，它包括下面三个步骤。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">1. 构建示例应用的镜像。
+2. 将示例应用的镜像推送到 Docker Registry 镜像仓库。
+3. 更新代码仓库中 Helm Chart values.yaml 文件的镜像版本。
+</code></pre>
+<p>第三部分的核心是 ArgoCD，它包括下面两个步骤。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">4. 通过定期 Poll 的方式持续拉取 Git 仓库，并判断是否有新的 commit。
+5. 从 Git 仓库获取 Kubernetes 对象，与集群对象进行实时比较，自动更新集群内有差异的资源。
+</code></pre>
+<p>在之前的课程中，我们已经为示例应用创建好了 GitHub Action 来自动构建镜像，但还缺少自动更新 Helm Chart values.yaml 文件的镜像版本逻辑，我会在稍后进行配置。</p>
+<p>现在，我们开始创建 GitOps 工作流中的第三部分，也就是创建 ArgoCD 应用，实现 Kubernetes 资源的自动同步。</p>
+<h1 id="创建-argo-cd-应用">创建 Argo CD 应用</h1>
+<ol>
+<li>
+<p>创建应用定义仓库</p>
+<ol>
+<li>https://github.com/devops-advanced-camp/code/tree/main/iac/week-6/demo-1/vote/helm-example</li>
+</ol>
+</li>
+<li>
+<p>创建 Argo CD 应用</p>
+<ol>
+<li>UI 界面创建</li>
+<li>声明式创建 https://github.com/devops-advanced-camp/code/blob/main/iac/week-6/demo-2/application.yaml</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML"># https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#applications
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vote-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/devops-advanced-camp/vote-helm.git
+    targetRevision: HEAD
+    path: demo-2
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vote-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+</code></pre>
+</li>
+<li>
+<p>编辑 demo-2/values.yaml result 镜像版本，查看 GitOps 效果</p>
+</li>
+</ol>
+<h1 id="关于同步的一些配置">关于同步的一些配置</h1>
+<ol>
+<li>automated： 是否自动同步（定期检测 Git 仓库提交）</li>
+<li>prune：修剪，当开启时，如果集群内的资源已经在 Git 仓库删除，则将该资源从集群内删除</li>
+<li>selfHeal：自愈能力，当 selfHeal 开启时，对集群实时所做的更改会触发自动同步并被强行覆盖</li>
+</ol>
+<h1 id="设置资源的高级同步策略可选">设置资源的高级同步策略（可选）</h1>
+<p>https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-options: Validate=false
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-options: PruneLast=true
+    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+</code></pre>
+<h1 id="触发同步的三种方式">触发同步的三种方式：</h1>
+<ol>
+<li>手动修改应用定义</li>
+</ol>
+<p>手动修改应用定义仓库，Argo CD 默认以 3min 频率检查仓库变更（Demo2）</p>
+<ol>
+<li>提供 CI 流水线修改</li>
+</ol>
+<p>在 CI 流水线里修改应用定义仓库并推送</p>
+<ul>
+<li>自动触发：镜像构建完成后立即修改</li>
+<li>手动触发：设计单独的一条流水线修改应用定义仓库。镜像版本作为流水线的输入值</li>
+</ul>
+<ol>
+<li>Argo Image Updater</li>
+</ol>
+<p>自动监听镜像仓库变更，当出现新版本镜像时触发同步</p>
+<h2 id="argo-image-updater-案例">Argo Image Updater 案例</h2>
+<ol>
+<li>安装 Argo Image Updater</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl apply -n argocd -f https://raw.githubusercontent.com/argoprojlabs/argocd-image-updater/stable/manifests/install.yaml
+</code></pre>
+<p>修改 Argo Image Updater 启动参数，镜像检查时间从 2min 修改为 20s</p>
+<ol>
+<li>部署用于 Argo Image Updater 拉取镜像的 Secret</li>
+</ol>
+<p>https://github.com/devops-advanced-camp/code/blob/main/iac/week-6/demo-3/harbor-pull-secret.yaml</p>
+<ol>
+<li>为 Application 添加 annotations，并部署</li>
+</ol>
+<p>https://github.com/devops-advanced-camp/code/blob/main/iac/week-6/demo-3/application.yaml</p>
+<ol>
+<li>
+<p>本地构建 result 镜像，并推送到镜像仓库</p>
+<ol>
+<li>检查 image updater 日志</li>
+<li>检查应用定义仓库新 commit</li>
+</ol>
+</li>
+</ol>
+<h1 id="通过-webhook-触发-argo-cd-同步">通过 Webhook 触发 Argo CD 同步</h1>
+<p>Webhook 地址：https://argocd.${prefix}.${domain}/api/webhook</p>
+<p>为 Git 仓库配置上述 Webhook 地址</p>
+<h1 id="安装-argocd-cli">安装 ArgoCD CLI</h1>
+<p>为了更加方便地配置 ArgoCD，官方还为我们提供了 CLI 工具。不同操作系统的安装方法有所差异，这里以 MacOS 和 Windows 为例简单介绍。</p>
+<p>MacOS 可以通过 Brew 来安装。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ brew install argocd
+</code></pre>
+<p>也可以在 <a href="https://github.com/argoproj/argo-cd/releases">这个链接</a> 下载最新版本的 Binary 二进制文件，并移动到 /usr/local/bin/ 目录下。</p>
+<p>Windows 则需要在下载过后，将可执行文件移动到 PATH 下。</p>
+<p>更详细的方法可以查看 <a href="https://argo-cd.readthedocs.io/en/stable/cli_installation/">这份文档。</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

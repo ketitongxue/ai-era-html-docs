@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web 服务核心功能：添加 Gin 中间件</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="web-服务核心功能添加-gin-中间件">Web 服务核心功能：添加 Gin 中间件</h1>
+<p>Gin 框架也支持 Web 中间件，在 Gin 框架中，Web 中间件就叫中间件。本节课就来详细介绍如何实现并添加 Gin 中间件。</p>
+<h3 id="gin-中间件介绍">Gin 中间件介绍</h3>
+<p>Gin 支持三种中间件使用方式：</p>
+<ul>
+<li>**全局中间件：**全局中间件会作用于所有的路由。它们通常用于处理通用功能，比如请求日志记录、跨域设置、错误恢复；</li>
+<li>**路由组中间件：**路由组中间件仅对指定的路由组生效，适用于将某些逻辑限定在同一组相关的路由中。例如，所有/api 路径下的路由可能都需要一套特定的身份验证中间件；</li>
+<li>**单个路由中间件：**单个路由中间件仅对一个路由起作用。有时某个路由需要执行独立的中间件逻辑，这种情况下，可以将中间件绑定到单个路由上。</li>
+</ul>
+<p>不同路由组的中间件设置方式不同。代码清单 8-4 展示了 Gin 中间件的开发和设置方法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
+
+import (
+    &quot;log&quot;
+    &quot;net/http&quot;
+
+    &quot;github.com/gin-gonic/gin&quot;
+)
+
+// 定义一个通用中间件：打印请求路径
+func LogMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        log.Printf(&quot;Request path: %s\n&quot;, c.Request.URL.Path)
+        // 继续处理后续的中间件或路由
+        c.Next()
+    }
+}
+
+func main() {
+    r := gin.Default()
+
+    // 使用全局中间件：所有路由都会经过该中间件
+    // r.Use(gin.Logger(), gin.Recovery()) 同时设置多个 Gin 中间件
+    r.Use(LogMiddleware())
+
+    // 定义普通路由
+    r.GET(&quot;/&quot;, func(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{&quot;message&quot;: &quot;Home&quot;})
+    })
+
+    // 定义一个路由组，并为组添加中间件
+    apiGroup := r.Group(&quot;/api&quot;, LogMiddleware())
+    {
+        apiGroup.GET(&quot;/hello&quot;, func(c *gin.Context) {
+            c.JSON(http.StatusOK, gin.H{&quot;message&quot;: &quot;Hello, API&quot;})
+        })
+        apiGroup.GET(&quot;/world&quot;, func(c *gin.Context) {
+            c.JSON(http.StatusOK, gin.H{&quot;message&quot;: &quot;World, API&quot;})
+        })
+    }
+
+    // 为单个路由添加中间件
+    r.GET(&quot;/secure&quot;, LogMiddleware(), func(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{&quot;message&quot;: &quot;This is a secure route&quot;})
+    })
+
+    // 启动HTTP服务
+    r.Run(&quot;:8080&quot;) // 监听在8080端口
+}
+</code></pre>
+<p>在代码清单 8-4 中，通过 r.Use()、r.Group()、r.Get() 方法分别设置了多个 Gin 中间件。在设置 Gin 中间件时，可以根据需要同时设置一个或者多个，例如 r.Use(gin.Logger(), gin.Recovery())，同时设置了两个 Gin 中间件。</p>
+<p>在 LogMiddleware 中间件中，c.Next() 方法之前的代码将在请求到达处理器函数之前执行，而 c.Next() 方法之后的代码将在请求经过处理器函数处理之后执行。另外，在开发 Gin 中间件时，c.Abort() 方法也经常被开发者使用，该方法会直接终止请求的执行。</p>
+<h3 id="跨域功能实现">跨域功能实现</h3>
+<p>在前后端分离架构中，由于前后端域名不一致，会触发浏览器的同源策略限制，从而导致请求失败。因此，后端通常需要处理来自前端的跨域请求。下面将介绍后端服务如何实现跨域功能。</p>
+<h4 id="为什么会出现跨域">为什么会出现跨域</h4>
+<p>出现跨域问题的原因如下：</p>
+<ul>
+<li>出于浏览器的同源策略限制：同源策略（Same-origin policy）是一种约定，是浏览器最核心且最基本的安全功能。如果没有同源策略，浏览器的正常功能可能会受到影响。同源策略是 Web 安全的基础，浏览器实现了这一机制。同源策略会阻止一个域的 JavaScript 脚本与另一个域的内容进行交互；</li>
+<li>同源的定义：所谓同源是指两个页面具有相同的协议（protocol）、主机（host）和端口号（port）；</li>
+<li>非同源限制：</li>
+<li>无法读取非同源网页的 Cookie、LocalStorage 和 IndexedDB；</li>
+<li>无法访问非同源网页的 DOM；</li>
+<li>无法向非同源地址发送 AJAX 请求。</li>
+</ul>
+<p>简单来说，当一个资源访问另一个不同源的资源时，就会发出跨域请求。如果目标资源未允许跨域访问，则请求的资源将会遇到跨域问题。</p>
+<h4 id="使用跨域资源共享cors来跨域">使用跨域资源共享（CORS）来跨域</h4>
+<p>解决跨域问题的方法有多种，例如 CORS、Nginx 反向代理、JSONP 跨域等。在 Go 后端服务开发中，通常使用 CORS 来解决跨域问题。</p>
+<p>CORS 是一个 W3C 标准，全称为“跨域资源共享”（Cross-Origin Resource Sharing）。它允许浏览器向跨域服务器发出 AJAX 请求，从而克服了 AJAX 只能在同源环境中使用的限制。例如，当请求 URL 的协议、域名或端口三者中任意一个与当前页面的 URL 不同，即可认为是跨域情况。表 8-1 是具体案例。</p>
+<blockquote>
+<p>表 8-1 跨域案例</p>
+</blockquote>
+<p><img src="../../../assets/md-images/G3xvbeMy6oi9zDxBwwgcJKsnnsh.png" alt="图片为表8-1跨域案例，展示了不同情况下当前页面URL与被请求页面URL的跨域判断。其中，当前页面URL为http://www.example.com/，被请求页面URL为http://www.example.com/index.html时，因同源（协议、域名、端口号相同）不跨域；其余如协议不同（HTTP/HTTPS）、主域名不同（example/baidu）、子域名不同（www/blog）、端口号不同（8080/7001）等情况均为跨域。该表是对上文跨域情况判断的具体举例，辅助理解跨域概念。"></p>
+<p>在使用 CORS 时，HTTP 请求被划分为两类：简单请求和复杂请求。这两种请求的区别主要在于是否会触发 CORS 的预检请求。具体定义如下：</p>
+<ul>
+<li>**简单请求：**请求方法为 GET、HEAD 或 POST，且 HTTP 请求头中仅包含以下六种字段之一：Accept、Accept-Language、Content-Language、Last-Event-ID、Content-Type。其中，Content-Type 的值只能是以下三种之一：application/x-www-form-urlencoded、multipart/form-data 或 text/plain。简单请求在发送时会自动在 HTTP 请求头中添加 Origin 字段，用于标明当前来源（协议、域名和端口），然后由服务端决定是否放行请求；</li>
+<li>**复杂请求：**凡是不符合简单请求定义的请求，均为复杂请求。</li>
+</ul>
+<p>CORS 需要浏览器和服务器的共同支持。目前，所有主流浏览器已支持该功能。当浏览器检测到 AJAX 请求跨源时，会自动附加一些头信息。如果是复杂请求，还会添加一次预检请求。不过这些过程对用户而言是透明的。由此可见，实现 CORS 通信的关键在于服务端。只需服务器实现 CORS 接口（在 HTTP 响应头中设置：Access-Control-Allow-Origin），即可完成跨源通信。</p>
+<h4 id="简单请求的-cors-跨域处理">简单请求的 CORS 跨域处理</h4>
+<p>对于简单请求，浏览器会直接发出 CORS 请求。具体而言，会在请求头信息中增加一个 Origin 字段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">origin: https://wetv.vip
+</code></pre>
+<p>服务器需要处理该头部，并在返回头中填充 Access-Control-Allow-Origin 字段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">access-control-allow-origin: https://wetv.vip
+</code></pre>
+<p>该头部也可以填写为“*”，表示接受任意域名的请求。如果未返回该头部，浏览器将抛出跨域错误。</p>
+<h4 id="复杂请求的-cors-跨域处理">复杂请求的 CORS 跨域处理</h4>
+<p>复杂请求的 CORS 请求会在正式通信之前增加一次 HTTP 查询请求，称为“预检”请求（preflight）。“预检”请求使用的 HTTP 方法是 OPTIONS，表示该请求用于询问目标资源是否允许跨域访问。</p>
+<p>当后端收到预检请求后，可以通过设置跨域相关的 HTTP 头部以完成跨域请求。支持的头部字段具体如表 8-2 所示。</p>
+<p><img src="../../../assets/md-images/LCR9bW17woOKq8xOg6ecpdqtnjb.png" alt="图片展示了复杂请求的CORS跨域处理中，后端收到预检请求后可设置的跨域相关HTTP头部信息表。表中包含返回头及说明两列，返回头有Access - Control - Allow - Origin、Access - Control - Allow - Methods等，其中前三项为必选。Access - Control - Allow - Origin设置允许访问的域名，Access - Control - Allow - Methods表明服务器支持的跨域请求方法，Access - Control - Allow - Headers表明服务器支持的头信息字段。Access - Control - Allow - Credentials为可选布尔值，Access - Control - Max - Age指定预检请求有效期。该表与上下文内容紧密相关，是对跨域相关HTTP头部字段的具体说明。"></p>
+<p>预检通过后，浏览器就正常发起请求和响应，流程和简单请求一致。</p>
+<h4 id="miniblog-跨域功能实现">miniblog 跨域功能实现</h4>
+<p>由于 miniblog 的请求均为复杂请求，因此这里只需处理复杂请求的跨域问题。跨域相关的 HTTP 头设置，通过中间件实现，miniblog 的实现见 <a href="https://github.com/onexstack/miniblog/blob/feature/s15/internal/pkg/middleware/gin/header.go#L25">Cors 中间件</a>，代码如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// Cors是一个 Gin 中间件，用于处理 CORS 请求.
+func Cors(c *gin.Context) {
+    // 处理预检请求
+    if c.Request.Method == http.MethodOptions {
+        c.Header(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;)
+        c.Header(&quot;Access-Control-Allow-Methods&quot;, &quot;GET, POST, PUT, PATCH, DELETE, OPTIONS&quot;)
+        c.Header(&quot;Access-Control-Allow-Headers&quot;, &quot;authorization, origin, content-type, accept&quot;)
+        c.Header(&quot;Allow&quot;, &quot;HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS&quot;)
+        c.Header(&quot;Content-Type&quot;, &quot;application/json&quot;)
+        c.AbortWithStatus(http.StatusOK)
+        return
+    }
+    c.Next() // 继续处理请求
+}
+</code></pre>
+<p>如果 HTTP 请求不是 OPTIONS 类型的跨域请求，则正常处理该 HTTP 请求。如果 HTTP 请求是 OPTIONS 类型的跨域请求，则通过设置跨域相关的 HTTP 头部信息来允许跨域访问，并直接返回响应而不再进入后续处理流程。</p>
+<h3 id="miniblog-gin-中间件添加">miniblog Gin 中间件添加</h3>
+<p>在 internal/pkg/middleware/gin/ 目录下新建 <a href="https://github.com/onexstack/miniblog/blob/feature/s15/internal/pkg/middleware/gin/requestid.go">requestid.go</a> 和 <a href="https://github.com/onexstack/miniblog/blob/feature/s15/internal/pkg/middleware/gin/header.go">header.go</a> 文件。requestid.go 文件中实现了 Gin 请求 ID 中间件。header.go 文件中实现了跨域中间件。请求 ID 中间件代码如代码清单 8-5 所示。</p>
+<p>代码清单 8-5 Gin 请求 ID 中间件实现</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">// RequestIDMiddleware 是一个 Gin 中间件，用于在每个 HTTP 请求的上下文和
+// 响应中注入 `x-request-id` 键值对.
+func RequestIDMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // 从请求头中获取 `x-request-id`，如果不存在则生成新的 UUID
+        requestID := c.Request.Header.Get(known.XRequestID)
+
+        if requestID == &quot;&quot; {
+            requestID = uuid.New().String()
+        }
+
+        // 将 RequestID 保存到 context.Context 中，以便后续程序使用
+        ctx := contextx.WithRequestID(c.Request.Context(), requestID)
+        c.Request = c.Request.WithContext(ctx)
+
+        // 将 RequestID 保存到 HTTP 返回头中，Header 的键为 `x-request-id`
+        c.Writer.Header().Set(known.XRequestID, requestID)
+
+        // 继续处理请求
+        c.Next()
+    }
+}
+</code></pre>
+<p>在代码清单 8-5 中，首先尝试从请求头中获取请求 ID，如果找到则使用该 ID。如果未找到，则生成一个新的 UUID 作为请求 ID。随后，将请求 ID 添加到自定义上下文和 HTTP 响应头中。</p>
+<p>修改 internal/apiserver/httpserver.go 源码文件，在其中添加 Gin 中间件，代码变更如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package apiserver
+
+import (
+    ...
+    mw &quot;github.com/onexstack/miniblog/internal/pkg/middleware/gin&quot;
+    ...
+)
+...
+// NewGinServer 初始化一个新的 Gin 服务器实例.
+func (c *ServerConfig) NewGinServer() server.Server {
+    // 创建 Gin 引擎
+    engine := gin.New()
+
+    // 注册全局中间件，用于恢复 panic、设置 HTTP 头、添加请求 ID 等
+    engine.Use(gin.Recovery(), mw.NoCache, mw.Cors, mw.Secure, mw.RequestIDMiddleware())
+    ...
+    return &amp;ginServer{srv: httpsrv}
+}
+</code></pre>
+<h3 id="测试-gin-中间件">测试 Gin 中间件</h3>
+<p>运行以下命令编译并启动 mb-apiserver：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ make
+$ _output/mb-apiserver # 需修改 $HOME/.miniblog/mb-apiserver.yaml文件中server-mode为gin
+</code></pre>
+<p>打开一个新的 Linux 终端，请求健康检查接口：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ curl -v http://127.0.0.1:5555/healthz
+...
+&lt; Access-Control-Allow-Origin: *
+...
+&lt; X-Request-Id: 5607b8d5-0b5f-4bb8-b2cb-4c853a68ebb5
+...
+* Connection #0 to host 127.0.0.1 left intact
+{&quot;timestamp&quot;:&quot;2025-02-01 14:56:09&quot;}
+</code></pre>
+<p>可以看到 HTTP 返回头中，成功返回了 X-Request-Id 和 Access-Control-Allow-Origin 返回头。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

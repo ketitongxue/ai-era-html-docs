@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>21 | 请求路径构建（上）：如何设置RESTful API接口路径？</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="21--请求路径构建上如何设置restful-api接口路径">21 | 请求路径构建（上）：如何设置RESTful API接口路径？</h1>
+<p>kube-apiserver 本质上是一个 Web 服务器，对外提供标准化的 RESTful API 接口。RESTful API 接口由请求方法、请求路径和请求参数构成。想要深入理解 kube-apiserver 的核心实现，就需要掌握 Kubernetes 构建 RESTful API 接口的三要素。</p>
+<p>前面两节课已经介绍了 Kubernetes 资源对象的定义方法，它正是基于这些标准化的资源对象自动构建 RESTful API 接口的请求方法、路径和参数。</p>
+<p>请求方法可以在发送 HTTP 请求时直接指定。请求参数也可以直接通过 HTTP 请求来设置，例如，创建 Kubernetes 资源时，请求体直接就是资源对象的 YAML 定义。请求路径的构建比较复杂，所以接下来两节课会详细介绍它的构建逻辑。</p>
+<h2 id="rest-接口规范">REST 接口规范</h2>
+<p>深入理解 kube-apiserver RESTful API 接口请求路径构建方式之前，我先来介绍下 REST 接口规范中的核心内容。</p>
+<p>REST 规范中的核心点包括 URI 设计、API 版本管理等，我们一一来说。</p>
+<h3 id="uri-设计"><strong>URI 设计</strong></h3>
+<p>资源都是使用 URI 标识的，我们应该规范化设计 URI，让 API 接口更加易读、易用。以下是 URI 设计时应该遵循的一些规范：</p>
+<p>资源名使用名词而不是动词，并且用名词复数表示。资源分为 Collection 和 Member 两种。</p>
+<p>Collection：一堆资源的集合。例如，我们系统里有很多用户（User），这些用户的集合就是 Collection。Collection 的 URI 标识应该是域名/资源名复数，如onex.usercenter.superproj.com/v1/users。</p>
+<p>Member：单个特定资源。例如，系统中特定名字的用户就是 Collection 里的一个 Member。Member 的 URI 标识应该是域名/资源名复数/资源名称，如onex.usercenter.superproj.com/v1/users/colin。</p>
+<p>URI 结尾不应包含 /。</p>
+<p>URI 中不能出现下划线 _，必须用中杠线 - 代替（有些人推荐用 _，有些人推荐用 -，统一使用一种格式即可，我比较推荐用 -）。</p>
+<p>URI 路径用小写，不要用大写。</p>
+<p>避免层级过深的 URI。超过 2 层的资源嵌套会很乱，建议将其他资源转化为 ? 参数，比如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">/schools/tsinghua/classes/rooma/students/colin # 不推荐
+/students?school=qinghua&amp;class=rooma # 推荐
+</code></pre>
+<p>有个地方需要你注意：在 API 实际开发中，可能你会发现有些操作不能很好地映射为一个 REST 资源，这时候你可以参考下面的做法。</p>
+<ul>
+<li>将一个操作变成资源的一个属性。如果想在系统中暂时禁用某个用户，可以这么设计 URI：/users/colin?active=false。</li>
+<li>将操作当作是一个资源的嵌套资源，如一个 GitHub 的加星操作：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">PUT /gists/:id/star # github star action
+DELETE /gists/:id/star # github unstar action
+</code></pre>
+<p>如果以上都不能解决问题，有时可以打破这类规范。比如登录操作，登录不属于任何一个资源，URI 可以设计为：/v1/login。</p>
+<p>另外，在设计 URI 时，如果你遇到一些不确定的地方，推荐你参考 <a href="https://developer.github.com/v3/">GitHub 标准 RESTful API</a>。</p>
+<h3 id="rest-资源操作映射为-http-方法"><strong>REST 资源操作映射为 HTTP 方法</strong></h3>
+<p>基本上，RESTful API 都是使用 HTTP 协议原生的 GET、PUT、POST、DELETE 来标识对资源的 CRUD 操作，形成的规范如下表所示：</p>
+<p><img src="../../../assets/md-images/EwA5bJqguoRgdXxte2ZcswNRnGc.png" alt="图片是一张表格，展示了RESTful API中Collection资源和Member资源的HTTP请求方法及对应操作。表格分为三列，左侧为HTTP请求方法，中间两列分别对应Collection资源和Member资源的操作说明。如GET方法下，Collection资源可获取其下所有Member信息，Member资源可获取其状态表征；POST方法下，Collection资源可新建Member，Member资源无此操作；PUT方法下，二者可更新状态表征；DELETE方法下，二者可删除资源。该表与上下文介绍的REST资源操作映射为HTTP方法内容相关。"></p>
+<p>下面是一个具体的映射例子：</p>
+<p><img src="../../../assets/md-images/WSM4bWaRfocVGBx2rvqcXYh7nVe.png" alt="图片展示了RESTful API中HTTP方法与行为的对应关系。表中包含HTTP方法、行为、URI及示例说明四列。GET方法对应获取资源列表和获取具体资源表述，分别对应/users和/users/colin；POST方法用于创建新资源，对应/users；PUT方法用于更新资源，对应/users/colin；DELETE方法用于删除资源，对应/users/colin。此表与上下文紧密相关，直观呈现了上下文中提到的REST资源操作映射为HTTP方法的规范内容。"></p>
+<p>GET、PUT、POST、DELETE 是 RESTful API 最常用的 HTTP 请求方法。HTTP 还提供了另外 3 种请求方法，这些方法不经常使用，这里也列举出来供你参考：</p>
+<p><img src="../../../assets/md-images/O5FGboDUOo20m3xO9IZcew3anmg.png" alt="图片展示了RESTful API中HTTP请求方法与资源操作的对应关系。分为Collection资源（/v1/users）和Member资源（/v1/users/:username）两类。对于Collection资源，PATCH用于更新Collection属性，HEAD获取其元信息，OPTIONS获取支持通信选项；对于Member资源，PATCH获取其元信息，HEAD获取元信息但不获取内容，OPTIONS获取支持通信选项。此图与上文介绍的REST接口规范中HTTP请求方法的使用相呼应，直观呈现了各方法对应的操作。"></p>
+<p>注意，OPTIONS 请求方法通常用于跨域请求时的预检请求。</p>
+<p>在使用 HTTP 方法的时候，你还需要注意以下两点：</p>
+<ul>
+<li>GET 返回的结果要尽量可用于 PUT、POST 操作中。例如，用 GET 方法获得了一个 user 的信息，调用者修改 user 的邮件，然后将此结果再用 PUT 方法更新。这要求 GET、PUT、POST 操作的资源属性类型是一样的。</li>
+<li>如果对资源进行状态/属性变更，要用 PUT 方法，POST 方法仅用来创建或者批量删除这两种场景。</li>
+</ul>
+<p>另外，在设计 API 时，经常会有批量删除的需求，需要在请求中携带多个需要删除的资源名，但是 HTTP 的 DELETE 方法不能携带多个资源名，这时候可以通过下面三种方式来解决：</p>
+<ul>
+<li>发起多个 DELETE 请求。</li>
+<li>操作路径中带多个 id，id 之间用分隔符分隔，如DELETE /v1/users?ids=1,2,3 。</li>
+<li>直接使用 POST 方式来批量删除，Body 中传入需要删除的资源列表。</li>
+</ul>
+<p>其中，第二种方式我最推荐，因为使用了匹配的 DELETE 动词，并且不需要发送多次 DELETE 请求。这时候，你可能会问，id 列表太长会不会影响性能？其实不会的，因为真实项目中每次允许删除的条目个数是有限的，通常跟每个页面的最大展示条数保持一致。</p>
+<p>总的来说，这三种方式都有各自的使用场景，你可以根据需要自行选择。如果选择了某一种方式，那么整个项目都需要统一用这种方式。</p>
+<h3 id="匹配-http-请求方法的参数">匹配 HTTP 请求方法的参数</h3>
+<p>HTTP 有很多请求方法，如GET、PUT、POST、DELETE 等。在执行 HTTP 请求时，根据请求方法的类型，其参数指定位置也有规范。当 HTTP 请求方法和请求参数不匹配时，客户端会报错或者拒绝请求。</p>
+<p>HTTP 请求参数可以视情况设置在以下位置：</p>
+<ul>
+<li>**查询参数（Query Parameters）：**查询参数是附加在 URL 路径后面的键值对，使用 ? 开头，多个参数之间使用 &amp; 分隔，如<a href="http://example.com/api/resource?param1=value1&amp;param2=value2">http://example.com/api/resource?param1=value1&amp;param2=value2</a>。查询参数通常用于对资源进行过滤、分页、排序等操作。</li>
+<li>**路径参数（Path Parameters）：**路径参数是出现在 URL 路径中的一部分，通常用花括号 {} 包裹，如<a href="http://example.com/api/resource/%7Bid%7D">http://example.com/api/resource/{id}</a>。路径参数用于标识资源的唯一标识符或者其他需要在 URL 中直接体现的参数。</li>
+<li>**请求头（Request Headers）：**请求头是包含在 HTTP 请求头部中的键值对，如Content-Type: application/json。请求头用于传递请求的元数据、授权信息、内容类型等。</li>
+<li>**请求体（Request Body）：**请求体是包含在 HTTP 请求中的主体部分，通常用于 POST、PUT、PATCH 等方法中传递数据。请求体用于传递请求的具体数据，通常使用 JSON、XML 等格式。</li>
+<li>**Cookie：**Cookie 是存储在客户端的一小段文本信息，会随着每次请求被发送到服务器。Cookie 用于在客户端和服务器之间保持状态，通常用于会话管理、用户认证等。</li>
+</ul>
+<p>下表是不同 HTTP 请求方法所支持的请求参数的设置位置：</p>
+<p><img src="../../../assets/md-images/N3Ktbbi7Lo40ZXx4BeTc62zlniK.png" alt="图片是一张表格，展示了不同HTTP请求方法所支持的请求参数的设置位置。表格包含请求方法和参数位置两列。GET、POST、PUT、DELETE、PATCH、HEAD等方法对应其适配的请求参数位置，如GET请求适配查询参数和路径参数，POST请求适配请求体等。OPTIONS方法无特定参数位置要求。该表格与上下文紧密相关，是对文档中介绍的请求体、Cookie等知识的补充说明，帮助理解不同请求方法下参数的传递方式。"></p>
+<h3 id="统一的返回格式"><strong>统一的返回格式</strong></h3>
+<p>一般来说，一个系统的 RESTful API 会向外界开放多个资源的接口，每个接口的返回格式要保持一致。另外，每个接口都会返回成功和失败两种消息，这两种消息的格式也要保持一致。不然客户端代码要适配不同接口的返回格式，每个返回格式又要适配成功和失败两种消息格式，会大大增加用户的学习和使用成本。返回的格式没有强制的标准，你可以根据实际的业务需要返回不同的格式。</p>
+<h3 id="api-版本管理"><strong>API 版本管理</strong></h3>
+<p>随着时间的推移、需求的变更，一个 API 往往满足不了现有的需求，这时候就需要对 API 进行修改。为了不影响其他调用系统的正常使用，要求 API 变更做到向下兼容，也就是新老版本共存。</p>
+<p>但在实际场景中，很可能会出现同一个 API 无法向下兼容的情况。最好的解决办法是从一开始就引入 API 版本机制，当不能向下兼容时，就引入一个新的版本，老的版本则保留原样。这样既能保证服务的可用性和安全性，同时也能满足新需求。</p>
+<p>API 版本有不同的标识方法，在 RESTful API 开发中，通常将版本标识放在如下 3 个位置：</p>
+<ul>
+<li>URL 中，如 /v1/users。</li>
+<li>HTTP Header 中，如 Accept: vnd.example-com.foo+json; version=1.0。</li>
+<li>Form 参数中，如 /users?version=v1。</li>
+</ul>
+<p>通常建议将版本标识放在 URL 中的，这样做的好处是很直观，GitHub、Kubernetes、etcd 等很多优秀的 API 均采用这种方式。</p>
+<p>但有些开发人员不建议这么做，因为他们觉得不同的版本可以理解成同一种资源的不同表现形式，所以应该采用同一个 URI。对于这一点，没有严格的标准，根据项目实际需要选择一种方式即可。</p>
+<h3 id="api-命名"><strong>API 命名</strong></h3>
+<p>API 通常的命名方式有三种，分别是驼峰命名法（serverAddress）、蛇形命名法（server_address）和脊柱命名法（server-address）。</p>
+<ul>
+<li>驼峰命名法有两种格式：大驼峰命名法和小驼峰命名法。将多个单词组合成一个标识符时，每个单词的首字母大写且单词间没有分隔符的方式为大驼峰命名法，如ServerAddress。只有首单词首字母小写，后续单词首字母大写的命名方式是小驼峰命名法，如 serverAddress。</li>
+<li>蛇形命名法：多个单词之间用下划线 “_” 分隔，所有字母小写（或根据场景大写），如server_address。</li>
+<li>脊柱命名法：多个单词之间用短横线 “-” 分隔，所有字母小写。GitHub API 用的就是脊柱命名法，例如 <a href="https://docs.github.com/en/rest/reference/actions#get-allowed-actions-for-an-organization">selected-actions</a>。</li>
+</ul>
+<p>驼峰命名法和蛇形命名法都需要切换输入法，会增加操作的复杂性，也容易出错，所以这里建议用脊柱命名法。</p>
+<h2 id="restful-api-接口请求路径设置方法">RESTful API 接口请求路径设置方法</h2>
+<p>在 Kubernetes 中，RESTful API 接口路径究竟该如何设置呢？</p>
+<p>在 REST 规范中，所有操作实体都会被视为资源。企业应用中通常会根据应用功能内置一个或多个资源，如用户资源、订单资源、商品资源等。</p>
+<p>由于所有 API 接口都是对资源执行增删改查等操作，因此<strong>资源类型</strong>自然成为构建 API 接口请求路径的关键部分。换句话说，资源类型也会影响 API 接口的请求路径。</p>
+<p>为了方便对企业应用内置资源的管理和维护，通常会将资源进行分组。例如，几乎所有的 Web 框架都支持 API 接口分组，以下是 Gin 框架中支持 API 分组的代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">func main() {
+    // 创建一个默认的 Gin 路由引擎
+    r := gin.Default()
+
+
+    // 用户分组
+    v1 := r.Group(&quot;/api/v1&quot;) // API 版本 V1 分组
+    {
+        users := v1.Group(&quot;/users&quot;)
+        {
+            users.GET(&quot;/&quot;, getUsers)             // 获取所有用户
+            users.POST(&quot;/&quot;, createUser)          // 创建新用户
+            users.GET(&quot;/:id&quot;, getUserByID)       // 按 ID 获取用户
+            users.PUT(&quot;/:id&quot;, updateUserByID)    // 更新用户
+            users.DELETE(&quot;/:id&quot;, deleteUserByID) // 删除用户
+        }
+
+
+        // 产品分组
+        products := v1.Group(&quot;/products&quot;)
+        {
+            products.GET(&quot;/&quot;, getProducts)             // 获取所有产品
+            products.POST(&quot;/&quot;, createProduct)          // 创建新产品
+            products.GET(&quot;/:id&quot;, getProductByID)       // 按 ID 获取产品
+            products.PUT(&quot;/:id&quot;, updateProductByID)    // 更新产品
+            products.DELETE(&quot;/:id&quot;, deleteProductByID) // 删除产品
+        }
+    }
+
+
+    v2 := r.Group(&quot;/api/v2&quot;) // API 版本 V2 分组
+    {
+        users := v2.Group(&quot;/users&quot;)
+        {
+            users.GET(&quot;/&quot;, getUsersV2)             // 获取所有用户
+            users.POST(&quot;/&quot;, createUserV2)          // 创建新用户
+            users.GET(&quot;/:id&quot;, getUserByIDV2)       // 按 ID 获取用户
+            users.PUT(&quot;/:id&quot;, updateUserByIDV2)    // 更新用户
+            users.DELETE(&quot;/:id&quot;, deleteUserByIDV2) // 删除用户
+        }
+
+
+        // 产品分组
+        products := v2.Group(&quot;/products&quot;)
+        {
+            products.GET(&quot;/&quot;, getProductsV2)             // 获取所有产品
+            products.POST(&quot;/&quot;, createProductV2)          // 创建新产品
+            products.GET(&quot;/:id&quot;, getProductByIDV2)       // 按 ID 获取产品
+            products.PUT(&quot;/:id&quot;, updateProductByIDV2)    // 更新产品
+            products.DELETE(&quot;/:id&quot;, deleteProductByIDV2) // 删除产品
+        }
+    }
+
+
+    // 启动 HTTP 服务器
+    r.Run(&quot;:8080&quot;)
+}
+</code></pre>
+<p>上面通过 r.Group方法设置了 2 个 API 分组：/api/v1、/api/v2，在 v1和 v2分组下，又分了 users和 products2 个分组。如果你有需要，还可以继续使用 r.Group方法分组。因此，<strong>API 分组也是 API 接口请求路径的关键部分</strong>。</p>
+<p>随着时间的推移、需求的变更，我们难免需要对 API 进行修改或引入新的 API。因此，API 版本也是请求路径的关键部分。</p>
+<p>总的来说，RESTful API 接口的路径设计基于资源类型、分组和版本三要素共同构建。通常格式为/{API 接口前缀}/{API 版本}/{API 分组}/{资源种类}，如：</p>
+<p><img src="../../../assets/md-images/Ipy4bFQWJo0MJuxh96icBBfFnbc.png" alt="图片展示了RESTful API接口请求路径的格式，通常为/api/{api_version}/{group1_name}/{group2_name}/{resource_kind}。其中，{api_version}代表API版本，{group1_name}和{group2_name}为API分组，{resource_kind}是资源种类。该图与上下文紧密相关，上下文介绍了常规企业应用中API路径的结构，此图直观呈现了这种结构，帮助理解API接口前缀、版本、分组及资源种类在路径中的位置与含义。"></p>
+<p>在常规企业应用中，API 路径通常遵循「先版本后资源」的结构（如 /api/v1/users），通过 Web 框架（如 Gin）的分组机制将版本与业务资源（用户、商品等）解耦。随着功能迭代，每个资源集合（Collection）可能在不同版本路径下独立演化（如 /api/v2/users 中重构用户接口），但同一版本下可包含多种资源类型。</p>
+<h2 id="kubernetes-api-接口请求路径构建方法">Kubernetes API 接口请求路径构建方法</h2>
+<p>前面我们提到过 kube-apiserver 其实就是一个 REST 服务器，里面提供了众多的 RESTful API 接口。Kubernetes 的 RESTful API 接口严格遵循了 REST API 接口的设计规范。</p>
+<p>也就是说 Kubernetes 在构建 RESTful API 时，同样需要考虑以上 3 个请求路径的影响点。上述 3 个影响因素在 Kubernetes 中对应的概念或编程实体如下：</p>
+<ul>
+<li>**资源类型：**Kind（资源类型）</li>
+<li>**API 分组：**Group（资源组）</li>
+<li>**API 版本：**Version（资源版本）</li>
+</ul>
+<p>Kubernetes 构建请求路径的方法跟普通企业应用开发中的方法虽然相似，但在 API 版本和资源的所属关系上又有不同：</p>
+<p><img src="../../../assets/md-images/Rl6tbHK2UozWcgxpWEqcxwB9nAb.png" alt="图片展示了Kubernetes与一般企业应用中资源版本与资源种类的关系。左侧为Kubernetes，资源种类包含资源版本；右侧为一般企业应用，资源版本包含资源种类。该图与上下文紧密相关，直观呈现了Kubernetes中资源类型下有多个版本，而一般企业应用中资源版本下有多个资源类型这一差异，帮助理解Kubernetes构建请求路径方法与企业应用开发方法的不同之处。"></p>
+<p>也就是说，在 Kubernetes 中，资源类型下有多个版本，而在一般企业应用中，资源版本下有多个资源类型。上述所属关系反应在 API 接口请求路径中的区别如下：</p>
+<ul>
+<li>Kubernetes：/apis/apps/v1/namespaces；</li>
+<li>一般企业应用：/apis/v1/apps/users。</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

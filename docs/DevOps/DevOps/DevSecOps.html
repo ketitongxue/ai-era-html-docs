@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevSecOps</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="devsecops">DevSecOps</h1>
+<h1 id="devsecops-概述">DevSecOps 概述</h1>
+<h2 id="什么是-devsecops">什么是 DevSecOps</h2>
+<ul>
+<li>将安全集成到 DevOps 流程里</li>
+<li>DevSecOps 提倡“安全是一种共同责任”的文化，每一个人都要对安全负责</li>
+<li>DevSecOps 的目标是在软件开发的早期阶段集成安全控制</li>
+<li>安全左移，尽早发现和解决安全问题,，而不是在实施和运维阶段</li>
+</ul>
+<h3 id="安全左移">安全左移</h3>
+<p><img src="../../../assets/md-images/ZgK2bmmnno2qe0xDp7gcWj9Xn6g.jpg" alt=""></p>
+<h2 id="devops-工作流">DevOps 工作流</h2>
+<p><img src="../../../assets/md-images/MK3PbMzpeowaV5xE74CcDJ9Mn9g.png" alt=""></p>
+<h2 id="devsecops-工作流">DevSecOps 工作流</h2>
+<p><img src="../../../assets/md-images/ROI1bircto7naDxBsQ3cOVYBnVg.png" alt=""></p>
+<h2 id="加固-devops-的每个阶段">加固 DevOps 的每个阶段</h2>
+<p><img src="../../../assets/md-images/SYWWbgyvYoVDN7xleBHcQBRMnig.jpg" alt=""></p>
+<h2 id="sast--dast--iast">SAST &amp; DAST &amp; IAST</h2>
+<ul>
+<li>
+<p>SAST：静态应用程序安全测试</p>
+<ul>
+<li>“白盒测试”方式，测试应用程序内部结构或者工作方式，而不是功能</li>
+<li>源码级别的安全扫描，例如 SonarQube</li>
+</ul>
+</li>
+<li>
+<p>DAST：动态应用程序安全测试</p>
+<ul>
+<li>“黑盒测试”方式，在程序运行时候对其进行扫描</li>
+<li>例如测试产品中的 SQL 注入攻击、越权访问、凭据伪造等</li>
+<li>例如 OWASP Zap</li>
+</ul>
+</li>
+<li>
+<p>IAST：交互式应用程序安全测试</p>
+<ul>
+<li>使用软件来检测应用程序的漏洞，可运行自动化的安全测试</li>
+<li>可以理解为 SAST 和 DAST 的结合</li>
+<li>可以在 IDE、CI、Staging 和 Prod 环境下进行</li>
+</ul>
+</li>
+</ul>
+<h2 id="云原生自动化安全工具">云原生自动化安全工具</h2>
+<p><img src="../../../assets/md-images/CO2ZbZk7zorVCMxeFk5cm2fBnhe.png" alt=""></p>
+<h2 id="安全自测表云原生安全的-4c">安全自测表：云原生安全的 4C</h2>
+<ol>
+<li>
+<p>Cloud</p>
+<ol>
+<li>
+<p>云基础设施安全最佳实践</p>
+<ol>
+<li>子账户</li>
+</ol>
+</li>
+<li>
+<p>外部网络访问限制</p>
+<ol>
+<li>VPC</li>
+<li>安全组</li>
+</ol>
+</li>
+<li>
+<p>系统运维配置</p>
+<ol>
+<li>禁止 root 登录、访问控制、防火墙、SSH 配置</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Cluster</p>
+<ol>
+<li>
+<p>集群安全</p>
+<ol>
+<li>认证、授权、RBAC</li>
+</ol>
+</li>
+<li>
+<p>安全策略</p>
+<ol>
+<li>网络访问策略、admission controller</li>
+</ol>
+</li>
+<li>
+<p>审计</p>
+<ol>
+<li>审计日志</li>
+</ol>
+</li>
+<li>
+<p>容器安全运行时</p>
+<ol>
+<li>Kata container、gVisor</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Container</p>
+<ol>
+<li>
+<p>清单文件安全</p>
+<ol>
+<li>Manifest、Docker file</li>
+</ol>
+</li>
+<li>
+<p>容器镜像软件供应链</p>
+<ol>
+<li>可信镜像、容器安全漏洞扫描</li>
+</ol>
+</li>
+<li>
+<p>容器访问</p>
+<ol>
+<li>容器用户、容器文件系统权限、特权容器</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Code</p>
+<ol>
+<li>编程语言安全最佳实践</li>
+<li>静态扫描</li>
+<li>第三方依赖包安全</li>
+</ol>
+</li>
+</ol>
+<h1 id="代码和软件供应链安全">代码和软件供应链安全</h1>
+<h2 id="代码的分类">代码的分类</h2>
+<ul>
+<li>
+<p>开发编写的业务代码（20%）</p>
+<ul>
+<li>静态扫描：SonarQube</li>
+</ul>
+</li>
+<li>
+<p>第三方依赖包（80%）</p>
+<ul>
+<li>漏洞扫描：CVEs(Common Vulnerabilities and Exposures，通用漏洞披露)</li>
+</ul>
+</li>
+</ul>
+<h2 id="cves">CVEs</h2>
+<ul>
+<li>
+<p>公认的标准</p>
+</li>
+<li>
+<p>用于公开、分类和共享计算机系统中的安全漏洞信息</p>
+<ul>
+<li>https://cve.mitre.org</li>
+</ul>
+</li>
+<li>
+<p>每一个 CVE 标识（例如：CVE-2023-1234）都对应一个特定的安全漏洞</p>
+</li>
+<li>
+<p>可通过搜索来所使用的第三方包是否有安全漏洞</p>
+</li>
+<li>
+<p>例子：https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-47762</p>
+</li>
+</ul>
+<h2 id="其他特定语言的漏洞数据库">其他特定语言的漏洞数据库</h2>
+<ul>
+<li>
+<p>PHP</p>
+<ul>
+<li>https://github.com/FriendsOfPHP/security-advisories</li>
+</ul>
+</li>
+<li>
+<p>Python</p>
+<ul>
+<li>https://github.com/advisories?query=ecosystem%3Apip</li>
+<li>https://github.com/pyupio/safety-db</li>
+</ul>
+</li>
+<li>
+<p>Ruby</p>
+<ul>
+<li>https://github.com/rubysec/ruby-advisory-db</li>
+</ul>
+</li>
+<li>
+<p>Node.js</p>
+<ul>
+<li>https://github.com/nodejs/security-wg</li>
+</ul>
+</li>
+<li>
+<p>Go</p>
+<ul>
+<li>https://gitlab.com/gitlab-org/advisories-community</li>
+<li>https://github.com/golang/vulndb</li>
+</ul>
+</li>
+<li>
+<p>Rust</p>
+<ul>
+<li>https://aquasecurity.github.io/trivy/v0.19.2/vulnerability/detection/data-source/(https://github.com/RustSec/advisorydb)</li>
+</ul>
+</li>
+<li>
+<p>.NET</p>
+<ul>
+<li>https://github.com/advisories?query=ecosystem%3Anuget</li>
+</ul>
+</li>
+</ul>
+<h2 id="sbom软件-bom-的标准格式">SBOM：软件 BOM 的标准格式</h2>
+<ul>
+<li>Linux 基金会：SPDX</li>
+<li>OWASP（开放网络应用安全项目）：CycloneDX</li>
+<li>微软：SARIF</li>
+<li>GitHub：Open Source Vulnerability format</li>
+</ul>
+<h2 id="demo1使用-trivy-导出-spdx-sbom">Demo1：使用 Trivy 导出 SPDX SBOM</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">cd iac/week-2/demo-app/result
+trivy fs ./ --format spdx-json --output trivy-spdx.json
+查看 trivy-spdx.json, 查找 express
+</code></pre>
+<h2 id="demo2使用-trivy-扫描-sbom">Demo2：使用 Trivy 扫描 SBOM</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">trivy sbom ./trivy-spdx.json
+# 直接扫描
+trivy fs ./
+# 质量门禁：发现漏洞并设置退出码
+trivy fs ./ --exit-code 1
+</code></pre>
+<h2 id="在-ci-里使用-trivy">在 CI 里使用 Trivy</h2>
+<h3 id="jenkins">Jenkins</h3>
+<p>使用镜像：aquasec/trivy</p>
+<p>在 Pod 里运行 trivy 命令</p>
+<h3 id="tekton">Tekton</h3>
+<p>使用 Step：https://hub.tekton.dev/tekton/task/trivy-scanner</p>
+<h3 id="在-dockerfile-里使用-trivy多阶段构建">在 Dockerfile 里使用 trivy（多阶段构建）</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">[...]
+# Run vulnerability scan on build image
+FROM build AS vulnscan
+COPY --from=aquasec/trivy:latest /usr/local/bin/trivy /usr/local/bin/trivy
+RUN trivy filesystem --exit-code 1 --no-progress /
+[...]
+</code></pre>
+<h2 id="注意事项关于-sbom-的存储">注意事项：关于 SBOM 的存储</h2>
+<p>Harbor</p>
+<p>暂时不支持将 SBOM 附加到镜像中</p>
+<p>https://github.com/goharbor/harbor/issues/16186</p>
+<h2 id="注意事项spdx-格式适配问题">注意事项：SPDX 格式适配问题</h2>
+<ul>
+<li>
+<p>syft ./ --output spdx-json --file syft-spdx.json</p>
+<ul>
+<li>docker sbom 命令使用的是 syft 工具生成 SBOM</li>
+</ul>
+</li>
+<li>
+<p>trivy sbom ./syft-spdx.json</p>
+</li>
+</ul>
+<p><img src="../../../assets/md-images/DJrCbqUQbotBCUx6AW9c5SK5nPf.jpg" alt=""></p>
+<h1 id="镜像安全">镜像安全</h1>
+<p>Dockerfile：可信基础镜像（官方、无安全漏洞）。运行用户（慎用 root）。</p>
+<p>系统应用包：注意安全漏洞。OpenSSL、Curl、Etc.</p>
+<p>镜像扫描：Trivy。Grype</p>
+<p>镜像签名：Cosign</p>
+<h3 id="demo3导出镜像所有-sbom-并扫描">Demo3：导出镜像所有 SBOM 并扫描</h3>
+<ul>
+<li>trivy image --format spdx-json --output spdx-image-result.json lyzhang1999/result:env</li>
+<li>查看 spdx-image-result.json</li>
+<li>搜索 express（应用第三方依赖包）、curl（镜像应用包）</li>
+</ul>
+<p>扫描 SBOM</p>
+<ul>
+<li>trivy sbom ./spdx-image-result.json</li>
+</ul>
+<p>直接扫描本地 Docker 镜像（生成 SBOM 并扫描）</p>
+<ul>
+<li>trivy image lyzhang1999/result:env</li>
+</ul>
+<h2 id="其他镜像扫描工具">其他镜像扫描工具</h2>
+<p><img src="../../../assets/md-images/SSHJbYFDio6aA9xplz1c91SNnnb.png" alt=""></p>
+<h2 id="注意事项扫描工具的对比和选型">注意事项：扫描工具的对比和选型</h2>
+<p>https://github.com/aquasecurity/trivy-db/tree/main/pkg/vulnsrc</p>
+<p><img src="../../../assets/md-images/V8YtbV1qHo17Wax6sUVcGQjKn8e.jpg" alt=""></p>
+<h2 id="镜像漏洞和-harbor">镜像漏洞和 Harbor</h2>
+<ul>
+<li>通过开启 Harbor “阻止潜在漏洞镜像” 开关阻止漏洞镜像部署到集群内</li>
+<li>推送镜像的后置行为，建议前置到 CI，发现漏洞则 CI 失败，且不推送镜像</li>
+</ul>
+<p><img src="../../../assets/md-images/QANqb7EOmogsInxx93Kcmxqpntb.jpg" alt=""></p>
+<h3 id="demo4镜像签名">Demo4：镜像签名</h3>
+<ul>
+<li>
+<p>生成密钥对</p>
+<ul>
+<li>cosign generate-key-pair</li>
+<li>输入密码，例如：password123</li>
+</ul>
+</li>
+<li>
+<p>签名镜像（远端镜像）</p>
+<ul>
+<li>COSIGN_PASSWORD=password123 cosign sign harbor.wangwei.devopscamp.us/vote/worker:aff746b5e5948d31b0958bac98adf89d7f6dac8c --key cosign.key -y</li>
+<li>key 可以从 Vault、Kubernetes Secret、AWS 等读取</li>
+</ul>
+</li>
+<li>
+<p>查看 Harbor 签名状态</p>
+</li>
+</ul>
+<h1 id="密钥存储安全">密钥存储安全</h1>
+<h2 id="k8s-secret-的不足">K8s Secret 的不足</h2>
+<ul>
+<li>Secret 以明文方式存储，容易导致凭据泄露</li>
+<li>无法跨命名空间共享</li>
+</ul>
+<h2 id="gitops-中-secret-管理模式">GitOps 中 Secret 管理模式</h2>
+<p><img src="../../../assets/md-images/G08Wb8oouow3OOx00ArciQWenId.png" alt=""></p>
+<h2 id="secret-加密工具">Secret 加密工具</h2>
+<ul>
+<li>
+<p>Sealed-Secrets</p>
+</li>
+<li>
+<p>External-Secrets</p>
+<ul>
+<li>Vault</li>
+<li>AWS Secrets Manager</li>
+<li>Google Secrets Manager</li>
+</ul>
+</li>
+</ul>
+<h3 id="sealed-secrets">Sealed-Secrets</h3>
+<ul>
+<li>
+<p>cd iac/week-7/demo-1/setup &amp;&amp; terraform init &amp;&amp; terraform apply</p>
+</li>
+<li>
+<p>安装 kubeseal</p>
+<ul>
+<li>brew install kubeseal</li>
+<li>确保 kubeseal 能访问集群：export KUBECONFIG=&quot;$(pwd)/config.yaml&quot;</li>
+</ul>
+</li>
+<li>
+<p>基于现有密钥生成</p>
+<ul>
+<li>kubeseal -f image-pull-secret.yaml -w image-pull-sealed-secret.yaml --scope cluster-wide</li>
+<li>查看 image-pull-sealed-secret.yaml</li>
+</ul>
+</li>
+<li>
+<p>将加密后的密钥部署到集群</p>
+<ul>
+<li>kubectl apply -f image-pull-sealed-secret.yaml</li>
+<li>查看 sealed-secrets 创建的密钥：kubectl get secret regcred -o yaml</li>
+</ul>
+</li>
+</ul>
+<h3 id="sealedsecret-对象的作用域">SealedSecret 对象的作用域</h3>
+<ol>
+<li>
+<p>strict：默认作用域，SealedSecret CRD 必须和原始的 Secret 对象具有相同的「名称」和「命名空间」，修改 CRD 的其中任何一个属性都将导致解密失败（防止恶意攻击）</p>
+<ol>
+<li>意味着 CRD 生成之后，不允许修改名称，并且和命名空间强绑定</li>
+</ol>
+</li>
+<li>
+<p>namespace-wide：允许在特定的命名空间下重命名 SealedSecret CRD</p>
+<ol>
+<li>kubeseal -f image-pull-secret.yaml -w image-pull-sealed-secret.yaml --scope namespace-wide</li>
+</ol>
+</li>
+<li>
+<p>cluster-wide：允许在任何命名空间下解密密钥以及重命名</p>
+<ol>
+<li>kubeseal -f image-pull-secret.yaml -w image-pull-sealed-secret.yaml --scope cluster-wide</li>
+</ol>
+</li>
+</ol>
+<h3 id="sealedsecret-原理">SealedSecret 原理</h3>
+<p><img src="../../../assets/md-images/CrtibUOpxobTv3xsq56c2zYsnEf.png" alt=""></p>
+<h3 id="demo2管理现有-secret-对象">Demo2：管理现有 Secret 对象</h3>
+<ol>
+<li>
+<p>部署 iac/week-7/demo-2/secret-existed.yaml 模拟 Secret 对象已存在的情况</p>
+</li>
+<li>
+<p>创建 kubeseal -f secret-existed.yaml -w secret-existed-seal.yaml 并部署到集群</p>
+</li>
+<li>
+<p>查看 SealedSecret 日志：Resource &quot;example-secret&quot; already exists and is not managed by SealedSecret</p>
+</li>
+<li>
+<p>为 Secret 添加注解：sealedsecrets.bitnami.com/managed: &quot;true&quot;</p>
+<ol>
+<li>kubectl patch secret example-secret -p '{&quot;metadata&quot;:{&quot;annotations&quot;:{&quot;sealedsecrets.bitnami.com/managed&quot;:&quot;true&quot;}}}'</li>
+</ol>
+</li>
+<li>
+<p>删除 CRD 并重新创建，此时 SealedSecret 将会接管已有 Secret 对象</p>
+<ol>
+<li>kubectl delete -f secret-existed-seal.yaml</li>
+<li>kubectl apply -f secret-existed-seal.yaml</li>
+</ol>
+</li>
+</ol>
+<h3 id="注意事项">注意事项</h3>
+<p>位于 kube-system 的 RSA Secret 应妥善保管，如丢失将导致密钥无法解密</p>
+<ol>
+<li>备份密钥（灾备）：kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealedsecrets-key -o yaml &gt;main.key</li>
+<li>集群迁移和恢复（在控制器启动前执行）：kubectl apply -f main.key</li>
+<li>如在控制器之后部署了密钥，则需要删除 Pod：kubectl delete pod -n kube-system -l name=sealedsecrets-controller 使其生效</li>
+<li>使用自定义 RSA 密钥对：https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bringyour-own-certificates.md</li>
+</ol>
+<h3 id="external-secrets--vault">External Secrets + Vault</h3>
+<p><img src="../../../assets/md-images/OTMibtlkao1onmxtj3dcKyWOnOe.png" alt=""></p>
+<h3 id="demo3external-secrets--vault">Demo3：External Secrets + Vault</h3>
+<ol>
+<li>步骤详见：iac/week-7/demo-3/README.md</li>
+<li>创建完成后，尝试修改 vault 的密钥，15s 后查看 secret 是否同步</li>
+</ol>
+<h3 id="将已有的-secret-对象推送到-valut">将已有的 Secret 对象推送到 Valut</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: pushsecret-example
+spec:
+  refreshInterval: 10s # 刷新时间
+  secretStoreRefs:
+    - name: secret-store-vault
+      kind: ClusterSecretStore
+  selector:
+    secret:
+      name: example # 要推送的 K8s secret 名称
+  data:
+    - match:
+      secretKey: secret_data # 要推送的 K8s Secret key
+      remoteRef:
+        remoteKey: k8s/example # Vault path
+</code></pre>
+<h1 id="部署安全">部署安全</h1>
+<h2 id="部署安全的两种做法">部署安全的两种做法</h2>
+<h2 id="部署安全前置">部署安全：前置</h2>
+<p><img src="../../../assets/md-images/XhIGbCZpnozpjzx2ExsclloenZd.png" alt=""></p>
+<p><img src="../../../assets/md-images/LWgIbtKJVoZc6ixILyScPnPjnQg.png" alt=""></p>
+<h2 id="admission-webhook">Admission Webhook</h2>
+<p><img src="../../../assets/md-images/DD7Qbqd4roZIJBxGMFwcNaxJnJc.jpg" alt=""></p>
+<h2 id="demo4从零构建-admission-webhook">Demo4：从零构建 Admission Webhook</h2>
+<p>参考 iac/week-7/demo-4/README.md</p>
+<h2 id="继续深入-admission-webhook">继续深入 Admission Webhook</h2>
+<ol>
+<li>增加校验逻辑需要增加新的代码</li>
+<li>是否有更通用的 Admission Webhook？</li>
+</ol>
+<p>Kyverno</p>
+<h2 id="kyverno-架构图">Kyverno 架构图</h2>
+<p><img src="../../../assets/md-images/ED2AbLyI0o8yOvxf4g8ckguWn8d.jpg" alt=""></p>
+<h3 id="demo5安装-kyverno-和配置策略">Demo5：安装 Kyverno 和配置策略</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl create -f https://github.com/kyverno/kyverno/releases/download/v1.10.0/install.yaml
+kubectl create -f- &lt;&lt; EOF
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+name: require-labels
+spec:
+validationFailureAction: Enforce
+rules:
+- name: check-owner
+match:
+any:
+- resources:
+kinds:
+- Deployment
+validate:
+message: &quot;label 'owner' is required&quot;
+pattern:
+metadata:
+labels:
+owner: &quot;?*&quot;
+EOF
+</code></pre>
+<h2 id="kyverno-常用-policies">Kyverno 常用 Policies</h2>
+<ol>
+<li>
+<p>禁止部署非内部制品库的镜像</p>
+<ol>
+<li>iac/week-7/demo-5/deployment-registry.yaml</li>
+</ol>
+</li>
+<li>
+<p>禁止部署 latest 的镜像版本</p>
+<ol>
+<li>iac/week-7/demo-5/image-tag-policy.yaml</li>
+</ol>
+</li>
+<li>
+<p>禁止使用 NodePort 暴露服务</p>
+<ol>
+<li>iac/week-7/demo-5/disallow-nodeport.yaml</li>
+</ol>
+</li>
+<li>
+<p>要求提供 resource 资源配额</p>
+<ol>
+<li>iac/week-7/demo-5/required-resource.yaml</li>
+</ol>
+</li>
+</ol>
+<p>更多官方开源 Policy：https://kyverno.io/policies</p>
+<h2 id="部署安全后置">部署安全：后置</h2>
+<h3 id="falco云原生运行时安全监控工具">Falco：云原生运行时安全监控工具</h3>
+<p><img src="../../../assets/md-images/EXmKbwssuoGPwdxrKE8cR2n8nvh.jpg" alt=""></p>
+<h3 id="falco-事件采集原理">Falco 事件采集原理</h3>
+<ol>
+<li>（默认）基于 libscap 和 libsinsp C++ 库构建的内核模块，从 Linux Ring Buffer 获取系统事件</li>
+<li>通过 eBPF 探针获取事件</li>
+</ol>
+<p><img src="../../../assets/md-images/XZcYbpVRGou6Aqx0aZacnKBnnoe.jpg" alt=""></p>
+<h3 id="demo6安装和使用-falco">Demo6：安装和使用 Falco</h3>
+<ol>
+<li>
+<p>添加 Helm 仓库</p>
+<ol>
+<li>helm repo add falcosecurity https://falcosecurity.github.io/charts</li>
+<li>helm repo update</li>
+<li>helm install falco -n falco --set driver.kind=ebpf --set tty=true falcosecurity/falco</li>
+<li>kubectl get pods -n falco</li>
+</ol>
+</li>
+<li>
+<p>运行 alpine 镜像</p>
+<ol>
+<li>kubectl run alpine --image alpine -- sh -c &quot;sleep infinity&quot;</li>
+</ol>
+</li>
+<li>
+<p>模拟安全事件（执行一段 shell 命令）</p>
+<ol>
+<li>kubectl exec -it alpine -- sh -c &quot;uptime&quot;</li>
+</ol>
+</li>
+<li>
+<p>查看 Falco 输出的日志</p>
+<ol>
+<li>kubectl logs -l app.kubernetes.io/name=falco -n falco -c falco | grep Notice</li>
+</ol>
+</li>
+</ol>
+<h2 id="建议监控的高危安全事件">建议监控的高危安全事件</h2>
+<ol>
+<li>shell、bash、zsh、sh 命令操作</li>
+<li>ssh 登录</li>
+<li>用户和密码操作：useradd、usermod、passwd、adduser、addgroup......</li>
+<li>提权操作：sudo、su、suexec</li>
+<li>导出数据操作：pg_dumpall、mysqldump</li>
+<li>VPN 操作：openvpn</li>
+<li>定时命令：crontab、cron</li>
+<li>查看和删除日志</li>
+<li>Linux Kernel Module 注入检测</li>
+</ol>
+<h2 id="falco-rules-编写">Falco Rules 编写</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">- rule: shell_in_container
+desc: notice shell activity within a container
+condition: &gt;
+evt.type = execve and # https://falco.org/ml/docs/reference/rules/supported-fields/
+evt.dir = &lt; and
+container.id != host and
+(proc.name = bash or
+proc.name = ksh)
+output: &gt;
+shell in a container
+(user=%user.name container_id=%container.id container_name=%container.name
+shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)
+priority: WARNING
+</code></pre>
+<h2 id="falco-默认-rules">Falco 默认 Rules</h2>
+<ul>
+<li>默认：https://github.com/falcosecurity/rules/blob/main/rules/falco_rules.yaml</li>
+<li>sandbox rules：https://github.com/falcosecurity/rules/blob/main/rules/falco-sandbox_rules.yaml</li>
+<li>incubating rules：https://github.com/falcosecurity/rules/blob/main/rules/falcoincubating_rules.yaml</li>
+</ul>
+<h2 id="falco--argo-workflow-自动处理安全事件">Falco + Argo Workflow 自动处理安全事件</h2>
+<p><img src="../../../assets/md-images/DE3qbmVnXoez37x87yAcbzwTnRf.png" alt=""></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

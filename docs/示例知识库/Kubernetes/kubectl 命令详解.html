@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kubectl 命令详解</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="kubectl-命令详解">kubectl 命令详解</h1>
+<p>kubectl是官方的CLI命令行工具，用于与 apiserver进行通信，将用户在命令行输入的命令，组织并转化为 apiserver能识别的信息，进而实现管理k8s各种资源的一种有效途径。</p>
+<h1 id="帮助"><strong>帮助</strong></h1>
+<p><img src="../../../assets/md-images/HVKwbjpZWonvebxTJpbcNVRunKe.png" alt="图片展示了kubectl命令的详细帮助信息。分为基础命令、部署命令、集群管理命令、故障排除和调试命令、高级命令等类别。基础命令包括创建、删除、列出等操作；部署命令有rollout、scale等；集群管理命令有certificate、cluster-info等；故障排除和调试命令有describe、log等；高级命令有diff、apply等。该图片与上文介绍kubectl命令相关，是对kubectl命令功能的直观呈现。"></p>
+<h1 id="查看版本信息">查看版本信息</h1>
+<p><img src="../../../assets/md-images/NW5FbSdjAoKsUAxxQBKccvdMnbg.png" alt="图片展示了在devops01服务器上使用kubectl version命令查看版本信息的结果。命令执行后，显示了Client Version为v1.30.1，Kustomize Version为v5.0.4 - 0.20230601165947 - 6ce0bf390ce3，Server Version为v1.30.0。该图片与文档中“查看版本信息”部分对应，直观呈现了kubectl版本查询的执行结果，帮助用户了解当前kubectl的客户端、服务器及Kustomize版本信息。"></p>
+<h1 id="查看资源对象">查看资源对象</h1>
+<h2 id="查看node状态">查看Node状态</h2>
+<p><img src="../../../assets/md-images/W6XjbcIt9o5u8yxXInvcTK6snTc.png" alt="图片展示了在devops01服务器上使用kubectl get node命令查看Node状态的结果。命令执行后，显示了名为kind-control-plane的Node，其状态为Ready，角色是control-plane，年龄为2分26秒，版本为v1.30.0。该图片与文档中“查看Node状态”部分内容对应，直观呈现了使用kubectl get node命令获取Node相关信息的操作结果。"></p>
+<h2 id="查看master组件状态">查看Master组件状态</h2>
+<p><img src="../../../assets/md-images/LgSLbqV8mog3npxBYsMcwA1Lngh.png" alt="图片展示了在devops01服务器上使用kubectl get cs命令查看Master组件状态的结果。命令执行后显示了三个Master组件的状态信息，分别为controller-manager、scheduler和etcd-0，它们的状态均为Healthy，消息为ok，且无ERROR信息。该图片与文档中“查看Master组件状态”部分内容对应，直观呈现了查看Master组件状态时的命令执行结果。"></p>
+<h2 id="列出k8s所有资源"><em>列出K8s所有资源</em></h2>
+<p><img src="../../../assets/md-images/Z5t8boltaorMILx7db4cBNzFncb.png" alt="图片展示了在终端中使用kubectl api-resources命令的输出结果。命令执行后，列出了Kubernetes中所有资源对象的名称、API版本、是否命名空间相关、KIND类型等信息。如cs对应API版本为v1，是命名空间相关的Binding类型；pvc对应API版本为v1，是命名空间相关的PersistentVolumeClaim类型等。该图片与文档中“列出K8s所有资源”内容相关，直观呈现了列出所有K8s资源对象的命令执行效果。"></p>
+<h2 id="查看集群接口信息">查看集群接口信息</h2>
+<p><img src="../../../assets/md-images/Ehj6b2GuJoY2emxYXIeck3QqnYm.png" alt="图片展示了在devops01服务器上执行kubectl cluster-info命令的输出结果。命令执行后，显示了Kubernetes控制平面运行的地址为https://127.0.0.1:42667，CoreDNS运行的地址为https://127.0.0.1:42667/api/v1/namespaces/kube -system/services/kube-dns:dns/proxy。还提示若要进一步调试和诊断集群问题，可使用'kubectl cluster-info dump'。该图片与文档中“查看集群接口信息”部分内容对应，直观呈现了执行该命令后的结果。"></p>
+<h2 id="查看api的版本">查看API的版本</h2>
+<p><img src="../../../assets/md-images/ZTrYb5qO8oOvTUx73rmcsfI4nUg.png" alt="图片展示了在终端中使用kubectl api-versions命令执行后的输出结果。命令执行后，显示了多个API版本，如admissionregistration.k8s.io/v1、apiextensions.k8s.io/v1等，涵盖了认证、授权、批处理、证书、协调、发现、事件等多个方面，还包括了argo、helm、k3s、metrics、networking、node、policy、rbac.authorization、scheduling、storage等API版本。该图片与文档中“查看API的版本”内容相关，直观呈现了API版本的输出情况。"></p>
+<h2 id="查看某个node的详细信息">查看某个node的详细信息</h2>
+<p><img src="../../../assets/md-images/Cvpeb2M2tozQKLxMIWYc7UMgnxd.png" alt="图片展示了在devops01节点上执行kubectl describe node devops01命令的输出结果。输出中包含Node的控制平面角色、节点角色、标签、注解、条件、地址等信息。如node角色为master，标签包含beta.kubernetes.io/arch、beta.kubernetes.io/os等，注解中包含flannel、kubelet等信息，条件中Ready为True，地址中包含IP地址192.168.50.161等。该图片与上文“查看Node状态”内容相关，直观呈现了Node状态的kubectl命令输出结果。"></p>
+<h1 id="kubectl-以-json-格式输出">Kubectl 以 json 格式输出</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># 查看镜像
+kubectl get daemonset node-exporter -n monitor -ojsonpath='{.spec.template.spec.containers[*].image}'
+
+kubectl get pod -l app=pas-topod -o jsonpath='{.items[0].metadata.name}'
+</code></pre>
+<h1 id="kubectl-自动补全">kubectl 自动补全</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">yum -y install bash-completion
+source /usr/share/bash-completion/bash_completion
+echo &quot;source &lt;(kubectl completion bash)&quot; &gt;&gt; ~/.bashrc
+</code></pre>
+<h1 id="查看某个api下面都有哪些配置">查看某个api下面都有哪些配置</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl explain &lt;资源名对象名&gt;
+</code></pre>
+<p>例如查看pod</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl explain pod
+KIND:     Pod
+VERSION:  v1
+
+DESCRIPTION:
+     Pod is a collection of containers that can run on a host. This resource is
+     created by clients and scheduled onto hosts.
+
+FIELDS:
+   apiVersion   &lt;string&gt;
+     APIVersion defines the versioned schema of this representation of an
+     object. Servers should convert recognized schemas to the latest internal
+     value, and may reject unrecognized values. More info:
+     https://git.k8s.io/community/contributors/devel/api-conventions.md#resources
+
+   kind &lt;string&gt;
+     Kind is a string value representing the REST resource this object
+     represents. Servers may infer this from the endpoint the client submits
+     requests to. Cannot be updated. In CamelCase. More info:
+     https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds
+
+   metadata     &lt;Object&gt;
+     Standard object's metadata. More info:
+     https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+
+   spec &lt;Object&gt;
+     Specification of the desired behavior of the pod. More info:
+     https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status
+
+   status       &lt;Object&gt;
+     Most recently observed status of the pod. This data may not be up to date.
+     Populated by the system. Read-only. More info:
+     https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status
+</code></pre>
+<h2 id="列出所有-api-字段">列出所有 api 字段</h2>
+<p>通过以上我们能感觉到,以上好像并没有罗列出所有的api字段,实际上以上列出的仅是一级字段,一级字段可能还包含二级的,三级的字段,想要罗列出所有的字段,可以加上<code>--recursive</code>来列出所有可能的字段</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl explain svc --recursive
+KIND:     Service
+VERSION:  v1
+
+DESCRIPTION:
+     Service is a named abstraction of software service (for example, mysql)
+     consisting of local port (for example 3306) that the proxy listens on, and
+     the selector that determines which pods will answer requests sent through
+     the proxy.
+
+FIELDS:
+   apiVersion   &lt;string&gt;
+   kind &lt;string&gt;
+   metadata     &lt;Object&gt;
+      annotations       &lt;map[string]string&gt;
+      clusterName       &lt;string&gt;
+      creationTimestamp &lt;string&gt;
+      deletionGracePeriodSeconds        &lt;integer&gt;
+      deletionTimestamp &lt;string&gt;
+      finalizers        &lt;[]string&gt;
+      generateName      &lt;string&gt;
+      generation        &lt;integer&gt;
+      initializers      &lt;Object&gt;
+         pending        &lt;[]Object&gt;
+            name        &lt;string&gt;
+         result &lt;Object&gt;
+            apiVersion  &lt;string&gt;
+            code        &lt;integer&gt;
+            details     &lt;Object&gt;
+               causes   &lt;[]Object&gt;
+                  field &lt;string&gt;
+                  message       &lt;string&gt;
+                  reason        &lt;string&gt;
+               group    &lt;string&gt;
+               kind     &lt;string&gt;
+               name     &lt;string&gt;
+               retryAfterSeconds        &lt;integer&gt;
+               uid      &lt;string&gt;
+            kind        &lt;string&gt;
+            message     &lt;string&gt;
+            metadata    &lt;Object&gt;
+               continue &lt;string&gt;
+               resourceVersion  &lt;string&gt;
+               selfLink &lt;string&gt;
+            reason      &lt;string&gt;
+            status      &lt;string&gt;
+      labels    &lt;map[string]string&gt;
+      name      &lt;string&gt;
+      namespace &lt;string&gt;
+      ownerReferences   &lt;[]Object&gt;
+         apiVersion     &lt;string&gt;
+         blockOwnerDeletion     &lt;boolean&gt;
+         controller     &lt;boolean&gt;
+         kind   &lt;string&gt;
+         name   &lt;string&gt;
+         uid    &lt;string&gt;
+      resourceVersion   &lt;string&gt;
+      selfLink  &lt;string&gt;
+      uid       &lt;string&gt;
+   spec &lt;Object&gt;
+      clusterIP &lt;string&gt;
+      externalIPs       &lt;[]string&gt;
+      externalName      &lt;string&gt;
+      externalTrafficPolicy     &lt;string&gt;
+      healthCheckNodePort       &lt;integer&gt;
+      loadBalancerIP    &lt;string&gt;
+      loadBalancerSourceRanges  &lt;[]string&gt;
+      ports     &lt;[]Object&gt;
+         name   &lt;string&gt;
+         nodePort       &lt;integer&gt;
+         port   &lt;integer&gt;
+         protocol       &lt;string&gt;
+         targetPort     &lt;string&gt;
+      publishNotReadyAddresses  &lt;boolean&gt;
+      selector  &lt;map[string]string&gt;
+      sessionAffinity   &lt;string&gt;
+      sessionAffinityConfig     &lt;Object&gt;
+         clientIP       &lt;Object&gt;
+            timeoutSeconds      &lt;integer&gt;
+      type      &lt;string&gt;
+   status       &lt;Object&gt;
+      loadBalancer      &lt;Object&gt;
+         ingress        &lt;[]Object&gt;
+            hostname    &lt;string&gt;
+            ip  &lt;string&gt;
+</code></pre>
+<h1 id="问题">问题</h1>
+<p>使用<code>kubectl get pv</code>  命令报错</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">The connection to the server localhost:8080 was refused - did you specify the right host or port?
+</code></pre>
+<p>解决方法：查看<code>~/.kube</code> 文件夹下是否有<code>config</code>文件，参考安装过程复制config文件</p>
+<h1 id="kubectl-日志">Kubectl 日志</h1>
+<p>kubectl有一个log的开关，打开之后既可以看到具体问题在哪里了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"> -v, --v=0: number for the log level verbosity
+kubectl -v=8 get pods
+</code></pre>
+<h1 id="在客户端电脑安装-kubectl">在客户端电脑安装 kubectl</h1>
+<h2 id="windows">Windows</h2>
+<ul>
+<li>
+<p>从下面的链接下载 kubectl 可执行文件<a href="https://storage.googleapis.com/kubernetes-release/release/v1.25.0/bin/windows/amd64/kubectl.exe">https://storage.googleapis.com/kubernetes-release/release/v1.25.0/bin/windows/amd64/kubectl.exe</a></p>
+<ul>
+<li>请将其中的 v1.25.0 替换为集群安装的版本号</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">kubectl version --short
+</code></pre>
+<ul>
+<li>通过此链接可获取最新的版本号 <a href="https://storage.googleapis.com/kubernetes-release/release/stable.txt">https://storage.googleapis.com/kubernetes-release/release/stable.txt</a></li>
+<li>将下载的可执行文件添加到 PATH 环境变量</li>
+<li>执行命令查看已安装的 kubectl 版本号</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl version
+</code></pre>
+<h2 id="linux">Linux</h2>
+<p><strong>配置K8S的yum源</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+       &lt;http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg&gt;
+EOF
+</code></pre>
+<p><strong>安装kubectl</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">yum install -y kubectl
+</code></pre>
+<p><strong>验证安装</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl version
+</code></pre>
+<h1 id="配置-kubectl-客户端">配置 kubectl 客户端</h1>
+<p>在客户端电脑完成如下配置，即可远程管理 Kubernetes 集群</p>
+<h2 id="windows-1">Windows</h2>
+<p><strong>执行命令</strong></p>
+<p>用记事本（或其他文本编辑器）创建文件 ~/.kube/config，其中 ~ 代表当前的用户目录</p>
+<p>将前面获得的 /etc/kubernetes/admin.conf 文件的内容粘贴进该文件并保存</p>
+<p><strong>配置 hosts</strong></p>
+<p>用记事本打开 C:\windows\System32\drivers\etc\hosts 文件（需要管理员权限），在该文件末尾添加一行记录：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">x.x.x.x    apiserver.demo
+</code></pre>
+<blockquote>
+<p>将 x.x.x.x 替换成 demo-master-a-1 的实际 IP 地址将 apiserver.demo 替换成前面获得 /etc/kubernetes/admin.conf 文件中 clusters/cluster/server 中 URL 里 host 对应的部分</p>
+</blockquote>
+<p><strong>验证安装结果</strong></p>
+<p>执行命令</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl get nodes
+kubectl get pods -n kube-system
+</code></pre>
+<h2 id="linux-1">Linux</h2>
+<p><strong>执行命令</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">vi ~/.kube/config
+</code></pre>
+<p>将前面获得的 /etc/kubernetes/admin.conf 文件的内容粘贴进该文件并保存</p>
+<p><strong>配置 hosts</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">echo &quot;x.x.x.x    apiserver.demo&quot; &gt;&gt; /etc/hosts
+</code></pre>
+<blockquote>
+<p>将 x.x.x.x 替换成 demo-master-a-1 的实际 IP 地址将 apiserver.demo 替换成前面获得 /etc/kubernetes/admin.conf 文件中 clusters/cluster/server 中 URL 里 host 对应的部分</p>
+</blockquote>
+<p><strong>验证安装结果</strong></p>
+<p>执行命令</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl get nodes
+kubectl get pods -n kube-system
+</code></pre>
+<h1 id="kubectl-看到-pod-的-lsat-state-的-exit-code-是-137">Kubectl 看到 Pod 的 Lsat State 的 Exit Code 是 137</h1>
+<p>137 表示该进程由外部信号终止。数字 137 是 128 + x 的和其中 x 是终止进程的信号的编号。137 中 x 为 9，这是 SIGKILL 的信号编号，意味着这个进程被强行终止。在底部的 Event 中显示了容器为什么终止。</p>
+<h1 id="kubectl-命令-带----是什么意思">kubectl 命令 带 -- 是什么意思？</h1>
+<p>在 kubectl 命令中，双破折号（--）有特定的含义。</p>
+<ol>
+<li>
+<p><strong>区分选项和非选项参数</strong></p>
+<p>* 当你使用 kubectl 命令时，有些参数是选项（通常用于设置命令的行为，如 -n/--namespace 用于指定命名空间），而有些参数是非选项参数（如资源名称等）。双破折号用于明确区分选项和非选项参数的结束。</p>
+<p>* 例如，kubectl get pods --namespace=dev -- my -pod。在这个命令中，-- 表示前面是选项（--namespace=dev），后面的是非选项参数（my -pod）。如果不加 --，kubectl 可能会把 my -pod 中的部分内容当作选项来解析，可能会导致错误。</p>
+</li>
+<li>
+<p><strong>传递参数给资源</strong></p>
+<p>* 在某些情况下，你可以通过双破折号将参数传递给资源执行的操作。比如，当你使用 kubectl exec 命令在容器中执行命令时，可以这样使用。</p>
+<p>* 例如，kubectl exec my -pod -- ls -1。这里，-- 后面的 ls -1 是传递给容器中执行的操作（即在容器中执行 ls -1 命令来列出目录内容）。</p>
+</li>
+<li>
+<p><strong>避免参数冲突</strong></p>
+<p>* 如果资源的名称等非选项参数看起来像选项，使用双破折号可以避免这种冲突。例如，如果你有一个名为 -pod -name 的资源，kubectl get pods -pod -name 可能会被错误地解析为选项。在这种情况下，kubectl get pods -- -pod -name 就可以正确地获取名为 -pod -name 的 Pod 资源。</p>
+</li>
+</ol>
+<h1 id="kubectl-参考文档推荐">kubectl 参考文档推荐</h1>
+<p><a href="https://kubernetes.io/docs/reference/kubectl/overview/">https://kubernetes.io/docs/reference/kubectl/overview/</a></p>
+<p><a href="https://kuboard.cn/install/install-kubectl.html#%E5%9C%A8%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%B5%E8%84%91%E5%AE%89%E8%A3%85-kubectl">#在客户端电脑安装-kubectl</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

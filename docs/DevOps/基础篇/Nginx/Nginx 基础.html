@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nginx 基础</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="nginx-基础">Nginx 基础</h1>
+<h1 id="什么是nginx">什么是nginx</h1>
+<p>Nginx是一款高性能的http 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器。</p>
+<p>由俄罗斯的程序设计师Igor Sysoev所开发，官方测试nginx能够支支撑5万并发链接，</p>
+<p>并且cpu、内存等资源消耗却非常低，运行非常稳定。</p>
+<p>应用场景</p>
+<ul>
+<li>
+<p>http服务器。Nginx是一个http服务可以独立提供http服务。</p>
+<ul>
+<li>可以做网页静态服务器。</li>
+<li>支持rtmp协议，直播推流。</li>
+<li>使用http协议作为短视频、多媒体资源服务器（优酷、抖⾳）</li>
+<li>文件下载服务器。</li>
+</ul>
+</li>
+<li>
+<p>虚拟主机。</p>
+<ul>
+<li>可以实现在一台服务器虚拟出多个网站。例如个人网站使用的虚拟主机。</li>
+<li>其实就是 server{} 后续会讲。</li>
+</ul>
+</li>
+<li>
+<p>反向代理</p>
+<ul>
+<li>内网服务器与外围隔离。</li>
+<li>以隧道模式完成请求转发</li>
+<li>支持Http的7层或Tcp/Udp的4层转发</li>
+</ul>
+</li>
+<li>
+<p>负载均衡。</p>
+<ul>
+<li>当网站的访问量达到一定程度后，单台服务器不能满足用户的请求时，需要用多台服务器集群可以使用nginx做反向代理。</li>
+<li>并且多台服务器可以平均分担负载，不会因为某台服务器负载高宕机而某台服务器闲置的情况。</li>
+</ul>
+</li>
+<li>
+<p>日志采集</p>
+<ul>
+<li>收集用户访问日志（京东、淘宝）</li>
+<li>确认nginx处访问链路是否故障，监控告警</li>
+</ul>
+</li>
+<li>
+<p>应用服务器</p>
+<ul>
+<li>网上说：可以运行使用Java、PHP、Python 或Ruby 等后端代码的程序（这是不准确的说法，Nginx是Web服务器，可以说能代理应用服务器也就是后端API，也就是反向代理。）</li>
+</ul>
+</li>
+<li>
+<p>软防火墙</p>
+<ul>
+<li>如果可以根据URL分辨用户，就可以用nginx来过滤某些URL。</li>
+<li>使用Lua等语言在Nginx的基础上进行二次开发，请求规则匹配，过滤非法请求达到流量清洗的目的。</li>
+</ul>
+</li>
+</ul>
+<p>版本区别</p>
+<p>常用版本分为四大阵营</p>
+<p>Nginx开源版 （常用）</p>
+<p>http://nginx.org/</p>
+<p>Nginx plus 商业版</p>
+<p><a href="https://www.nginx.com/">https://www.nginx.com</a></p>
+<p>openresty</p>
+<p>http://openresty.org/cn/</p>
+<p>Tengine</p>
+<p><a href="http://tengine.taobao.org/">http://tengine.taobao.org</a></p>
+<h1 id="安装">安装</h1>
+<h2 id="编译安装">编译安装</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">yum -y install make zlib zlib-devel gcc-c++ libtool  openssl openssl-devel
+yum install -y pcre pcre-devel
+</code></pre>
+<p>PCRE(Perl Compatible Regular Expressions)是一个Perl库，包括 perl 兼容的正则表达式库。nginx的http模块使用pcre来解析正则表达式，所以需要在linux上安装pcre库。</p>
+<p>注：pcre-devel是使用pcre开发的一个二次开发库。nginx也需要此库。</p>
+<p>zlib库提供了很多种压缩和解压缩的方式，nginx使用zlib对http包的内容进行gzip，所以需要在linux上安装zlib库。</p>
+<p>OpenSSL 是一个强大的安全套接字层密码库，囊括主要的密码算法、常用的密钥和证书封装管理功能及SSL协议，并提供丰富的应用程序供测试或其它目的使用。</p>
+<p>nginx不仅支持http协议，还支持https（即在ssl协议上传输http），所以需要在linux安装openssl库。</p>
+<p>安装nginx</p>
+<p>下载 Nginx，下载地址：https://nginx.org/en/download.html</p>
+<p>放在你想放在的地方，无所谓。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">./configure \
+--prefix=/usr/local/nginx \
+--pid-path=/var/run/nginx/nginx.pid \
+--lock-path=/var/lock/nginx.lock \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-http_gzip_static_module \
+--http-client-body-temp-path=/var/temp/nginx/client \
+--http-proxy-temp-path=/var/temp/nginx/proxy \
+--http-fastcgi-temp-path=/var/temp/nginx/fastcgi \
+--http-uwsgi-temp-path=/var/temp/nginx/uwsgi \
+--http-scgi-temp-path=/var/temp/nginx/scgi \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-file-aio \
+--with-http_realip_module
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">--prefix=/usr/local/nginx  表示软件安装到/usr/local/nginx下面。nginx的各种配置也就在里面了。
+这个make install 的时候就不用在指定安装路径。
+执行完成后查看目录里面已经多了一个Makefile文件
+</code></pre>
+<p>注意，有朋友说想要http3的模块，看一下构建参数 https://nginx.org/en/docs/configure.html</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">make
+make install
+</code></pre>
+<p>安装成功后会看到以下目录，在/usr/local/nginx</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">conf
+html
+sbin
+</code></pre>
+<h2 id="容器安装">容器安装</h2>
+<p>docker直接启动、docker-compose启动，k8s启动。</p>
+<p>我们一般不会用docker直接启动，感兴趣可以看这里 https://hub.docker.com/_/nginx</p>
+<h3 id="docker-compose启动">docker-compose启动</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">version: '3'
+services:
+  nginx:
+    restart: always
+    container_name: nginx
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /usr/local/nginx/html:/usr/share/nginx/html
+      - /usr/local/nginx/www:/var/www
+      - /usr/local/nginx/logs:/var/log/nginx
+      # 有可能会出现不能挂载，这个时候用手动拷贝配置文件就行
+      - /usr/local/nginx/nginx.conf/:/etc/nginx/nginx.conf
+      - /usr/local/nginx/etc/cert:/etc/nginx/cert
+      - /usr/local/nginx/conf.d:/etc/nginx/conf.d
+    environment:
+      - NGINX_PORT=80
+      - TZ=Asia/Shanghai
+    privileged: true
+</code></pre>
+<p>container_name: 容器名称</p>
+<p>image: 镜像</p>
+<p>ports: 端口</p>
+<p>volumes: 路径映射</p>
+<p>启动</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">docker-compose up -d
+</code></pre>
+<p>docker-compose常用命令</p>
+<h2 id="k8s启动">k8s启动</h2>
+<p>使用volume共享主机目录</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx-service
+  name: nginx-service
+  # 命名空间，没有可以删除，默认是default
+  namespace: hello-world
+spec:
+  ports:
+        # 对外暴露的端口
+  - nodePort: 30013
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx-pod
+  # NodePort类型可以对外暴露端口
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-deploy
+  name: nginx-deploy
+  namespace: hello-world
+spec:
+  replicas: 1
+  selector:
+    nodeSelector:
+        app: nginx
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: nginx-pod
+      namespace: hello-world
+    spec:
+      containers:
+      - image: nginx:1.22.0
+        name: nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+        volumeMounts:
+        - name: nginx-config
+          mountPath: &quot;/etc/nginx/conf.d/&quot;
+      volumes:
+      - name: nginx-config
+        hostPath:
+          # directory location on host
+          path: /etc/nginx/conf.d/
+          type: Directory
+</code></pre>
+<p>注意这种方式要给主机打label，不然会漂移</p>
+<p>Configmap</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configmap
+  namespace: hello-world
+data:
+  default.conf: |
+    server {
+        listen       80;
+        listen  [::]:80;
+        server_name  localhost;
+
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
+</code></pre>
+<h1 id="目录结构">目录结构</h1>
+<p>进入Nginx的主目录我们可以看到这些文件夹</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">client_body_temp conf fastcgi_temp html logs proxy_temp sbin scgi_temp uwsgi_temp
+</code></pre>
+<p>其中这几个文件夹在刚安装后是没有的，主要用来存放运行过程中的临时文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">client_body_temp fastcgi_temp proxy_temp scgi_temp
+</code></pre>
+<p>一般我们要用关注下面这几个目录</p>
+<p><strong>conf</strong>         用来存放配置文件相关</p>
+<p><strong>html</strong>         用来存放静态文件的默认目录 html、css等</p>
+<p><strong>sbin</strong>         nginx的主程序</p>
+<p><strong>logs</strong>        日志文件</p>
+<h1 id="最小配置">最小配置</h1>
+<p><strong>worker_processes</strong></p>
+<p>worker_processes 1; 默认为1，表示开启一个业务进程</p>
+<p><strong>worker_connections</strong></p>
+<p>worker_connections 1024; 单个业务进程可接受连接数</p>
+<p><strong>include mime.types;</strong></p>
+<p>include mime.types; 引入http mime类型 （多媒体文件如视频、图片之类的）</p>
+<p><strong>default_type application/octet-stream;</strong></p>
+<p>default_type application/octet-stream; 如果mime类型没匹配上，默认使用二进制流的方式传输。</p>
+<p><strong>sendfile on;</strong></p>
+<p>使用linux的 sendfile(socket, file, len) 高效网络传输，也就是数据0拷贝。</p>
+<p><a href="https://docs.nginx.com/nginx/admin-guide/web-server/serving-static-content/#enabling-sendfile">Nginx 文档</a>建议使用它以提高效率，但大文件除外。可能发生的情况是，大文件传输可能会导致连接过长阻塞。解决方案可以在与上面相同的链接中找到，它可以使用sendfile_max_chunk.</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Nginx">location /mp3 {
+    sendfile           on;
+    sendfile_max_chunk 1m; # Limits chunks to 1 Megabytes
+}
+</code></pre>
+<p>关于sendfile的可以看<a href="https://docs.nginx.com/nginx/admin-guide/web-server/serving-static-content/#enabling-sendfile">官方文档</a></p>
+<p><strong>keepalive_timeout 65;</strong></p>
+<p>指定每个TCP 连接最多可以保持多长时间。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

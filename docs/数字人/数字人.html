@@ -39,6 +39,7 @@ ul, ol { padding-left: 28px; }
 li > p { margin: 8px 0; }
 blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
 hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
 pre {
   position: relative;
   margin: 26px 0;
@@ -77,7 +78,17 @@ pre[data-lang]::after {
   pointer-events: none;
 }
 code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-pre code { display: block; overflow-x: auto; padding: 22px 24px; font-size: 13px; line-height: 1.9; color: #a9b1d6; white-space: pre; overflow-wrap: normal; word-break: normal; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
 :not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 pre .cm { color: #565f89; }
 pre .st { color: #9ece6a; }
@@ -98,7 +109,7 @@ th { background: #eaf0f7; }
   body { background: #fff; }
   main { width: 100%; padding: 0; }
   .skip-link { display: none; }
-  pre { white-space: pre-wrap; }
+  pre { white-space: pre-wrap; box-shadow: none; }
   pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
   .table-scroll { overflow: visible; }
   th, td { min-width: 0; }
@@ -110,7 +121,7 @@ th { background: #eaf0f7; }
 <main id="main-content" tabindex="-1">
 <article>
 <h1 id="数字人">数字人</h1>
-<p><a href="https://zcn1gsnncvc7.feishu.cn/wiki/Eqj7waQqJiSFKSkxx5IcYyzenMd">群聊整理</a></p>
+<p><a href="../AI/%E6%95%B0%E5%AD%97%E4%BA%BA/%E7%BE%A4%E8%81%8A%E6%95%B4%E7%90%86.html">群聊整理</a></p>
 <h1 id="准备开发服务器安装基础工具">准备开发服务器，安装基础工具</h1>
 <p>开发服务器推荐使用 Ubuntu Linux。</p>
 <p>前端开发机大家可以自由使用自己喜欢的操作系统，Windows、macOS，Linux 都可以。开发服务器起码要配备 Nvidia 独立显卡，最低要求是 8GB 显存的 Nvidia RTX 3070。内存至少 16G，建议 32G。开发服务器的硬件配置当然是越高越好了。前端开发机没有特别的硬件要求，也不需要配置 Nvidia 独立显卡。可以在前端开发机上通过 SSH 连接到后端开发服务器，并且使用 VS Code 的远程开发功能很方便地开发服务器端的代码。如果没有特别说明，课程视频中的所有操作均在开发机上完成。</p>
@@ -120,12 +131,8 @@ th { background: #eaf0f7; }
 <p>开发服务器也可以选择使用云端的虚拟主机，不过必须选择配置了 Nvidia GPU 的虚拟主机。我推荐两个云平台 AutoDL 和 UCloud。可以选择配置了 RTX 3090 GPU 的虚拟主机，这个型号的机器性价比最高。AutoDL 的包月价格低于 UCloud，但是按使用小时付费的单价高于 UCloud。这两个平台的 GPU 虚拟主机的价格都比阿里云低不少。阿里云并没有配置 3090、4090 消费级显卡的 GPU 虚拟主机。</p>
 <p>这两个云平台的地址列在课程视频相关信息中。</p>
 <ul>
-<li>
-<p>AutoDL：<a href="https://www.autodl.com/home"> </a><a href="https://www.autodl.com/home">https://www.autodl.com/home</a></p>
-</li>
-<li>
-<p>UCloud：<a href="https://www.compshare.cn/"> </a><a href="https://www.compshare.cn/">https://www.compshare.cn/</a></p>
-</li>
+<li>AutoDL：<a href="https://www.autodl.com/home"> </a><a href="https://www.autodl.com/home">https://www.autodl.com/home</a></li>
+<li>UCloud：<a href="https://www.compshare.cn/"> </a><a href="https://www.compshare.cn/">https://www.compshare.cn/</a></li>
 </ul>
 <p>开发服务器准备好之后，需要确保在前端开发机能够通过 SSH 远程登录到服务器。我建议使用私钥来登录服务器，而不是每次都输入密码。一个原因是更方便，另一个原因是更安全。</p>
 <p>Ubuntu 服务器准备好之后，如果不是云端虚拟主机，我们需要手工为 Ubuntu 安装 Nvidia 驱动。使用 SSH 远程登录到服务器做操作就可以了。</p>
@@ -152,8 +159,8 @@ sudo ubuntu-drivers install nvidia:535
 sudo ubuntu-drivers install nvidia
 </code></pre>
 <p>安装 Nvidia 驱动的相关文档：</p>
-<p><a href="https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html"></a><a href="https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html">https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html</a></p>
-<p><a href="https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787"></a><a href="https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787">https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787</a></p>
+<p><a href="https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html"> </a><a href="https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html">https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/index.html</a></p>
+<p><a href="https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787"> </a><a href="https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787">https://forums.developer.nvidia.com/t/which-nvidia-driver-and-ubuntu-version-to-use-without-breaking-my-machine/308787</a></p>
 <h2 id="step2安装-python-和-uv">step2：安装 Python 和 uv</h2>
 <p>接下来需要安装 Python，我们使用 Ubuntu 自带的 Python 即可。Ubuntu 22.04 默认使用 Python 3.10，Ubuntu 22.04 默认使用 Python 3.12，使用这两个版本都没问题。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">sudo apt install python3 python3-pip python3-dev
@@ -183,10 +190,10 @@ default = true
 <p>因为我们这套课程选择使用开源 LLM DeepSeek 和 Qwen3。DeepSeek 和 Qwen3 都可以本地部署，也都可以通过 API 调用云端部署的满血版。两者都是需要的，为了调用云端部署的满血版，我们需要有一个云平台账号，并且少量充一些钱。我推荐使用阿里云的百炼平台，通过这个平台可以使用满血版的 DeepSeek 和 Qwen3。</p>
 <p>百炼平台地址：<a href="https://www.aliyun.com/product/bailian"> </a><a href="https://www.aliyun.com/product/bailian">https://www.aliyun.com/product/bailian</a></p>
 <p>在百炼控制台使用阿里云账号登录，访问模型广场，首先开通模型调用服务。</p>
-<p><a href="https://bailian.console.aliyun.com/?tab=model#/model-market"></a><a href="https://bailian.console.aliyun.com/?tab=model#/model-market">https://bailian.console.aliyun.com/?tab=model#/model-market</a></p>
+<p><a href="https://bailian.console.aliyun.com/?tab=model#/model-market"> </a><a href="https://bailian.console.aliyun.com/?tab=model#/model-market">https://bailian.console.aliyun.com/?tab=model#/model-market</a></p>
 <p>点击页面底部的 api_key，然后创建一个新的 api_key。</p>
 <p>查看一下已部署 Qwen3 的模型型号列表：</p>
-<p><a href="https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3"></a><a href="https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3">https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3</a></p>
+<p><a href="https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3"> </a><a href="https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3">https://bailian.console.aliyun.com/?tab=model#/model-market/detail/qwen3</a></p>
 <p>最新满血版 Qwen3 的快照 id 是 qwen3-235b-a22b，记下这个 model id。</p>
 <p>然后写个测试代码，测试一下调用云端部署的 DeepSeek 和 Qwen3。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import os
@@ -248,7 +255,7 @@ Environment=&quot;OLLAMA_HOST=0.0.0.0&quot;
 </code></pre>
 <p>同样的，Ollama 平台上有 DeepSeek-R1 的所有版本，包括 671b 满血版。普通机器部署 14b 以下的版本就可以了。</p>
 <p>然后写个测试代码，测试一下调用本地部署的 DeepSeek 和 Qwen3。</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import os                                                                             &#32;
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import os                                                                              
 from openai import OpenAI
                    
 client = OpenAI(
@@ -266,9 +273,9 @@ print(&quot; 最终答案：&quot;)                              
 <h1 id="安装测试数字人开发工具adh">安装测试数字人开发工具ADH</h1>
 <h2 id="step-1adh-项目简介">step 1：ADH 项目简介</h2>
 <p>2D 数字人方面，我推荐一个很棒的开源项目 AWESOME-DIGITAL-HUMAN，缩写为 ADH。这个开源项目是我国的优秀开发者一力辉老师在去年开发的。这节课我就来介绍如何在安装 ADH 并且做一些测试。</p>
-<p>一力辉老师的 ADH 项目的官方地址在：
+<p>一力辉老师的 ADH 项目的官方地址在：<br>
 <a href="https://github.com/wan-h/awesome-digital-human-live2d"> </a><a href="https://github.com/wan-h/awesome-digital-human-live2d">https://github.com/wan-h/awesome-digital-human-live2d</a></p>
-<p>我 fork 了这个项目，我的 ADH 项目分支的的地址在：
+<p>我 fork 了这个项目，我的 ADH 项目分支的的地址在：<br>
 <a href="https://github.com/freecoinx/awesome-digital-human-live2d"> </a><a href="https://github.com/freecoinx/awesome-digital-human-live2d">https://github.com/freecoinx/awesome-digital-human-live2d</a></p>
 <p>大家可以使用我的 ADH 项目版本，因为我对代码做了一些修改，解决了其中的一些问题。如果直接使用一力辉老师的版本，还需要自己做这些 DIY。ADH 的最新版本是 3.0.0 版，最近才发布。我会及时将官方 ADH 项目最新的代码合并到我的 ADH 项目，确保我的 ADH 项目代码与一力辉老师的 ADH 项目保持同步。</p>
 <p>ADH 项目分成后端和前端两部分。后端使用 Python 开发，开发框架是 FastAPI。前端使用 TypeScript 开发，开发框架是 Next.js + React + HeroUI。前后端可以部署在同一台机器上，也可以部署在两台不同的机器上。这节课我演示将 ADH 后端部署在使用 Ubuntu 的开发服务器上，将 ADH 前端部署在使用 Windows 的前端开发机上。</p>
@@ -309,10 +316,10 @@ SERVER:
   PORT: 8880
   WORKSPACE_PATH: &quot;./outputs&quot;
   ENGINES:
-    ASR:&#32;
+    ASR: 
       SUPPORT_LIST: [ &quot;difyAPI.yaml&quot;, &quot;cozeAPI.yaml&quot;, &quot;tencentAPI.yaml&quot;, &quot;funasrStreamingAPI.yaml&quot;]
       DEFAULT: &quot;difyAPI.yaml&quot;
-    TTS:&#32;
+    TTS: 
       SUPPORT_LIST: [ &quot;edgeAPI.yaml&quot;, &quot;tencentAPI.yaml&quot;, &quot;difyAPI.yaml&quot;, &quot;cozeAPI.yaml&quot; ]
       DEFAULT: &quot;edgeAPI.yaml&quot;
     LLM:
@@ -369,18 +376,12 @@ NEXT_PUBLIC_SERVER_MODE=&quot;prod&quot;
 <p>这里 LLM 的配置虽然使用的是 OpenAI API，其实并不是真的访问 OpenAI 的 LLM，而是访问我们上节课在本地部署的开源 LLM qwen3:8b。当然也可以使用本地部署的 deepseek-r1:7b，或者云端的满血版 Qwen3、DeepSeek-R1。</p>
 <p>下面我们来测试：使用文本与数字人交互。我问了数字人 3 个问题：</p>
 <ol>
-<li>
-<p>你好，9.9 和 9.11 两个数字哪个大？</p>
-</li>
-<li>
-<p>你好，鲁迅的真名是什么？</p>
-</li>
-<li>
-<p>你好，请简单介绍一下《封神演义》，不超过 5 句话。</p>
-</li>
+<li>你好，9.9 和 9.11 两个数字哪个大？</li>
+<li>你好，鲁迅的真名是什么？</li>
+<li>你好，请简单介绍一下《封神演义》，不超过 5 句话。</li>
 </ol>
 <p>刚才做测试使用的是本地部署的 qwen3:8b，还可以修改 LLM 的相关配置，改成使用本地部署的 deepseek-r1:7b，或者改成使用云端阿里百炼平台的满血版 Qwen3、DeepSeek-R1。</p>
-<p><img src="../../assets/digital-human/01-adh-deepseek-settings.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/Rw3db2ndhooFeOxJsBkctI4Fnvg.png" alt="图片展示了数字人开发工具ADH的设置界面。左侧是数字人与用户对话的聊天窗口，右侧是设置弹窗，其中“选择引擎”下拉菜单选中“QwenAI”，引擎配置部分显示model为“deepseek-chat”，token为“https://api.deepseek.com”，右侧还有“关闭”按钮。该图片与文档中部署ADH前端及修改LLM相关配置的内容相关，直观呈现了修改引擎配置的操作界面。"></p>
 <h1 id="实现外部ai-agent并与adh对接">实现外部AI Agent并与ADH对接</h1>
 <p>AI Agent 的开发框架、开发工具非常多。我推荐大家先从轻量级的开发框架入手开始学习和开发，直到确信自己要实现的需求，轻量级开发框架确实无法满足要求。</p>
 <p>我在这套课程中选择的轻量级开发框架是 OpenAI 今年新近发布的 Agent SDK。</p>
@@ -395,7 +396,7 @@ cd adh_ai_agent
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">[[tool.uv.index]]
 url = &quot;https://pypi.tuna.tsinghua.edu.cn/simple&quot;
 default = true
-&#32;
+ 
 [build-system]
 requires = [&quot;setuptools&gt;=42&quot;]
 build-backend = &quot;setuptools.build_meta&quot;
@@ -429,7 +430,7 @@ uv pip install -e &quot;../adh_ai_agent&quot;
 <p>注意：必须以这种方式添加依赖项目，这样当依赖项目的代码修改之后，ADH 才可以立即使用最新的代码。</p>
 <p>然后编辑一个测试文件 test_agent.py：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">from adh_ai_agent.my_agent import test_hello
-&#32;
+ 
 test_hello()
 </code></pre>
 <p>运行这个测试文件：</p>
@@ -448,9 +449,9 @@ from .repeaterAgent import RepeaterAgent
 from .fastgptAgent import FastgptAgent
 from .openaiAgent import OpenaiAgent
 from .outsideAgent import OutsideAgent  # 新增一行
-&#32;
+ 
 from .agentFactory import AgentFactory
-&#32;
+ 
 __all__ = ['AgentFactory']
 </code></pre>
 <p>然后在 configs/agents 子目录中为 OutsideAgent 创建一个配置文件 outsideAgent.yaml。</p>
@@ -485,12 +486,8 @@ PARAMETERS: [
 </code></pre>
 <p>这里有两个参数：</p>
 <ul>
-<li>
-<p>agent_type 默认值为 local_lib 代表本地 Python 库调用，未来还会增加远程 RESTful API 调用等方式。</p>
-</li>
-<li>
-<p>agent_module 是要调用的外部 AI Agent 的入口模块名，这个模块的实现在 adh_ai_agent 项目中。</p>
-</li>
+<li>agent_type 默认值为 local_lib 代表本地 Python 库调用，未来还会增加远程 RESTful API 调用等方式。</li>
+<li>agent_module 是要调用的外部 AI Agent 的入口模块名，这个模块的实现在 adh_ai_agent 项目中。</li>
 </ul>
 <p>然后修改 ADH 的主配置文件 configs/config.yaml，在 Agent 部分加入新加的配置文件 outsideAgent.yaml。</p>
 <h2 id="step-3实现外部-ai-agent">step 3：实现外部 AI Agent</h2>
@@ -507,36 +504,20 @@ cp ~/workspace/adh_agent_tutorial/lesson_03/adh_ai_agent/*.py .
 <p>24 点游戏是一种非常流行的纸牌游戏，一副纸牌中去掉大小王剩下 52 张牌，每张牌有一个点数，A 是 1 点，J、Q、K 的点数分别是 11、12、13。发牌员给玩家随机发 4 张牌，玩家需要基于这 4 张牌的点数，找到一个四则运算表达式，使得这个四则运算表达式的结果为 24。</p>
 <p>玩家有 4 个选择：</p>
 <ul>
-<li>
-<p>给出符合要求的表达式</p>
-</li>
-<li>
-<p>选择求助</p>
-</li>
-<li>
-<p>选择放弃，要求重新发牌</p>
-</li>
-<li>
-<p>选择结束游戏</p>
-</li>
+<li>给出符合要求的表达式</li>
+<li>选择求助</li>
+<li>选择放弃，要求重新发牌</li>
+<li>选择结束游戏</li>
 </ul>
 <p>如果玩家给出的表达式是错误的，他可以重新给出表达式，或者要求重新发牌。</p>
 <p>这个 Agent 实现起来并不难，我在《LLM 自主智能体应用实战课》中分别使用 3 种 AI Agent 开发框架实现过这个 Agent。我需要将这些代码改造为可以与 ADH 对接的版本。</p>
 <p>展示 play_24_points_agent.py 的内容。</p>
 <p>这是我们的 24 点游戏智能体的入口模块，代码非常简单。</p>
 <ul>
-<li>
-<p>如果用户输入 deal，则调用 call_deal() 函数为用户发牌。</p>
-</li>
-<li>
-<p>用户输入 help，则调用 call_help() 函数给出正确的 24 点游戏表达式。</p>
-</li>
-<li>
-<p>用户输入 exit，则退出当前游戏。</p>
-</li>
-<li>
-<p>用户输入其他内容，则视为一个正则表达式，调用 call_judge() 函数判断表达式是否正确，返回 Correct 或 Wrong。</p>
-</li>
+<li>如果用户输入 deal，则调用 call_deal() 函数为用户发牌。</li>
+<li>用户输入 help，则调用 call_help() 函数给出正确的 24 点游戏表达式。</li>
+<li>用户输入 exit，则退出当前游戏。</li>
+<li>用户输入其他内容，则视为一个正则表达式，调用 call_judge() 函数判断表达式是否正确，返回 Correct 或 Wrong。</li>
 </ul>
 <p>具体的实现在 play_24_points_game_v2.py 中。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">provider = OpenAIProvider(
@@ -554,10 +535,10 @@ model = provider.get_model(&quot;qwen3:8b&quot;)
 <p>我们先编辑一个 bash 脚本来启动 ADH 后端。</p>
 <p>run_adh_backend：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">#!/bin/sh
-&#32;
+ 
 export EXAMPLE_API_KEY=&quot;ollama&quot;
 export EXAMPLE_BASE_URL=&quot;http://127.0.0.1:11434/v1&quot;
-&#32;
+ 
 cd ~/work/awesome-digital-human-live2d
 uv run python main.py
 </code></pre>
@@ -565,30 +546,20 @@ uv run python main.py
 <p>然后在 Windows 开发机上启动 ADH 前端。</p>
 <p>在前端的配置中，把 AI 智能体设置为 OutsideAgent，并且加上 AI Agent 的入口模块名 adh_ai_agent.play_24_points_agent。</p>
 <p>在 Windows 开发机上打开浏览器，访问 <a href="http://localhost:3000/"> </a><a href="http://localhost:3000/">http://localhost:3000</a><a href="http://localhost:3000/"> </a>做一下测试。</p>
-<p><img src="../../assets/digital-human/02-outside-agent-settings.png" alt="image.png"></p>
-<p><img src="../../assets/digital-human/03-digital-human-24-points.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/CKNtbS6qWoCuCGxM5DdcswRQnAd.png" alt="图片展示的是ADH前端的设置界面，处于“AI智能体”选项卡下。界面中“选择引擎”处显示“OutsideAgent”，并有提示图标。在“引擎配置”部分，有三个输入框，分别对应“agent_type”为“local_lib”，“agent_module”为“adh_ai_agent.play_24_points_agent”，“agent_url”为“url of outside agent”。该图片与文档中“在Windows开发机上启动ADH前端，在前端的配置中，把AI智能体设置为OutsideAgent，并且加上AI Agent的入口模块名adh_ai_agent.play_24_points_agent”的内容相呼应，直观呈现了设置步骤中相关配置项。"></p>
+<p><img src="../../assets/md-images/ZqnCbMpJCoAG9cxYWBUchg3sn4c.png" alt="图片展示的是数字人实现外部AI Agent并与ADH对接后的效果测试界面。画面中数字人穿着灰色西装裙，双手合十站立。左侧显示了数学题“5, 10, 2, 8”等，右侧有“deal”“help”“exit”等操作选项。底部有麦克风图标和蓝色播放按钮。该图片与文档中“运行起来看看效果”部分对应，直观呈现了在Windows开发机上启动ADH前端后，将AI智能体设置为OutsideAgent并加上AI Agent入口模块名后，数字人进行数学题测试的场景。"></p>
 <h1 id="adh前端开发与应用集成">ADH前端开发与应用集成</h1>
 <p>按照目前我们已经搭建的系统架构，系统可以划分为三层：</p>
 <ul>
-<li>
-<p>ADH 前端，包括运行在浏览器中的代码和其所依赖的 Next.js Server，编程语言是 TypeScript。</p>
-</li>
-<li>
-<p>ADH 后端，使用 FastAPI 实现，编程语言是 Python。</p>
-</li>
-<li>
-<p>ADH 后端调用的 AI Agent 实现。目前是以 Python 本地库的方式来调用，未来也可以改为以 RESTful API 的方式调用。</p>
-</li>
+<li>ADH 前端，包括运行在浏览器中的代码和其所依赖的 Next.js Server，编程语言是 TypeScript。</li>
+<li>ADH 后端，使用 FastAPI 实现，编程语言是 Python。</li>
+<li>ADH 后端调用的 AI Agent 实现。目前是以 Python 本地库的方式来调用，未来也可以改为以 RESTful API 的方式调用。</li>
 </ul>
 <p>ADH 前端是 AI Agent 驱动的实时数字人应用的 UI 层。有些同学不大重视 UI 层的设计和开发，其实对于 AI Agent 应用来说，UI 层仍然非常重要。行百里者半九十，当你费力开发了一个很强大的 AI Agent 应用，却因为拙劣的 UI 设计，让用户使用起来非常不方便，无人愿意买单，那么最后你还是会失败。</p>
 <p>ADH 前端使用到的技术包括以下两个方面：</p>
 <ul>
-<li>
-<p>基于 Next.js + React + HeroUI 的前端开发</p>
-</li>
-<li>
-<p>基于 Live2D 的 2D 数字人定制</p>
-</li>
+<li>基于 Next.js + React + HeroUI 的前端开发</li>
+<li>基于 Live2D 的 2D 数字人定制</li>
 </ul>
 <h2 id="step-1nextjs-简介">Step 1：Next.js 简介</h2>
 <p>Next.js 是一个基于 React 的 Web 前端开发框架。与其他纯浏览器端的 Web 前端开发框架不同的是，一个 Next.js 应用同时包括了浏览器端运行的代码和在服务器端运行的代码。Next.js 应用的架构遵循标准的 BFF（Backend for Frontend）架构模式。</p>
@@ -596,48 +567,30 @@ uv run python main.py
 <p>Next.js 是基于 React 库的，虽然很多人对 React 心存不满，React 目前仍然是排名第一的浏览器端 UI 开发库。React 同样也是很多开源 AI Agent 开发工具使用的 UI 开发库。</p>
 <p>Next.js 和 React 的区别是：</p>
 <ul>
-<li>
-<p>React 只是一个浏览器端的 UI 开发库，而 Next.js 是一个完整的 UI 开发框架。Next.js 除了可以开发运行在浏览器端的代码，还可以开发运行在服务器端（基于 Node.js）的代码。</p>
-</li>
-<li>
-<p>React 只支持<strong>浏览器端渲染</strong>，而 Next.js 既支持浏览器端渲染，也支持<strong>服务器端渲染</strong>。服务器端渲染类似 20 年前流行的那种瘦客户端 Web 应用，例如 Ruby on Rails 应用和大多数基于 Spring 的 Java Web 应用。充分利用服务器端渲染，可以大幅加快浏览器中的展现速度（因为服务器只需要发送较少的 HTML + JS），并且有利于 SEO。</p>
-</li>
+<li>React 只是一个浏览器端的 UI 开发库，而 Next.js 是一个完整的 UI 开发框架。Next.js 除了可以开发运行在浏览器端的代码，还可以开发运行在服务器端（基于 Node.js）的代码。</li>
+<li>React 只支持<strong>浏览器端渲染</strong>，而 Next.js 既支持浏览器端渲染，也支持<strong>服务器端渲染</strong>。服务器端渲染类似 20 年前流行的那种瘦客户端 Web 应用，例如 Ruby on Rails 应用和大多数基于 Spring 的 Java Web 应用。充分利用服务器端渲染，可以大幅加快浏览器中的展现速度（因为服务器只需要发送较少的 HTML + JS），并且有利于 SEO。</li>
 </ul>
 <h3 id="nextjs-的版本">Next.js 的版本</h3>
 <p>Next.js 目前最新的大版本是 15 版。ADH 是一个比较新的项目，一力辉老师最新发布的 ADH 3.0.0 版已经将 Next.js 升级到 15 版。我的 ADH 分支项目和一力辉老师的 ADH 项目保持同步，使用相同的 Next.js 版本。通过 ADH 项目来学习 Next.js 是一个很好的途径。</p>
 <h3 id="nextjs-学习文档">Next.js 学习文档</h3>
 <p>Next.js 在 13 版之后变化比较大，项目代码的主目录从 pages 变成了 app，在 app 目录下编写 Next.js 代码的方式也发生了很大变化。</p>
-<p>Next.js 官方发布了一个详细的迁移教程：How to migrate from Pages to the App Router
+<p>Next.js 官方发布了一个详细的迁移教程：How to migrate from Pages to the App Router<br>
 <a href="https://nextjs.org/docs/pages/guides/migrating/app-router-migration"> </a><a href="https://nextjs.org/docs/pages/guides/migrating/app-router-migration">https://nextjs.org/docs/pages/guides/migrating/app-router-migration</a></p>
 <p>大家如果有一些 React 开发经验的话，Next.js 其实并不难学，初学者遇到的主要问题是误导性的内容实在太多。目前国内中文版 Next.js 相关教程、图书大多数讲的都是 Next.js 12 版，已经完全过时了。使用这些教程、图书来学习 Next.js，会遇到大量问题，导致大量时间浪费。我给大家推荐一个 Next.js 教程，大家可以课后找来学习。</p>
 <ul>
-<li>
-<p>Learn Next.js 中文教程：<a href="https://qufei1993.github.io/nextjs-learn-cn/"> </a><a href="https://qufei1993.github.io/nextjs-learn-cn/">https://qufei1993.github.io/nextjs-learn-cn/</a><a href="https://qufei1993.github.io/nextjs-learn-cn/"> </a>，这个教程是一位“为爱发电”的同学 <a href="https://github.com/qufei1993"> qufei1993 </a>根据 Next.js 官方教程翻译的中文版</p>
-</li>
-<li>
-<p>另外有一个教程也值得一读，NextJS 13.4 App Router 入门教程：<a href="https://juejin.cn/post/7231564187255881765"> </a><a href="https://juejin.cn/post/7231564187255881765">https://juejin.cn/post/7231564187255881765</a></p>
-</li>
+<li>Learn Next.js 中文教程：<a href="https://qufei1993.github.io/nextjs-learn-cn/"> </a><a href="https://qufei1993.github.io/nextjs-learn-cn/">https://qufei1993.github.io/nextjs-learn-cn/</a><a href="https://qufei1993.github.io/nextjs-learn-cn/"> </a>，这个教程是一位“为爱发电”的同学 <a href="https://github.com/qufei1993"> qufei1993 </a>根据 Next.js 官方教程翻译的中文版</li>
+<li>另外有一个教程也值得一读，NextJS 13.4 App Router 入门教程：<a href="https://juejin.cn/post/7231564187255881765"> </a><a href="https://juejin.cn/post/7231564187255881765">https://juejin.cn/post/7231564187255881765</a></li>
 </ul>
 <h3 id="nextjs-支持的浏览器版本">Next.js 支持的浏览器版本</h3>
 <p>测试 Next.js 应用非常简单，使用一个 Web 浏览器就可以做测试，不需要安装任何其他应用。</p>
 <p>Next.js 官方文档有个页面列出了支持的浏览器版本：<a href="https://nextjs.org/docs/architecture/supported-browsers"> </a><a href="https://nextjs.org/docs/architecture/supported-browsers">https://nextjs.org/docs/architecture/supported-browsers</a></p>
 <p>Next.js 支持以下桌面版浏览器：</p>
 <ul>
-<li>
-<p>Chrome 64+</p>
-</li>
-<li>
-<p>Edge 79+</p>
-</li>
-<li>
-<p>Firefox 67+</p>
-</li>
-<li>
-<p>Opera 51+</p>
-</li>
-<li>
-<p>Safari 12+</p>
-</li>
+<li>Chrome 64+</li>
+<li>Edge 79+</li>
+<li>Firefox 67+</li>
+<li>Opera 51+</li>
+<li>Safari 12+</li>
 </ul>
 <p>除了一些奇怪的国产浏览器之外，基本上所有主流的桌面浏览器都没有问题。</p>
 <p>可以使用浏览器访问 <a href="https://ie.icoa.cn/"> https://ie.icoa.cn/ </a>，来确定浏览器内核的版本。</p>
@@ -653,22 +606,14 @@ uv run python main.py
 <p>HeroUI 结合了 Tailwind 和 React Aria 的强大功能，提供了一套完整的组件，用于构建可访问且可定制的用户界面。HeroUI 使用 Tailwind 作为它的样式引擎，开发者可以在 HeroUI 组件中使用所有 Tailwind 类，从而确保编译后的 CSS 保持最佳大小。</p>
 <p>HeroUI 与 Tailwind 的区别是：</p>
 <ul>
-<li>
-<p>Tailwind 组件库，例如 Tailwind UI、Flowbite 或 Preline（仅举几例），只提供了精选的 Tailwind 类来为已有的组件添加样式。它们不提供任何 React 特定的组件和相关逻辑。</p>
-</li>
-<li>
-<p>与这些 Tailwind 组件库相比，HeroUI 是一个完整的 UI 库，提供了一套可访问且可定制的 React 组件。因此 HeroUI 在 React 应用中是开箱即用的，对于开发者更加方便。</p>
-</li>
+<li>Tailwind 组件库，例如 Tailwind UI、Flowbite 或 Preline（仅举几例），只提供了精选的 Tailwind 类来为已有的组件添加样式。它们不提供任何 React 特定的组件和相关逻辑。</li>
+<li>与这些 Tailwind 组件库相比，HeroUI 是一个完整的 UI 库，提供了一套可访问且可定制的 React 组件。因此 HeroUI 在 React 应用中是开箱即用的，对于开发者更加方便。</li>
 </ul>
 <h3 id="heroui-学习文档">HeroUI 学习文档</h3>
 <p>我推荐大家直接去读 HeroUI 的官方文档，而不是那些二手、三手的中文文档。安装一个 DeepL 之类的浏览器扩展，可以很容易将文档翻译为中文。</p>
 <ul>
-<li>
-<p><a href="https://www.heroui.com/docs/guide/introduction"></a><a href="https://www.heroui.com/docs/guide/introduction">https://www.heroui.com/docs/guide/introduction</a></p>
-</li>
-<li>
-<p><a href="https://www.heroui.com/docs/frameworks/nextjs"></a><a href="https://www.heroui.com/docs/frameworks/nextjs">https://www.heroui.com/docs/frameworks/nextjs</a></p>
-</li>
+<li><a href="https://www.heroui.com/docs/guide/introduction"> </a><a href="https://www.heroui.com/docs/guide/introduction">https://www.heroui.com/docs/guide/introduction</a></li>
+<li><a href="https://www.heroui.com/docs/frameworks/nextjs"> </a><a href="https://www.heroui.com/docs/frameworks/nextjs">https://www.heroui.com/docs/frameworks/nextjs</a></li>
 </ul>
 <h3 id="heroui-与-nextui-的关系">HeroUI 与 NextUI 的关系</h3>
 <p>HeroUI 原名为 NextUI，是与 Next.js 应用配合使用的 UI 库。但是后来 NextUI 还支持其他的 Web 前端开发框架例如 Vite、Remix、Astro 等，继续叫做 NextUI 就不合适了，所以改名为 HeroUI。</p>
@@ -682,8 +627,8 @@ $ npm install -g heroui-cli
 <p>我们可以使用这两个工具来创建 Next.js 和 HeroUI 项目。</p>
 <p>运行以下命令来创建一个预先配置了 HeroUI 的 Next.js 项目：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ npx create-next-app -e https://github.com/heroui-inc/next-app-template
-✔ **What is your project named?** … my-heroui-app
-Creating a new Next.js app in ~/Demo/my-heroui-app.
+✔ What is your project named? … my-heroui-app
+Creating a new Next.js app in /Users/keti/Demo/my-heroui-app.
 
 Downloading files from repo https://github.com/heroui-inc/next-app-template. This might take a moment.
 
@@ -695,7 +640,7 @@ added 507 packages in 1m
 163 packages are looking for funding
   run `npm fund` for details
 
-Success! Created my-heroui-app at ~/Demo/my-heroui-app
+Success! Created my-heroui-app at /Users/keti/Demo/my-heroui-app
 Inside that directory, you can run several commands:
 
   npm run dev
@@ -713,7 +658,7 @@ We suggest that you begin by typing:
   npm run dev
 </code></pre>
 <hr>
-<p>注：
+<p>注：<br>
 除了使用以上方式，也可以使用 heroui-cli 来创建一个 Next.js 项目：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ npx heroui-cli init -t app
 </code></pre>
@@ -721,7 +666,7 @@ We suggest that you begin by typing:
 <p>在已有的 Next.js 项目中安装 HeroUI 组件：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># 添加一个或多个组件
 $ npx heroui-cli add button input
-&#32;
+ 
 # 添加主库 @heroui/react，包括所有组件
 $ npx heroui-cli add --all
 </code></pre>
@@ -729,12 +674,8 @@ $ npx heroui-cli add --all
 <p>项目创建好之后，我们使用 VS Code 打开创建好的项目目录。</p>
 <p>在 13 版以上的 Next.js 应用的 app 目录内有两个 tsx 文件：</p>
 <ul>
-<li>
-<p>一个是 layout.tsx，是 SPA（单页面应用）整体的 html 模版</p>
-</li>
-<li>
-<p>另一个是 page.tsx，包含项目所有的 React 组件，包含在 layout.tsx 内</p>
-</li>
+<li>一个是 layout.tsx，是 SPA（单页面应用）整体的 html 模版</li>
+<li>另一个是 page.tsx，包含项目所有的 React 组件，包含在 layout.tsx 内</li>
 </ul>
 <p>如何编写 layout.tsx 请看 Next.js 的官方文档：<a href="https://nextjs.org/docs/app/api-reference/file-conventions/layout#root-layout"> </a><a href="https://nextjs.org/docs/app/api-reference/file-conventions/layout#root-layout">https://nextjs.org/docs/app/api-reference/file-conventions/layout#root-layout</a></p>
 <p>我们修改一下 page.tsx，测试一下 HeroUI 的 Button 组件：</p>
@@ -771,7 +712,7 @@ $ npm run start
  ✓ Ready in 157ms
 </code></pre>
 <p>打开浏览器访问：<a href="http://localhost:3000/test_button"> </a><a href="http://localhost:3000/test_button">http://localhost:3000</a></p>
-<p><img src="../../assets/digital-human/04-heroui-button-demo.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/GijKbhSJJoxmJFxOKyQcA4FlnSf.png" alt="图片展示的是一个网页界面，背景为黑色。上方有导航栏，显示“ACME”及“Home”“Docs”“Pricing”“Blog”“About”等选项。中间大字写着“Make beautiful websites regardless of your design experience.”，并说明这是一个快速、现代的React UI库。下方有“Documentation”“GitHub”按钮，以及一个红色边框突出显示的“Click me”按钮。底部有“Get started by editing app/page.tsx”链接，最下方标注“Powered by HeroUI”。该图片与文档中创建Next.js+HeroUI项目后运行效果的内容相关，展示了运行后的页面样式。"></p>
 <p>体验过 Next.js + HeroUI 项目的创建，接下来回到我们真正关心的 ADH 项目。</p>
 <h2 id="step-4adh-前端的目录结构和配置文件">Step 4：ADH 前端的目录结构和配置文件</h2>
 <h3 id="adh-前端的目录结构">ADH 前端的目录结构</h3>
@@ -779,33 +720,15 @@ $ npm run start
 <p>ADH 前端的代码在 ADH 项目的 web 子目录中。使用 dir 列出目录内容。</p>
 <p>根目录下的子目录有以下这些：</p>
 <ul>
-<li>
-<p>node_modules：安装所有的 Node.js 依赖库，所有 Node.js 项目中都有</p>
-</li>
-<li>
-<p>app：大的 React 组件，例如主页面</p>
-</li>
-<li>
-<p>public：静态内容，包括图片、各种 json 文件等等</p>
-</li>
-<li>
-<p>styles：静态 CSS 样式文件和 TTF 字体文件</p>
-</li>
-<li>
-<p>components：可重用的较小的 React 组件</p>
-</li>
-<li>
-<p>lib：可重用的 TypeScript 库</p>
-</li>
-<li>
-<p>hooks：应用的钩子</p>
-</li>
-<li>
-<p>i18n：应用国际化相关内容</p>
-</li>
-<li>
-<p>examples：在其他应用中集成 ADH 前端的例子</p>
-</li>
+<li>node_modules：安装所有的 Node.js 依赖库，所有 Node.js 项目中都有</li>
+<li>app：大的 React 组件，例如主页面</li>
+<li>public：静态内容，包括图片、各种 json 文件等等</li>
+<li>styles：静态 CSS 样式文件和 TTF 字体文件</li>
+<li>components：可重用的较小的 React 组件</li>
+<li>lib：可重用的 TypeScript 库</li>
+<li>hooks：应用的钩子</li>
+<li>i18n：应用国际化相关内容</li>
+<li>examples：在其他应用中集成 ADH 前端的例子</li>
 </ul>
 <p>除了这些子目录外，在根目录下还有很多配置文件。</p>
 <h3 id="adh-前端的配置文件">ADH 前端的配置文件</h3>
@@ -819,15 +742,9 @@ $ npm run start
 <p>next.config.ts：Next.js 项目配置文件，设置与 Next.js 框架相关的配置。</p>
 <p>这个文件可以有三种格式：</p>
 <ul>
-<li>
-<p>next.config.js 对应 CommonJS 语法</p>
-</li>
-<li>
-<p>next.config.mjs 对应 ES Module 语法</p>
-</li>
-<li>
-<p>next.config.ts，对应 TypeScript 语法</p>
-</li>
+<li>next.config.js 对应 CommonJS 语法</li>
+<li>next.config.mjs 对应 ES Module 语法</li>
+<li>next.config.ts，对应 TypeScript 语法</li>
 </ul>
 <p>postcss.config.mjs：PostCSS 的配置文件。</p>
 <p>PostCSS 是一个使用 JavaScript 工具和插件转换 CSS 代码的工具。它本身没有功能，而是通过插件来实现各种功能。</p>
@@ -838,27 +755,23 @@ $ npm run start
 <h3 id="开发-nextjs-应用的注意事项">开发 Next.js 应用的注意事项</h3>
 <p>因为 Next.js 项目的 React 组件默认情况是在服务器端渲染的，因此不能再使用只有浏览器端才能使用的全局对象，例如 window、document、fetch 等，以及 canvas 之类的 HTML 元素。要使用这些全局对象，有两种方法：</p>
 <ol>
-<li>
-<p>改成客户端渲染，需要在文件开头一行加上 “use client”。</p>
-</li>
-<li>
-<p>将使用这些全局对象的代码，封装在 useEffect 中。</p>
-</li>
+<li>改成客户端渲染，需要在文件开头一行加上 “use client”。</li>
+<li>将使用这些全局对象的代码，封装在 useEffect 中。</li>
 </ol>
 <p>我用以下 Reat 组件 greet.tsx 举个例子：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">&quot;use client&quot;
-&#32;
+ 
 import { useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-&#32;
+ 
 export default function Greet(params) {
   const { name } = params;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-&#32;
+ 
   const { loggedIn } = false;
-&#32;
+ 
   // useEffect 钩子
   useEffect(() =&gt; {
     if (!loggedIn) {
@@ -866,7 +779,7 @@ export default function Greet(params) {
       router.push('/');
     }
   }, [loggedIn]);
-&#32;
+ 
   return &lt;div id=&quot;div_01&quot;&gt;Hello: {name} --- {pathname} --- {searchParams}&lt;/div&gt;
 }
 </code></pre>
@@ -874,43 +787,29 @@ export default function Greet(params) {
 <h3 id="与微信小程序集成">与微信小程序集成</h3>
 <p>微信小程序是支持内嵌 H5 页面的。对于在微信小程序中集成 ADH 数字人感兴趣的同学，我建议仔细读一下微信团队的相关开发文档，可以从以下三篇文档开始学习：</p>
 <ul>
-<li>
-<p>技术选型：关于小程序 webview 中内嵌 H5 的重要提示
-<a href="https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413"> </a><a href="https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413">https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413</a></p>
-</li>
-<li>
-<p>web-view：
-<a href="https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html"> </a><a href="https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html">https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html</a></p>
-</li>
-<li>
-<p>如果需要在 H5 页面中调用微信相关功能，还需要使用微信的 JS-SDK。
-<a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html"> </a><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html">https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html</a></p>
-</li>
+<li>技术选型：关于小程序 webview 中内嵌 H5 的重要提示<br>
+<a href="https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413"> </a><a href="https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413">https://developers.weixin.qq.com/community/develop/article/doc/00062662184ca00d4b105aad666413</a></li>
+<li>web-view：<br>
+<a href="https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html"> </a><a href="https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html">https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html</a></li>
+<li>如果需要在 H5 页面中调用微信相关功能，还需要使用微信的 JS-SDK。<br>
+<a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html"> </a><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html">https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html</a></li>
 </ul>
 <p>ADH 前端其实就是一个标准的 H5 页面，而且支持被内嵌在其他 H5 页面中。</p>
 <p>ADH 支持 两种内嵌方式，并且在项目中给出了例子：</p>
-<p><a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md"></a><a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md">https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md</a></p>
+<p><a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md"> </a><a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md">https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/README.md</a></p>
 <ul>
 <li>
 <p>iframe 方式</p>
 <ul>
-<li>
-<p>将 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/iframe.html"> iframe.html </a>中的<code>iframe</code>部分替换为<a href="https://www.light4ai.com/">官网</a>分享应用中<code>iframe</code>的代码。</p>
-</li>
-<li>
-<p>使用浏览器打开 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/iframe.html"> iframe.html </a>即可。</p>
-</li>
+<li>将 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/iframe.html"> iframe.html </a>中的<code>iframe</code>部分替换为<a href="https://www.light4ai.com/">官网</a>分享应用中<code>iframe</code>的代码。</li>
+<li>使用浏览器打开 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/iframe.html"> iframe.html </a>即可。</li>
 </ul>
 </li>
 <li>
 <p>script 方式</p>
 <ul>
-<li>
-<p>将 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/script.html"> script.html </a>中的<code>script</code>部分替换为<a href="https://www.light4ai.com/">官网</a>分享应用中<code> script</code>的代码。</p>
-</li>
-<li>
-<p>使用浏览器打开 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/script.html"> script.html </a>即可。</p>
-</li>
+<li>将 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/script.html"> script.html </a>中的<code>script</code>部分替换为<a href="https://www.light4ai.com/">官网</a>分享应用中<code> script</code>的代码。</li>
+<li>使用浏览器打开 <a href="https://github.com/wan-h/awesome-digital-human-live2d/blob/main/web/examples/script.html"> script.html </a>即可。</li>
 </ul>
 </li>
 </ul>
@@ -918,7 +817,7 @@ export default function Greet(params) {
 <h1 id="adh后端开发与应用集成">ADH后端开发与应用集成</h1>
 <p>简单来说，ADH 后端就是一个基于 FastAPI 开发的服务（也可以叫做微服务，看你怎么理解）。它的主要作用是集成外部的一些基础服务（包括 ASR、TTS、LLM 三类）和外部的 AI Agent，为前端 2D 数字人提供强大的支持。</p>
 <p>要学习 ADH 后端，首先我们需要学习一下 FastAPI。</p>
-<p><a href="https://zcn1gsnncvc7.feishu.cn/docx/TB7AdcwSbofM3ixCA5ac0o4knJc">FASTAPI</a></p>
+<p><a href="https://f1cuh8dlts.feishu.cn/wiki/TB7AdcwSbofM3ixCA5ac0o4knJc">FastAPI</a></p>
 <p>FastAPI 最新的版本号是 0.115.12。ADH 3.0.0 版的后端使用的是 FastAPI 0.115.5 版，差不多是最新版本。与通过 ADH 前端学习 Next.js 开发类似，通过 ADH 后端学习 FastAPI 开发，是一个很好的途径。</p>
 <h2 id="step-2adh-后端代码目录结构介绍">Step 2：ADH 后端代码目录结构介绍</h2>
 <p>首先我们浏览一下 ADH 后端代码的目录结构。</p>
@@ -950,21 +849,11 @@ if __name__ == '__main__':
 <p>api 子目录内的代码定义了 FastAPI 服务对外暴露的 RESTful API。也就是每个 API 的 URL、使用的 HTTP Method、接受的 HTTP 请求格式、返回的 HTTP 响应格式等等。</p>
 <p>api 子目录包括了以下 5 个子目录，分别对应 5 类 API：</p>
 <ul>
-<li>
-<p>common 目录：提供给 ADH 前端调用的一个基于 WebSocket 的心跳检测（heartbeat）API。</p>
-</li>
-<li>
-<p>asr 目录：提供给 ADH 前端调用的 ASR 相关 API。</p>
-</li>
-<li>
-<p>tts 目录：提供给 ADH 前端调用的 TTS 相关 API。</p>
-</li>
-<li>
-<p>llm 目录：提供给 ADH 前端调用的 LLM 相关 API。</p>
-</li>
-<li>
-<p>agent 目录：提供给 ADH 前端调用的 Agent 相关 API。</p>
-</li>
+<li>common 目录：提供给 ADH 前端调用的一个基于 WebSocket 的心跳检测（heartbeat）API。</li>
+<li>asr 目录：提供给 ADH 前端调用的 ASR 相关 API。</li>
+<li>tts 目录：提供给 ADH 前端调用的 TTS 相关 API。</li>
+<li>llm 目录：提供给 ADH 前端调用的 LLM 相关 API。</li>
+<li>agent 目录：提供给 ADH 前端调用的 Agent 相关 API。</li>
 </ul>
 <h4 id="32-core-子目录">3.2 core 子目录</h4>
 <p>RESTful API 的具体实现代码。前面 api 子目录内的代码会分别调用 core 子目录内对应的实现代码。</p>
@@ -985,7 +874,7 @@ if __name__ == '__main__':
 <h3 id="core-子目录">core 子目录</h3>
 <p>core 子目录中是最基础的实现代码。</p>
 <p>除了 utils 子目录中的通用库文件所有的代码都可以调用外，ADH 后端代码按照目录结构呈现微单向依赖关系，如图所示：</p>
-<p><img src="../../assets/digital-human/05-adh-backend-dependencies.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/SABlb9Q1zogl3SxbZDRcQhuzn6c.png" alt="图片展示了一个ADH后端代码的目录结构图。从上到下，目录结构依次为bin、server/api、server/core、engine和agent，其中server/core又分为engine和agent两个子目录。箭头表示代码调用关系，从上至下依次为bin调用server/api，server/api调用server/core，server/core分别调用engine和agent，engine和agent又共同调用core。此图在文档中用于说明ADH后端代码按照目录结构呈现微单向依赖关系，帮助读者理解代码的调用流程和结构。"></p>
 <h2 id="step-3adh-后端代码导读">Step 3：ADH 后端代码导读</h2>
 <p>熟悉了 ADH 后端代码的目录结构之后，我们再来阅读 ADH 后端的代码。</p>
 <p>ADH 后端的代码采用标准的 OOP 面向对象风格编写，熟悉 Java 或者 C# 的程序员看起来会感觉比较舒服。</p>
@@ -993,27 +882,13 @@ if __name__ == '__main__':
 <p>接下来我们按照前面的顺序，分别来阅读一下 digitalHuman 目录中 6 个子目录中的代码。</p>
 <h3 id="utils-子目录-1">utils 子目录</h3>
 <ul>
-<li>
-<p>env.py：系统中环境相关的参数</p>
-</li>
-<li>
-<p>configParser.py：配置相关的库文件</p>
-</li>
-<li>
-<p>logger.py：日志相关的库文件</p>
-</li>
-<li>
-<p>registry.py：用于注册各类服务（ASR、TTS、LLM、Agent）的库文件</p>
-</li>
-<li>
-<p>audio.py：音频转换的库文件，目前包括 mp3ToWav、wavToMp3 两个转换函数</p>
-</li>
-<li>
-<p>func.py：格式校验相关的库文件</p>
-</li>
-<li>
-<p>streamParser.py：输出流（stream）处理相关的库文件</p>
-</li>
+<li>env.py：系统中环境相关的参数</li>
+<li>configParser.py：配置相关的库文件</li>
+<li>logger.py：日志相关的库文件</li>
+<li>registry.py：用于注册各类服务（ASR、TTS、LLM、Agent）的库文件</li>
+<li>audio.py：音频转换的库文件，目前包括 mp3ToWav、wavToMp3 两个转换函数</li>
+<li>func.py：格式校验相关的库文件</li>
+<li>streamParser.py：输出流（stream）处理相关的库文件</li>
 </ul>
 <h3 id="bin-子目录-1">bin 子目录</h3>
 <p>app.py：ADH 后端的入口文件。代码非常简单，里面只有一个 runServer() 函数。</p>
@@ -1041,7 +916,7 @@ def runServer():
 <p>代码位于 server 子目录的 router.py 中。</p>
 <p>router.py 文件是 ADH 后端 FastAPI 服务的入口。这个文件其实就是一个比较简单的 FastAPI 服务，不过需要学习过 FastAPI 之后才能读懂这个文件。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">app = FastAPI(
-    title=config.COMMON.NAME,&#32;
+    title=config.COMMON.NAME, 
     description=f&quot;This is a cool set of apis for {config.COMMON.NAME}&quot;,
     version=config.COMMON.VERSION
 )
@@ -1066,33 +941,15 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <p>在 router.py 中，将对外暴露的 RESTful API 划分成了 5 类，也就是我们前面讲目录结构时介绍过的 common、asr、tts、llm、agent 5 个类别。</p>
 <p>这样的编程风格是 FastAPI 官方提倡的，优点是可以得到高度模块化的代码实现。每个模块对应一类 API，团队成员可以开展高效的并行开发，互不影响。</p>
 <ul>
-<li>
-<p>models.py：定义了所有的 RESTful API 的输入、输出使用的 model，也就是输入、输出的格式。</p>
-</li>
-<li>
-<p>header.py：定义了所有 RESTful API 请求中的 HTTP Header 相关的信息（HeaderInfo）。</p>
-</li>
-<li>
-<p>reponse.py：定义了所有 RESTful API 请求的 HTTP 响应的基础类 Response。</p>
-</li>
-<li>
-<p>ws.py：WebsocketManager 类，用于创建、管理 WebSocket 连接。</p>
-</li>
-<li>
-<p>api/common/common_api_v0.py：基于 WebSocket 的心跳检测 API 的入口文件。ADH 2.0 版的前端部分用到了，不过在 ADH 3.0.0 版中，一力辉老师在 ADH 前端代码中把调用 ADH 后端的 WebSocket 心跳检测 API 去掉了，所以这个 API 在 ADH 前端暂时没有用到。</p>
-</li>
-<li>
-<p>api/asr/asr_api_v0.py：ASR 相关 API 的入口文件。</p>
-</li>
-<li>
-<p>api/tts/tts_api_v0.py：TTS 相关 API 的入口文件。</p>
-</li>
-<li>
-<p>api/llm/llm_api_v0.py：LLM 相关 API 的入口文件。</p>
-</li>
-<li>
-<p>api/agent/agent_api_v0.py：Agent 相关 API 的入口文件。</p>
-</li>
+<li>models.py：定义了所有的 RESTful API 的输入、输出使用的 model，也就是输入、输出的格式。</li>
+<li>header.py：定义了所有 RESTful API 请求中的 HTTP Header 相关的信息（HeaderInfo）。</li>
+<li>reponse.py：定义了所有 RESTful API 请求的 HTTP 响应的基础类 Response。</li>
+<li>ws.py：WebsocketManager 类，用于创建、管理 WebSocket 连接。</li>
+<li>api/common/common_api_v0.py：基于 WebSocket 的心跳检测 API 的入口文件。ADH 2.0 版的前端部分用到了，不过在 ADH 3.0.0 版中，一力辉老师在 ADH 前端代码中把调用 ADH 后端的 WebSocket 心跳检测 API 去掉了，所以这个 API 在 ADH 前端暂时没有用到。</li>
+<li>api/asr/asr_api_v0.py：ASR 相关 API 的入口文件。</li>
+<li>api/tts/tts_api_v0.py：TTS 相关 API 的入口文件。</li>
+<li>api/llm/llm_api_v0.py：LLM 相关 API 的入口文件。</li>
+<li>api/agent/agent_api_v0.py：Agent 相关 API 的入口文件。</li>
 </ul>
 <p>core 子目录中，有 4 个文件：api_asr_v0_impl.py、api_tts_v0_impl.py、api_llm_v0_impl.py、api_agent_v0_impl.py。这 4 个文件是 ASR、TTS、LLM、Agent 四类 API 的实现代码。</p>
 <p>前面 api 子目录内的代码会分别调用 core 子目录内对应的实现代码。例如 api/tts 目录内的代码会调用 api_tts_v0_impl.py。</p>
@@ -1108,12 +965,8 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <h3 id="core-子目录-1">core 子目录</h3>
 <p>core 子目录中只有两个文件：</p>
 <ul>
-<li>
-<p>openai.py：与 OpenAI API 兼容 API 交互的具体代码，基于 OpenAI SDK。</p>
-</li>
-<li>
-<p>runner.py：上述 engine、agent 子目录中 engineBase、agentBase 类的公共基类。</p>
-</li>
+<li>openai.py：与 OpenAI API 兼容 API 交互的具体代码，基于 OpenAI SDK。</li>
+<li>runner.py：上述 engine、agent 子目录中 engineBase、agentBase 类的公共基类。</li>
 </ul>
 <h2 id="step-4adh-后端与-ai-agent-对接">Step 4：ADH 后端与 AI Agent 对接</h2>
 <p>“AI Agent”（中文为 AI 智能体）这个词语可以说已经烂大街了，今天满大街的人都说自己在开发 AI Agent，但是他们说的很可能根本不是一件事。从直接对接 LLM、只能实现最简单通用对话功能的 ChatBot，到高度智能、高度自动化，包括了独特 AI 算法和模型的 Autonomous Agent，都可以被叫做 AI Agent。</p>
@@ -1128,23 +981,15 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <li>
 <p>低代码开发工具，例如</p>
 <ul>
-<li>
-<p>开源的 Dify、FastGPT</p>
-</li>
-<li>
-<p>闭源的扣子、OpenAI GPTs</p>
-</li>
+<li>开源的 Dify、FastGPT</li>
+<li>闭源的扣子、OpenAI GPTs</li>
 </ul>
 </li>
 <li>
 <p>类 Manus 的开发工具，例如</p>
 <ul>
-<li>
-<p>开源的 OpenManus、OWL、MinionAgent</p>
-</li>
-<li>
-<p>闭源的 Manus、扣子空间</p>
-</li>
+<li>开源的 OpenManus、OWL、MinionAgent</li>
+<li>闭源的 Manus、扣子空间</li>
 </ul>
 </li>
 <li>
@@ -1158,25 +1003,15 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <p>毋庸讳言，ADH 后端目前还只是一个雏形，还不够成熟。</p>
 <p>ADH 后端目前存在的问题：</p>
 <ul>
-<li>
-<p>对于各种异常情况的处理比较粗糙，有待细化。代码中存在一些 bug，不够健壮。</p>
-</li>
-<li>
-<p>支持对接的 AI Agent 类型有限。</p>
-</li>
-<li>
-<p>不支持 ADH 前端与用户的主动沟通和通知，所有的交互都必须由用户发起。因此目前主要支持的 AI Agent 还是 ChatBot 这一类，而不是 Autonomous Agent（自主型智能体）。</p>
-</li>
+<li>对于各种异常情况的处理比较粗糙，有待细化。代码中存在一些 bug，不够健壮。</li>
+<li>支持对接的 AI Agent 类型有限。</li>
+<li>不支持 ADH 前端与用户的主动沟通和通知，所有的交互都必须由用户发起。因此目前主要支持的 AI Agent 还是 ChatBot 这一类，而不是 Autonomous Agent（自主型智能体）。</li>
 </ul>
 <p>ADH 后端目前已经实现的代码量不多，然而 ADH 后端有非常好的架构，非常易于扩展，未来的想象空间非常大。</p>
 <p>ADH 后端未来主要的发展方向是两大类：</p>
 <ul>
-<li>
-<p>支持更多的 engine（asr、tts、llm）和 agent，特别是支持更多的 agent。这方面 ADH 后端可以独立完成，不影响 ADH 前端。</p>
-</li>
-<li>
-<p>为 ADH 前端提供更多的支持，使得 ADH 前端实现更加丰富的交互、获得更好的性能。</p>
-</li>
+<li>支持更多的 engine（asr、tts、llm）和 agent，特别是支持更多的 agent。这方面 ADH 后端可以独立完成，不影响 ADH 前端。</li>
+<li>为 ADH 前端提供更多的支持，使得 ADH 前端实现更加丰富的交互、获得更好的性能。</li>
 </ul>
 <h1 id="基于agent-sdk实现个性化角色文本交互">基于Agent SDK实现个性化角色：文本交互</h1>
 <h2 id="step-1agent-sdk-简介">Step 1：Agent SDK 简介</h2>
@@ -1185,15 +1020,9 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <p>有位热心的同学把 Agent SDK 官方教程翻译成了中文版：<a href="https://www.tizi365.com/openai-agents-sdk/"> </a><a href="https://www.tizi365.com/openai-agents-sdk/">https://www.tizi365.com/openai-agents-sdk/</a></p>
 <p>Agent SDK 中包括以下三个基本概念：</p>
 <ul>
-<li>
-<p>Agent（代理）：配备指令和工具的一个 LLM 会话（session）。</p>
-</li>
-<li>
-<p>Handoff（移交）：允许一个代理委托其他代理来执行特定任务。</p>
-</li>
-<li>
-<p>Guardrail（护栏）：对代理的输入、输出进行校验。</p>
-</li>
+<li>Agent（代理）：配备指令和工具的一个 LLM 会话（session）。</li>
+<li>Handoff（移交）：允许一个代理委托其他代理来执行特定任务。</li>
+<li>Guardrail（护栏）：对代理的输入、输出进行校验。</li>
 </ul>
 <p>在 Agent SDK 中，可以为 Agent 配置一些 Tools（工具）。除了支持 Python 函数作为 Tools 外，还支持把另一个 Agent 当作 Tools 来调用。这样就可以实现类似 AutoGPT Platform 中那种分层的 Agent 体系架构。</p>
 <p><strong>需要注意的是：</strong></p>
@@ -1204,12 +1033,8 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <p>介绍完 Agent SDK，我们马上基于 Agent SDK 开发一个实现孔子角色扮演的 AI Agent，以下简称为孔子 Agent。</p>
 <p>角色扮演（Role Playing）这个概念，据我所知最初是来自 Camel 项目的创始人李国豪老师 2023 年 4 月发布的一篇论文《CAMEL: Communicative Agents for “Mind” Exploration of Large Language Model Society》。</p>
 <ul>
-<li>
-<p>论文地址在：<a href="https://ghli.org/camel.pdf"> </a><a href="https://ghli.org/camel.pdf">https://ghli.org/camel.pdf</a></p>
-</li>
-<li>
-<p>知乎上有关于这篇论文的介绍：<a href="https://zhuanlan.zhihu.com/p/622438246"> </a><a href="https://zhuanlan.zhihu.com/p/622438246">https://zhuanlan.zhihu.com/p/622438246</a></p>
-</li>
+<li>论文地址在：<a href="https://ghli.org/camel.pdf"> </a><a href="https://ghli.org/camel.pdf">https://ghli.org/camel.pdf</a></li>
+<li>知乎上有关于这篇论文的介绍：<a href="https://zhuanlan.zhihu.com/p/622438246"> </a><a href="https://zhuanlan.zhihu.com/p/622438246">https://zhuanlan.zhihu.com/p/622438246</a></li>
 </ul>
 <p>Camel 项目算是最早支持多 Agent 协作的 AI Agent 开发框架之一，而多 Agent 协作的基础就是角色扮演。另一个此类多 Agent 协作开发框架是 MetaGPT，同样是由中国人吴承霖老师发起的。到了 2024 年，几乎所有的 AI Agent 开发框架都可以支持多 Agent 协作。</p>
 <p>角色扮演的基础还是在基础 LLM 层面，而不是在 AI Agent 开发框架层面。幸运的是，如今流行的新的 LLM 都支持角色扮演。</p>
@@ -1217,24 +1042,12 @@ app.include_router(agentRouter, prefix=GLOABLE_PREFIX, tags=[&quot;AGENT&quot;])
 <p>孔子 Agent 只需要实现对话功能就可以了，不需要通过 Function Call 去调用外部函数。孔子是古人，也不需要学会使用搜索引擎，回答自己去世之后 2500 年才发生的事情。既然不需要使用 Function Call，那么我们就可以使用不支持 Function Call 的 DeepSeek-R1 来实现孔子 Agent。</p>
 <p>接下来我们罗列一下对这个孔子 Agent 的实现要求：</p>
 <ol>
-<li>
-<p>孔子既然是中国人，我们自然要使用中文来与他交互，而不是使用英文，所有的提示词都必须是中文。</p>
-</li>
-<li>
-<p>孔子的回答必须全部是文言文，而不能是现代白话文。</p>
-</li>
-<li>
-<p>孔子的回答应尽量多引用他的著作中的语言，例如《论语》《大学》等等。</p>
-</li>
-<li>
-<p>孔子不知道他去世之后（孔子去世的时间和春秋时代结束的时间几乎相同）的人物和著作，他应该诚实地承认自己不了解。</p>
-</li>
-<li>
-<p>孔子不懂现代科技，他应该诚实地承认自己不懂。</p>
-</li>
-<li>
-<p>孔子的回答应该简练，而不是长篇大论。</p>
-</li>
+<li>孔子既然是中国人，我们自然要使用中文来与他交互，而不是使用英文，所有的提示词都必须是中文。</li>
+<li>孔子的回答必须全部是文言文，而不能是现代白话文。</li>
+<li>孔子的回答应尽量多引用他的著作中的语言，例如《论语》《大学》等等。</li>
+<li>孔子不知道他去世之后（孔子去世的时间和春秋时代结束的时间几乎相同）的人物和著作，他应该诚实地承认自己不了解。</li>
+<li>孔子不懂现代科技，他应该诚实地承认自己不懂。</li>
+<li>孔子的回答应该简练，而不是长篇大论。</li>
 </ol>
 <p>明确了孔子 Agent 的实现要求，我们最核心的工作就是编写系统提示词，使用这些系统提示词要求 LLM 实现孔子的角色。我将基于本地部署的 Qwen3 和 DeepSeek-R1 来实现孔子 Agent。</p>
 <p>代码我已经实现好了，在 adh_ai_agent 项目的 role_playing_kongfz_agent.py 中。</p>
@@ -1286,7 +1099,7 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 </code></pre>
 <p>这是因为 deepseek-r1:8b 非常喜欢在回答中加入很多放在括号中的注释，而这类注释显然更适合书面交互的场景中，而不是孔子 Agent 这个口语交互的场景之中。</p>
 <p>大家还可以自行尝试参数更大的 DeepSeek-R1，例如 14b、32b。不过目前 deepseek-r1:8b 已经足以满足我们的需要了，未来我们会继续使用 deepseek-r1:8b，而之前部署的 deepseek-r1:7b 可以被删除了。</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ollama rm deepseek-r1:7b&#32;
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ollama rm deepseek-r1:7b 
 </code></pre>
 <p>接下来我们实现 ADH 数字人与孔子 Agent 的对接。</p>
 <h2 id="step-3实现-adh-数字人与孔子-agent-的对接">Step 3：实现 ADH 数字人与孔子 Agent 的对接</h2>
@@ -1294,7 +1107,7 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 <p>当然不需要，我们可以重用 OutsideAgent 来实现与孔子 Agent 的对接。不过对 OutsideAgent 需要做一些增强才行。</p>
 <p>需要实现的增强是对 Stream 流式输出的支持。24 点游戏智能体的实现中没有使用 Stream 输出，输出只是简单的字符串。而在孔子 Agent 的实现中使用了 Stream 输出，支持 Stream 输出的优点是可以大幅改善用户体验。ADH 前端不必等到全部输出都产生之后，再向用户显示并阅读，而是可以尽快向用户显示并阅读。</p>
 <p>在 outsideAgent.py 中，做出的修改是以下这段：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">if AGENT_TYPE == &quot;local_lib&quot;:
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">            if AGENT_TYPE == &quot;local_lib&quot;:
                 agent_module = importlib.import_module(AGENT_MODULE)
 
                 if streaming:
@@ -1304,23 +1117,19 @@ Python 语言中的 GIL 问题是什么？解决了吗？
                 else:
                     agent_response = await agent_module.chat_with_agent(input.data)
                     yield eventStreamText(agent_response)
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
-                yield eventStreamDone()&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
+                    
+                yield eventStreamDone()            
 
             else:
                 yield eventStreamText(input.data)
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
-            yield eventStreamDone()&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
+            
+            yield eventStreamDone()            
 
 </code></pre>
 <p>这段代码中增加了对参数 streaming (是否使用 Stream 输出) 的判断。</p>
 <ul>
-<li>
-<p>如果 streaming 为 True，agent_module.chat_with_agent 是一个异步的 generator（生成器），需要遍历这个 generator 来产生流式输出。</p>
-</li>
-<li>
-<p>如果 streaming 为 False，agent_module.chat_with_agent 是一个普通的异步函数，直接输出这个函数返回的字符串。</p>
-</li>
+<li>如果 streaming 为 True，agent_module.chat_with_agent 是一个异步的 generator（生成器），需要遍历这个 generator 来产生流式输出。</li>
+<li>如果 streaming 为 False，agent_module.chat_with_agent 是一个普通的异步函数，直接输出这个函数返回的字符串。</li>
 </ul>
 <p>代码修改之后，我们分别启动 ADH 后端和 ADH 前端，使用数字人做一下测试</p>
 <p>使用 SSH 登录到开发服务器，使用 bash 脚本 run_adh_backend 启动 ADH 后端。</p>
@@ -1351,30 +1160,20 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 <h3 id="live2d-模型的两大环节">Live2D 模型的两大环节</h3>
 <p>基于 Live2D 的 2D 数字人模型，可以划分为设计（也就是建模）和应用两个大的环节。</p>
 <ul>
-<li>
-<p><strong>设计环节</strong>：使用 Live2D Editor 来进行 2D 数字人的设计。设计的成品会被导出为 Live2D 模型。设计环节的主要工作由设计师来完成。</p>
-</li>
-<li>
-<p><strong>应用环节</strong>：使用 Live2D SDK 将设计环节中导出的 Live2D 模型部署到各种应用之中。应用环节的主要工作由开发者来完成。</p>
-</li>
+<li><strong>设计环节</strong>：使用 Live2D Editor 来进行 2D 数字人的设计。设计的成品会被导出为 Live2D 模型。设计环节的主要工作由设计师来完成。</li>
+<li><strong>应用环节</strong>：使用 Live2D SDK 将设计环节中导出的 Live2D 模型部署到各种应用之中。应用环节的主要工作由开发者来完成。</li>
 </ul>
 <p>在设计环节，除了使用 Live2D Editor 外，Photoshop 也是必不可少的工具。数字人的形象和相关的一些素材需要使用 Photoshop 来制作。</p>
 <p>在应用环节，开发者首先需要根据要开发的应用类型，选择相应的 SDK。</p>
 <h3 id="选择适合的-live2d-sdk">选择适合的 Live2D SDK</h3>
 <p>Live2D SDK 的类型有很多，如下图所示：</p>
-<p><img src="../../assets/digital-human/06-live2d-sdk-options.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/GFtKbUZd8oi6EQxPQuNca38ZnWd.png" alt="图片展示了Live2D Cubism SDK的多种类型，包括Cubism SDK for Unity、Cubism SDK for Native、Cubism SDK for Web、Cubism SDK for Java、Cubism SDK for Unreal Engine、Cubism SDK for Cocos Creator以及面向家用游戏机的Cubism SDK。这些SDK适用于不同的开发环境，如Unity、PlayStation 5、PlayStation 4、iOS、Android、WebGL、HarmonyOS和Unreal Engine。图片在上下文中起到解释Live2D SDK多样性的作用，帮助读者了解不同类型的SDK及其适用的开发环境。"></p>
 <p>Live2D 官网有各类 SDK 的比较：<a href="https://docs.live2d.com/zh-CHS/cubism-sdk-manual/cubismsdk-compare/"> </a><a href="https://docs.live2d.com/zh-CHS/cubism-sdk-manual/cubismsdk-compare/">https://docs.live2d.com/zh-CHS/cubism-sdk-manual/cubismsdk-compare/</a></p>
 <p>这些 SDK 大多都与游戏开发相关，其中与普通应用软件开发相关的 SDK 是这 3 种：</p>
 <ul>
-<li>
-<p>SDK for Native：面向原生应用的 SDK，基于 C++ 开发。适用于 Windows、 macOS、Linux、iOS、Android、PlayStation 4、Nintendo Switch。</p>
-</li>
-<li>
-<p>SDK for Java：面向 Android 应用的 SDK，基于 Java 开发。只适用于 Android。</p>
-</li>
-<li>
-<p>SDK for Web：面向 Web 应用的 SDK，基于 TypeScript 开发。适用于运行于浏览器中的 Web 应用。</p>
-</li>
+<li>SDK for Native：面向原生应用的 SDK，基于 C++ 开发。适用于 Windows、 macOS、Linux、iOS、Android、PlayStation 4、Nintendo Switch。</li>
+<li>SDK for Java：面向 Android 应用的 SDK，基于 Java 开发。只适用于 Android。</li>
+<li>SDK for Web：面向 Web 应用的 SDK，基于 TypeScript 开发。适用于运行于浏览器中的 Web 应用。</li>
 </ul>
 <p>因为 ADH 前端是一个 Web 应用，所以我们选择的 SDK 是 SDK for Web。</p>
 <p>ADH 前端具体来说，就是一个使用了 Live2D 的 Next.js 应用，UI 库是基于 React 的 HeroUI。SDK for Web 可以与各种浏览器端 UI 库完美协作，包括 React、Vue、Svelte 等等。</p>
@@ -1386,16 +1185,12 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 <p>下载地址：<a href="https://www.live2d.com/zh-CHS/cubism/download/editor/"> </a><a href="https://www.live2d.com/zh-CHS/cubism/download/editor/">https://www.live2d.com/zh-CHS/cubism/download/editor/</a></p>
 <p>这里有 Windows 和 macOS 的安装包，下载最新的正式版安装包即可。</p>
 <p>Live2D Editor 初次安装可以试用 42 天，之后继续使用就需要购买许可证了。</p>
-<p><img src="../../assets/digital-human/07-live2d-editor-subscription.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/TI2LbS8OtoAhtWxsXwOc5GTPnch.png" alt="图片展示了Live2D Cubism PRO for indie的包年订阅方案，分为第一年、第二年和第三年三个阶段，价格分别为714.89元、588.73元和534.66元。此外，图片还提供了包月订阅方案，价格为104.13元/月。图片在上下文中起到解释Live2D Cubism PRO for indie的订阅价格和方案的作用，帮助读者了解不同订阅方式的费用。"></p>
 <h3 id="live2d-editor-的官方教程免费资源和社区">Live2D Editor 的官方教程、免费资源和社区</h3>
 <p>学习 Live2D Editor，需要阅读 Live2D 官网的教程。</p>
 <ul>
-<li>
-<p>Live2D Cubism 教程：<a href="https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/"> </a><a href="https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/">https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/</a></p>
-</li>
-<li>
-<p>Live2D Cubism 手册：<a href="https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/"> </a><a href="https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/">https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/</a></p>
-</li>
+<li>Live2D Cubism 教程：<a href="https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/"> </a><a href="https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/">https://docs.live2d.com/zh-CHS/cubism-editor-tutorials/top/</a></li>
+<li>Live2D Cubism 手册：<a href="https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/"> </a><a href="https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/">https://docs.live2d.com/zh-CHS/cubism-editor-manual/top/</a></li>
 </ul>
 <p>在 Live2D 数字人的设计环节，细节非常多，数字人要支持的姿态和动作越多，工作量就越大，可谓是慢工出细活。而且设计师需要对 Photoshop 很熟悉，没有良好的 Photoshop 基础的话，制作一个全新的 2D 数字人会很困难。</p>
 <p>因为我们这套课程主要面向的是开发者，而不是设计师。所以与设计相关的内容，我就不过多介绍了。</p>
@@ -1411,31 +1206,19 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 <h3 id="使用-live2d-viewer-测试孔子数字人模型">使用 Live2D Viewer 测试孔子数字人模型</h3>
 <p>导出的孔子 Live2D 数字人模型中包括以下文件：</p>
 <ul>
-<li>
-<p>Kongfz.model3.json：模型的配置文件</p>
-</li>
-<li>
-<p>Kongfz.moc3：模型的骨骼文件</p>
-</li>
-<li>
-<p>Kongfz.physics3.json：物理配置文件</p>
-</li>
-<li>
-<p>Kongfz.cdi3.json：自定义参数数据</p>
-</li>
-<li>
-<p>Kongfz.2048：这个子目录中是模型的纹理文件（通常是 .png）</p>
-</li>
-<li>
-<p>motions：这个子目录中是各种动作的配置文件，后缀为 .motion3.json</p>
-</li>
+<li>Kongfz.model3.json：模型的配置文件</li>
+<li>Kongfz.moc3：模型的骨骼文件</li>
+<li>Kongfz.physics3.json：物理配置文件</li>
+<li>Kongfz.cdi3.json：自定义参数数据</li>
+<li>Kongfz.2048：这个子目录中是模型的纹理文件（通常是 .png）</li>
+<li>motions：这个子目录中是各种动作的配置文件，后缀为 .motion3.json</li>
 </ul>
 <p>Live2D Editor 安装好之后，其中有一个工具叫 Live2D Viewer，可以使用这个工具来查看和测试 Live2D Editor 导出的数字人模型。我给大家演示一下。</p>
 <p>此处是孔子数字人模型的演示……</p>
 <p>了解了 Live2D 模型的设计环节。接下来我讲一下在 ADH 前端中与 Live2D 相关的代码。</p>
 <h2 id="step-3adh-前端-live2d-相关代码导读">Step 3：ADH 前端 Live2D 相关代码导读</h2>
 <p>在 ADH 前端已经集成了 Live2D SDK for Web。我们首先看一下 app/layout.tsx。</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">return (
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">  return (
     &lt;html lang={locale} className='dark'&gt;
       &lt;head&gt;
         &lt;script src={getSrcPath('sentio/core/live2dcubismcore.min.js')} /&gt;
@@ -1456,37 +1239,21 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 <p>其中，使用的 live2dcubismcore.min.js 就是 Live2D SDK for Web 的核心 JS 库。这个文件位于 ADH 前端代码的 public/sentio/core 子目录中。</p>
 <p>在 public/sentio 目录中有 3 个子目录：</p>
 <ul>
-<li>
-<p>characters：所有的 Live2D 数字人模型的相关文件</p>
-</li>
-<li>
-<p>backgrounds：数字人的背景图片</p>
-</li>
-<li>
-<p>core：只有一个 live2dcubismcore.min.js 文件</p>
-</li>
+<li>characters：所有的 Live2D 数字人模型的相关文件</li>
+<li>backgrounds：数字人的背景图片</li>
+<li>core：只有一个 live2dcubismcore.min.js 文件</li>
 </ul>
 <p>在 lib/live2d 子目录中，是 Live2D 相关的库。入口是 live2dManager.ts，我们来看一下这个库文件的内容。</p>
 <p>这个库文件中是一个 Live2dManager 类的实现。Live2dManager 类中有以下方法：</p>
 <ul>
-<li>
-<p>设置不同的数字人模型：changeCharacter</p>
-</li>
-<li>
-<p>设置数字人的张口幅度参数： setLipFactor、getLipFactor</p>
-</li>
-<li>
-<p>与语音相关的函数：pushAudioQueue、popAudioQueue、clearAudioQueue、playAudio、stopAudio、isAudioPlaying</p>
-</li>
+<li>设置不同的数字人模型：changeCharacter</li>
+<li>设置数字人的张口幅度参数： setLipFactor、getLipFactor</li>
+<li>与语音相关的函数：pushAudioQueue、popAudioQueue、clearAudioQueue、playAudio、stopAudio、isAudioPlaying</li>
 </ul>
 <p>目前的 Live2dManager 类实现中的大多数方法都是与语音相关的。这个比较容易理解，在与用户没有任何对话的情况下，数字人不需要做什么动作，只需要眨眨眼就好了，做出很多动作反而会让用户感觉很反常。只有在与用户开展对话的情况下，数字人才需要做一些动作。</p>
 <ul>
-<li>
-<p>首先是对口型，至少要做到有声音时，数字人的嘴巴会不断地张合。</p>
-</li>
-<li>
-<p>还可以根据对话中的情感，做出一些相应的表情。这个功能目前在 ADH 前端尚未实现。</p>
-</li>
+<li>首先是对口型，至少要做到有声音时，数字人的嘴巴会不断地张合。</li>
+<li>还可以根据对话中的情感，做出一些相应的表情。这个功能目前在 ADH 前端尚未实现。</li>
 </ul>
 <p>有些同学特别关注口型与语音的一致性。对于 2D 数字人来说，要做到完美的一致相当困难。在我看来这其实是一个吹毛求疵、舍本逐末的要求。一个实时数字人应用，首先必须对于用户是有用的、有趣的，而口型的一致性，在我看来是一个较为次要的问题。完美主义害死人，我们没必要事事追求完美，那样会成为强迫症患者的。</p>
 <h2 id="step-4将孔子数字人模型添加到-adh-前端">Step 4：将孔子数字人模型添加到 ADH 前端</h2>
@@ -1506,31 +1273,25 @@ mkdir Kongfz
 <p>在通过全新设计的孔子 Live2D 数字人模型完成了孔子形象的个性化之后，我们的最后一个工作是实现孔子语音的个性化。这个工作与 ADH 前端无关，但是因为语音的个性化和形象的个性化在概念上属于一个大的类别，所以我放在一节课中一起讲一下。</p>
 <p>ADH 后端可以支持多个 TTS 服务商，目前支持 Dify、Tencent（腾讯云）、Edge 三类。之前我们一直使用的是免费 EdgeTTS。EdgeTTS 虽然很不错，但 EdgeTTS 提供的中文免费语音选项不多，而且都偏年轻，基本上都是 20 几岁及以下的声音。而我们设计的孔子数字人则是一位 50 岁左右的老者。</p>
 <p>为了实现更好的语音效果，我们可以采购腾讯云的 TTS 服务。</p>
-<p>登录到腾讯云控制台，首先需要在腾讯云创建一个 API 密钥。
+<p>登录到腾讯云控制台，首先需要在腾讯云创建一个 API 密钥。<br>
 <a href="https://console.cloud.tencent.com/cam/capi"> </a><a href="https://console.cloud.tencent.com/cam/capi">https://console.cloud.tencent.com/cam/capi</a></p>
-<p>记录下这个密钥的 SecretId 和 SecretKey，保存在安全的地方，我们下面会用到。
+<p>记录下这个密钥的 SecretId 和 SecretKey，保存在安全的地方，我们下面会用到。<br>
 <a href="https://cloud.tencent.com/product/tts"> </a><a href="https://cloud.tencent.com/product/tts">https://cloud.tencent.com/product/tts</a></p>
-<p><img src="../../assets/digital-human/08-tencent-tts-voice-trial.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/LHY3bTMadoUNkoxi89vcdnU9n0b.png" alt="图片内容：图片展示了一个试用产品的界面，左侧列出了多个虚拟角色，每个角色都有其独特的名称和标签，如“智斌”、“爱小语”等。右侧部分提供了情感风格、情感程度、语速和音量的调节选项，用户可以自定义语音合成的效果。页面顶部有“试用产品”标题，下方有“联系销售”和“合成语音”按钮。 图片作用：该图片展示了腾讯云TTS服务的试用界面，用户可以通过选择不同的虚拟角色和调整语音合成参数来个性化角色的声音。图片中的“联系销售”按钮提示用户如果需要进一步帮助，可以联系销售人员，而“合成语音”按钮则用于生成个性化语音。"></p>
 <p>在腾讯云 TTS 服务的产品页面上，用户可以免费试用很多种语音。</p>
 <p>经过我的测试，“爱小耀”是一个比较成熟的男性声音。腾讯云 TTS 服务并没有特别老的男声，我们只能先选择这个。还有一个需要注意的是，有很多语音都无法识别文言文中的通假字。他们会把“学而时习之，不亦说乎”中的“说”直接念成“说话”的说字。这样当然是不符合要求的。所以还要选择能准确识别通假字的语音。</p>
 <p>在“爱小耀”下面标记了“大模型”，意思是这个语音属于“大模型音色”的一部分。因此我们在采购 TTS 资源包时，必须选择“大模型音色”。这个千万别搞错了，因为腾讯云的 TTS 资源包一旦购买之后，通常是无法退款的，所以不要把语音类型买错了。要退款的话，必须提工单，需要花上 2-3 天时间才能完成。</p>
-<p>然后我们购买“大模型音色”的 TTS 资源包。
+<p>然后我们购买“大模型音色”的 TTS 资源包。<br>
 <a href="https://buy.cloud.tencent.com/tts"> </a><a href="https://buy.cloud.tencent.com/tts">https://buy.cloud.tencent.com/tts</a></p>
-<p><img src="../../assets/digital-human/09-tencent-tts-resource-package.png" alt="image.png"></p>
+<p><img src="../../assets/md-images/V5BzbeG0QoEG3BxlESYcuNcnnqh.png" alt="图片显示了一个腾讯云TTS资源包购买界面，用户可以选择不同计费模式和音色类别。当前选中的是“大模型音色”下的“通用语音合成资源包”，价格为100.00元。页面底部显示配置费用为100.00元，并有“立即购买”按钮。图片在上下文中起到说明购买步骤的作用，帮助用户了解如何选择和购买适合的TTS资源包。"></p>
 <p>对于学习这套课程来说，选择预付费包 + 大模型音色 + 100 万字符就足够，这个组合的性价比最高。</p>
 <p>我们最后在浏览器中做一下完整的测试。</p>
 <p>与上节课相同，分别启动 ADH 后端和 ADH 前端，使用浏览器访问 <a href="http://localhost:3000/"> </a><a href="http://localhost:3000/">http://localhost:3000</a><a href="http://localhost:3000/"> </a>。</p>
 <p>在 ADH 前端界面：</p>
 <ul>
-<li>
-<p>将使用的数字人模型改为孔子模型。</p>
-</li>
-<li>
-<p>将使用的 TTS 服务改为 tencentTTS，语音选择“爱小耀”，并且填入 SecretID、SecretKey。</p>
-</li>
-<li>
-<p>将使用的 Agent 改为 outsideAgent，并将外部 AI Agent 的入口模块名设置为 adh_ai_agent.role_playing_kongfz_agent。</p>
-</li>
+<li>将使用的数字人模型改为孔子模型。</li>
+<li>将使用的 TTS 服务改为 tencentTTS，语音选择“爱小耀”，并且填入 SecretID、SecretKey。</li>
+<li>将使用的 Agent 改为 outsideAgent，并将外部 AI Agent 的入口模块名设置为 adh_ai_agent.role_playing_kongfz_agent。</li>
 </ul>
 <p>然后我们就可以跟这位孔老夫子聊聊天了。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">金钱和信用，哪个更重要？
@@ -1545,34 +1306,40 @@ Python 语言中的 GIL 问题是什么？解决了吗？
 </article>
 </main>
 <script>
-(function(){
-var KW="const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
-document.querySelectorAll("pre>code").forEach(function(c){
-var lm=c.className.match(/language-([\w#+.-]+)/);
-if(lm&&!/^(text|plaintext|txt|plain)$/i.test(lm[1]))c.parentElement.setAttribute("data-lang",lm[1]);
-var w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),ts=[],n;
-while(w.nextNode())ts.push(w.currentNode);
-ts.forEach(function(t){
-var s=t.nodeValue;
-if(!s||!/[#'"]/.test(s))return;
-var re=new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b('+KW+')\\b|((#|//)[^\\n]*)','g');
-var f=document.createDocumentFragment(),last=0,m;
-while((m=re.exec(s))){
-var cls=m[1]?"st":(m[2]?"kw":null);
-if(!cls){
-var p=m.index>0?s.charAt(m.index-1):" ";
-if(/\s/.test(p))cls="cm";
-else{re.lastIndex=m.index+1;continue}
-}
-if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
-var el=document.createElement("span");el.className=cls;el.textContent=m[0];f.appendChild(el);
-last=m.index+m[0].length;
-}
-if(!last)return;
-if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
-t.parentNode.replaceChild(f,t);
-});
-});
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
 })();
-</script></body>
+</script>
+</body>
 </html>
