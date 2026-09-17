@@ -1338,10 +1338,6 @@
       "newPath": "docs/Kubernetes/K8s pod 如何设置时区/K8s pod 如何设置时区.html"
     },
     {
-      "oldPath": "docs/Kubernetes/Kubernetes 集群二进制部署.html",
-      "newPath": "docs/Kubernetes/01 ｜ 组件版本和配置策略.html"
-    },
-    {
       "oldPath": "docs/Kubernetes/Kubernetes 探针/Q&A.html",
       "newPath": "docs/Kubernetes/Kubernetes 探针/探针的检查方式.html"
     },
