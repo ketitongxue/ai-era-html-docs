@@ -2,6 +2,994 @@
   "schemaVersion": 1,
   "renames": [
     {
+      "oldPath": "docs/示例知识库_Wiki_samples/25个关键字和37个保留字/Go.html",
+      "newPath": "docs/Go/基础篇/25个关键字和37个保留字/25个关键字和37个保留字.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/包和文件/Go.html",
+      "newPath": "docs/Go/基础篇/包和文件/导入.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/配置文件详解/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/本地部署 K8s 集群/使用 kind 部署 kubernetes/配置文件详解/配置文件详解.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/本地部署 K8s 集群/使用 kind 部署 kubernetes/Kind 介绍.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kubeadm 部署 kubernetes v1.25.3/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/本地部署 K8s 集群/使用 kubeadm 部署 kubernetes v1.25.3/使用 kubeadm 部署 kubernetes v1.25.3.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/本地部署 K8s 集群/local-up-cluster.sh.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/变量/Go.html",
+      "newPath": "docs/Go/基础篇/变量/变量.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/常见监控工具——业界方案横评/运维监控.html",
+      "newPath": "docs/运维监控/常见监控工具——业界方案横评/老一代整体方案的代表 Zabbix.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/常量/Go.html",
+      "newPath": "docs/Go/基础篇/常量/常量.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/存储/Kubernetes 挂载阿里云/Kubernetes 挂载阿里云.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云文件存储 NAS/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/存储/Kubernetes 挂载阿里云文件存储 NAS/Kubernetes 挂载阿里云文件存储 NAS.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/存储/存储卷基础.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Ingress/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/服务发现/Ingress/生产环境下部署 Ingress-Nginx.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/kube-proxy/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/服务发现/kube-proxy/userspace模式.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/服务发现/kube-proxy.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Service/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/服务发现/Service/Service 资源基础.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/浮点型/Go.html",
+      "newPath": "docs/Go/基础篇/浮点型/浮点型.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/结构体/Go.html",
+      "newPath": "docs/Go/基础篇/复合类型：数组＼切片＼map＼结构体/结构体/结构体定义.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/切片/Go.html",
+      "newPath": "docs/Go/基础篇/复合类型：数组＼切片＼map＼结构体/切片/切片.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/数组/Go.html",
+      "newPath": "docs/Go/基础篇/复合类型：数组＼切片＼map＼结构体/数组/数组.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/Go.html",
+      "newPath": "docs/Go/基础篇/复合类型：数组＼切片＼map＼结构体/数组.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/Map/Go.html",
+      "newPath": "docs/Go/基础篇/复合类型：数组＼切片＼map＼结构体/Map/Map.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/复数类型/Go.html",
+      "newPath": "docs/Go/基础篇/复数类型/复数类型.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/DaemonSet/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/DaemonSet/DaemonSet.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Deployments/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/Deployments/更新 Deployment.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/系统监控：MetricsServer/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/Horizontal Pod Autoscaler(HPA)/系统监控：MetricsServer/系统监控：MetricsServer.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/Horizontal Pod Autoscaler(HPA)/传统的扩容和自愈.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Job&CronJob/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/Job&CronJob/Job&CronJob.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/工作负载.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/ReplicaSet/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/ReplicaSet/创建 ReplicaSet.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/StatefulSet/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/工作负载/StatefulSet/限制.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/环境安装/Go.html",
+      "newPath": "docs/Go/基础篇/环境安装/安装 Go.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Crossplane/DevOps.html",
+      "newPath": "docs/DevOps/基础设施即代码/Crossplane/Crossplane.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/DevOps.html",
+      "newPath": "docs/DevOps/基础设施即代码/什么是 Infrastructure as Code (IaC).html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Pulumi/DevOps.html",
+      "newPath": "docs/DevOps/基础设施即代码/Pulumi/Pulumi.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Terraform/DevOps.html",
+      "newPath": "docs/DevOps/基础设施即代码/Terraform/Terraform 架构和核心概念.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/机器监控-操作系统重点关注指标/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/机器监控-操作系统重点关注指标/机器监控-操作系统重点关注指标.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/网络监控-网络链路和网络设备/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/网络监控-网络链路和网络设备/网络监控-网络链路和网络设备.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Google的四个黄金指标.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Elasticsearch/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Elasticsearch/Elasticsearch.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/grok_exporter/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/grok_exporter/快速上手grok_exporter.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kafka/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Kafka/Kafka.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kubernetes/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Kubernetes/Kubernetes Node.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/mtail/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/mtail/快速上手mtail.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/MySQL/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/MySQL/MySQL.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Prometheus/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Prometheus/Prometheus.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Redis/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/Redis/Redis.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/StatsD/运维监控.html",
+      "newPath": "docs/运维监控/监控数据采集/StatsD/StatsD.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控系统的典型架构/运维监控.html",
+      "newPath": "docs/运维监控/监控系统的典型架构/采集器.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/监控相关概念/运维监控.html",
+      "newPath": "docs/运维监控/监控相关概念/监控指标.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/仅在某些节点上运行 Pod/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/仅在某些节点上运行 Pod/仅在某些节点上运行 Pod.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/进程/Docker.html",
+      "newPath": "docs/Docker/进程/为什么我在容器中不能kill 1号进程？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/镜像仓库/Docker.html",
+      "newPath": "docs/Docker/镜像仓库/部分镜像仓库：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/蓝绿发布/GitOps.html",
+      "newPath": "docs/GitOps/蓝绿发布/蓝绿发布.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器安全/Docker.html",
+      "newPath": "docs/Docker/容器安全/问题再现.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/CPU Cgroup/Docker.html",
+      "newPath": "docs/Docker/容器技术的核心原理 Namespace & cgroup/CPU Cgroup/如何理解CPU使用和CPU Cgroup？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Docker.html",
+      "newPath": "docs/Docker/容器技术的核心原理 Namespace & cgroup/Namespace.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Memory Cgroup/Docker.html",
+      "newPath": "docs/Docker/容器技术的核心原理 Namespace & cgroup/Memory Cgroup/Memory Cgroup.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器技术基础/Docker.html",
+      "newPath": "docs/Docker/容器技术基础/容器是什么.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器如何与外界互联互通/Docker.html",
+      "newPath": "docs/Docker/容器如何与外界互联互通/如何拷贝容器内的数据.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/容器运行时/Docker.html",
+      "newPath": "docs/Docker/容器运行时/容器的核心技术：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/如何将容器镜像部署到 K8s/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/如何将容器镜像部署到 K8s/如何将容器镜像部署到 K8s.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/软件工程三个重要发展阶段/DevOps.html",
+      "newPath": "docs/DevOps/软件工程三个重要发展阶段/瀑布式开发模式.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/事件管理/运维监控.html",
+      "newPath": "docs/运维监控/事件管理/事件降噪的几个典型手段.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/基础篇.html",
+      "newPath": "docs/基础篇/数据库/数据库.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/Mongo/基础篇.html",
+      "newPath": "docs/基础篇/数据库/Mongo/mongo 命令行操作.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/MySQL.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库事务：事务提交了，你的数据就一定不会丢吗？/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/数据库事务：事务提交了，你的数据就一定不会丢吗？/undo log.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库索引：为什么MySQL用B+树而不用B树？/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/数据库索引：为什么MySQL用B+树而不用B树？/索引.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库锁/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/数据库锁/锁与索引.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据迁移：如何在不停机的情况下保证迁移数据的一致性？/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/数据迁移：如何在不停机的情况下保证迁移数据的一致性？/数据迁移：如何在不停机的情况下保证迁移数据的一致性？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MySQL从入门到入土/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/MySQL从入门到入土/01_系统如何跟MySQL打交道.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/SQL优化：如何发现SQL中的问题？/基础篇.html",
+      "newPath": "docs/基础篇/数据库/MySQL/SQL优化：如何发现SQL中的问题？/SQL优化：如何发现SQL中的问题？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/基础篇.html",
+      "newPath": "docs/基础篇/数据库/SQLite/SQLite.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 安装/基础篇.html",
+      "newPath": "docs/基础篇/数据库/SQLite/SQLite 安装/SQLite 安装.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 基础使用/基础篇.html",
+      "newPath": "docs/基础篇/数据库/SQLite/SQLite 基础使用/创建数据库.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 简介/基础篇.html",
+      "newPath": "docs/基础篇/数据库/SQLite/SQLite 简介/什么是 SQLite？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 命令/基础篇.html",
+      "newPath": "docs/基础篇/数据库/SQLite/SQLite 命令/SQLite 命令.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/统一思想-12 factors/Go.html",
+      "newPath": "docs/Go/基础篇/统一思想-12 factors/统一思想-12 factors.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/网络/基础篇.html",
+      "newPath": "docs/基础篇/网络/网络.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/网络/网络基础知识/基础篇.html",
+      "newPath": "docs/基础篇/网络/网络基础知识/网络基础知识.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/网络/Curl/基础篇.html",
+      "newPath": "docs/基础篇/网络/Curl/curl 命令.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/消息队列.html",
+      "newPath": "docs/消息队列/消息队列：消息队列可以用来解决什么问题？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/需求管理 - Jira/DevOps.html",
+      "newPath": "docs/DevOps/需求管理 - Jira/需求管理 - Jira.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/ConfigMaps/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/应用配置（env、cm、secret）/ConfigMaps/ConfigMap 对象.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Env/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/应用配置（env、cm、secret）/Env/Env.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/应用配置（env、cm、secret）/前言.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Secret/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/应用配置（env、cm、secret）/Secret/Secret 资源基础概念.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/运维监控.html",
+      "newPath": "docs/运维监控/可观测性三大支柱.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/整型/Go.html",
+      "newPath": "docs/Go/基础篇/整型/整型.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/指针/Go.html",
+      "newPath": "docs/Go/基础篇/指针/Go 开发中，什么情况下会使用指针？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/字符串类型/Go.html",
+      "newPath": "docs/Go/基础篇/字符串类型/原生支持字符串有什么好处？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/AIOps.html",
+      "newPath": "docs/AIOps/AI 大模型应用开发/AI 大模型应用开发.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/Assistants API/AIOps.html",
+      "newPath": "docs/AIOps/AI 大模型应用开发/Assistants API/Assistants API 快速入门.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/GPT 模型实战/AIOps.html",
+      "newPath": "docs/AIOps/AI 大模型应用开发/GPT 模型实战/GPT 模型实战.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/langchain/AIOps.html",
+      "newPath": "docs/AIOps/AI 大模型应用开发/langchain/LangChain 核心模块入门与实战.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/OpenAI Embedding/AIOps.html",
+      "newPath": "docs/AIOps/AI 大模型应用开发/OpenAI Embedding/OpenAI 大模型开发指南.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/ArgoCD/GitOps.html",
+      "newPath": "docs/GitOps/ArgoCD/安装 ArgoCD.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Cert-manager/DevOps.html",
+      "newPath": "docs/DevOps/Cert-manager/安装.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Chat Completions、Memory 实战/AIOps.html",
+      "newPath": "docs/AIOps/Chat Completions、Memory 实战/Chat Completions.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/CICD/DevOps.html",
+      "newPath": "docs/DevOps/CICD/持续集成（CI）.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Client-go AIOps 实战/AIOps.html",
+      "newPath": "docs/AIOps/Client-go AIOps 实战/Golang 1 CLI 实战：Cobra SDK.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Client-go/AIOps.html",
+      "newPath": "docs/AIOps/Client-go/Client-go 简介.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/CNCF/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/CNCF/CNCF（云原生计算基金会）简介.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Cobra SDK/Go.html",
+      "newPath": "docs/Go/基础篇/Cobra SDK/Cobra SDK.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Crossplane/DevOps.html",
+      "newPath": "docs/DevOps/Crossplane/Crossplane.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/DevOps 全流程案例/DevOps.html",
+      "newPath": "docs/DevOps/DevOps 全流程案例/DevOps 全流程案例.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/DevOps.html",
+      "newPath": "docs/DevOps/DevOps 介绍：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/DevSecOps/DevOps.html",
+      "newPath": "docs/DevOps/DevSecOps/DevSecOps 概述.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 安装/Docker.html",
+      "newPath": "docs/Docker/Docker 安装/在线安装.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 存储管理，数据卷和数据卷容器/Docker.html",
+      "newPath": "docs/Docker/Docker 存储管理，数据卷和数据卷容器/Docker 存储简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 挂载文件，宿主机修改后容器里文件没有修改/Docker.html",
+      "newPath": "docs/Docker/Docker 挂载文件，宿主机修改后容器里文件没有修改/Docker 挂载文件，宿主机修改后容器里文件没有修改.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 基础命令/Docker.html",
+      "newPath": "docs/Docker/Docker 基础命令/docker --help.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 镜像管理/Docker.html",
+      "newPath": "docs/Docker/Docker 镜像管理/镜像管理：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker 网络/Docker.html",
+      "newPath": "docs/Docker/Docker 网络/Docker网络：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/docker-compose：单机环境下的容器编排工具/Docker.html",
+      "newPath": "docs/Docker/docker-compose：单机环境下的容器编排工具/什么是docker-compose.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Docker.html",
+      "newPath": "docs/Docker/基础篇.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Dockerfile/Docker.html",
+      "newPath": "docs/Docker/Dockerfile/镜像简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/安装 etcd 集群/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/安装 etcd 集群/环境准备.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/读原理/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/读原理/读原理.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/高可用集群管理/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/高可用集群管理/Etcd 成员重要参数.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/鉴权模块/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/鉴权模块/整体架构.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/内存/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/内存/分析整体思路.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/运维：如何构建高可靠的etcd集群运维体系？/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/实战及应用/运维：如何构建高可靠的etcd集群运维体系？/运维：如何构建高可靠的etcd集群运维体系？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/实战及应用/如何基于Raft从0到1构建一个支持多存储引擎分布式KV服务？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/实战及应用/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes基础应用：创建一个Pod背后etcd发生了什么？/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/实战及应用/Kubernetes基础应用：创建一个Pod背后etcd发生了什么？/Kubernetes基础架构.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/事务/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/事务/事务特性初体验及API.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/思考题/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/思考题/思考题.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/写原理/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/写原理/写原理.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/性能及稳定性/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/性能及稳定性/性能及稳定性.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/压缩：如何回收旧版本数据？/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/压缩：如何回收旧版本数据？/压缩：如何回收旧版本数据？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/一致性/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/一致性/Etcd 的数据一致性.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/租约(Lease)模块/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/租约(Lease)模块/租约（Lease）模块.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/boltdb/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/boltdb/boltdb.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/db 大小/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/db 大小/构造大集群.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 典型问题/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/etcd 典型问题/etcd 典型问题.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 基础架构/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/etcd 基础架构/etcd 基础架构.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 起源/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/etcd 起源/etcd v1和v2诞生.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/服务注册与服务发现.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/MVCC 模块/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/MVCC 模块/MVCC模块.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/QPS 延时：为什么 etcd 请求会出现超时？/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/QPS 延时：为什么 etcd 请求会出现超时？/分析思路及工具.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Raft 协议/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/Raft 协议/Leader 选举.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Watch 机制/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/etcd/Watch 机制/Watch机制.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/finalizers 字段/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/finalizers 字段/前言.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Fine-tuning 实战/AIOps.html",
+      "newPath": "docs/AIOps/Fine-tuning 实战/Fine-tuning 日志分析专家.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/FluxCD/GitOps.html",
+      "newPath": "docs/GitOps/FluxCD/安装 FluxCD 并创建工作流.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Function Calling/AIOps.html",
+      "newPath": "docs/AIOps/Function Calling/概述.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/GitHubAction/GitOps.html",
+      "newPath": "docs/GitOps/GitHubAction/使用GitHubAction构建镜像.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/Gitlab.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/分支管理/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/分支管理/主干开发，分支发布.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/提交记录模板/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/提交记录模板/提交记录模板.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 安装/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/Gitlab 安装/Gitlab 下载：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 流水线/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/Gitlab 流水线/Git 流水线.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 数据备份与恢复/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/Gitlab 数据备份与恢复/备份：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab、Github简介/代码管理，版本控制系统.html",
+      "newPath": "docs/代码管理，版本控制系统/Gitlab/Gitlab、Github简介/Gitlab、Github简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/GitLabCI/GitOps.html",
+      "newPath": "docs/GitOps/GitLabCI/GitLab CI 简介.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/GitOps.html",
+      "newPath": "docs/GitOps/云原生.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Go mod/Go.html",
+      "newPath": "docs/Go/基础篇/Go mod/Go mod.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Go.html",
+      "newPath": "docs/Go/基础篇/基础篇.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 平台无关整型 和 平台相关整型 这两种，它们的区别主要就在，这些整数类型/Go.html",
+      "newPath": "docs/Go/基础篇/Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 平台无关整型 和 平台相关整型 这两种，它们的区别主要就在，这些整数类型/Go 语言整型：平台无关整型与平台相关整型.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Grafana 部署及使用/运维监控.html",
+      "newPath": "docs/运维监控/Grafana 部署及使用/Grafana简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Graph RAG/AIOps.html",
+      "newPath": "docs/AIOps/Graph RAG/Graph RAG Demo.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Helm/DevOps.html",
+      "newPath": "docs/DevOps/Helm/应用定义：Helm 入门和实战.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/实战案例 基于Docker系统实现代码自动发布和回滚/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/实战案例 基于Docker系统实现代码自动发布和回滚/实战案例：基于Docker系统实现代码自动发布和回滚.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/云原生应用时代的平台思考 Jenkins X/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/云原生应用时代的平台思考 Jenkins X/云原生应用时代的平台思考 Jenkins X.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 安装/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 安装/Jenkins安装.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 参数化构建及案例/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 参数化构建及案例/Jenkins 参数化构建及案例.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 触发器/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 触发器/Jenkins触发器简介及实现.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 分布式架构概念与实现/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 分布式架构概念与实现/Jenkins 分布式架构概念与实现.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 监控/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 监控/验证jenkins指标数据：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 简介/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 简介/Jenkins分布式构建：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 任务类型/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 任务类型/Jenkins 任务类型.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 视图简介与应用场景/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 视图简介与应用场景/Jenkins 视图简介与应用场景.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 自动clone代码/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Jenkins 自动clone代码/Jenkins 自动clone代码.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Pipline/DevOps.html",
+      "newPath": "docs/DevOps/Jenkins/Pipline/Pipline 简介.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Json Mode 实战/AIOps.html",
+      "newPath": "docs/AIOps/Json Mode 实战/JSON Mode.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/kube-apiserver/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/kube-apiserver/认证.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/kubectl 命令详解/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/kubectl 命令详解/帮助.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/API Server/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes 基础介绍/API Server/API Server.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/Control Manager/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes 基础介绍/Control Manager/控制器的工作流程.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes 基础介绍/云计算时代的操作系统.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 集成 Jenkins/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes 集成 Jenkins/Kubernetes 集成 Jenkins.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 网络/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes 网络/Pod 网络.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/通过一个例子学会写 Yaml/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes Yaml 文件详解/通过一个例子学会写 Yaml/通过一个例子学会写 Yaml.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kubernetes Yaml 文件详解/声明式与命令式是怎么回事.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/理论知识.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Kustomize/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Kustomize/什么是 Kustomize.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/磁盘管理/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/磁盘管理/磁盘管理.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/Linux 基础.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/网络.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/路由/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/路由/linux查看路由的三种方式.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/Linux tcp连接状态之SYNC_RECV/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/Linux tcp连接状态之SYNC_RECV/Linux tcp连接状态之SYNC_RECV.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/netstat/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/netstat/netstat查看服务及监听端口详解.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/tcpdump/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/tcpdump/tcpdump.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/traceroute命令（路由跟踪）/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/traceroute命令（路由跟踪）/traceroute命令（路由跟踪）.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/ubuntu 22.04如何配置静态IP、网关、DNS/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/网络/ubuntu 22.04如何配置静态IP、网关、DNS/ubuntu 22.04如何配置静态IP、网关、DNS.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/用户和用户组/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/用户和用户组/用户和用户组.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/主机名/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/主机名/主机名.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/crontab/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/crontab/时间格式.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/Linux 命令/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/Linux 命令/帮助命令.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/Systemd/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/Systemd/systemctl 命令介绍.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/vi&vim/基础篇.html",
+      "newPath": "docs/基础篇/Linux 基础/vi&vim/Linux 下的安装.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Namespace/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Namespace/Namespace.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/常见面试题/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/常见面试题/常见面试题.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 高级用法/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx 高级用法/防盗链 valid_referers.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 缓存与提速/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx 缓存与提速/资源压缩提升效率.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基本使用/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx 基本使用/Nginx 文件结构.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基础/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx 基础/Nginx 基础.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 日志/基础篇.html",
+      "newPath": "docs/基础篇/Nginx/Nginx 日志/nginx 关于日志的配置.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Operator 入门与实战(未完成/AIOps.html",
+      "newPath": "docs/AIOps/Operator 入门与实战(未完成/Operator 概述.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/容器设计模式/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/容器设计模式/容器设计模式.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/资源限制/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/资源限制/Kubernetes 的资源配额.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Pod 基础.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 的健康检查/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Pod 的健康检查/Pod 和容器的状态.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/通过亲和性控制 Pod 调度/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Pod 调度/通过亲和性控制 Pod 调度/通过亲和性控制 Pod 调度.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Pod 调度/Pod 调度.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 基础/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Pod 基础/什么是 Pod？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Security Context/Kubernetes.html",
+      "newPath": "docs/Kubernetes/理论知识/Pod/Security Context/Security Context.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Alertmanager/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/部署 Alertmanager/部署 Alertmanager.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 node_exporter/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/部署 node_exporter/安装简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Prometheus Server/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/部署 Prometheus Server/安装简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/如何解决Prometheus的存储容量问题/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/如何解决Prometheus的存储容量问题/所有场景都需要扩展容量吗？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/简介.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus 简介/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/prometheus 简介/prometheus 简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus Federation(联邦集群)/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/prometheus Federation(联邦集群)/prometheus 联邦集群架构：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/Prometheus中有哪些关键设计？/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/Prometheus中有哪些关键设计？/Prometheus的关键设计.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/PromQL 语句/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/PromQL 语句/PromQL 简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/Pushgateway/运维监控.html",
+      "newPath": "docs/运维监控/Prometheus/Pushgateway/pushgateway 简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/Q & A/Docker.html",
+      "newPath": "docs/Docker/Q & A/Q & A.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/RAG（检索增强生成）/AIOps.html",
+      "newPath": "docs/AIOps/RAG（检索增强生成）/RAG-索引.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/runc 升级/Docker.html",
+      "newPath": "docs/Docker/runc 升级/runc 升级.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/技术债务/DevOps.html",
+      "newPath": "docs/DevOps/SonarQube/技术债务/什么是技术债务？.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/DevOps.html",
+      "newPath": "docs/DevOps/SonarQube/SonarQube.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 部署/DevOps.html",
+      "newPath": "docs/DevOps/SonarQube/SonarQube 部署/环境简介：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 介绍/DevOps.html",
+      "newPath": "docs/DevOps/SonarQube/SonarQube 介绍/SonarQube代码扫描流程：.html"
+    },
+    {
+      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 实现 Python 代码扫描/DevOps.html",
+      "newPath": "docs/DevOps/SonarQube/SonarQube 实现 Python 代码扫描/SonarQube 实现 Python 代码扫描.html"
+    },
+    {
+      "oldPath": "docs/数据库/MariaDB.html",
+      "newPath": "docs/数据库/安装和配置 MariaDB 数据库.html"
+    },
+    {
+      "oldPath": "docs/Agent 系统设计/01 意图识别、槽位与澄清.html",
+      "newPath": "docs/Agent 系统设计/Agent 如何理解你的需求：意图识别、槽位与澄清.html"
+    },
+    {
+      "oldPath": "docs/Agent 系统设计/02 Agent 计划与纠偏.html",
+      "newPath": "docs/Agent 系统设计/为什么 Agent 写了计划，还是会跑偏？.html"
+    },
+    {
+      "oldPath": "docs/AI/大模型.html",
+      "newPath": "docs/AI/推理大模型与普通大模型的差异.html"
+    },
+    {
+      "oldPath": "docs/AI/群聊整理/数字人.html",
+      "newPath": "docs/AI/群聊整理/群聊整理.html"
+    },
+    {
+      "oldPath": "docs/AI/数字人.html",
+      "newPath": "docs/AI/准备开发服务器，安装基础工具.html"
+    },
+    {
       "oldPath": "docs/AI/Agent.html",
       "newPath": "docs/AI/什么是 Agent.html"
     },
@@ -18,26 +1006,6 @@
       "newPath": "docs/AI/三种提示语编写模式：Zero-shot VS One-shot VS few-shot.html"
     },
     {
-      "oldPath": "docs/AI/大模型.html",
-      "newPath": "docs/AI/推理大模型与普通大模型的差异.html"
-    },
-    {
-      "oldPath": "docs/AI/数字人.html",
-      "newPath": "docs/AI/准备开发服务器，安装基础工具.html"
-    },
-    {
-      "oldPath": "docs/AI/群聊整理/数字人.html",
-      "newPath": "docs/AI/群聊整理/群聊整理.html"
-    },
-    {
-      "oldPath": "docs/Agent 系统设计/01 意图识别、槽位与澄清.html",
-      "newPath": "docs/Agent 系统设计/Agent 如何理解你的需求：意图识别、槽位与澄清.html"
-    },
-    {
-      "oldPath": "docs/Agent 系统设计/02 Agent 计划与纠偏.html",
-      "newPath": "docs/Agent 系统设计/为什么 Agent 写了计划，还是会跑偏？.html"
-    },
-    {
       "oldPath": "docs/Claude Code/05 Claude Code Hooks.html",
       "newPath": "docs/Claude Code/Claude Code Hooks：把提醒变成自动检查.html"
     },
@@ -46,64 +1014,56 @@
       "newPath": "docs/Claude Code/MCP、Skills、Hooks、Sub-Agents 到底怎么选？.html"
     },
     {
-      "oldPath": "docs/Go/Cobra.html",
-      "newPath": "docs/Go/Cobra 优势.html"
+      "oldPath": "docs/Go/登录功能/Gin.html",
+      "newPath": "docs/Go/登录功能/登录功能.html"
     },
     {
-      "oldPath": "docs/Go/GORM/Gin.html",
-      "newPath": "docs/Go/GORM/GORM 入门：增删改查.html"
+      "oldPath": "docs/Go/给应用添加版本号打印功能/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/给应用添加版本号打印功能/给应用添加版本号打印功能.html"
     },
     {
-      "oldPath": "docs/Go/Gin.html",
-      "newPath": "docs/Go/Gin 入门：最简 Gin 应用.html"
+      "oldPath": "docs/Go/基础 Go 包开发：错误返回设计和实现/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/基础 Go 包开发：错误返回设计和实现/基础 Go 包开发：错误返回设计和实现.html"
     },
     {
-      "oldPath": "docs/Go/Go 基础篇.html",
-      "newPath": "docs/Go/声明.html"
+      "oldPath": "docs/Go/基础 Go 包开发：日志包设计和实现/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/基础 Go 包开发：日志包设计和实现/如何记录日志.html"
     },
     {
-      "oldPath": "docs/Go/Go 实战项目：小微书/Gin.html",
-      "newPath": "docs/Go/Go 实战项目：小微书/小微书起步：Web 接口.html"
+      "oldPath": "docs/Go/基于 Gin 实现一个 HTTP 服务器/Web 服务器实现.html",
+      "newPath": "docs/Go/基于 Gin 实现一个 HTTP 服务器/基于 Gin 实现一个 HTTP 服务器.html"
     },
     {
-      "oldPath": "docs/Go/Go 设计模式.html",
-      "newPath": "docs/Go/什么是设计模式？.html"
+      "oldPath": "docs/Go/密码加密/Gin.html",
+      "newPath": "docs/Go/密码加密/密码怎么加密？.html"
     },
     {
-      "oldPath": "docs/Go/Go 错误管理.html",
-      "newPath": "docs/Go/错误码规范.html"
+      "oldPath": "docs/Go/如何初始化一个 Go 项目仓库？.html",
+      "newPath": "docs/Go/如何初始化一个 Go 项目仓库.html"
     },
     {
-      "oldPath": "docs/Go/Go 项目开发方法论.html",
-      "newPath": "docs/Go/为什么要开发一个高质量的 Go 项目？.html"
+      "oldPath": "docs/Go/如何给应用添加配置功能？/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/如何给应用添加配置功能？/如何配置 miniblog 应用.html"
     },
     {
-      "oldPath": "docs/Go/Go 项目开发极速入门 fastgo.html",
-      "newPath": "docs/Go/课程目标.html"
+      "oldPath": "docs/Go/如何构建一个高质量的 Go 应用？/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/如何构建一个高质量的 Go 应用？/如何构建一个高质量的 Go 应用？.html"
     },
     {
-      "oldPath": "docs/Go/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/部署开发和运行环境.html"
+      "oldPath": "docs/Go/什么是 Web 应用/Web 服务器实现.html",
+      "newPath": "docs/Go/什么是 Web 应用/如何实现一个 Web 服务.html"
     },
     {
-      "oldPath": "docs/Go/Makefile.html",
-      "newPath": "docs/Go/关于程序的编译和链接.html"
+      "oldPath": "docs/Go/实现一个 gRPC 服务/Web 服务器实现.html",
+      "newPath": "docs/Go/实现一个 gRPC 服务/RPC 介绍.html"
     },
     {
-      "oldPath": "docs/Go/Pflag.html",
-      "newPath": "docs/Go/基本用法.html"
+      "oldPath": "docs/Go/实现一个 HTTP 反向代理服务器/Web 服务器实现.html",
+      "newPath": "docs/Go/实现一个 HTTP 反向代理服务器/实现一个 HTTP 反向代理服务器.html"
     },
     {
-      "oldPath": "docs/Go/Web 服务器实现.html",
-      "newPath": "docs/Go/什么是 Web 应用.html"
-    },
-    {
-      "oldPath": "docs/Go/Web 服务核心功能：添加 Gin 中间件/Web 服务器实现.html",
-      "newPath": "docs/Go/Web 服务核心功能：添加 Gin 中间件/Web 服务核心功能：添加 Gin 中间件.html"
-    },
-    {
-      "oldPath": "docs/Go/Web 服务核心功能：添加 gRPC 拦截器/Web 服务器实现.html",
-      "newPath": "docs/Go/Web 服务核心功能：添加 gRPC 拦截器/Web 服务核心功能：添加 gRPC 拦截器.html"
+      "oldPath": "docs/Go/实现应用的优雅关停/Web 服务器实现.html",
+      "newPath": "docs/Go/实现应用的优雅关停/实现应用的优雅关停.html"
     },
     {
       "oldPath": "docs/Go/业务实现（1）：实现 Store 层数据结构定义/Go项目开发中级实战课 miniblog.html",
@@ -118,56 +1078,64 @@
       "newPath": "docs/Go/业务实现（3）：实现 Biz 层代码/业务实现（3）：实现 Biz 层代码.html"
     },
     {
-      "oldPath": "docs/Go/什么是 Web 应用/Web 服务器实现.html",
-      "newPath": "docs/Go/什么是 Web 应用/如何实现一个 Web 服务.html"
+      "oldPath": "docs/Go/Cobra.html",
+      "newPath": "docs/Go/Cobra 优势.html"
     },
     {
-      "oldPath": "docs/Go/基于 Gin 实现一个 HTTP 服务器/Web 服务器实现.html",
-      "newPath": "docs/Go/基于 Gin 实现一个 HTTP 服务器/基于 Gin 实现一个 HTTP 服务器.html"
+      "oldPath": "docs/Go/Gin.html",
+      "newPath": "docs/Go/Gin 入门：最简 Gin 应用.html"
     },
     {
-      "oldPath": "docs/Go/基础 Go 包开发：日志包设计和实现/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/基础 Go 包开发：日志包设计和实现/如何记录日志.html"
+      "oldPath": "docs/Go/Go 错误管理.html",
+      "newPath": "docs/Go/错误码规范.html"
     },
     {
-      "oldPath": "docs/Go/基础 Go 包开发：错误返回设计和实现/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/基础 Go 包开发：错误返回设计和实现/基础 Go 包开发：错误返回设计和实现.html"
+      "oldPath": "docs/Go/Go 基础篇.html",
+      "newPath": "docs/Go/声明.html"
     },
     {
-      "oldPath": "docs/Go/如何初始化一个 Go 项目仓库？.html",
-      "newPath": "docs/Go/如何初始化一个 Go 项目仓库.html"
+      "oldPath": "docs/Go/Go 设计模式.html",
+      "newPath": "docs/Go/什么是设计模式？.html"
     },
     {
-      "oldPath": "docs/Go/如何构建一个高质量的 Go 应用？/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/如何构建一个高质量的 Go 应用？/如何构建一个高质量的 Go 应用？.html"
+      "oldPath": "docs/Go/Go 实战项目：小微书/Gin.html",
+      "newPath": "docs/Go/Go 实战项目：小微书/小微书起步：Web 接口.html"
     },
     {
-      "oldPath": "docs/Go/如何给应用添加配置功能？/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/如何给应用添加配置功能？/如何配置 miniblog 应用.html"
+      "oldPath": "docs/Go/Go 项目开发方法论.html",
+      "newPath": "docs/Go/为什么要开发一个高质量的 Go 项目？.html"
     },
     {
-      "oldPath": "docs/Go/实现一个 HTTP 反向代理服务器/Web 服务器实现.html",
-      "newPath": "docs/Go/实现一个 HTTP 反向代理服务器/实现一个 HTTP 反向代理服务器.html"
+      "oldPath": "docs/Go/Go 项目开发极速入门 fastgo.html",
+      "newPath": "docs/Go/课程目标.html"
     },
     {
-      "oldPath": "docs/Go/实现一个 gRPC 服务/Web 服务器实现.html",
-      "newPath": "docs/Go/实现一个 gRPC 服务/RPC 介绍.html"
+      "oldPath": "docs/Go/Go项目开发中级实战课 miniblog.html",
+      "newPath": "docs/Go/部署开发和运行环境.html"
     },
     {
-      "oldPath": "docs/Go/实现应用的优雅关停/Web 服务器实现.html",
-      "newPath": "docs/Go/实现应用的优雅关停/实现应用的优雅关停.html"
+      "oldPath": "docs/Go/GORM/Gin.html",
+      "newPath": "docs/Go/GORM/GORM 入门：增删改查.html"
     },
     {
-      "oldPath": "docs/Go/密码加密/Gin.html",
-      "newPath": "docs/Go/密码加密/密码怎么加密？.html"
+      "oldPath": "docs/Go/Makefile.html",
+      "newPath": "docs/Go/关于程序的编译和链接.html"
     },
     {
-      "oldPath": "docs/Go/登录功能/Gin.html",
-      "newPath": "docs/Go/登录功能/登录功能.html"
+      "oldPath": "docs/Go/Pflag.html",
+      "newPath": "docs/Go/基本用法.html"
     },
     {
-      "oldPath": "docs/Go/给应用添加版本号打印功能/Go项目开发中级实战课 miniblog.html",
-      "newPath": "docs/Go/给应用添加版本号打印功能/给应用添加版本号打印功能.html"
+      "oldPath": "docs/Go/Web 服务核心功能：添加 Gin 中间件/Web 服务器实现.html",
+      "newPath": "docs/Go/Web 服务核心功能：添加 Gin 中间件/Web 服务核心功能：添加 Gin 中间件.html"
+    },
+    {
+      "oldPath": "docs/Go/Web 服务核心功能：添加 gRPC 拦截器/Web 服务器实现.html",
+      "newPath": "docs/Go/Web 服务核心功能：添加 gRPC 拦截器/Web 服务核心功能：添加 gRPC 拦截器.html"
+    },
+    {
+      "oldPath": "docs/Go/Web 服务器实现.html",
+      "newPath": "docs/Go/什么是 Web 应用.html"
     },
     {
       "oldPath": "docs/Kubernetes/01 | 组件版本和配置策略/Kubernetes 集群二进制部署.html",
@@ -214,12 +1182,12 @@
       "newPath": "docs/Kubernetes/11 | Addons 部署（2）：部署 Prometheus/11 ｜ Addons 部署（2）：部署 Prometheus.html"
     },
     {
-      "oldPath": "docs/Kubernetes/12 | Kubernetes 代码仓库介绍/Kubernetes源码剖析.html",
-      "newPath": "docs/Kubernetes/12 | Kubernetes 代码仓库介绍/Kubernetes 仓库结构介绍.html"
-    },
-    {
       "oldPath": "docs/Kubernetes/12 | 清理 Kubernetes 集群/Kubernetes 集群二进制部署.html",
       "newPath": "docs/Kubernetes/12 | 清理 Kubernetes 集群/12 ｜ 清理 Kubernetes 集群.html"
+    },
+    {
+      "oldPath": "docs/Kubernetes/12 | Kubernetes 代码仓库介绍/Kubernetes源码剖析.html",
+      "newPath": "docs/Kubernetes/12 | Kubernetes 代码仓库介绍/Kubernetes 仓库结构介绍.html"
     },
     {
       "oldPath": "docs/Kubernetes/13 | 一文读懂Kubernetes源码构建、测试和本地调试的方法/Kubernetes源码剖析.html",
@@ -354,26 +1322,6 @@
       "newPath": "docs/Kubernetes/45｜Leader Election：基于 Lease 的 Leader Election 源码剖析/45｜Leader Election：基于 Lease 的 Leader Election 源码剖析.html"
     },
     {
-      "oldPath": "docs/Kubernetes/K8s pod 如何设置时区/Q&A.html",
-      "newPath": "docs/Kubernetes/K8s pod 如何设置时区/K8s pod 如何设置时区.html"
-    },
-    {
-      "oldPath": "docs/Kubernetes/K8s 内部如何跨命名空间通信？/Q&A.html",
-      "newPath": "docs/Kubernetes/K8s 内部如何跨命名空间通信？/K8s 内部如何跨命名空间通信？.html"
-    },
-    {
-      "oldPath": "docs/Kubernetes/Kubernetes 探针/Q&A.html",
-      "newPath": "docs/Kubernetes/Kubernetes 探针/探针的检查方式.html"
-    },
-    {
-      "oldPath": "docs/Kubernetes/Kubernetes 集群二进制部署.html",
-      "newPath": "docs/Kubernetes/01 ｜ 组件版本和配置策略.html"
-    },
-    {
-      "oldPath": "docs/Kubernetes/Kubernetes源码剖析.html",
-      "newPath": "docs/Kubernetes/12 ｜ Kubernetes 代码仓库介绍.html"
-    },
-    {
       "oldPath": "docs/Kubernetes/附录A：部署 Flannel 网络插件/Kubernetes 集群二进制部署.html",
       "newPath": "docs/Kubernetes/附录A：部署 Flannel 网络插件/附录A：部署 Flannel 网络插件.html"
     },
@@ -382,972 +1330,24 @@
       "newPath": "docs/Kubernetes/附录D：部署 metrics-server 插件/附录D：部署 metrics-server 插件.html"
     },
     {
-      "oldPath": "docs/数据库/MariaDB.html",
-      "newPath": "docs/数据库/安装和配置 MariaDB 数据库.html"
+      "oldPath": "docs/Kubernetes/K8s 内部如何跨命名空间通信？/Q&A.html",
+      "newPath": "docs/Kubernetes/K8s 内部如何跨命名空间通信？/K8s 内部如何跨命名空间通信？.html"
     },
     {
-      "oldPath": "docs/示例知识库_Wiki_samples/25个关键字和37个保留字/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/25个关键字和37个保留字/25个关键字和37个保留字.html"
+      "oldPath": "docs/Kubernetes/K8s pod 如何设置时区/Q&A.html",
+      "newPath": "docs/Kubernetes/K8s pod 如何设置时区/K8s pod 如何设置时区.html"
     },
     {
-      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/AI 大模型应用开发.html"
+      "oldPath": "docs/Kubernetes/Kubernetes 集群二进制部署.html",
+      "newPath": "docs/Kubernetes/01 ｜ 组件版本和配置策略.html"
     },
     {
-      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/Assistants API/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/Assistants API/Assistants API 快速入门.html"
+      "oldPath": "docs/Kubernetes/Kubernetes 探针/Q&A.html",
+      "newPath": "docs/Kubernetes/Kubernetes 探针/探针的检查方式.html"
     },
     {
-      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/GPT 模型实战/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/GPT 模型实战/GPT 模型实战.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/OpenAI Embedding/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/OpenAI Embedding/OpenAI 大模型开发指南.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/langchain/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/AI 大模型应用开发/langchain/LangChain 核心模块入门与实战.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/ArgoCD/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/ArgoCD/安装 ArgoCD.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/CICD/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/CICD/持续集成（CI）.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/CNCF/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/CNCF/CNCF（云原生计算基金会）简介.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Cert-manager/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Cert-manager/安装.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Chat Completions、Memory 实战/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Chat Completions、Memory 实战/Chat Completions.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Client-go AIOps 实战/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Client-go AIOps 实战/Golang 1 CLI 实战：Cobra SDK.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Client-go/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Client-go/Client-go 简介.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Cobra SDK/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Cobra SDK/Cobra SDK.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Crossplane/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Crossplane/Crossplane.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/DevOps 全流程案例/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/DevOps 全流程案例/DevOps 全流程案例.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/DevOps 介绍：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/DevSecOps/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/DevSecOps/DevSecOps 概述.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 基础命令/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 基础命令/docker --help.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 存储管理，数据卷和数据卷容器/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 存储管理，数据卷和数据卷容器/Docker 存储简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 安装/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 安装/在线安装.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 挂载文件，宿主机修改后容器里文件没有修改/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 挂载文件，宿主机修改后容器里文件没有修改/Docker 挂载文件，宿主机修改后容器里文件没有修改.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 网络/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 网络/Docker网络：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker 镜像管理/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Docker 镜像管理/镜像管理：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础篇（Docker）.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Dockerfile/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Dockerfile/镜像简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Fine-tuning 实战/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Fine-tuning 实战/Fine-tuning 日志分析专家.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/FluxCD/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/FluxCD/安装 FluxCD 并创建工作流.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Function Calling/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Function Calling/概述.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/GitHubAction/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/GitHubAction/使用GitHubAction构建镜像.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/GitLabCI/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/GitLabCI/GitLab CI 简介.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/云原生.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 安装/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 安装/Gitlab 下载：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 数据备份与恢复/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 数据备份与恢复/备份：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 流水线/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab 流水线/Git 流水线.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab、Github简介/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab、Github简介/Gitlab、Github简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/Gitlab.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/分支管理/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/分支管理/主干开发，分支发布.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Gitlab/提交记录模板/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab/提交记录模板/提交记录模板.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Go mod/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Go mod/Go mod.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础篇（Go）.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 平台无关整型 和 平台相关整型 这两种，它们的区别主要就在，这些整数类型/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 平台无关整型 和 平台相关整型 这两种，它们的区别主要就在，这些整数类型/Go 语言整型：平台无关整型与平台相关整型.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Grafana 部署及使用/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Grafana 部署及使用/Grafana简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Graph RAG/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Graph RAG/Graph RAG Demo.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Helm/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Helm/应用定义：Helm 入门和实战.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 任务类型/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 任务类型/Jenkins 任务类型.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 分布式架构概念与实现/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 分布式架构概念与实现/Jenkins 分布式架构概念与实现.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 参数化构建及案例/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 参数化构建及案例/Jenkins 参数化构建及案例.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 安装/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 安装/Jenkins安装.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 监控/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 监控/验证jenkins指标数据：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 简介/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 简介/Jenkins分布式构建：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 自动clone代码/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 自动clone代码/Jenkins 自动clone代码.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 视图简介与应用场景/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 视图简介与应用场景/Jenkins 视图简介与应用场景.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 触发器/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Jenkins 触发器/Jenkins触发器简介及实现.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/Pipline/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/Pipline/Pipline 简介.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/云原生应用时代的平台思考 Jenkins X/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/云原生应用时代的平台思考 Jenkins X/云原生应用时代的平台思考 Jenkins X.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Jenkins/实战案例 基于Docker系统实现代码自动发布和回滚/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Jenkins/实战案例 基于Docker系统实现代码自动发布和回滚/实战案例：基于Docker系统实现代码自动发布和回滚.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Json Mode 实战/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Json Mode 实战/JSON Mode.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/声明式与命令式是怎么回事.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/通过一个例子学会写 Yaml/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes Yaml 文件详解/通过一个例子学会写 Yaml/通过一个例子学会写 Yaml.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/API Server/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/API Server/API Server.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/Control Manager/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/Control Manager/控制器的工作流程.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes 基础介绍/云计算时代的操作系统.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 网络/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes 网络/Pod 网络.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes 集成 Jenkins/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kubernetes 集成 Jenkins/Kubernetes 集成 Jenkins.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/理论知识.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Kustomize/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Kustomize/什么是 Kustomize.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/Linux 命令/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/Linux 命令/帮助命令.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/Systemd/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/Systemd/systemctl 命令介绍.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/crontab/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/crontab/时间格式.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/vi&vim/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/vi&vim/Linux 下的安装.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/主机名/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/主机名/主机名.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/Linux 基础.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/用户和用户组/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/用户和用户组/用户和用户组.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/磁盘管理/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/磁盘管理/磁盘管理.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/Linux tcp连接状态之SYNC_RECV/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/Linux tcp连接状态之SYNC_RECV/Linux tcp连接状态之SYNC_RECV.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/netstat/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/netstat/netstat查看服务及监听端口详解.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/tcpdump/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/tcpdump/tcpdump.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/traceroute命令（路由跟踪）/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/traceroute命令（路由跟踪）/traceroute命令（路由跟踪）.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/ubuntu 22.04如何配置静态IP、网关、DNS/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/ubuntu 22.04如何配置静态IP、网关、DNS/ubuntu 22.04如何配置静态IP、网关、DNS.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/网络.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/路由/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Linux 基础/网络/路由/linux查看路由的三种方式.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Namespace/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Namespace/Namespace.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基本使用/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基本使用/Nginx 文件结构.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基础/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 基础/Nginx 基础.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 日志/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 日志/nginx 关于日志的配置.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 缓存与提速/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 缓存与提速/资源压缩提升效率.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 高级用法/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx 高级用法/防盗链 valid_referers.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/Nginx.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Nginx/常见面试题/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Nginx/常见面试题/常见面试题.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Operator 入门与实战(未完成/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Operator 入门与实战(未完成/Operator 概述.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Pod 基础.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 基础/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Pod 基础/什么是 Pod？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 的健康检查/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Pod 的健康检查/Pod 和容器的状态.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/Pod 调度.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/通过亲和性控制 Pod 调度/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Pod 调度/通过亲和性控制 Pod 调度/通过亲和性控制 Pod 调度.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/Security Context/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/Security Context/Security Context.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/容器设计模式/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/容器设计模式/容器设计模式.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Pod/资源限制/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Pod/资源限制/Kubernetes 的资源配额.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/PromQL 语句/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/PromQL 语句/PromQL 简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/Prometheus中有哪些关键设计？/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/Prometheus中有哪些关键设计？/Prometheus的关键设计.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/Pushgateway/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/Pushgateway/pushgateway 简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus Federation(联邦集群)/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus Federation(联邦集群)/prometheus 联邦集群架构：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus 简介/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/prometheus 简介/prometheus 简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/如何解决Prometheus的存储容量问题/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/如何解决Prometheus的存储容量问题/所有场景都需要扩展容量吗？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/简介.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Alertmanager/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Alertmanager/部署 Alertmanager.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Prometheus Server/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 Prometheus Server/安装简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 node_exporter/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Prometheus/部署 node_exporter/安装简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/Q & A/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Q & A/Q & A.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/RAG（检索增强生成）/AIOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/RAG（检索增强生成）/RAG-索引.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 介绍/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 介绍/SonarQube代码扫描流程：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 实现 Python 代码扫描/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 实现 Python 代码扫描/SonarQube 实现 Python 代码扫描.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 部署/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/SonarQube/SonarQube 部署/环境简介：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/SonarQube/技术债务/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/SonarQube/技术债务/什么是技术债务？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/docker-compose：单机环境下的容器编排工具/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/docker-compose：单机环境下的容器编排工具/什么是docker-compose.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/服务注册与服务发现.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/MVCC 模块/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/MVCC 模块/MVCC模块.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/QPS 延时：为什么 etcd 请求会出现超时？/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/QPS 延时：为什么 etcd 请求会出现超时？/分析思路及工具.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Raft 协议/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/Raft 协议/Leader 选举.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/Watch 机制/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/Watch 机制/Watch机制.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/boltdb/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/boltdb/boltdb.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/db 大小/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/db 大小/构造大集群.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 典型问题/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/etcd 典型问题/etcd 典型问题.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 基础架构/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/etcd 基础架构/etcd 基础架构.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/etcd 起源/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/etcd 起源/etcd v1和v2诞生.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/一致性/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/一致性/Etcd 的数据一致性.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/事务/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/事务/事务特性初体验及API.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/内存/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/内存/分析整体思路.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/写原理/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/写原理/写原理.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/压缩：如何回收旧版本数据？/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/压缩：如何回收旧版本数据？/压缩：如何回收旧版本数据？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/安装 etcd 集群/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/安装 etcd 集群/环境准备.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/如何基于Raft从0到1构建一个支持多存储引擎分布式KV服务？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes基础应用：创建一个Pod背后etcd发生了什么？/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes基础应用：创建一个Pod背后etcd发生了什么？/Kubernetes基础架构.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？/Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/运维：如何构建高可靠的etcd集群运维体系？/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/实战及应用/运维：如何构建高可靠的etcd集群运维体系？/运维：如何构建高可靠的etcd集群运维体系？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/思考题/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/思考题/思考题.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/性能及稳定性/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/性能及稳定性/性能及稳定性.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/租约(Lease)模块/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/租约(Lease)模块/租约（Lease）模块.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/读原理/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/读原理/读原理.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/鉴权模块/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/鉴权模块/整体架构.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/etcd/高可用集群管理/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/etcd/高可用集群管理/Etcd 成员重要参数.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/finalizers 字段/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/finalizers 字段/前言.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/kube-apiserver/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/kube-apiserver/认证.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/kubectl 命令详解/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/kubectl 命令详解/帮助.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/runc 升级/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/runc 升级/runc 升级.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/事件管理/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/事件管理/事件降噪的几个典型手段.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/仅在某些节点上运行 Pod/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/仅在某些节点上运行 Pod/仅在某些节点上运行 Pod.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/代码管理，版本控制系统.html",
-      "newPath": "docs/示例知识库_Wiki_samples/Gitlab.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/包和文件/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/包和文件/导入.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/变量/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/变量/变量.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Crossplane/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Crossplane/Crossplane.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础设施即代码/什么是 Infrastructure as Code (IaC).html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Pulumi/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Pulumi/Pulumi.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Terraform/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/基础设施即代码/Terraform/Terraform 架构和核心概念.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/数组.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/Map/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/Map/Map.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/切片/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/切片/切片.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/数组/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/数组/数组.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/结构体/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复合类型：数组＼切片＼map＼结构体/结构体/结构体定义.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/复数类型/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/复数类型/复数类型.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/如何将容器镜像部署到 K8s/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/如何将容器镜像部署到 K8s/如何将容器镜像部署到 K8s.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/字符串类型/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/字符串类型/原生支持字符串有什么好处？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云/Kubernetes 挂载阿里云.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云文件存储 NAS/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes 挂载阿里云文件存储 NAS/Kubernetes 挂载阿里云文件存储 NAS.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/存储/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/存储/存储卷基础.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器如何与外界互联互通/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器如何与外界互联互通/如何拷贝容器内的数据.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器安全/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器安全/问题再现.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器技术基础/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器技术基础/容器是什么.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/CPU Cgroup/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/CPU Cgroup/如何理解CPU使用和CPU Cgroup？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Namespace.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Memory Cgroup/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器技术的核心原理 Namespace & cgroup/Memory Cgroup/Memory Cgroup.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/容器运行时/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/容器运行时/容器的核心技术：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/DaemonSet/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/DaemonSet/DaemonSet.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Deployments/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/Deployments/更新 Deployment.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/传统的扩容和自愈.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/系统监控：MetricsServer/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/Horizontal Pod Autoscaler(HPA)/系统监控：MetricsServer/系统监控：MetricsServer.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Job&CronJob/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/Job&CronJob/Job&CronJob.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/工作负载.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/ReplicaSet/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/ReplicaSet/创建 ReplicaSet.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/工作负载/StatefulSet/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/工作负载/StatefulSet/限制.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/常见监控工具——业界方案横评/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/常见监控工具——业界方案横评/老一代整体方案的代表 Zabbix.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/常量/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/常量/常量.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/ConfigMaps/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/ConfigMaps/ConfigMap 对象.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Env/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Env/Env.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/前言.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Secret/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/应用配置（env、cm、secret）/Secret/Secret 资源基础概念.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/指针/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/指针/Go 开发中，什么情况下会使用指针？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/Mongo/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/Mongo/mongo 命令行操作.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？/MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MySQL从入门到入土/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MySQL从入门到入土/01_系统如何跟MySQL打交道.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/SQL优化：如何发现SQL中的问题？/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/SQL优化：如何发现SQL中的问题？/SQL优化：如何发现SQL中的问题？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/MySQL.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库事务：事务提交了，你的数据就一定不会丢吗？/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库事务：事务提交了，你的数据就一定不会丢吗？/undo log.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库索引：为什么MySQL用B+树而不用B树？/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库索引：为什么MySQL用B+树而不用B树？/索引.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库锁/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据库锁/锁与索引.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据迁移：如何在不停机的情况下保证迁移数据的一致性？/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/MySQL/数据迁移：如何在不停机的情况下保证迁移数据的一致性？/数据迁移：如何在不停机的情况下保证迁移数据的一致性？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 命令/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 命令/SQLite 命令.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 基础使用/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 基础使用/创建数据库.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 安装/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 安装/SQLite 安装.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 简介/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite 简介/什么是 SQLite？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/SQLite/SQLite.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/数据库/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/数据库/数据库.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/整型/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/整型/整型.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Ingress/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/服务发现/Ingress/生产环境下部署 Ingress-Nginx.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/服务发现/kube-proxy.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/Service/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/服务发现/Service/Service 资源基础.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/服务发现/kube-proxy/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/服务发现/kube-proxy/userspace模式.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/local-up-cluster.sh.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/Kind 介绍.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/配置文件详解/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kind 部署 kubernetes/配置文件详解/配置文件详解.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kubeadm 部署 kubernetes v1.25.3/Kubernetes.html",
-      "newPath": "docs/示例知识库_Wiki_samples/本地部署 K8s 集群/使用 kubeadm 部署 kubernetes v1.25.3/使用 kubeadm 部署 kubernetes v1.25.3.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/浮点型/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/浮点型/浮点型.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/消息队列.html",
-      "newPath": "docs/示例知识库_Wiki_samples/消息队列：消息队列可以用来解决什么问题？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/环境安装/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/环境安装/安装 Go.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Elasticsearch/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Elasticsearch/Elasticsearch.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kafka/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kafka/Kafka.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kubernetes/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Kubernetes/Kubernetes Node.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/MySQL/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/MySQL/MySQL.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Prometheus/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Prometheus/Prometheus.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/Redis/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Redis/Redis.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/StatsD/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/StatsD/StatsD.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/grok_exporter/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/grok_exporter/快速上手grok_exporter.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/mtail/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/mtail/快速上手mtail.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/机器监控-操作系统重点关注指标/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/机器监控-操作系统重点关注指标/机器监控-操作系统重点关注指标.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/网络监控-网络链路和网络设备/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/网络监控-网络链路和网络设备/网络监控-网络链路和网络设备.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控数据采集/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控数据采集/Google的四个黄金指标.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控相关概念/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控相关概念/监控指标.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/监控系统的典型架构/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/监控系统的典型架构/采集器.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/统一思想-12 factors/Go.html",
-      "newPath": "docs/示例知识库_Wiki_samples/统一思想-12 factors/统一思想-12 factors.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/网络/Curl/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/网络/Curl/curl 命令.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/网络/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/网络/网络.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/网络/网络基础知识/基础篇.html",
-      "newPath": "docs/示例知识库_Wiki_samples/网络/网络基础知识/网络基础知识.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/蓝绿发布/GitOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/蓝绿发布/蓝绿发布.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/软件工程三个重要发展阶段/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/软件工程三个重要发展阶段/瀑布式开发模式.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/运维监控.html",
-      "newPath": "docs/示例知识库_Wiki_samples/可观测性三大支柱.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/进程/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/进程/为什么我在容器中不能kill 1号进程？.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/镜像仓库/Docker.html",
-      "newPath": "docs/示例知识库_Wiki_samples/镜像仓库/部分镜像仓库：.html"
-    },
-    {
-      "oldPath": "docs/示例知识库_Wiki_samples/需求管理 - Jira/DevOps.html",
-      "newPath": "docs/示例知识库_Wiki_samples/需求管理 - Jira/需求管理 - Jira.html"
+      "oldPath": "docs/Kubernetes/Kubernetes源码剖析.html",
+      "newPath": "docs/Kubernetes/12 ｜ Kubernetes 代码仓库介绍.html"
     }
   ]
 }
