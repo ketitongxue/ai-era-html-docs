@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Next.js</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<p>打开终端，输入npx create-next-app@latest，回车，一直点击回车，都选默认项</p>
+<p>等待项目创建完成，记住项目的存储路径</p>
+<p>打开 IDE，打开项目(Open project)，选择刚刚创建的文件存储路径，查看已经创建的Next.js项目</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% npx create-next-app@latest
+Need to install the following packages:
+create-next-app@16.1.6
+Ok to proceed? (y) y
+✔ What is your project named? … my-app
+✔ Would you like to use the recommended Next.js defaults? › Yes, use recommended defaults
+Creating a new Next.js app in /Users/keti/Projects/my-app.
+
+Using npm.
+
+Initializing project with template: app-tw 
+
+
+Installing dependencies:
+- next
+- react
+- react-dom
+
+Installing devDependencies:
+- @tailwindcss/postcss
+- @types/node
+- @types/react
+- @types/react-dom
+- eslint
+- eslint-config-next
+- tailwindcss
+- typescript
+
+
+
+added 360 packages in 2m
+
+144 packages are looking for funding
+  run `npm fund` for details
+
+Generating route types...
+✓ Types generated successfully
+
+Initialized a git repository.
+
+Success! Created my-app at /Users/keti/Projects/my-app
+
+% cd my-app
+% ls -lrt
+total 512
+-rw-r--r--    1 keti  staff    1450  2月 25 12:34 README.md
+-rw-r--r--    1 keti  staff     465  2月 25 12:34 eslint.config.mjs
+-rw-r--r--    1 keti  staff     247  2月 25 12:34 next-env.d.ts
+drwxr-xr-x    6 keti  staff     192  2月 25 12:34 app
+-rw-r--r--    1 keti  staff     133  2月 25 12:34 next.config.ts
+-rw-r--r--    1 keti  staff      94  2月 25 12:34 postcss.config.mjs
+drwxr-xr-x    7 keti  staff     224  2月 25 12:34 public
+-rw-r--r--    1 keti  staff     666  2月 25 12:34 tsconfig.json
+-rw-r--r--    1 keti  staff     528  2月 25 12:34 package.json
+-rw-r--r--    1 keti  staff  230455  2月 25 12:35 package-lock.json
+drwxr-xr-x  292 keti  staff    9344  2月 25 12:35 node_modules
+</code></pre>
+<p>重点关注：</p>
+<ul>
+<li>
+<p>APP文件夹</p>
+<ul>
+<li>
+<p>解释：它是 Next.js 中路由的核心所在。在这个文件夹下，每个文件或文件夹都对应一个页面路由。例如，创建一个 home.js（或 home.tsx 等 ）文件在 app 文件夹下，就可以通过浏览器访问对应的首页；如果创建子文件夹，如 app/blog/[slug].js ，可以实现动态路由，用于展示博客详情等。</p>
+</li>
+<li>
+<p>举例：看到这个页面。</p>
+<ul>
+<li>
+<p>创建 app/home.js → 访问 http://localhost:3000 就能</p>
+</li>
+<li>
+<p>创建 app/blog/[id].js → 访问 http://localhost:3000/blog/123 会根据 id 动态显示文章。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>public 文件夹</p>
+<ul>
+<li>解释：用于存放静态资源，如图像、字体、图标等。在页面中可以通过相对路径直接引用这些资源，例如在组件中使用 ＜img src=&quot;/logo.png&quot; alt=&quot;公司 logo&quot;＞ ，这里的 logo.png 就可以放在 public 文件夹下。</li>
+</ul>
+</li>
+<li>
+<p>举例：</p>
+<ul>
+<li>把 logo.png 放这里，代码里直接写 ＜img src=&quot;/logo.png&quot; /＞ 就能用。</li>
+</ul>
+</li>
+</ul>
+<p>启动开发环境，查看当前界面，终端运行 npm run dev</p>
+<h1 id="项目结构--路由">项目结构 &amp; 路由</h1>
+<p><strong>口诀：文件=路由、文件夹=层级、layout 包壳 page。</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">├── app/                  # ➜*App Router 核心*
+│   ├── layout.tsx        # 所有子路由的根布局
+│   ├── page.tsx          # 访问 / 时渲染
+│   └── globals.css
+├── public/               # 静态资源
+├── tsconfig.json
+</code></pre>
+<p>Next.js 会自动将 app 文件夹下的文件和文件夹结构映射为对应的 URL 路径</p>
+<h1 id="组件">组件</h1>
+<p>Next.js 里有两种组件(Components)，分别是服务端组件和客户端组件。</p>
+<p>Next.js默认 Server Components，仅在需要浏览器交互时才标注 &quot;use client&quot;。</p>
+<p><strong>服务端组件(Server Components)</strong></p>
+<p>特点：</p>
+<ul>
+<li>运行在 Node 边缘/Serverless。</li>
+<li>可直接调用后端 SDK、数据库、文件系统。</li>
+<li>生成纯 HTML，体积小，SEO 友好。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">import { fetchUsers } from &quot;@/lib/api&quot;;
+
+export default async function Users() {
+  const users = await fetchUsers();        // 直接 await
+  return (
+    ＜ul＞
+      {users.map(u =＞ ＜li key={u.id}＞{u.name}＜/li＞)}
+    ＜/ul＞
+  );
+}
+</code></pre>
+<p><strong>客户端组件 (Client Components)</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">&quot;use client&quot;;
+
+import { useState } from &quot;react&quot;;
+
+export default function Counter() {
+  const [n, setN] = useState(0);
+  return (
+    ＜button
+      className=&quot;rounded bg-blue-600 px-3 py-1 text-white&quot;
+      onClick={() =＞ setN(n + 1)}
+    ＞
+      点击 {n}
+    ＜/button＞
+  );
+}
+</code></pre>
+<p><strong>共享布局 layout.tsx</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">export const metadata = { title: &quot;一小时 Next.js&quot; };
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    ＜html lang=&quot;zh&quot;＞
+      ＜body className=&quot;prose mx-auto p-4&quot;＞{children}＜/body＞
+    ＜/html＞
+  );
+}
+</code></pre>
+<h1 id="public目录">public目录</h1>
+<p>在 Next.js 中，public 文件夹是一个特殊的目录，用于存放不需要经过 Webpack 等构建工具处理的静态资源。这些资源可以直接通过 URL 访问，是项目中存放公开静态文件的标准位置。</p>
+<p><strong>（附）学习资源</strong></p>
+<p>https://nextjs.org/docs</p>
+<p>https://nextjs.org/learn</p>
+<p>https://github.com/vercel/next.js/tree/canary/examples</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

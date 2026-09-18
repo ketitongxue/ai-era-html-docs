@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="html概述">HTML概述</h1>
+<p>HTML，即超文本标记语言（HyperText Markup Language ]），也可叫做web页面。扩展名是 .html 或是 .htm 。</p>
+<p>HTML，是一种用来制作网页的标准标记语言。超文本，指的就是超出普通文本范畴的文档，可以包含文本、图片、视频、音频、链接等元素。</p>
+<p>HTML 不是一种编程语言，而是一种写给网页浏览器、具有描述性的标记语言。</p>
+<h1 id="html结构和标签格式">HTML结构和标签格式</h1>
+<p>HTML 主要是用“标签”来组织网页里面的内容</p>
+<p>标签通常是成对出现的</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p><code>&lt;!DOCTYPE html&gt;</code> 告诉浏览器使用什么样的解析器来解析<code>html</code>文档</p>
+<p><code>&lt;html&gt;&lt;/html&gt;</code>是文档的开始标记和结束标记。此元素告诉浏览器其自身是一个 <code>HTML </code>文档，在它们之间是文档的头部<code>&lt;head&gt;</code>和主体<code>&lt;body&gt;</code>。网页的所有资讯，都会被放在 <code>&lt;html&gt;</code> 的标签之中。</p>
+<p>HTML 依据其内容性质又被分成两个部分，一个是 <code>&lt;head&gt;</code> 头部，头部的内容不会显示在网页之中，主要是一些后台资料，像是文件的字符编码、关键字和程式脚本等。</p>
+<p><code>&lt;title&gt;&lt;/title&gt;</code>定义网页标题，在浏览器标题栏显示。</p>
+<p><code>&lt;body&gt;&lt;/body&gt;</code>之间的文本是可见的网页主体内容。用户所看到的内容，包含网页文字、图片和按钮等，都是放在 <code>&lt;body&gt;</code> 的标签内</p>
+<p><code>&lt;meta charset=&quot;UTF-8&quot;&gt; </code>  声明编码方式用utf8</p>
+<p><code>lang=&quot;en&quot;</code> 网页主要使用的语言：</p>
+<ul>
+<li>zh-Hant：中文（繁体）</li>
+<li>zh-Hans：中文（简体）</li>
+<li>zh-CN：中国大陆</li>
+<li>zh-HK：香港</li>
+<li>zh-MO：澳门</li>
+</ul>
+<p>标签分为闭合标签（h1）和自闭合标签（img）</p>
+<p>快速建立标签的方式：</p>
+<p>输入 <code>!</code> 然后按 Tab，修改其中的内容就可以。</p>
+<h1 id="html-常用标签">HTML 常用标签</h1>
+<h2 id="heading-标题hx">Heading 标题&lt;hx&gt;</h2>
+<p>一共分为六个层级</p>
+<p>其中 <code>&lt;h1&gt;</code>等级最高，通常用于网页的主题</p>
+<p>其次是 <code>&lt;h2&gt;</code>和<code>&lt;h3&gt;</code>，直到最低的<code>&lt;h6&gt;</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;h1&gt;标题1&lt;/h1&gt;
+&lt;h2&gt;标题2&lt;/h2&gt;
+&lt;h3&gt;标题3&lt;/h3&gt;
+&lt;h4&gt;标题4&lt;/h4&gt;
+&lt;h5&gt;标题5&lt;/h5&gt;
+&lt;h6&gt;标题6&lt;/h6&gt;
+</code></pre>
+<h2 id="段落标签p">段落标签&lt;p&gt;</h2>
+<p>插入内文 <code>&lt;p&gt;</code>，每一对 <code>&lt;p&gt;</code>都代表一个独立的段落</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;p&gt;大家好，我是段落1。&lt;/p&gt;
+&lt;p&gt;大家好，我是段落2。&lt;/p&gt;
+&lt;p&gt;大家好，我是段落3。&lt;/p&gt;
+</code></pre>
+<h2 id="换行标签br">换行标签&lt;br/&gt;</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;p&gt;大家好，我是段落标签p。我按了enter一下
+换行了&lt;/p&gt;
+
+&lt;p&gt;大家好，我是段落标签p。我按了enter一下&lt;br/&gt; 换行了&lt;/p&gt;
+</code></pre>
+<h2 id="文本格式化标签">文本格式化标签</h2>
+<p>HTML提供了一系列的用于格式化文本的标签，可以让我们输出不同外观的元素，比如粗体和斜体字。如果需要在网页中，需要让某些文本内容展示的效果丰富点，可以使用以下的标签来进行格式化。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;b&gt;定义粗体文本&lt;/b&gt;&lt;br /&gt;
+&lt;strong&gt;定义粗体文本方式2&lt;/strong&gt;&lt;br /&gt;
+&lt;em&gt;定义斜体字&lt;/em&gt;&lt;br /&gt;
+&lt;i&gt;定义斜体字方式2&lt;/i&gt;&lt;br /&gt;
+&lt;del&gt;定义删除文本&lt;/del&gt;&lt;br /&gt;
+</code></pre>
+<h2 id="特殊符号">特殊符号</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&amp;nbsp; 
+</code></pre>
+<h2 id="块级元素和行内元素">块级元素和行内元素</h2>
+<p>块级元素：每一个标签不管内容和字数有多少，都会占用一整行形成一个独立的区块（block）。比如：marquee、h1、p、div</p>
+<p>行内元素：相对于区块元素，还有一种不会独占一整行，有多少内容就占多少空间的元素（inline）。比如：input、span</p>
+<p>一个常见的例子是 &lt;strong&gt; 和 &lt;em&gt; 标签，也就是粗体和斜体。</p>
+<p>块级元素中能写：行内元素、块级元素（几乎什么都能写）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;div&gt;
+  &lt;span&gt;1111&lt;/span&gt;
+&lt;div&gt;
+</code></pre>
+<p>行内元素中能写行内元素，但不能写块级元素。</p>
+<p>p 标签中不能写块元素</p>
+<p>如果单独在网页中插入这两个元素，不会对页面产生任何的影响。这两个元素是专门为定义CSS样式而生的。</p>
+<h2 id="超链接标签">超链接标签</h2>
+<p>超链接是浏览者和服务器的交互的主要手段，也叫超级链接或a链接，是网页中指向一个目标的连接关系，这个目标可以是网页、网页中的具体位置、图片、邮件地址、文件、应用程序等。</p>
+<p>超链接是网页中最重要的元素之一。一个网站的各个网页就是通过超链接关联起来的，用户通过点击超链接可以从一个网页跳转到另一个网页。</p>
+<p>几乎可以在所有的网页中找到链接。点击链接可以从一张页面跳转到另一张页面。例如,在阅读某个网站时，遇到一个不认识的英文，你只要在这个单词上单击一下，即可跳转到它的翻译页面中，看完单词的解释后点一下返回按钮，又可继续阅读，这就是超链接的常见用途。还有经常到购物网站中去，我们都是在百度搜索，然后点击对应的搜索项进入到对应的购物网站的，这也是超链接的作用。超链接的属性：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>href</td>
+<td>网络链接 [ 例如: http://www.baidu.com ]  &lt;br/&gt;本地链接 [ 例如：F:\html\index.html ]</td>
+<td>规定链接的跳转目标</td>
+</tr>
+<tr>
+<td>title</td>
+<td>&lt;a href=&quot;http://www.baidu.com&quot; title=&quot;国内最著名的搜索引擎网站&quot;&gt;百度&lt;/a&gt;</td>
+<td>链接的提示信息</td>
+</tr>
+<tr>
+<td>target</td>
+<td>_blank [ 在新建窗口中打开网页 ]  &lt;br/&gt;_self  [ 默认值，覆盖自身窗口打开网页 ]</td>
+<td>与前面四项固定值不同，framename是泛指，并不是这个值，这点将在后面框架部分内容中详细介绍，这里可以暂时先略过</td>
+</tr>
+</tbody>
+</table></div>
+<ol>
+<li>href是超链接最重要的属性，规定了用户点击链接以后的跳转目标，这个目标可以是 网络连接，也可以是本地连接。</li>
+<li>网络链接指的是依靠网络来进行关联的地址，一般在地址前面是以 http://或者https://这样开头的，如果没有网络，则用户点击了超链接也无法访问对应的目标。</li>
+<li>本地链接指的是本地计算机的地址，一般在地址前面是以 file:///开头或直接以 C:/、D:/、E:/开头的，不需要经过网络。</li>
+<li>如果href的值留空，则默认是跳转到当前页面，也就是刷新当前页面。</li>
+</ol>
+<h2 id="建立网页的连结-aa">建立网页的连结 &lt;a&gt;&lt;/a&gt;</h2>
+<p>使用 &lt;a&gt; 标签时，需要加上一个 href 的属性来指定目标的网址，或是当前目录中的某个网页。</p>
+<h2 id="建立清单-ol-ordered-list">建立清单 &lt;ol&gt; (ordered list)</h2>
+<p>清单内容使用 &lt;li&gt; (list)，每一组 &lt;li&gt; 在浏览器都会显示为清单中的一个项目。清单在网页设计中最常见的用途，是拿来作网站的导览列。由于导览列的前方不需要任何的数字编号，所以我们可以改用 &lt;ul&gt; (unordered list) 标签</p>
+<h2 id="引述别人的文字或者座右铭-blockquote">引述别人的文字或者座右铭 &lt;blockquote&gt;</h2>
+<h2 id="插入图片-img">插入图片 &lt;img&gt;</h2>
+<p>图片在 HTML 中属于区块元素，在预设情况下，也会占据网页中一整行的空间</p>
+<h2 id="列表标签ul-ol">列表标签&lt;ul&gt; &lt;ol&gt;</h2>
+<p>无序</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;ul&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;最新消息&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;关于我们&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;门市信息&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;会员专区&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+</code></pre>
+<p>有序</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">&lt;ol&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;最新消息&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;关于我们&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;门市信息&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#&quot;&gt;会员专区&lt;/a&gt;&lt;/li&gt;
+    &lt;/ol&gt;
+</code></pre>
+<h2 id="表格标签-table">表格标签 table</h2>
+<p>在HTML中使用table来定义表格。网页的表格和办公软件里面的xls一样，都是有行有列的。HTML使用tr标签定义行，使用td标签定义列。</p>
+<p>语法：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;table border=&quot;1&quot;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;单元格的内容&lt;/td&gt;
+    ……
+  &lt;/tr&gt;
+  ……
+&lt;/table&gt;
+</code></pre>
+<blockquote>
+<p>1、<code>&lt;table&gt;</code>和<code>&lt;/table&gt;</code>表示一个表格的开始和结束。一组<code>&lt;table&gt;...&lt;/table&gt;</code>表示一个表格。</p>
+<p>2、border用于设置整个表格的边框宽度，默认为0，表示不显示边框。</p>
+<p>3、<code>&lt;tr&gt;</code>和<code>&lt;/tr&gt;</code>表示表格中的一行的开始和结束。一组<code>&lt;tr&gt;...&lt;/tr&gt;</code>，一个表格可以有多行。通过计算table标签中包含多少对tr子标签即可知道一个表格有多少行。</p>
+<p>4、<code>&lt;td&gt;</code>和<code>&lt;/td&gt;</code>表示表格中的一个单元格的开始和结束。通过计算一个tr里面包含了多少对td自标签即可知道一个表格有多少列，多少的单元格了。</p>
+</blockquote>
+<p><strong>table属性</strong></p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_width.asp">width</a></td>
+<td>px、%</td>
+<td>规定表格的宽度。</td>
+</tr>
+<tr>
+<td>height</td>
+<td>px、%</td>
+<td>规定表格的高度。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_align.asp">align</a></td>
+<td>left、center、right</td>
+<td>规定表格相对周围元素的对齐方式。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_bgcolor.asp">bgcolor</a></td>
+<td>rgb(x,x,x)、#xxxxxx、colorname</td>
+<td>规定表格的背景颜色。</td>
+</tr>
+<tr>
+<td>background</td>
+<td>url</td>
+<td>规定表格的背景图片。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_border.asp">border</a></td>
+<td>px</td>
+<td>规定表格边框的宽度。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_cellpadding.asp">cellpadding</a></td>
+<td>px、%</td>
+<td>规定单元格边框与其内容之间的空白。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_cellspacing.asp">cellspacing</a></td>
+<td>px、%</td>
+<td>规定单元格之间的空隙。</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>td属性</strong></p>
+<p>表格中除了行元素以外，还有单元格，单元格的属性和行的属性类似。td和th都是单元格。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>height</td>
+<td>px、%</td>
+<td>规定单元格的高度。</td>
+</tr>
+<tr>
+<td>width</td>
+<td>px、%</td>
+<td>规定单元格的宽度。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_align.asp">align</a></td>
+<td>left、center、right</td>
+<td>规定单元格内容的对齐方式。</td>
+</tr>
+<tr>
+<td>valign</td>
+<td>top、middle、bottom</td>
+<td>规定单元格内容的垂直对齐方式。</td>
+</tr>
+<tr>
+<td><a href="http://www.w3school.com.cn/tags/att_table_bgcolor.asp">bgcolor</a></td>
+<td>rgb(x,x,x)、#xxxxxx、colorname</td>
+<td>规定单元格的背景颜色。</td>
+</tr>
+<tr>
+<td>background</td>
+<td>url</td>
+<td>规定单元格的背景图片。</td>
+</tr>
+<tr>
+<td>rowspan</td>
+<td>number</td>
+<td>规定单元格合并的行数</td>
+</tr>
+<tr>
+<td>colspan</td>
+<td>number</td>
+<td>规定单元格合并的列数</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="表单标签">表单标签</h2>
+<p>表单主要是用来收集客户端提供的相关信息，提供了用户数据录入的方式，有多选、单选、单行文本、下拉列表等输入框，便于网站管理员收集用户的数据，是Web浏览器和Web服务器之间实现信息交流和数据传递的桥梁.</p>
+<p>表单被form标签包含，内部使用不同的表单元素来呈现不同的方式来供用户输入或选择。当用户输入好数据后，就可以把表单数据提交到服务器端。</p>
+<p>一个表单元素有三个基本组成部分：</p>
+<ul>
+<li>表单标签，包含了表单处理程序所在的URL以及数据提交到服务器的方法等表单信息。</li>
+<li>表单域，包含了文本框、密码框、隐藏域、多行文本框、复选框、单选框、下拉选择框和文件上传框等表单控件。</li>
+<li>表单按钮，包括提交按钮、复位按钮和一般按钮，用于将数据传送到服务器上的CGI脚本或者取消输入，还可以用表单按钮来控制其他定义了处理脚本的处理工作。</li>
+</ul>
+<p>在HTML中创建表单用form标签。每个表单都可以包含一到多个表单域或按钮。form标签属性：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>action</td>
+<td>访问服务器地址</td>
+<td>服务器端表单处理程序的URL地址</td>
+</tr>
+<tr>
+<td>method</td>
+<td>post、get[默认值]</td>
+<td>表单数据的提交方法</td>
+</tr>
+<tr>
+<td>target</td>
+<td>参考超链接的target属性</td>
+<td>表单数据提交时URL的打开方式</td>
+</tr>
+<tr>
+<td>enctype</td>
+<td>application/x-www-form-urlencoded[默认值]    multipart/form-data [用于文件上传]                      text/plain [用于纯文本数据发送]</td>
+<td>表单提交数据时的编码方式</td>
+</tr>
+</tbody>
+</table></div>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">  &lt;h3&gt;用户注册&lt;/h3&gt;
+
+  &lt;form action=&quot;http://127.0.0.1:8800&quot; method=&quot;get&quot;&gt;
+       &lt;p&gt;&lt;label for=&quot;user&quot;&gt;姓名&lt;/label&gt;： &lt;input type=&quot;text&quot; name=&quot;user&quot; id=&quot;user&quot;&gt;&lt;/p&gt;
+       &lt;p&gt;密码： &lt;input type=&quot;password&quot; name=&quot;pwd&quot;&gt;&lt;/p&gt;
+       &lt;p&gt;爱好：
+           &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;basketball&quot;&gt;篮球
+           &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;football&quot;&gt;足球
+           &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;shuangseqiu&quot; checked&gt;双色球
+       &lt;/p&gt;
+       &lt;p&gt;性别：
+           &lt;input type=&quot;radio&quot; name=&quot;gender&quot; value=&quot;men&quot;&gt;男
+           &lt;input type=&quot;radio&quot; name=&quot;gender&quot; value=&quot;female&quot;&gt;女
+           &lt;input type=&quot;radio&quot; name=&quot;gender&quot; value=&quot;qita&quot;&gt;其他
+       &lt;/p&gt;
+      &lt;p&gt;生日：&lt;input type=&quot;date&quot; name=&quot;birth&quot;&gt;&lt;/p&gt;
+      
+      &lt;p&gt;籍贯：
+          &lt;select name=&quot;province&quot; id=&quot;&quot; multiple size=&quot;2&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;广东省&lt;/option&gt;
+              &lt;option value=&quot;&quot; selected&gt;山东省&lt;/option&gt;
+              &lt;option value=&quot;&quot;&gt;河北省&lt;/option&gt;
+          &lt;/select&gt;
+      &lt;/p&gt;
+      &lt;p&gt;
+          &lt;textarea name=&quot;&quot; id=&quot;&quot; cols=&quot;30&quot; rows=&quot;10&quot; placeholder=&quot;个人简介&quot;&gt;&lt;/textarea&gt;
+      &lt;/p&gt;
+
+      &lt;div&gt;
+          &lt;p&gt;&lt;input type=&quot;reset&quot; value=&quot;重置&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;&lt;input type=&quot;button&quot; value=&quot;普通按钮&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;&lt;button&gt;普通按钮&lt;/button&gt;&lt;/p&gt;
+          &lt;p&gt;&lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;&lt;/p&gt;
+      &lt;/div&gt;
+
+  &lt;/form&gt;
+</code></pre>
+<h2 id="多媒体标签">多媒体标签</h2>
+<p>视频标签：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">&lt;video src=&quot;路径&quot; controls  autoplay width=&quot;300px&quot;&gt;&lt;/video&gt;
+
+标签属性：
+autoplay属性控制是否网页加载自动播放　　
+
+controls 是否显示播放控件，默认不显示
+
+loop 属性用于控制循环次数，如果值为正整数，则播放指定的次数，如果是 loop 或者是 loop = -1，则无线循环播放。
+
+width 属性设置播放窗口宽度
+
+height 属性设置播放窗口高度
+
+由于版权等原因，不同的浏览器可支持播放的格式是不一样的
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;video src=&quot;https://video.pearvideo.com/mp4/adshort/20211029/cont-1744852-15789500_adpkg-ad_hd.mp4&quot; controls  autoplay width=&quot;600px&quot;&gt;&lt;/video&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>音频标签：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">&lt;audio src=&quot;路径&quot;  autoplay=&quot;autoplay&quot; controls=&quot;true&quot; loop=2&gt;&lt;/audio&gt;
+标签属性：
+autoplay属性控制是否网页加载自动播放
+controls 是否显示播放控件，默认不显示
+loop 属性用于控制循环次数，如果值为正整数，则播放指定的次数，如果是 loop 或者是 loop = -1，则无线循环播放。
+由于版权等原因，不同的浏览器可支持播放的格式是不一样的
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;audio src=&quot;https://video.pearvideo.com/mp4/adshort/20211029/cont-1744852-15789500_adpkg-ad_hd.mp4&quot; controls  autoplay width=&quot;600px&quot;&gt;&lt;/audio&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -120,8 +120,8 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="环境安装">环境安装</h1>
 <h1 id="虚拟环境安装">虚拟环境安装</h1>
+<h2 id="miniconda">miniconda</h2>
 <p><a href="https://docs.conda.io/projects/miniconda/en/latest/">安装miniconda</a></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">conda create --name py310 python=3.10
 
@@ -135,6 +135,28 @@ conda install -c conda-forge gradio
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># 生成依赖文件requirements.txt
 pip install pipreqs
 </code></pre>
+<h2 id="uv">uv</h2>
+<h1 id="导出-python-当前项目依赖清单requirementstxt">导出 Python 当前项目依赖清单requirements.txt</h1>
+<h2 id="方法一"><strong>方法一：</strong></h2>
+<p>如果每个项目有对应的虚拟虚拟环境，那么使用pycharm的终端里，在当前项目下，直接实现使用命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#pip命令生成依赖性清单
+pip freeze &gt; requirements.txt
+</code></pre>
+<h2 id="方法二"><strong>方法二：</strong></h2>
+<p>注意：如果在python项目全局环境里直接使用 pip freeze &gt; requirements.txt 会导出大量与该项目无关的依赖，包括很多个包信息，其实这里是把你当前 python 环境的所有包的相关信息导出来了。如果我们只需导出当前项目所需的依赖包，还可以采用另外一种方式，使用工具：pipreqs</p>
+<p><strong>步骤一、安装pipreqs：</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install pipreqs
+</code></pre>
+<p><strong>步骤二：进入当前项目目录下，导出依赖清单</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./
+</code></pre>
+<p>如果遇到编码错误UnicodeDecodeError，则将指定编码为utf8：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./ --encoding=utf8
+pipreqs ./ --encoding='iso-8859-1' 
+</code></pre>
+<p>(导包完成会在项目路径下生成一个requirements.txt文件)</p>
+<p>后续安装该项目的依赖时，即可直接使用：</p>
+<p>pip install -r requirements.txt</p>
 </article>
 </main>
 <script>

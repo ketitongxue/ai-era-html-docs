@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>awk 命令</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="awk-命令">awk 命令</h1>
+<p>AWK 是一种处理文本文件的语言，是一个强大的文本分析工具。</p>
+<p>之所以叫 AWK 是因为其取了三位创始人 Alfred Aho，Peter Weinberger, 和 Brian Kernighan 的 Family Name 的首字符。</p>
+<p>语法</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">awk [选项参数] 'script' var=value file(s)
+或
+awk [选项参数] -f scriptfile var=value file(s)
+</code></pre>
+<p>选项参数说明</p>
+<ul>
+<li>-F fs or --field-separator fs</li>
+</ul>
+<p>指定输入文件折分隔符，fs是一个字符串或者是一个正则表达式，如-F:。</p>
+<ul>
+<li>-v var=value or --asign var=value</li>
+</ul>
+<p>赋值一个用户定义变量。</p>
+<ul>
+<li>-f scripfile or --file scriptfile</li>
+</ul>
+<p>从脚本文件中读取awk命令。</p>
+<ul>
+<li>-mf nnn and -mr nnn</li>
+</ul>
+<p>对nnn值设置内在限制，-mf选项限制分配给nnn的最大块数目；-mr选项限制记录的最大数目。这两个功能是Bell实验室版awk的扩展功能，在标准awk中不适用。</p>
+<ul>
+<li>-W compact or --compat, -W traditional or --traditional</li>
+</ul>
+<p>在兼容模式下运行awk。所以gawk的行为和标准的awk完全一样，所有的awk扩展都被忽略。</p>
+<ul>
+<li>-W copyleft or --copyleft, -W copyright or --copyright</li>
+</ul>
+<p>打印简短的版权信息。</p>
+<ul>
+<li>-W help or --help, -W usage or --usage</li>
+</ul>
+<p>打印全部awk选项和每个选项的简短说明。</p>
+<ul>
+<li>-W lint or --lint</li>
+</ul>
+<p>打印不能向传统unix平台移植的结构的警告。</p>
+<ul>
+<li>-W lint-old or --lint-old</li>
+</ul>
+<p>打印关于不能向传统unix平台移植的结构的警告。</p>
+<ul>
+<li>-W posix</li>
+</ul>
+<p>打开兼容模式。但有以下限制，不识别：/x、函数关键字、func、换码序列以及当fs是一个空格时，将新行作为一个域分隔符；操作符**和**=不能代替^和^=；fflush无效。</p>
+<ul>
+<li>-W re-interval or --re-inerval</li>
+</ul>
+<p>允许间隔正则表达式的使用，参考(grep中的Posix字符类)，如括号表达式[[:alpha:]]。</p>
+<ul>
+<li>-W source program-text or --source program-text</li>
+</ul>
+<p>使用program-text作为源代码，可与-f命令混用。</p>
+<ul>
+<li>-W version or --version</li>
+</ul>
+<p>打印bug报告信息的版本。</p>
+<h2 id="基本用法">基本用法</h2>
+<p>log.txt文本内容如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">2 this is a test
+3 Do you like awk
+This's a test
+10 There are orange,apple,mongo
+</code></pre>
+<p>用法一：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">awk '{[pattern] action}' {filenames}   # 行匹配语句 awk '' 只能用单引号
+</code></pre>
+<p>实例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 每行按空格或TAB分割，输出文本中的1、4项
+ $ awk '{print $1,$4}' log.txt
+ ---------------------------------------------
+ 2 a
+ 3 like
+ This's
+ 10 orange,apple,mongo
+ # 格式化输出
+ $ awk '{printf &quot;%-8s %-10s\n&quot;,$1,$4}' log.txt
+ ---------------------------------------------
+ 2        a
+ 3        like
+ This's
+ 10       orange,apple,mongo
+</code></pre>
+<p>用法二：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">awk -F  #-F相当于内置变量FS, 指定分割字符
+</code></pre>
+<p>实例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 使用&quot;,&quot;分割
+ $  awk -F, '{print $1,$2}'   log.txt
+ ---------------------------------------------
+ 2 this is a test
+ 3 Do you like awk
+ This's a test
+ 10 There are orange apple
+ # 或者使用内建变量
+ $ awk 'BEGIN{FS=&quot;,&quot;} {print $1,$2}'     log.txt
+ ---------------------------------------------
+ 2 this is a test
+ 3 Do you like awk
+ This's a test
+ 10 There are orange apple
+ # 使用多个分隔符.先使用空格分割，然后对分割结果再使用&quot;,&quot;分割
+ $ awk -F '[ ,]'  '{print $1,$2,$5}'   log.txt
+ ---------------------------------------------
+ 2 this test
+ 3 Are awk
+ This's a
+ 10 There apple
+</code></pre>
+<p>用法三：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">awk -v  # 设置变量
+</code></pre>
+<p>实例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ awk -va=1 '{print $1,$1+a}' log.txt
+ ---------------------------------------------
+ 2 3
+ 3 4
+ This's 1
+ 10 11
+ $ awk -va=1 -vb=s '{print $1,$1+a,$1b}' log.txt
+ ---------------------------------------------
+ 2 3 2s
+ 3 4 3s
+ This's 1 This'ss
+ 10 11 10s
+</code></pre>
+<p>用法四：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">awk -f {awk脚本} {文件名}
+</code></pre>
+<p>实例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ awk -f cal.awk log.txt
+</code></pre>
+<h2 id="打印命令输出的第一列">打印命令输出的第一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk '{ print $1 }'
+</code></pre>
+<h2 id="打印命令输出的最后一列">打印命令输出的最后一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk '{ print $NF }'
+</code></pre>
+<h2 id="打印命令输出的第一列和最后一列">打印命令输出的第一列和最后一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk '{ print $1,  $NF }'
+</code></pre>
+<h2 id="不使用字段分隔符打印文件的第一列">不使用字段分隔符打印文件的第一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk '{print $1}' customers.txt
+</code></pre>
+<h2 id="使用分隔符打印文件的第一列">使用分隔符打印文件的第一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk -F '\t' '{print $1}' customers.txt
+</code></pre>
+<h2 id="打印文件的最后一列">打印文件的最后一列</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">awk '{print $NF}' customers.txt
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

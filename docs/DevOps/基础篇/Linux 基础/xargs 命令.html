@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xargs 命令</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="xargs-命令">xargs 命令</h1>
+<p>xargs（英文全拼： eXtended ARGuments）是给命令传递参数的一个过滤器，也是组合多个命令的一个工具。</p>
+<p>xargs 可以将管道或标准输入（stdin）数据转换成命令行参数，也能够从文件的输出中读取数据。</p>
+<p>xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行。</p>
+<p>xargs 默认的命令是 echo，这意味着通过管道传递给 xargs 的输入将会包含换行和空白，不过通过 xargs 的处理，换行和空白将被空格取代。</p>
+<p>xargs 是一个强有力的命令，它能够捕获一个命令的输出，然后传递给另外一个命令。</p>
+<p>之所以能用到这个命令，关键是由于很多命令不支持|管道来传递参数，而日常工作中有有这个必要，所以就有了 xargs 命令，例如：</p>
+<p>find /sbin -perm +700 |ls -l       #这个命令是错误的 find /sbin -perm +700 |xargs ls -l   #这样才是正确的</p>
+<p>xargs 一般是和管道一起使用。</p>
+<p><strong>命令格式：</strong></p>
+<p>somecommand |xargs -item  command</p>
+<p><strong>参数：</strong></p>
+<ul>
+<li>-a file 从文件中读入作为 stdin</li>
+<li>-e flag ，注意有的时候可能会是-E，flag必须是一个以空格分隔的标志，当xargs分析到含有flag这个标志的时候就停止。</li>
+<li>-p 当每次执行一个argument的时候询问一次用户。</li>
+<li>-n num 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。</li>
+<li>-t 表示先打印命令，然后再执行。</li>
+<li>-i 或者是-I，这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}，可以用 {} 代替。</li>
+<li>-r no-run-if-empty 当xargs的输入为空的时候则停止xargs，不用再去执行了。</li>
+<li>-s num 命令行的最大字符数，指的是 xargs 后面那个命令的最大命令行字符数。</li>
+<li>-L num 从标准输入一次读取 num 行送给 command 命令。</li>
+<li>-l 同 -L。</li>
+<li>-d delim 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符。</li>
+<li>-x exit的意思，主要是配合-s使用。。</li>
+<li>-P 修改最大的进程数，默认是1，为0时候为as many as it can ，这个例子我没有想到，应该平时都用不到的吧。</li>
+</ul>
+<h3 id="实例"><strong>实例</strong></h3>
+<p>xargs 用作替换工具，读取输入数据重新格式化后输出。</p>
+<p>定义一个测试文件，内有多行文本数据：</p>
+<p>\# cat test.txt a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>多行输入单行输出：</p>
+<p>\# cat test.txt | xargs a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>-n 选项多行输出：</p>
+<p>\# cat test.txt | xargs -n3 a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>-d 选项可以自定义一个定界符：</p>
+<p>\# echo &quot;nameXnameXnameXname&quot; | xargs -dX name name name name</p>
+<p>结合 -n 选项使用：</p>
+<p>\# echo &quot;nameXnameXnameXname&quot; | xargs -dX -n2 name name name name</p>
+<p>读取 stdin，将格式化后的参数传递给命令</p>
+<p>假设一个命令为 sk.sh 和一个保存参数的文件 arg.txt：</p>
+<p>\#!/bin/bash #sk.sh命令内容，打印出所有参数。 echo $*</p>
+<p>arg.txt文件内容：</p>
+<p>\# cat arg.txt aaa bbb ccc</p>
+<p>xargs 的一个选项 -I，使用 -I 指定一个替换字符串 {}，这个字符串在 xargs 扩展时会被替换掉，当 -I 与 xargs 结合使用，每一个参数命令都会被执行一次：</p>
+<p>\# cat arg.txt | xargs -I {} ./sk.sh -p {} -l -p aaa -l -p bbb -l -p ccc -l</p>
+<p>复制所有图片文件到 /data/images 目录下：</p>
+<p>ls *.jpg | xargs -n1 -I {} cp {} /data/images</p>
+<p>xargs 结合 find 使用</p>
+<p>用 rm 删除太多的文件时候，可能得到一个错误信息：**/bin/rm Argument list too long.** 用 xargs 去避免这个问题：</p>
+<p>find . -type f -name &quot;*.log&quot; -print0 | xargs -0 rm -f</p>
+<p>xargs -0 将 \0 作为定界符。</p>
+<p>统计一个源代码目录中所有 php 文件的行数：</p>
+<p>find . -type f -name &quot;*.php&quot; -print0 | xargs -0 wc -l</p>
+<p>查找所有的 jpg 文件，并且压缩它们：</p>
+<p>find . -type f -name &quot;*.jpg&quot; -print | xargs tar -czvf images.tar.gz</p>
+<p>xargs 其他应用</p>
+<p>假如你有一个文件包含了很多你希望下载的 URL，你能够使用 xargs下载所有链接：</p>
+<p>\# cat url-list.txt | xargs wget -c</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

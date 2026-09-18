@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>requests 请求和数据解析 实战案例</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="requests-请求和数据解析-实战案例">requests 请求和数据解析 实战案例</h1>
+<p>目标网址：https://ks.wangxiao.cn/</p>
+<p>需求：将首页中每一个一级类目下对应的所有二级类目下的每日一练中所有的试题和试题对应的选项和正确答案进行数据爬取，最后将爬取到的数据进行持久化存储。</p>
+<p>分析步骤：</p>
+<ol>
+<li>
+<p>先爬取一级类目标题和二级类目标题+详情页链接</p>
+</li>
+<li>
+<p>注意：想要爬取的是每一个二级类目下对应的【每日一练】板块下的内容，但是直接解析到的是【模拟考试】板块链接。需要将模拟考试的链接修改成每日一练的链接两个链接的区别如下：https://ks.wangxiao.cn/TestPaper/list?sign=jzs1       【模拟考试】https://ks.wangxiao.cn/practice/listEveryday?sign=jzs1【每日一练】只需要将模拟考试链接中的sign=jzs1拼接到每日一练的链接中即可。</p>
+</li>
+<li>
+<p>分析点击【开始做题】对应的链接：点击【开始做题】后需要进行登录。登录的目的是什么？为了产生对身份验证的cookie发现：试题数据是通过另一个数据包动态请求到的，而不是直接通过浏览器地址栏的url请求到的</p>
+</li>
+<li>
+<p>确定试题数据对应的数据包是哪一个？</p>
+</li>
+</ol>
+<p>在抓包工具里进行全局搜索：最后发现试题数据出现在了listQuestion数据包中</p>
+<p>在该数据包中可以提取：</p>
+<ul>
+<li>请求的url</li>
+<li>请求方式</li>
+<li>请求参数：包含了两个动态变化的请求参数sign和subsign。变化的请求参数分析后得知是和二级类目是相关的再次经过分析查证发现：这两个动态变化的请求参数出现在了点击【开始做题】对应的url中。因此就可以将该url中包含的两个参数提取作用到listQuestion数据包的请求中。</li>
+<li>请求头（cookie）</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import requests
+from lxml import etree
+import pandas as pd
+import time
+table = pd.DataFrame(columns=['一级类目','二级类目','题目','A选项','B选项','C选项','D选项','答案'])
+row_index = 0 #Excel的行号
+headers = {
+    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Cookie':'autoLogin=null; userInfo=%7B%22userName%22%3A%22pc_426029864%22%2C%22token%22%3A%22f65eaaa4-b2aa-479d-a0dd-d322fa08f533%22%2C%22headImg%22%3A%22https%3A%2F%2Fthirdwx.qlogo.cn%2Fmmopen%2Fvi_32%2Fz42pAjBPMUt45Q5O9xyvXlQASPKJhdO7bGraYFEyyX29KbR39GotHOddnQa5eN4Rib3foUdH3a8ibl842yK0uYLA%2F132%22%2C%22nickName%22%3A%22150****0535%22%2C%22sign%22%3A%22fangchan%22%2C%22isBindingMobile%22%3A%221%22%2C%22isSubPa%22%3A%220%22%2C%22userNameCookies%22%3A%22cB1eRc1MclcnoVHZWhUk%2BA%3D%3D%22%2C%22passwordCookies%22%3A%22I%2FkEnX2w1ijTM59lRNF4q05CAUTGjdkx%22%7D; token=f65eaaa4-b2aa-479d-a0dd-d322fa08f533; UserCookieName=pc_426029864; OldUsername2=cB1eRc1MclcnoVHZWhUk%2BA%3D%3D; OldUsername=cB1eRc1MclcnoVHZWhUk%2BA%3D%3D; OldPassword=I%2FkEnX2w1ijTM59lRNF4q05CAUTGjdkx; UserCookieName_=pc_426029864; OldUsername2_=cB1eRc1MclcnoVHZWhUk%2BA%3D%3D; OldUsername_=cB1eRc1MclcnoVHZWhUk%2BA%3D%3D; OldPassword_=I%2FkEnX2w1ijTM59lRNF4q05CAUTGjdkx; pc_426029864_exam=fangchan'
+}
+#首页对应的url
+main_url = 'https://ks.wangxiao.cn/'
+#对首页的url进行请求发送，获取页面源码数据
+page_text = requests.get(url=main_url,headers=headers).text
+#数据解析：一级类目标题和二级类目标题+详情页的链接
+tree = etree.HTML(page_text)
+li_list = tree.xpath('//ul[@class=&quot;first-title&quot;]/li')
+for li in li_list: #该循环是用来解析所有的一级类目标题
+    #解析出了一级类目的标题
+    c1_title = li.xpath('./p/span/text()')[0]
+    #解析二级类目标题和二级类目标题对应的链接
+    a_list = li.xpath('./div/a')
+    for a in a_list: #解析一级类目对应的所有二级类目标题+链接
+        #二级类目对应的详情页的url链接
+        c2_url = 'https://ks.wangxiao.cn'+a.xpath('./@href')[0]
+        #二级类目标题
+        c2_title = a.xpath('./text()')[0]
+        #获取c2_url链接中的sign请求参数
+        sign = c2_url.split('?')[1]
+        #动态生成【每日一练】的链接
+        c2_url = 'https://ks.wangxiao.cn/practice/listEveryday?'+sign
+        #对每日一练的链接进行请求发送，目的是为了解析出【开始做题】的链接，将其中的
+        #sign和subsign的值解析提取出来，日后作用到listQuestion中
+        c2_page_text = requests.get(url=c2_url,headers=headers).text
+        time.sleep(2)
+        #解析开始做题的链接
+        c2_tree = etree.HTML(c2_page_text)
+        #获取了所有开始做题的链接
+        start_test_list = c2_tree.xpath('//div[@class=&quot;test-panel&quot;]/div/ul/li[4]/a/@href')
+        if start_test_list:
+            #经过测试发现指定的二级类目页面下所有的开始做题链接中的sign和subsign的值都是一样
+                #因此只需要任意将其中的一个开始做题链接中的sign和subsign的值提取即可
+            start_test_url = start_test_list[0] #某一个开始做题的链接
+            ret = start_test_url.split('?')[1].split('&amp;')
+            sign = ret[1]
+            subsign = ret[2]
+            #至此，动态获取了sign和subsign的值，接下来就可以使用这两个动态的参数值作用到
+                #listQuestion数据包中提取考试的试题数据了
+            #捕获试题数据：分析后发现试题数据是存在listQuestion数据包中
+            post_url = 'https://ks.wangxiao.cn/practice/listQuestions'
+            data = {
+                &quot;practiceType&quot;: &quot;1&quot;,
+                &quot;sign&quot;: sign,
+                &quot;subsign&quot;: subsign,
+                &quot;day&quot;: &quot;20240704&quot;
+            }
+            response_ret = requests.post(url=post_url,headers=headers,json=data).json()
+            time.sleep(2)
+            #解析出所有试题信息对应的列表
+            question_list = response_ret['Data'][0]['questions']
+            for item in question_list:
+                question = item['content'] #题目
+                options_list = [] #四个选项的内容
+                right_anser_list = [] #四个选项对应的答案
+                for option in item['options']: #item['options']是四个选项
+                    option_choose = option['content']
+                    options_list.append(option_choose)
+                    anser = option['isRight']
+                    right_anser_list.append(anser)
+                #将将四个选项和ABCD结合一下，组成4个字符串
+                A = 'A.'+ str(options_list[0])
+                B = 'B.' + str(options_list[1])
+                C = 'C.' + str(options_list[2])
+                D = 'D.' + str(options_list[3])
+                #index(1)找到列表元素为1的下标是多少
+                anser_index = right_anser_list.index(1)
+                dic = {
+                    0:'A',
+                    1:'B',
+                    2:'C',
+                    3:'D'
+                }
+                #获取了正确选项
+                anser = dic[anser_index]
+                #批量向数据表格中进行行数据的插入
+                table.loc[row_index] = [c1_title,c2_title,question,A,B,C,D,anser]
+                row_index += 1
+            break
+        break
+table.to_excel('data.xlsx',index=None)
+'''
+    python语法回顾：4期
+    自动化框架selenium、Playwright：5期
+    scrapy框架&amp;异步爬虫：3，4期
+    mysql数据库：6期
+    1期python语法
+'''
+
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

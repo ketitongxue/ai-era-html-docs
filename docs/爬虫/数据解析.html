@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数据解析</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="数据解析概念">数据解析概念</h1>
+<p>将爬取到的数据中指定的数据进行单独提取。</p>
+<h1 id="数据解析通用原理">数据解析通用原理：</h1>
+<p>在一张页面中，想要解析的数据是存在于相关的html的标签中。</p>
+<p>可以先将指定的标签进行定位，然后可以将该标签中展示的数据进行提取。</p>
+<ul>
+<li>
+<p>爬虫编码流程:</p>
+<ul>
+<li>指定url</li>
+<li>发起请求</li>
+<li>获取页面源码数据</li>
+<li>数据解析</li>
+<li>持久化存储</li>
+</ul>
+</li>
+</ul>
+<h1 id="python-中可以实现数据解析的技术">python 中可以实现数据解析的技术：</h1>
+<ul>
+<li>正则表达式（复杂度高）</li>
+<li>bs4（python独有，学习成本较低）</li>
+<li>xpath（通用性最强，最重要）</li>
+</ul>
+<h2 id="bs4">bs4</h2>
+<h3 id="环境安装">环境安装</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">pip install bs4
+pip install lxml # 或者 conda install -c conda-forge lxml
+</code></pre>
+<h3 id="bs4数据解析的流程">bs4数据解析的流程</h3>
+<ul>
+<li>创建一个BeautifulSoup对象，把被解析的数据加载到该对象中。</li>
+<li>调用BeautifulSoup对象相关的属性或者方法进行标签定位和数据提取。</li>
+</ul>
+<h3 id="具体解析的操作">具体解析的操作</h3>
+<p>在当前目录下新建一个test.html文件，然后将下述内容拷贝到该文件中</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+      &lt;meta charset=&quot;UTF-8&quot; /&gt;
+      &lt;title&gt;测试bs4&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+      &lt;div&gt;
+              &lt;p&gt;百里守约&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;song&quot;&gt;
+              &lt;p&gt;李清照&lt;/p&gt;
+              &lt;p&gt;王安石&lt;/p&gt;
+              &lt;p&gt;苏轼&lt;/p&gt;
+              &lt;p&gt;柳宗元&lt;/p&gt;
+              &lt;a href=&quot;http://www.song.com/&quot; title=&quot;赵匡胤&quot; target=&quot;_self&quot;&gt;
+                      &lt;span&gt;this is span&lt;/span&gt;
+              宋朝是最强大的王朝，不是军队的强大，而是经济很强大，国民都很有钱&lt;/a&gt;
+              &lt;a href=&quot;&quot; class=&quot;du&quot;&gt;总为浮云能蔽日,长安不见使人愁&lt;/a&gt;
+              &lt;img src=&quot;http://www.baidu.com/meinv.jpg&quot; alt=&quot;&quot; /&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;tang&quot;&gt;
+              &lt;ul&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.baidu.com&quot; title=&quot;qing&quot;&gt;清明时节雨纷纷,路上行人欲断魂,借问酒家何处有,牧童遥指杏花村&lt;/a&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.163.com&quot; title=&quot;qin&quot;&gt;秦时明月汉时关,万里长征人未还,但使龙城飞将在,不教胡马度阴山&lt;/a&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.126.com&quot; alt=&quot;qi&quot;&gt;岐王宅里寻常见,崔九堂前几度闻,正是江南好风景,落花时节又逢君&lt;/a&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.sina.com&quot; class=&quot;du&quot;&gt;杜甫&lt;/a&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.dudu.com&quot; class=&quot;du&quot;&gt;杜牧&lt;/a&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;b&gt;杜小月&lt;/b&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;i&gt;度蜜月&lt;/i&gt;&lt;/li&gt;
+                      &lt;li&gt;&lt;a href=&quot;http://www.haha.com&quot; id=&quot;feng&quot;&gt;凤凰台上凤凰游,凤去台空江自流,吴宫花草埋幽径,晋代衣冠成古丘&lt;/a&gt;&lt;/li&gt;
+              &lt;/ul&gt;
+      &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>有了test.html文件后，在练习如下操作</p>
+<ol>
+<li>创建一个BeautifulSoup的工具对象，然后把即将被解析的页面源码数据加载到该对象中</li>
+</ol>
+<p>参数1：被解析的页面源码数据<br>
+参数2：固定形式的lxml(一种解析器)</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from bs4 import BeautifulSoup
+fp = open('test.html','r',encoding=&quot;UTF-8&quot;)
+soup = BeautifulSoup(fp,'lxml')
+print(soup)
+</code></pre>
+<ol>
+<li>
+<p>可以调用BeautifulSoup对象的相关函数和属性进行标签定位和数据提取常用的选择器：<code>class选择器(.class属性值)  id选择器(#id的属性值)</code></p>
+<ol>
+<li>标签定位-方式1:<code>soup.tagName</code>(只可以定位到第一次出现的该标签)</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">title_tag = soup.title
+p_tag = soup.p
+print(title_tag)
+print(p_tag)
+</code></pre>
+<ol>
+<li>标签定位-方式2（属性定位）:<code>soup.find(tagName,attrName='value')</code><br>
+注意：find只可以定位满足要求的第一个标签，如果使用<code>class</code>属性值的话，<code>find</code>参数<code>class_</code></li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">div_tag = soup.find('div',class_='song')
+print(div_tag)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-XML">&lt;div class=&quot;song&quot;&gt;
+&lt;p&gt;李清照&lt;/p&gt;
+&lt;p&gt;王安石&lt;/p&gt;
+&lt;p&gt;苏轼&lt;/p&gt;
+&lt;p&gt;柳宗元&lt;/p&gt;
+&lt;a href=&quot;http://www.song.com/&quot; target=&quot;_self&quot; title=&quot;赵匡胤&quot;&gt;
+&lt;span&gt;this is span&lt;/span&gt;
+              宋朝是最强大的王朝，不是军队的强大，而是经济很强大，国民都很有钱&lt;/a&gt;
+&lt;a class=&quot;du&quot; href=&quot;&quot;&gt;总为浮云能蔽日,长安不见使人愁&lt;/a&gt;
+&lt;img alt=&quot;&quot; src=&quot;http://www.baidu.com/meinv.jpg&quot;/&gt;
+&lt;/div&gt;
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Shell">a_tag = soup.find('a',class_='du')
+print(a_tag)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">&lt;a class=&quot;du&quot; href=&quot;&quot;&gt;总为浮云能蔽日,长安不见使人愁&lt;/a&gt;
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">a_tag = soup.find('a',id='feng')
+print(a_tag)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">&lt;a href=&quot;http://www.haha.com&quot; id=&quot;feng&quot;&gt;凤凰台上凤凰游,凤去台空江自流,吴宫花草埋幽径,晋代衣冠成古丘&lt;/a&gt;
+</code></pre>
+<ol>
+<li>标签定位-方式3（属性定位）:<code>soup.find_all(tagName,attrName='value')</code></li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tags = soup.find_all('a',class_='du')
+print(tags)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">&lt;bs4.element.ResultSet object at 0x7ffa9290af60&gt;
+</code></pre>
+<ol>
+<li>标签定位-方式4(select 选择器定位):</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tags = soup.select('#feng') #定位到id的属性值为feng对应的所有标签
+tags = soup.select('.du') #定位到class属性值为du对应的所有标签
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tags = soup.select('.tang &gt; ul &gt; li &gt; a')
+tags = soup.select('.tang a')
+print(tags)
+</code></pre>
+</li>
+</ol>
+<p>补充：定位到标签内部数据的提取</p>
+<p>方式1：提取标签内的文本数据<br>
+tag.string:只可以将标签直系的文本内容取出<br>
+tag.text:可以将标签内部所有的文本内容取出</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Shell">tag = soup.find('a',id='feng')
+content = tag.string
+
+div_tag = soup.find('div',class_='tang')
+content = div_tag.text
+</code></pre>
+<p>方式2：提取标签的属性值 tag['attrName']</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">img_tag = soup.find('img')
+img_src = img_tag['src']
+print(img_src)
+</code></pre>
+<h3 id="案例应用碧血剑文本爬取">案例应用：碧血剑文本爬取</h3>
+<ul>
+<li>url：https://bixuejian.5000yan.com/</li>
+<li>需求：将每一个章节的标题和内容进行爬取然后存储到文件中</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import requests
+from bs4 import BeautifulSoup
+import os
+
+headers = {
+    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
+
+url = 'https://bixuejian.5000yan.com/'
+response = requests.get(url = url, headers = headers)
+response.encoding = 'utf-8'
+page_text = response.text
+# print(page_text)
+
+# with open('bixuejian.html','w',encoding=&quot;UTF-8&quot;) as fp:
+#     fp.write(page_text)
+
+file_path = &quot;D:/demo/bixuejian/&quot;
+if not os.path.exists(file_path):
+    os.mkdir(file_path)
+
+soup = BeautifulSoup(page_text,'lxml')
+a_list = soup.select('.p-2 a')
+
+for a in a_list:
+    title = a.string
+    detail_url = a['href']
+    detail_response = requests.get(url = detail_url, headers=headers)
+    detail_response.encoding = 'utf-8'
+    detail_response_text = detail_response.text
+    
+    detail_soup = BeautifulSoup(detail_response_text, 'lxml')
+    div_tag = detail_soup.find('div',class_='grap')
+    content = div_tag.text
+    
+    file_name = file_path + title + '.txt'
+
+    with open(file_name, 'w', encoding='utf-8') as fp:
+        fp.write(title + '\n' + content)
+    print(f&quot;{title} 保存成功！&quot;)
+</code></pre>
+<h2 id="xpath重点">Xpath（重点）</h2>
+<h3 id="环境安装-1">环境安装</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install lxml
+</code></pre>
+<h3 id="xpath解析的编码流程">xpath解析的编码流程</h3>
+<ul>
+<li>创建一个 etree 类型的对象，把被解析的数据加载到该对象中。</li>
+<li>调用 etree 对象中 xpath 函数结合不同形式的 xpath 表达式进行标签定位和数据的提取。</li>
+</ul>
+<h3 id="具体解析的操作-1">具体解析的操作</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from lxml import etree
+
+# 1.创建一个etree的工具对象，然后把即将被解析的页面源码数据加载到该对象中
+tree = etree.parse('test.html')
+
+# 2.调用etree对象的xpath函数然后结合着不用形式的xpath表达式进行标签定位和数据提取
+# xpath函数返回的是列表，列表中存储的是满足定位要求的所有标签
+# /html/head/title 定位到 html 下面的 head 下面的 title 标签
+title_tag = tree.xpath('/html/head/title') # 输出 [&lt;Element title at 0x7f7cc77f7c00&gt;]
+# title在页面源码中定位到所有的title标签
+title_tag = tree.xpath('//title') # 输出 [&lt;Element title at 0x7f7cc77f7c00&gt;]
+
+# 属性定位
+# 定位到所有的div标签
+div_tags = tree.xpath('//div') # 输出 [&lt;Element div at 0x7f7cc77f7c40&gt;, &lt;Element div at 0x7f7cc77f7c80&gt;, &lt;Element div at 0x7f7cc77f7940&gt;]
+
+# 定位到class属性值为song的div标签 //tagName[@attrName='value']
+div_tag = tree.xpath('//div[@class=&quot;song&quot;]')
+# 索引定位://tag[index]
+# 注意：索引是从1开始的
+div_tag = tree.xpath('//div[1]')
+
+# 层级定位
+# /表示一个层级  //表示多个层级
+a_list = tree.xpath('//div[@class=&quot;tang&quot;]/ul/li/a')
+a_list = tree.xpath('//div[@class=&quot;tang&quot;]//a')
+
+# 数据提取
+# 1.提取标签中的文本内容:/text()取直系文本  //text()取所有文本
+a_content = tree.xpath('//a[@id=&quot;feng&quot;]/text()')[0]
+div_content = tree.xpath('//div[@class=&quot;song&quot;]//text()')
+# 2.提取标签的属性值：//tag/@attrName
+img_src = tree.xpath('//img/@src')[0]
+print(img_src)
+</code></pre>
+<h3 id="案例应用图片数据爬取">案例应用：图片数据爬取</h3>
+<p>http://pic.netbian.com/4kmeinv/</p>
+<p>将爬取到的图片存储到指定的文件夹中</p>
+<p>爬取第一页</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from lxml import etree
+import requests
+import os
+#新建一个文件夹
+dirName = 'girls'
+if not os.path.exists(dirName):#如果文件夹不存在，则新建，否则不新建
+  os.mkdir(dirName)
+
+headers = {
+  'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+}
+
+url = 'https://pic.netbian.com/4kmeinv/index.html'
+response = requests.get(url=url,headers=headers)
+response.encoding = 'gbk'
+page_text = response.text
+
+#数据解析：图片地址+图片名称
+tree = etree.HTML(page_text)#HTML()专门用来解析网络请求到的页面源码数据
+#该列表中存储的是每一个li标签
+li_list = tree.xpath('//div[@class=&quot;slist&quot;]/ul/li')
+for li in li_list:
+  #局部解析：将li标签中指定的内容解析出来
+  img_title = li.xpath('./a/b/text()')[0]+'.jpg'# 左侧./表示xpath的调用者对应的标签
+  img_src = 'https://pic.netbian.com'+li.xpath('./a/img/@src')[0]
+
+  #对图片发起请求，存储图片数据
+  img_data = requests.get(url=img_src,headers=headers).content
+  # girls/123.jpg
+  img_path = dirName + '/' + img_title
+  with open(img_path,'wb') as fp:
+      fp.write(img_data)
+  print(img_title,'下载保存成功！')
+</code></pre>
+<p>爬取多页</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from lxml import etree
+import requests
+import os
+#新建一个文件夹
+dirName = 'girls'
+if not os.path.exists(dirName):#如果文件夹不存在，则新建，否则不新建
+  os.mkdir(dirName)
+
+headers = {
+  'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+}
+#创建一个通用的url:除了第一页其他页码的通用url
+url = 'https://pic.netbian.com/4kmeinv/index_%d.html'
+for page in range(1,6):
+  if page == 1:
+      new_url = 'https://pic.netbian.com/4kmeinv/index.html'
+  else:
+      new_url = format(url%page)
+  print('----------正在请求下载第%d页的图片数据----------'%page)
+  response = requests.get(url=new_url,headers=headers)
+  response.encoding =2 'gbk'
+  page_text = response.text
+
+  #数据解析：图片地址+图片名称
+  tree = etree.HTML(page_text)#HTML()专门用来解析网络请求到的页面源码数据
+  #该列表中存储的是每一个li标签
+  li_list = tree.xpath('//div[@class=&quot;slist&quot;]/ul/li')
+  for li in li_list:
+      #局部解析：将li标签中指定的内容解析出来
+      img_title = li.xpath('./a/b/text()')[0]+'.jpg'# 左侧./表示xpath的调用者对应的标签
+      img_src = 'https://pic.netbian.com'+li.xpath('./a/img/@src')[0]
+
+      #对图片发起请求，存储图片数据
+      img_data = requests.get(url=img_src,headers=headers).content
+      # girls/123.jpg
+      img_path = dirName + '/' + img_title
+      with open(img_path,'wb') as fp:
+          fp.write(img_data)
+      print(img_title,'下载保存成功！')
+</code></pre>
+<h2 id="pandas数据表格重点">pandas数据表格（重点）</h2>
+<h3 id="环境安装-2">环境安装</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install openpyxl
+pip install pandas
+</code></pre>
+<h3 id="基础操作">基础操作</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import pandas as pd
+#pandas会帮我们创建一个数据表格，可以对数据表格进行相关操作，最后将该数据表格同步到excel
+
+#1.手动的创建一个pandas的数据表格
+table = pd.DataFrame(columns=['name','salary','job_title'])
+#2.给数据表格插入数据
+table.loc[0] = ['Jay',40000,'singer']
+table.loc[1] = ['Tom',10000,'sale']
+print(table)
+#3.将数据表格转换成excel
+table.to_excel('test.xlsx',sheet_name='haha')
+</code></pre>
+<p>爬取数据存储到excel</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from lxml import etree
+import requests
+import pandas as pd
+table = pd.DataFrame(columns=['img_title','img_src'])
+
+headers = {
+    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+}
+
+url = 'https://pic.netbian.com/4kmeinv/index.html'
+response = requests.get(url=url,headers=headers)
+response.encoding = 'gbk'
+page_text = response.text
+
+#数据解析：图片地址+图片名称
+tree = etree.HTML(page_text)#HTML()专门用来解析网络请求到的页面源码数据
+#该列表中存储的是每一个li标签
+li_list = tree.xpath('//div[@class=&quot;slist&quot;]/ul/li')
+index = 0
+for li in li_list:
+    #局部解析：将li标签中指定的内容解析出来
+    img_title = li.xpath('./a/b/text()')[0]+'.jpg'# 左侧./表示xpath的调用者对应的标签
+    img_src = 'https://pic.netbian.com'+li.xpath('./a/img/@src')[0]
+
+    table.loc[index] = [img_title,img_src]
+    index += 1
+
+    #对图片发起请求，存储图片数据
+    img_data = requests.get(url=img_src,headers=headers).content
+    # girls/123.jpg
+    img_path = 'girls' + '/' + img_title
+    with open(img_path,'wb') as fp:
+        fp.write(img_data)
+    print(img_title,'下载保存成功！')
+
+table.to_excel('gilr.xlsx')
+</code></pre>
+<h3 id="案例">案例：</h3>
+<p>简历模版下载：https://sc.chinaz.com/jianli/free.html</p>
+<ul>
+<li>下载当前页所有的建立模板</li>
+<li>简历名称+简历的下载链接</li>
+<li>根据简历的下载链接 下载简历文件</li>
+<li>根据下载地址下载的压缩包，压缩包是二进制的数据</li>
+</ul>
+<p>图片下载：url：https://sc.chinaz.com/tupian/meinvtupian.html</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from lxml import etree
+import requests
+
+headers = {
+    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+}
+url = 'https://sc.chinaz.com/jianli/free.html'
+response = requests.get(url=url,headers=headers)
+response.encoding = 'utf-8'
+page_text = response.text
+#数据解析:简历名称+详情页的url
+tree = etree.HTML(page_text)
+div_list = tree.xpath('//*[@id=&quot;container&quot;]/div')
+for div in div_list:
+    title = div.xpath('./p/a/text()')[0]+'.rar'
+    detail_url = 'https:'+div.xpath('./p/a/@href')[0]
+    # print(title,detail_url)
+    #对详情页的url发起请求
+    detail_page_text = requests.get(url=detail_url,headers=headers).text
+    #数据解析：下载地址
+    tree = etree.HTML(detail_page_text)
+    download_url = tree.xpath('//*[@id=&quot;down&quot;]/div[2]/ul/li[1]/a/@href')[0]
+    #在下载请求建立模板
+    data = requests.get(url=download_url,headers=headers).content
+    with open(title,'wb') as fp:
+        fp.write(data)
+    print(title,'保存下载成功！')
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

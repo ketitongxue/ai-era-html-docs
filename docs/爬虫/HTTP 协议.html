@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP 协议</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="http-协议简介">Http 协议简介</h1>
+<p>HTTP协议是Hyper Text Transfer Protocol（超文本传输协议）的缩写,是用于服务器与客户端之间传输超文本的传送协议。</p>
+<p>超文本：超文本就是指“含有指向其他资源链接”内容的文本。大概就是，不仅仅是文字，还有多媒体：视频、图片、动画等。</p>
+<p>协议：HTTP协议就是服务器（Server）和客户端（Client）之间进行数据交互（相互传输数据）的一种形式。</p>
+<p><strong>http协议包含由浏览器发送数据到服务器需要遵循的【请求协议】与服务器发送数据到浏览器需要遵循的【响应协议】。</strong></p>
+<h1 id="http-请求协议与响应协议">Http 请求协议与响应协议</h1>
+<p>用于HTTP协议交互的信息被称为HTTP报文。请求端(客户端)的HTTP报文叫做请求报文,响应端(服务器端)的叫做响应报文。HTTP报文本身是由多行数据构成的字文本。</p>
+<h2 id="请求协议重要">请求协议（重要）</h2>
+<p><img src="../../assets/md-images/XU6xbGfwlobkGAxgNVGcZkHRn6d.png" alt="图片展示了HTTP请求协议的示例。画面中以数字序号标识了各部分内容，①为请求方法（POST），②是请求URL（/chapter17/user.html ），③为HTTP协议及版本（HTTP/1.1）。④部分是请求头，包含Accept、Referer等多种说明客户端信息的字段。⑤部分是报文体，存储了传输给服务器的数据，如name=tom&amp;password=1234&amp;realName=tomson 。该图片与上下文紧密相关，直观呈现了上文提及的请求头和报文体的具体内容及格式。"></p>
+<p>请求头/报文头：</p>
+<p>请求头中存储的是该请求的一些主要说明（自我介绍）。服务器据此获取客户端的信息。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">accept:浏览器通过这个头告诉服务器，它所支持的数据类型
+Accept-Charset: 浏览器通过这个头告诉服务器，它支持哪种字符集
+Accept-Encoding：浏览器通过这个头告诉服务器，支持的压缩格式
+Accept-Language：浏览器通过这个头告诉服务器，它的语言环境
+Host：浏览器通过这个头告诉服务器，想访问哪台主机
+If-Modified-Since: 浏览器通过这个头告诉服务器，缓存数据的时间
+Referer：浏览器通过这个头告诉服务器，客户机是哪个页面来的 防盗链
+Connection：浏览器通过这个头告诉服务器，请求完后是断开链接还是何持链接
+X-Requested-With: XMLHttpRequest 代表通过ajax方式进行访问
+User-Agent：请求载体的身份标识
+</code></pre>
+<p>报文体/请求体/请求参数：</p>
+<p>常被叫做请求体/请求参数，请求体中存储的是将要传输/发送给服务器的数据信息。</p>
+<p>请求方式: get与post请求</p>
+<ul>
+<li>GET提交的数据会放在URL之后，以?分割URL和传输数据，参数之间以&amp;相连，如EditBook?name=test1&amp;id=123456.</li>
+<li>POST方法是把提交的数据放在HTTP包的请求体中.</li>
+<li>GET提交的数据大小有限制（因为浏览器对URL的长度有限制），而POST方法提交的数据没有大小限制，且携带的请求数据不可以明文方式连接在url中。</li>
+</ul>
+<h2 id="响应协议了解">响应协议（了解）</h2>
+<p><img src="../../assets/md-images/DHXEbfLLToab4pxDC2Ec6fj6nDc.png" alt="图片展示了HTTP响应报文"></p>
+<p>响应头：</p>
+<p>响应头中存储的是该响应的一些主要说明（自我介绍）。客户端据此获取服务器的相关信息。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">Location: 服务器通过这个头，来告诉浏览器跳到哪里
+Server：服务器通过这个头，告诉浏览器服务器的型号
+Content-Encoding：服务器通过这个头，告诉浏览器，数据的压缩格式
+Content-Length: 服务器通过这个头，告诉浏览器回送数据的长度
+Content-Language: 服务器通过这个头，告诉浏览器语言环境
+Content-Type：服务器通过这个头，告诉浏览器回送数据的类型
+Refresh：服务器通过这个头，告诉浏览器定时刷新
+Content-Disposition: 服务器通过这个头，告诉浏览器以下载方式打数据
+Transfer-Encoding：服务器通过这个头，告诉浏览器数据是以分块方式回送的
+Expires: -1 控制浏览器不要缓存
+Cache-Control: no-cache
+Pragma: no-cache
+</code></pre>
+<p>响应体：</p>
+<p>根据客户端指定的请求信息，发送给客户端的指定数据。</p>
+<p>响应状态码：</p>
+<p>状态码指的是是当客户端向服务器端发送请求时, 返回的请求结果。借助状态码,用户可以知道服务器端是正常受理了请求,还是出现了什么问题错误 。</p>
+<p><img src="../../assets/md-images/BaJ4b8mhEos8x5xwYYrc4Kf5ndU.png" alt="图片是一张表格，展示了HTTP响应状态码的分类及原因。表格分为类别、原因短语两列，类别包括1XX、2XX、3XX、4XX、5XX，分别对应Informational、Success、Redirection、Client Error、Server Error；原因短语对应接收的请求正在处理、请求正常处理完毕、需要进行附加操作以完成请求、服务器无法处理请求、服务器处理请求出错。该表与上下文介绍的HTTP响应状态码内容相关，直观呈现了状态码分类及原因。"></p>
+<h1 id="http-协议特性">Http 协议特性</h1>
+<h2 id="基于请求响应模式">基于请求－响应模式</h2>
+<p>HTTP协议规定,请求从客户端发出,最后服务器端响应该请求并返回。换句话说,肯定是先从客户端开始建立通信的,服务器端在没有接收到请求之前不会发送响应</p>
+<p><img src="../../assets/md-images/XF9CbG04fo5gcjxgRHfcdMCdnzd.png" alt="图片展示了HTTP协议基于请求-响应模式的通信过程。左侧为客户端，右侧为服务器，中间有蓝色箭头表示信息流动方向。客户端发出“我发过来了哟！”的请求，服务器回应“好咧”，并有“发送请求”“响应回复”的文字标注。该图与上下文紧密相关，直观呈现了HTTP协议中请求从客户端发出，服务器端响应该请求并返回的特性。"></p>
+<h2 id="无状态重要">无状态(重要)</h2>
+<p>HTTP协议自身不对请求和响应之间的通信状态进行保存。每当有新的请求发送时,就会有对应的新响应产生。协议本身并不保留之前一切的请求或响应的相关信息。</p>
+<p>状态可以理解为客户端和服务器在某次“会话”中产生的数据，那无状态的就以为这些数据不会被保留，也就是说客户端和服务器之间的这次通信, 和下次通信之间没有直接的联系。如果会话中产生的数据是我们需要保存的，也就是说要“保持状态”。</p>
+<p>何为会话？</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>    会话是浏览器和服务器之间的多次请求和响应，为了实现某个功能，浏览器和服务器之间可能会产生多次的请求和响应，从浏览器访问服务器开始，到访问服务器结束，浏览器关闭为止，这期间产生的多次请求和响应加在一起就称为浏览器和服务器的一次会话。
+
+    说人话，会话可以理解为，我们打开了一个浏览器访问了目标的网站，浏览器就默认生成了一个会话，只要我们不关闭这个标签页，这个会话就一直存在，期间我们的站点产生的接口调用和服务器响应都属于这次会话的一部分。
+</code></pre>
+<p>可是,随着Web的不断发展,因无状态而导致业务处理变得棘手的情况增多了。 比如,用户登录到一家购物网站,即使他再次请求跳转到该站的其他页面后,也需要能继续保持登录状态。网站为了能够掌握是谁送出的请求,需要保存用户的状态。</p>
+<p><img src="../../assets/md-images/Glg1bcrmRoYabaxKQM8cUCvQn9d.png" alt="图片展示了HTTP协议自身不具备保存之前发送过的请求或响应的功能。画面中有客户端和服务器，客户端问“你之前发送了什么给我来着？”，服务器也问“我想想，之前发送了什么给你来着？”。这与上下文提到的HTTP/1.1是无状态协议，因无状态导致业务处理棘手，为实现保持状态功能引入Cookie技术相呼应，直观呈现了HTTP无状态的特性。"></p>
+<p>HTTP/1.1虽然是无状态协议,但为了实现期望的保持状态功能, 于是引入了Cookie技术。有了Cookie再用HTTP协议通信,就可以管理状态了。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

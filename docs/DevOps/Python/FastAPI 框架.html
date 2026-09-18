@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FastAPI 框架</title>
+<title>FastAPI</title>
 <style>
 :root {
   color-scheme: light;
@@ -120,8 +120,16 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="fastapi-框架">FastAPI 框架</h1>
-<p><code>fastapi</code>一个用于构建 API 的现代、快速（高性能）的web框架。</p>
+<h1 id="fastapi">FastAPI</h1>
+<h2 id="fastapi-简介">FastAPI 简介</h2>
+<p>FastAPI 是一个适用于构建微服务的现代高性能 Web 开发框架。它是目前运行速度最快的 Python Web 开发框架之一，具有编程高效、简单易用、稳定可靠等特点。</p>
+<p>在本世纪前面 20 多年，Python Web 开发框架已经经历了三代。</p>
+<p>第一代是以 Django 为代表的开发框架。Django 是为 20 年前那种瘦客户端 Web 应用设计的，属于重量级 Web 开发框架，学习门槛高而且性能较差。</p>
+<p>第二代是以 Flask 为代表的开发框架。Flask 主要是为开发微服务设计的，而不是瘦客户端 Web 应用。Flask 比 Django 轻得多，学习门槛低，性能比 Django 好很多。第二代开发框架还有性能比 Flask 更好的 Tornado。豆瓣早期使用的 Web 开发框架就是 Tornado。</p>
+<p>第三代是以 FastAPI 为代表的开发框架。这类开发框架同样也是为开发微服务设计的。FastAPI 更加充分利用了 Python 3.6 以上版本的新功能，特别是异步 I/O 相关的功能，进一步改善了性能，提高了吞吐量，学习门槛也更低。</p>
+<p>ADH 前端遵循 BFF 架构模式（Backend for Frontend）。而支持 BFF 架构前端的理想选择，就是微服务，主要是基于 RESTful API 的微服务。而使用 Python 开发微服务的首选开发框架就是 FastAPI。</p>
+<p>FastAPI 目前在 Python 社区已经取代了 Flask、Tornado 这些较老的 Web 开发框架，更别提 Django 了。</p>
+<p>此外，在 AI 和 LLM 应用开发社区，Streamlit 和 Gradio 也非常流行。Streamlit 和 Gradio 并不是与 FastAPI 同等级别的 Web 开发框架。它们主要是用于快速开发面向 Web 的演示应用，但是在生产环境就没法用了，因为它们的性能都很差。</p>
 <p><code>fastapi</code>是建立在 Starlette 和 Pydantic 基础上的，Pydantic是一个基于Python类型提示来定义数据验证、序列化和文档的库。Starlette是一种轻量级的ASGI框架/工具包，是构建高性能Asyncio服务的理性选择。</p>
 <blockquote>
 <ul>
@@ -140,12 +148,14 @@ th { background: #eaf0f7; }
 <p><a href="https://pydantic-docs.helpmanual.io/">Pydantic</a> 负责数据部分(类型提示)</p>
 </blockquote>
 <p>FastApi是站在前人肩膀上，集成了多种框架的优点的新秀框架。它出现的比较晚，2018年底才发布在github上。广泛应用于当前各种前后端分离的项目开发，测试运维自动化以及微服务的场景中。</p>
-<h2 id="quick-start">quick start</h2>
+<h2 id="fastapi-学习文档">FastAPI 学习文档</h2>
+<p>FastAPI 用户指南：<a href="https://fastapi.tiangolo.com/zh/tutorial/"> </a><a href="https://fastapi.tiangolo.com/zh/tutorial/">https://fastapi.tiangolo.com/zh/tutorial/</a></p>
+<h2 id="quick-start">Quick start</h2>
 <h3 id="简单案例">简单案例</h3>
 <p><strong>安装</strong></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install fastapi
 </code></pre>
-<p>你还会需要一个 ASGI 服务器，生产环境可以使用 <a href="https://www.uvicorn.org/">Uvicorn</a></p>
+<p>还会需要一个 ASGI 服务器，生产环境可以使用 <a href="https://www.uvicorn.org/">Uvicorn</a></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install uvicorn
 </code></pre>
 <p><strong>代码</strong></p>
@@ -181,9 +191,8 @@ INFO:     Application startup complete.
 <p>（5）定义返回值</p>
 <p>（6）运行开发服务器（如 uvicorn main:app --reload）</p>
 </blockquote>
-<p>此外，fastapi有着**非常棒的交互式 API 文档**，这一点很吸引人。</p>
-<p>跳转到 <a href="https://link.zhihu.com/?target=http%3A//127.0.0.1%3A8000/docs">http://127.0.0.1:8000/docs</a>。你将会看到自动生成的交互式 API 文档。</p>
-<p><img src="../../../assets/md-images/NcATb7YFKoYyAqxtOLWcYLSlnPf.png" alt=""></p>
+<p>此外，fastapi 有着非常棒的交互式 API 文档，跳转到 <a href="https://link.zhihu.com/?target=http%3A//127.0.0.1%3A8000/docs">http://127.0.0.1:8000/docs</a>。你将会看到自动生成的交互式 API 文档。</p>
+<p><img src="../../../assets/md-images/JZSHbiNgroegVbx12ZwceMgnnrc.png" alt="图片展示的是FastAPI自动生成的交互式API文档界面。顶部显示“FastAPI 0.6.0”及“OpenAPI”标识。文档中“default”部分，列出GET请求操作，路径为“/ Root”，无参数，可点击“Try it out”尝试。下方“Responses”区域，200状态码对应成功响应，媒体类型为“application/json”，下方有“Example Value”示例，展示“string”数据类型。该图与文档中介绍FastAPI自动生成交互式API文档的内容相关，直观呈现了文档样式及部分功能。"></p>
 <h2 id="路径操作">路径操作</h2>
 <h3 id="路径操作装饰器">路径操作装饰器</h3>
 <p>fastapi支持各种请求方式：</p>
@@ -217,7 +226,7 @@ def put_test():
 def delete_test():
     return {&quot;method&quot;: &quot;delete方法&quot;}
 </code></pre>
-<p><img src="../../../assets/md-images/T4Qzb6pBDokBTwx7MxlcPxA0nUb.png" alt=""></p>
+<p><img src="../../../assets/md-images/ZbapbgxwroLv8cxyGikc0j09n0b.png" alt="图片展示了FastAPI自动生成的交互式API文档界面。顶部显示“FastAPI 0.1.0 OAS3”及“/openapi.json”链接。下方“default”部分列出多种请求方式及对应操作，如蓝色框的GET /get Get Test，绿色框的POST /post Post Test，橙色框的PUT /put Put Test，红色框的DELETE /delete Delete Test，每个操作右侧均有下拉箭头。该图与文档中介绍FastAPI支持各种请求方式及自动生成交互式API文档的内容相关，直观呈现了文档样式。"></p>
 <p>路径操作装饰器参数：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.post(
     &quot;/items/{item_id}&quot;,
@@ -231,7 +240,7 @@ def delete_test():
 )
 </code></pre>
 <h3 id="include_router">include_router</h3>
-<p>将不同字应用的路由做分发和解耦</p>
+<p>将不同子应用的路由做分发和解耦</p>
 <p>main.py</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import Union
 
@@ -265,7 +274,7 @@ def shop_food():
 
 
 @app01.get(&quot;/shop/bed&quot;)
-def shop_food():
+def shop_bed():
     return {&quot;shop&quot;: &quot;bed&quot;}
 </code></pre>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># app02.py
@@ -283,7 +292,7 @@ def user_login():
 def user_reg():
     return {&quot;user&quot;: &quot;reg&quot;}
 </code></pre>
-<p><img src="../../../assets/md-images/U5P6bNnGjoBcHUxnxJTcwZ14nqe.png" alt=""></p>
+<p><img src="../../../assets/md-images/HIq1bU44SojPp9x6aSkcuCfYnob.png" alt="图片展示了FastAPI自动生成的交互式API文档。文档分为两节，第一节为“第一章：商城接口”，包含GET请求接口，如和，均指向Shop Food。第二节为“第二章：用户中心接口”，有POST请求接口，如和，分别指向Shop Food和Shop Food。该图片与文档中介绍FastAPI支持各种请求方式及路径操作装饰器参数的内容相关，直观呈现了API文档中接口信息。"></p>
 <h2 id="请求与响应">请求与响应</h2>
 <h3 id="路径参数">路径参数</h3>
 <h4 id="基本用法">基本用法</h4>
@@ -306,7 +315,7 @@ def get_user(user_id: int):
 <p>这将为你的函数提供编辑器支持，包括错误检查、代码补全等等。</p>
 </blockquote>
 <h4 id="注意顺序">注意顺序</h4>
-<p>在创建*路径操作*时，你会发现有些情况下路径是固定的。</p>
+<p>在创建路径操作时，你会发现有些情况下路径是固定的。</p>
 <p>比如 <code>/users/me</code>，我们假设它用来获取关于当前用户的数据.</p>
 <p>然后，你还可以使用路径 <code>/user/{username}</code> 来通过用户名 获取关于特定用户的数据。</p>
 <p>由于路径操作是按顺序依次运行的，你需要确保路径 <code>/user/me</code> 声明在路径 <code>/user/{username}</code>之前：</p>
@@ -328,7 +337,7 @@ async def search_jobs(kd: str, city: Union[str, None] = None, xl: Union[str, Non
         return {&quot;kd&quot;: kd, &quot;city&quot;: city, &quot;xl&quot;: xl}
     return {&quot;kd&quot;: kd}
 </code></pre>
-<p><img src="../../../assets/md-images/NpGkb0gc0oi0wvxhBKAcuO4XnBk.png" alt=""></p>
+<p><img src="../../../assets/md-images/NqBRbQyqpo2S1yxHcRZc9tEgnwc.png" alt="图片展示的是FastAPI中使用Swagger UI进行API测试的界面。上方有GET、/jobs/{id}、Read Item等信息，下方是参数设置区域，包含id、extra、city、xl等参数，其中id为必填项，extra、city、xl为可选项，有默认值。下方有Execute和Clear按钮，下方还显示了Curl命令、Request URL以及Response body等信息，Response body部分展示了返回的JSON数据。该图与上下文介绍的FastAPI请求与响应、查询参数等内容相关，直观呈现了API测试操作。"></p>
 <p>在这个例子中，函数参数 <code>city</code> 和 <code>xl</code> 是可选的，并且默认值为 <code>None</code>。</p>
 <p>自python3.5开始，PEP484为python引入了类型注解(type hints)，typing的主要作用有：</p>
 <blockquote>
@@ -425,7 +434,7 @@ def regin(username: str = Form(..., max_length=16, min_length=8, regex='[a-zA-Z]
     print(f&quot;username:{username},password:{password}&quot;)
     return {&quot;username&quot;: username}
 </code></pre>
-<p><img src="../../../assets/md-images/A0Y3bEcDIo6c5vxNfupcOOBNn1g.png" alt=""></p>
+<p><img src="../../../assets/md-images/JstEb2j1koKrf9xdz5Ic7bIVn6c.png" alt="图片展示了FastAPI中使用Form组件接收表单数据的示例。上方是请求体数据输入框，分别有username和password输入框，其中username输入框内显示“yuanhaohaoxuan”，password输入框内显示“12345678”。下方是curl命令示例，用于发送POST请求，请求URL为“http://127.0.0.1:8000/login”，包含“-H”“-d”等参数，与上方表单数据对应。该图片与上下文介绍的FastAPI接收表单数据内容相契合，直观呈现了操作过程。"></p>
 <h3 id="文件上传">文件上传</h3>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI, File, UploadFile
 from typing import List
@@ -531,7 +540,7 @@ class UserOut(BaseModel):
 async def create_user(user: UserIn):
     return user
 </code></pre>
-<p><img src="../../../assets/md-images/HS6NbVbNooVUcuxlGFycrw8Jnrc.png" alt=""></p>
+<p><img src="../../../assets/md-images/JsNUble3soX6JHxgxqycp6AXn9g.png" alt="图片展示的是Postman中发送POST请求的界面。请求地址为http://127.0.0.1:8080/user/，方法为POST。在Body标签下，选择JSON格式，输入JSON数据，包含“username”“password”“email”“full_name”四个字段，其值分别为“yuan”“123”“123@qq.com”“yuan hao”。下方Response区域显示了响应结果，包含“username”“email”“full_name”三个字段，其值与输入数据一致。该图片与文档中注册功能案例相关，用于演示如何通过Postman发送注册请求。"></p>
 <h4 id="response_model_exclude_unset">response_model_exclude_unset</h4>
 <p>通过上面的例子，我们学到了如何用response_model控制响应体结构，但是如果它们实际上没有存储，则可能要从结果中忽略它们。例如，如果model在NoSQL数据库中具有很多可选属性，但是不想发送很长的JSON响应，其中包含默认值。</p>
 <p>案例：</p>
@@ -865,7 +874,7 @@ Success writing aerich config to pyproject.toml
 <p>迁移文件名的格式为 {version_num}*{datetime}*{name|update}.json。</p>
 </blockquote>
 <p>注意，此时sql并没有执行，数据库中admin表中没有xxx字段</p>
-<p><img src="../../../assets/md-images/D4NlbrSbYoBxB7xfqGxczvHInef.png" alt=""></p>
+<p><img src="../../../assets/md-images/Aab3b2mkmo0NzOx1EPEcfDranxh.png" alt="图片展示的是在MySQL数据库中查询admin表结构的结果。执行“desc admin;”命令后，显示了id、ano、user、pwd这四个字段的信息，包括字段类型（如id为int等）、是否允许空值（如id为NO等）、键类型（如id为PRI等）、默认值（如id为NULL等）以及额外信息（如id为auto_increment等）。该图片与文档中“查看历史迁移记录”部分相关，用于说明在执行迁移操作后，可通过此命令查看数据库中admin表的字段情况。"></p>
 <h4 id="重新执行迁移写入数据库">重新执行迁移，写入数据库</h4>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">aerich upgrade
 </code></pre>
@@ -879,7 +888,7 @@ Success writing aerich config to pyproject.toml
 <h3 id="中间件">中间件</h3>
 <p>可以向 <strong>FastAPI</strong> 应用添加中间件。</p>
 <p>&quot;中间件&quot;是一个函数,它在每个请求被特定的路径操作处理之前,以及在每个响应之后工作.</p>
-<p><img src="../../../assets/md-images/BJgjbTPG3oqIeyxB8HZckkC1nYg.png" alt=""></p>
+<p><img src="../../../assets/md-images/VSLDbQnEboMq7ox08l0cYk5Bn8c.png" alt="图片展示了FastAPI中间件的工作流程。左侧为客户端，右侧是逻辑函数，中间有三个红色的中间件。箭头从客户端指向第一个中间件，依次经过三个中间件，最后指向逻辑函数。每个中间件之间也有箭头连接，表示数据流转。该图与文档中介绍中间件在请求被路径操作处理前及响应后工作等内容相呼应，直观呈现了中间件在请求响应过程中的位置和作用。"></p>
 <blockquote>
 <p>如果你使用了 <code>yield</code> 关键字依赖, 依赖中的退出代码将在执行中间件后执行。</p>
 <p>如果有任何后台任务(稍后记录), 它们将在执行中间件后运行。</p>

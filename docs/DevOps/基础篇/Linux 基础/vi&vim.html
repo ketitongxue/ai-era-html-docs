@@ -120,7 +120,6 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="vivim">vi&amp;vim</h1>
 <h2 id="linux-下的安装">Linux 下的安装</h2>
 <h3 id="red-hat-和-centos-系列">Red Hat 和 CentOS 系列</h3>
 <p>在 Red Hat Linux 和 CentOS Linux 上，默认安装的 Vim 可能是一个最小功能的版本。虽然这个版本启动速度很快，但它缺少了很多对开发有用的功能，如语法加亮、Python 集成和图形界面。一般情况下，应至少安装更全功能版本的 Vim；如果能使用 X Window 的话，则应安装图形界面版本。</p>
@@ -156,7 +155,7 @@ th { background: #eaf0f7; }
 <p>我们先执行 <code>sudo apt update</code> 来确保更新环境，然后使用 <code>sudo apt install vim-gtk3</code> 安装 GTK3 版本的 Vim（或者其他你需要的版本）。如果你安装了图形界面的版本，不必单独再另外安装其他版本的 Vim，因为图形版本的 Vim 也是可以纯文本启动的。事实上，在 Ubuntu 上， <code>vim</code> 和 <code>gvim</code> 都是指向同一个应用程序的符号链接，且 <code>gvim</code> 的执行效果和 <code>vim -g</code> 相同。</p>
 <h1 id="vim-教程的内容概要">Vim 教程的内容概要</h1>
 <p>请查看下面的键盘图。简单说明一下，这张图上展示了一个键盘。图中的“•”表示，单个字母不是完整的命令，必须再有进一步的输入。比如，单个“g”没有意义，而“gg”表示跳转到文件开头。（对于命令后面明确跟一个动作的，如“c”，我们不使用“•”。）一个键最多有三排内容：最底下是直接按键的结果，中间是按下 Shift 的结果（变大写），上面偏右的小字是按下 Ctrl 的结果。我们还用了一些特殊符号来表示操作的位置，如果你已经了解了这些命令的功能，你也自然就明白它们的意义了。</p>
-<p><img src="../../../../assets/md-images/Yjx9bLWQrodXt5xjgLvcshNHnmc.png" alt=""></p>
+<p><img src="../../../../assets/md-images/GDaibXnnoonrm9xDr0mcZMFbnTg.png" alt="图片是一张Vim命令速查表，展示了在Vim编辑器中不同键位的命令功能。表中以字母、数字、符号等为分类，对应不同颜色的区域，如绿色、黄色、白色等。每个键位对应不同操作，如“Q”对应“重新搜”，“W”对应“替换模式”等。表中还标注了部分键位的特殊操作，如“Ctrl”和“Shift”键的组合键。该表与上下文紧密相关，直观呈现了Vim命令，帮助用户快速查找和学习Vim命令。"></p>
 <p>这张图里没有写出 Vim 的命令行命令。你现在应该已经掌握了以下这些：</p>
 <ul>
 <li>“:q!”：退出 Vim</li>
@@ -210,14 +209,14 @@ th { background: #eaf0f7; }
 <p>也就是说，下面的命令是在 Vim 里输入“ <code>:set ft?&lt;CR&gt;</code>”（用来显示当前编辑文件的文件类型）：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">:set ft?
 </code></pre>
-<p><img src="../../../../assets/md-images/YZZnbiYDdohgc8xiqHWcmL9xndc.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/AwhGbjHu5oTDdzxNJd4cRdWhnwf.gif" alt="图片展示的是Vim编辑器界面，显示了关于Vim配置文件的说明。界面顶部有菜单栏，内容为File、Edit、View等选项。下方文字说明了系统默认设置在$SVIMRUNTIME/debian.vim中，并被runtime调用，若要修改这些设置，应在该文件中操作。还提到若不希望覆盖vimrc设置，可取消注释相关行。最后有“set compatible”命令。该图片与上下文紧密相关，是对Vim配置文件相关内容的直观呈现。"></p>
 <p>下面的命令则是在 shell 里输入“ <code>which vim&lt;CR&gt;</code>”（用来检查 <code>vim</code> 命令的位置）：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ which vim
 /usr/bin/vim
 </code></pre>
-<p><img src="../../../../assets/md-images/NEujbGsc5oa8H7xxxRocd4rrn4d.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/L81mbbQzvoc3NExSUFKcxOAGnTe.gif" alt="图片展示的是一个终端界面，左上角显示“yongwei@ubuntu:~$”，表明当前用户为yongwei，操作系统为Ubuntu，工作目录为家目录。界面顶部有“File”“Edit”“View”“Search”“Terminal”“Help”等菜单栏选项。界面底部有一个白色光标，处于待输入状态。该图片与文档中介绍在shell命令行上输入命令的内容相关，直观呈现了在终端中输入命令的界面环境。"></p>
 <p>此外，当我用“ <a href="https://yianwillis.github.io/vimcdoc/doc/help.html"><code>:help</code></a>”描述帮助命令时，你不仅可以在 Vim 里输入这个命令来得到帮助，也可以点击这个帮助的链接，直接在线查看相应的中文帮助页面。</p>
-<p><img src="../../../../assets/md-images/PRudb6AKHoMzTwxwtxscHUxwnye.jpg" alt=""></p>
+<p><img src="../../../../assets/md-images/JQMbbF1zcoJEdzxoDrVcMke6nDd.jpeg" alt="图片展示的是Vim 8.2版本的主帮助文件内容，适用于2020年2月更新。文件中详细介绍了Vim的移动、关闭窗口、离开Vim等操作方法，如使用光标键移动、关闭窗口用“:q! &lt;Enter&gt;”等。还提供了跳转到主题、获取特定帮助的指令，如将光标置于标签上输入“CTRL-”跳转，使用“:help x”获取帮助等。图片与上下文紧密相关，是对Vim帮助命令使用方法的直观呈现。"></p>
 <h1 id="vim-的选项和配置">Vim 的选项和配置</h1>
 <p>要想更好地使用 Vim，下一个关键点就是配置了，接下来我就带你看看 Vim 配置都有哪些需要注意的点。</p>
 <p>作为一个可以越用越顺手的应用程序，Vim 是需要配置的。我们才刚开始学习，所以目前我们的配置文件是相当简单的，但随着使用 Vim 越来越多，Vim 的配置文件必然会越变越复杂。我们今天就先来做一些初步的讨论，看看能实际使用的一个最基本 Vim 配置文件是什么样子。</p>
@@ -240,7 +239,7 @@ source $VIMRUNTIME/vimrc_example.vim
 set undofile
 </code></pre>
 <p>前一个选项使得我们每次编辑会保留上一次的备份文件，后一个选项使得 Vim 在重新打开一个文件时，仍然能够撤销之前的编辑（undo），这就会产生一个保留编辑历史的“撤销文件”（undofile）了。</p>
-<p><img src="../../../../assets/md-images/EJwebJqCroKGs6xIM6GcljLInod.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/DtSjbsR8toc8jKxlprzcn1d5nXc.gif" alt="图片展示的是一个终端界面，背景为深紫色，界面左上角显示“yongwei@ubuntu:~$”，表明当前用户为yongwei，主机名为ubuntu，工作目录为家目录。界面顶部有“File”“Edit”“View”“Search”“Terminal”“Help”等菜单栏选项。该图片与文档中介绍Vim备份和撤销文件功能的内容相关，可能用于辅助说明在终端环境下操作Vim时的界面情况。"></p>
 <p>我的通常做法是，不产生备份文件，但保留跨会话撤销编辑的能力；因为有了撤销文件，备份其实也就没有必要了。同时，把撤销文件放在用户个人的特定目录下，既保证了安全，又免去了其他目录下出现不必要文件的麻烦。</p>
 <p>要达到这个目的，我在 Linux/macOS 下会这么写：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">set nobackup
@@ -287,7 +286,7 @@ endif
 </ul>
 <p>我们将启用完全的鼠标支持（mouse=a）。特别是，此时鼠标拖拽就会在 Vim 里使用可视模式选择内容（只能在 Vim 里使用）。而当用户按下 Shift 键时，窗口系统接管鼠标事件，用户可以使用鼠标复制 Vim 窗口里的内容供其他应用程序使用。</p>
 <p>否则（非图形界面的的终端，且终端类型不是 xterm），就只在正常模式（n）、可视模式（v）、插入模式（i）中使用鼠标。这意味着，当用户按下 <code>:</code> 键进入命令行模式时，Vim 将不对鼠标进行响应，这时，用户就可以使用鼠标复制 Vim 窗口里的内容到其他应用程序里去了。</p>
-<p><img src="../../../../assets/md-images/EbFZbgsbCotRPVx3l4AcuwhinZd.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/WcAwb3jQiotYO7xYrRScU9Snnnh.gif" alt="图片展示的是Vim配置文件vimrc_example.vim的部分代码。代码中设置了编码为utf - 8，关闭不兼容模式，源文件为$VIMRUNTIME/vimrc_example.vim。还设置了文件编码为ucs - bom, utf - 8, gb18030, latin1，不保存备份。若持久性撤销功能可用，则设置撤销文件和撤销目录，若目录不存在则创建。若鼠标功能可用且在图形界面运行或终端为xterm且非mac系统，则设置鼠标为a，否则设置为nvi。该图片与上下文介绍Vim鼠标支持的内容相关，展示了配置代码。"></p>
 <p>非 xterm 的鼠标支持在 macOS 和 Windows 下都有效。但在 Windows 下需要注意的一点是，如果使用非图形界面的 Vim 的话，应当在命令提示符（Command Prompt）的属性里关闭“快速编辑模式”（QuickEdit Mode），否则 Vim 在运行时将无法对鼠标事件进行响应。</p>
 <p>鉴于命令提示符的行为有很多怪异和不一致之处，强烈建议你在 Windows 下，要么使用图形界面的 Vim，要么使用 Cygwin/MSYS2 里、运行在 mintty 下的 Vim。</p>
 <h1 id="中文支持">中文支持</h1>
@@ -320,13 +319,13 @@ endif
 </code></pre>
 <h1 id="图形界面的字体配置">图形界面的字体配置</h1>
 <p>图形界面的 Vim 可以自行配置使用的字体，但在大部分环境里，这只是起到美化作用，而非必需项。不过，对于高分辨率屏幕的 Windows，这是一个必需项：Vim 在 Windows 下缺省使用的不是 TrueType 字体，不进行配置的话，字体会小得没法看。</p>
-<p><img src="../../../../assets/md-images/L8RAbshPBotERXxIG7dcXrWjnmc.png" alt=""></p>
+<p><img src="../../../../assets/md-images/KOoqbkKbpoPlBhxKCWec1Js7n3c.png" alt="图片展示了Windows系统下Gvim的界面。界面顶部有“No Name - GVIM”标题，下方是菜单栏，包括File、Edit、Tools等选项。主编辑区域显示了vim相关帮助信息，如vim版本号、运行状态等。界面底部有垂直滚动条。该图片与文档中介绍在Windows系统下配置vim字体的内容相关，直观呈现了vim在Windows系统下的界面样式，辅助说明字体配置在实际运行环境中的显示效果。"></p>
 <p>在 Windows 的缺省字体里，一般而言，Consolas 和 Courier New 还比较合适。以 Courier New 为例，在 \_vimrc 里可以这样配置（Windows 上的基本写法是字体名称加冒号、“h”加字号；用“\_”取代空格，否则空格需要用“\\”转义）：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">if has('gui_running')
   set guifont=Courier_New:h10
 endif
 </code></pre>
-<p><img src="../../../../assets/md-images/GOmWbTVuDovPRcxXT8icabVdnyh.png" alt=""></p>
+<p><img src="../../../../assets/md-images/O1LybjvH0oEnXCxboZMc3lTgndf.png" alt="图片展示了在Windows系统下使用图形界面的Vim时，其初始界面的样式。界面顶部显示“No Name - GVIM”，并有多个菜单选项。中间部分以“VIM - Vi IMproved”为标题，介绍了Vim版本、作者及开源性质等信息。下方列出了一些帮助命令，如退出、获取帮助、查看版本信息等。该图片与文档中介绍图形界面字体配置的内容相关，展示了在图形界面下Vim的初始界面样式。"></p>
 <p>字体名称如何写是件平台相关的事（可参见帮助文档“ <a href="https://yianwillis.github.io/vimcdoc/doc/gui.html#gui-font"><code>:help gui-font</code></a>”）。如果你不确定怎么写出你需要的字体配置，或者你怎么写都写不对的话，可以先使用图形界面的菜单来选择（通常是“编辑 \&gt; 选择字体”；在 MacVim 里是“Edit &gt; Font &gt; Show Fonts”），然后使用命令“ <code>:set guifont?</code>”来查看。</p>
 <p>注意，Vim 在设置选项时，空格需要用“\\”进行转义。比如，如果我们要在 Ubuntu 下把字体设成 10 磅的 DejaVu Sans Mono，就需要写：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">  &quot; Linux 和 Windows 不同，不能用 '_' 取代空格
@@ -336,18 +335,18 @@ endif
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">  set guifontwide=Noto\ Sans\ Mono\ CJK\ SC\ 11
 </code></pre>
 <p>注意，在不同的中英文字体搭配时，并不需要字号相同。事实上，在 Windows 和 Linux 上我通常都是使用不同字号的中英文字体的。</p>
-<p><img src="../../../../assets/md-images/SWGSbfVHAocVnPxzO4HcGyr1n4O.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/WhXzbhHQ0oSkToxOqjtc2227nSb.gif" alt="图片展示的是Vim 8.2版本的主帮助文件界面。上方显示“help.txt”文件名及适用版本信息。中间部分是VIM - 主帮助文件内容，包含移动、关闭本窗口、离开Vim等操作说明，以及跳转到一个主题、获取特定帮助等操作方法。底部有“help.cnx HelpRO”和“No Name”等信息。该图片与文档中介绍Vim图形界面字体配置的内容相关，直观呈现了Vim帮助文件界面样式。"></p>
 <p>在上面的动图中，你可以观察到设了中文字体之后，不仅中文字变大，更美观了，“将”、“适”、“关”、“复”、“启”等字的字形也同时发生了变化。</p>
 <h1 id="光标移动">光标移动</h1>
 <p>我们先来讨论一下可以跟文本修改、复制搭配的光标移动命令。</p>
 <p>通过前面的课程，你已经知道，Vim 里的基本光标移动是通过 <code>h</code>、 <code>j</code>、 <code>k</code>、 <code>l</code> 四个键实现的。之所以使用这四个键，是有历史原因的。你看一下 Bill Joy 开发 vi 时使用的键盘就明白了：这个键盘上没有独立的光标键，而四个光标符号直接标注在 H、J、K、L 四个字母按键上。</p>
-<p><img src="../../../../assets/md-images/FNnYbS8VFoTClixO72Hcn9fjnWc.png" alt=""></p>
+<p><img src="../../../../assets/md-images/HVllbn0XIocXPTxkvFRcBKeRn6d.png" alt="图片展示了Bill Joy开发vi时使用的键盘。键盘上没有独立的光标键，而是将四个光标符号（^、v、&gt;、&lt;）标注在H、J、K、L四个字母按键上。该图片与上下文紧密相关，上下文提到Bill Joy开发vi时的键盘情况，此图直观呈现了当时键盘的布局，帮助理解四个光标键在键盘上的位置及使用背景，为说明这四个键在Vim用户中仍被使用的原因提供了直观依据。"></p>
 <p>当然，除了历史原因外，这四个键一直使用至今，还是有其合理性的。它们都处于打字机的本位排（home row）上，这样打字的时候，手指基本不用移动就可以敲击到。因此，即使到了键盘上全都有了光标移动键的今天，很多 Vim 的用户仍然会使用这四个键来移动光标。</p>
 <p>不过，标准的光标移动键可以在任何模式下使用，而这四个键并不能在插入模式下使用，因此，它们并不构成完全的替代关系。</p>
 <p>顺便提一句，你有没有注意到 ADM-3A 键盘上的 Esc 键在今天 Tab 的位置？在 Bill Joy 决定使用 Esc 来退出插入模式的时候，Esc 在键盘上的位置还没像今天那样跑到遥远的左上角去……</p>
 <p>Vim 跳转到行首的命令是 <code>0</code>，跳转到行尾的命令是 <code>$</code>，这两个命令似乎没什么特别的原因，一般用 <code>&lt;Home&gt;</code> 和 <code>&lt;End&gt;</code> 也没什么不方便的，虽然技术上它们有一点点小区别。如果你感兴趣、想进一步了解的话，可以参考帮助 <a href="https://yianwillis.github.io/vimcdoc/doc/motion.html#%3CHome%3E"><code>:help &lt;Home&gt;</code></a>。此外，我们也有 <code>^</code>，用来跳转到行首的第一个非空白字符。</p>
 <p>对于一次移动超过一个字符的情况，Vim 支持使用 <code>b</code>/ <code>w</code> 和 <code>B</code>/ <code>W</code>，来进行以单词为单位的跳转。它们的意思分别是 words Backward 和 Words forward，用来向后或向前跳转一个单词。小写和大写命令的区别在于，小写的跟编程语言里的标识符的规则相似，认为一个单词是由字母、数字、下划线组成的（不严格的说法），而大写的命令则认为非空格字符都是单词。</p>
-<p><img src="../../../../assets/md-images/RPOabSRm2odvjJxLR7lcMFeDnvb.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/B9FRblzSfoBAp3xUmuCcPW3mn1e.gif" alt="图片展示了Vim中关于单词定义的相关内容。上方以“word”标识，说明单词由字母、数字、下划线组成，或由其他非空字符组成，以空白分隔，还可通过“iskeyword”选项更改，空行也被视为单词。下方以“WORD”标识，指出WORD由非空字符组成，以空白分隔，空行同样被视为WORD。这些内容与上下文介绍的Vim光标移动中以单词为单位的跳转规则相呼应，帮助理解小写和大写命令下单词的定义差异。"></p>
 <p>根据单个字符来进行选择也很常见。比如，现在光标在 <code>if (frame-&gt;fr_child != NULL)</code> 第五个字符上，如果我们想要修改括号里的所有内容，需要仔细考虑 <code>w</code> 的选词规则，然后输入 <code>c5w</code> 吗？这样显然不够方便。</p>
 <p>这种情况下，我们就需要使用 <code>f</code>（find）和 <code>t</code>（till）了。它们的作用都是找到下一个（如果在输入它们之前先输入数字 <em>n</em> 的话，那就是下面第 <em>n</em> 个）紧接着输入的字符。两者的区别是， <code>f</code> 会包含这个字符，而 <code>t</code> 不会包含这个字符。在上面的情况下，我们用 <code>t</code> 就可以了： <code>ct)</code> 就可以达到目的。如果需要反方向搜索的话，使用大写的 <code>F</code> 和 <code>T</code> 就可以。</p>
 <p>对于写文字的情况，比如给开源项目写英文的 README，下面的光标移动键也会比较有用：</p>
@@ -355,7 +354,7 @@ endif
 <li><code>(</code> 和 <code>)</code> 移到上一句和下一句</li>
 <li><code>{</code> 和 <code>}</code> 移到上一段和下一段</li>
 </ul>
-<p><img src="../../../../assets/md-images/IjZXb9fMgo8UVCxZJf7cwjzonfd.gif" alt=""></p>
+<p><img src="../../../../assets/md-images/BX0zbWSEaoPtKBxaCnocbggJngb.gif" alt="图片展示的是Vim编辑器界面，显示了“# The YCM Extra Configuration”等内容。其中“YouCompleteMe1”被红色框突出显示，该插件是Vim的一个革命性插件，但其配置较为复杂。图片与上下文紧密相关，上下文介绍了YouCompleteMe插件及其配置情况，图片中的红色框突出显示了插件名称，直观呈现了文档中提到的插件名称，帮助读者更好地理解上下文内容。"></p>
 <p>在很多环境（特别是图形界面）里，Vim 支持使用 <code>&lt;C-Home&gt;</code> 和 <code>&lt;C-End&gt;</code> 跳转到文件的开头和结尾。如果遇到困难，则可以使用 vi 兼容的 <code>gg</code> 和 <code>G</code> 跳转到开头和结尾行（小区别： <code>G</code> 是跳转到最后一行的第一个字符，而不是最后一个字符）。</p>
 <p>光标移动咱们就讲到这里。你需要重点掌握的就是 Vim 里除了简单的光标移动，还有“小词”、“大词”、句、段的移动，以及字符的搜索；每种方式都分向前和向后两种情况。</p>
 <h1 id="文本修改">文本修改</h1>

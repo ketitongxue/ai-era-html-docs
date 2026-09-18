@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>grep 命令</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="grep-命令">grep 命令</h1>
+<p>Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。</p>
+<p>grep 指令用于查找内容包含指定的范本样式的文件，如果发现某文件的内容符合所指定的范本样式，预设 grep 指令会把含有范本样式的那一列显示出来。若不指定任何文件名称，或是所给予的文件名为 **-**，则 grep 指令会从标准输入设备读取数据。</p>
+<h3 id="语法"><strong>语法</strong></h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">grep [options] pattern [files]
+或
+grep [-abcEFGhHilLnqrsvVwxy][-A&lt;显示行数&gt;][-B&lt;显示列数&gt;][-C&lt;显示列数&gt;][-d&lt;进行动作&gt;][-e&lt;范本样式&gt;][-f&lt;范本文件&gt;][--help][范本样式][文件或目录...]
+</code></pre>
+<ul>
+<li>pattern - 表示要查找的字符串或正则表达式。</li>
+<li>files - 表示要查找的文件名，可以同时查找多个文件，如果省略 files 参数，则默认从标准输入中读取数据。</li>
+</ul>
+<p><strong>常用选项：</strong>：</p>
+<ul>
+<li><code>i</code>：忽略大小写进行匹配。</li>
+<li><code>v</code>：反向查找，只打印不匹配的行。</li>
+<li><code>n</code>：显示匹配行的行号。</li>
+<li><code>r</code>：递归查找子目录中的文件。</li>
+<li><code>l</code>：只打印匹配的文件名。</li>
+<li><code>c</code>：只打印匹配的行数。</li>
+</ul>
+<p><strong>更多参数说明</strong>：</p>
+<ul>
+<li><strong>a 或 --text</strong> : 不要忽略二进制的数据。</li>
+<li><strong>A&lt;显示行数&gt; 或 --after-context=&lt;显示行数&gt;</strong> : 除了显示符合范本样式的那一列之外，并显示该行之后的内容。</li>
+<li><strong>b 或 --byte-offset</strong> : 在显示符合样式的那一行之前，标示出该行第一个字符的编号。</li>
+<li><strong>B&lt;显示行数&gt; 或 --before-context=&lt;显示行数&gt;</strong> : 除了显示符合样式的那一行之外，并显示该行之前的内容。</li>
+<li><strong>c 或 --count</strong> : 计算符合样式的列数。</li>
+<li><strong>C&lt;显示行数&gt; 或 --context=&lt;显示行数&gt;或-&lt;显示行数&gt;</strong> : 除了显示符合样式的那一行之外，并显示该行之前后的内容。</li>
+<li><strong>d &lt;动作&gt; 或 --directories=&lt;动作&gt;</strong> : 当指定要查找的是目录而非文件时，必须使用这项参数，否则grep指令将回报信息并停止动作。</li>
+<li><strong>e&lt;范本样式&gt; 或 --regexp=&lt;范本样式&gt;</strong> : 指定字符串做为查找文件内容的样式。</li>
+<li><strong>E 或 --extended-regexp</strong> : 将样式为延伸的正则表达式来使用。</li>
+<li><strong>f&lt;规则文件&gt; 或 --file=&lt;规则文件&gt;</strong> : 指定规则文件，其内容含有一个或多个规则样式，让grep查找符合规则条件的文件内容，格式为每行一个规则样式。</li>
+<li><strong>F 或 --fixed-regexp</strong> : 将样式视为固定字符串的列表。</li>
+<li><strong>G 或 --basic-regexp</strong> : 将样式视为普通的表示法来使用。</li>
+<li><strong>h 或 --no-filename</strong> : 在显示符合样式的那一行之前，不标示该行所属的文件名称。</li>
+<li><strong>H 或 --with-filename</strong> : 在显示符合样式的那一行之前，表示该行所属的文件名称。</li>
+<li><strong>i 或 --ignore-case</strong> : 忽略字符大小写的差别。</li>
+<li><strong>l 或 --file-with-matches</strong> : 列出文件内容符合指定的样式的文件名称。</li>
+<li><strong>L 或 --files-without-match</strong> : 列出文件内容不符合指定的样式的文件名称。</li>
+<li><strong>n 或 --line-number</strong> : 在显示符合样式的那一行之前，标示出该行的列数编号。</li>
+<li><strong>o 或 --only-matching</strong> : 只显示匹配PATTERN 部分。</li>
+<li><strong>q 或 --quiet或--silent</strong> : 不显示任何信息。</li>
+<li><strong>r 或 --recursive</strong> : 此参数的效果和指定&quot;-d recurse&quot;参数相同。</li>
+<li><strong>s 或 --no-messages</strong> : 不显示错误信息。</li>
+<li><strong>v 或 --invert-match</strong> : 显示不包含匹配文本的所有行。</li>
+<li><strong>V 或 --version</strong> : 显示版本信息。</li>
+<li><strong>w 或 --word-regexp</strong> : 只显示全字符合的列。</li>
+<li><strong>x --line-regexp</strong> : 只显示全列符合的列。</li>
+<li><strong>y</strong> : 此参数的效果和指定&quot;-i&quot;参数相同。</li>
+</ul>
+<h3 id="实例"><strong>实例</strong></h3>
+<p>1、在文件 file.txt 中查找字符串 &quot;hello&quot;，并打印匹配的行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep hello file.txt
+</code></pre>
+<p>2、在文件夹 dir 中递归查找所有文件中匹配正则表达式 &quot;pattern&quot; 的行，并打印匹配行所在的文件名和行号：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep -r -n pattern dir/
+</code></pre>
+<p>3、在标准输入中查找字符串 &quot;world&quot;，并只打印匹配的行数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">echo &quot;hello world&quot; | grep -c world
+</code></pre>
+<p>4、在当前目录中，查找后缀有 file 字样的文件中包含 test 字符串的文件，并打印出该字符串的行。此时，可以使用如下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep test *file
+</code></pre>
+<p>结果如下所示：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ grep test test* #查找前缀有“test”的文件包含“test”字符串的文件
+testfile1:This a Linux testfile! #列出testfile1 文件中包含test字符的行
+testfile_2:This is a linux testfile! #列出testfile_2 文件中包含test字符的行
+testfile_2:Linux test #列出testfile_2 文件中包含test字符的行
+</code></pre>
+<p>5、以递归的方式查找符合条件的文件。例如，查找指定目录/etc/acpi 及其子目录（如果存在子目录的话）下所有文件中包含字符串&quot;update&quot;的文件，并打印出该字符串所在行的内容，使用的命令为：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep -r update /etc/acpi
+</code></pre>
+<p>输出结果如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ grep -r update /etc/acpi #以递归的方式查找“etc/acpi”
+#下包含“update”的文件
+/etc/acpi/ac.d/85-anacron.sh:# (Things like the slocate updatedb cause a lot of IO.)
+Rather than
+/etc/acpi/resume.d/85-anacron.sh:# (Things like the slocate updatedb cause a lot of
+IO.) Rather than
+/etc/acpi/events/thinkpad-cmos:action=/usr/sbin/thinkpad-keys--update
+</code></pre>
+<p>6、反向查找。前面各个例子是查找并打印出符合条件的行，通过&quot;-v&quot;参数可以打印出不符合条件行的内容。</p>
+<p>查找文件名中包含 test 的文件中不包含test 的行，此时，使用的命令为：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep -v test *test*
+</code></pre>
+<p>结果如下所示：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ grep-v test* #查找文件名中包含test 的文件中不包含test 的行
+testfile1:helLinux!
+testfile1:Linis a free Unix-type operating system.
+testfile1:Lin
+testfile_1:HELLO LINUX!
+testfile_1:LINUX IS A FREE UNIX-TYPE OPTERATING SYSTEM.
+testfile_1:THIS IS A LINUX TESTFILE!
+testfile_2:HELLO LINUX!
+testfile_2:Linux is a free unix-type opterating system.
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

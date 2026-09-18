@@ -120,31 +120,35 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="环境安装">环境安装</h1>
 <h1 id="安装-go">安装 Go</h1>
+<p>https://go.dev/</p>
 <p>Go从2009年开源并演化到今天，它的安装方法其实都已经很成熟了，接下来呢，我们就逐一介绍在Linux、macOS、Windows这三大主流操作系统上安装Go的方法，我们假设这些操作系统都安装在X86-64的平台上，首先我们来看Linux。</p>
 <h2 id="在-linux-上安装-go">在 Linux 上安装 Go</h2>
 <p>Go几乎支持Linux所有的主流发行版操作系统，常见的包括Ubuntu、CentOS（Redhat企业版Linux的社区开源版）、Fedora、SUSE等等，Go在这些主流的Linux发行版操作系统上的安装方法都是一样的（当然某个发行版也可能会利用其软件安装管理器提供仅属于其自己的安装方法）。你可以参考下面这样的安装步骤。</p>
 <p>首先，我们需要下载并解压Go Linux安装包：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ export GODOWNLOADNAME=go1.23.4.linux-amd64.tar.gz
-$ wget -c https://golang.google.cn/dl/$GODOWNLOADNAME
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">export GOVERSION=go1.25.3
+export GODOWNLOADNAME=$GOVERSION.linux-amd64.tar.gz
+wget -c https://golang.google.cn/dl/$GODOWNLOADNAME
 </code></pre>
 <p>注：<a href="http://xn--gogolang-v39l523i7jxrhbd45f3obp97ed62bj85a.org/dl%EF%BC%8C%E4%BD%86%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8%E9%92%88%E5%AF%B9%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%9A%84%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9golang.google.cn/dl%E6%9D%A5%E4%B8%8B%E8%BD%BD%EF%BC%8C%E5%9C%A8%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E5%9C%B0%E5%8C%BA%E4%BD%BF%E7%94%A8%E5%A4%A7%E9%99%86%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9%E5%8F%AF%E4%BB%A5%E5%A4%A7%E5%B9%85%E7%BC%A9%E7%9F%AD%E4%B8%8B%E8%BD%BD%E6%97%B6%E9%97%B4%E3%80%82">虽然Go官方下载站点是</a><a href="http://xn--gogolang-v39l523i7jxrhbd45f3obp97ed62bj85a.org/dl%EF%BC%8C%E4%BD%86%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8%E9%92%88%E5%AF%B9%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%9A%84%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9golang.google.cn/dl%E6%9D%A5%E4%B8%8B%E8%BD%BD%EF%BC%8C%E5%9C%A8%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E5%9C%B0%E5%8C%BA%E4%BD%BF%E7%94%A8%E5%A4%A7%E9%99%86%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9%E5%8F%AF%E4%BB%A5%E5%A4%A7%E5%B9%85%E7%BC%A9%E7%9F%AD%E4%B8%8B%E8%BD%BD%E6%97%B6%E9%97%B4%E3%80%82">golang.org/dl</a><a href="http://xn--gogolang-v39l523i7jxrhbd45f3obp97ed62bj85a.org/dl%EF%BC%8C%E4%BD%86%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8%E9%92%88%E5%AF%B9%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%9A%84%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9golang.google.cn/dl%E6%9D%A5%E4%B8%8B%E8%BD%BD%EF%BC%8C%E5%9C%A8%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E5%9C%B0%E5%8C%BA%E4%BD%BF%E7%94%A8%E5%A4%A7%E9%99%86%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9%E5%8F%AF%E4%BB%A5%E5%A4%A7%E5%B9%85%E7%BC%A9%E7%9F%AD%E4%B8%8B%E8%BD%BD%E6%97%B6%E9%97%B4%E3%80%82">，但我们可以用针对中国大陆的镜像站点</a><a href="http://xn--gogolang-v39l523i7jxrhbd45f3obp97ed62bj85a.org/dl%EF%BC%8C%E4%BD%86%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8%E9%92%88%E5%AF%B9%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%9A%84%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9golang.google.cn/dl%E6%9D%A5%E4%B8%8B%E8%BD%BD%EF%BC%8C%E5%9C%A8%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E5%9C%B0%E5%8C%BA%E4%BD%BF%E7%94%A8%E5%A4%A7%E9%99%86%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9%E5%8F%AF%E4%BB%A5%E5%A4%A7%E5%B9%85%E7%BC%A9%E7%9F%AD%E4%B8%8B%E8%BD%BD%E6%97%B6%E9%97%B4%E3%80%82">golang.google.cn/dl</a><a href="http://xn--gogolang-v39l523i7jxrhbd45f3obp97ed62bj85a.org/dl%EF%BC%8C%E4%BD%86%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8%E9%92%88%E5%AF%B9%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%9A%84%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9golang.google.cn/dl%E6%9D%A5%E4%B8%8B%E8%BD%BD%EF%BC%8C%E5%9C%A8%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E5%9C%B0%E5%8C%BA%E4%BD%BF%E7%94%A8%E5%A4%A7%E9%99%86%E9%95%9C%E5%83%8F%E7%AB%99%E7%82%B9%E5%8F%AF%E4%BB%A5%E5%A4%A7%E5%B9%85%E7%BC%A9%E7%9F%AD%E4%B8%8B%E8%BD%BD%E6%97%B6%E9%97%B4%E3%80%82">来下载，在中国大陆地区使用大陆镜像站点可以大幅缩短下载时间。</a></p>
 <p>第二步，将下载完毕的Go安装包解压到安装目录中：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ tar -C /usr/local/src/go/ -xzf $GODOWNLOADNAME
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ mkdir -p /usr/local/src/go/
+$ tar -C /usr/local/src/go/ -xzf $GODOWNLOADNAME
 $ ls /usr/local/src/go/
 go
-$ mv /usr/local/src/go/go/ /usr/local/src/go/go1.23.4
+$ mv /usr/local/src/go/go/ /usr/local/src/go/$GOVERSION
+$ ls /usr/local/src/go/
+go1.24.5
 </code></pre>
 <p>执行完上面解压缩命令后，我们将在/usr/local下面看到名为go的目录，这个目录就是Go的安装目录，也是Go官方推荐的Go安装目录。我们执行下面命令可以查看该安装目录下的组成：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ls -F /usr/local/src/go/go1.23.4
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ ls -F /usr/local/src/go/$GOVERSION
 AUTHORS          CONTRIBUTORS  PATENTS    SECURITY.md  api/  doc/         lib/   pkg/        src/
 CONTRIBUTING.md  LICENSE       README.md  VERSION      bin/  favicon.ico  misc/  robots.txt  test/
 </code></pre>
 <p>不过呢，为了可以在任意路径下使用go命令，我们需要将Go二进制文件所在路径加入到用户环境变量PATH中（以用户使用bash为例），具体操作是将下面这行环境变量设置语句添加到 <code>$HOME/.bashrc</code> 文件的末尾：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">tee -a $HOME/.bashrc &lt;&lt;'EOF'
 # Go envs
-export GOVERSION=${GOVERSION-go1.23.4} # Go 版本设置
+export GOVERSION=${GOVERSION-go1.25.3} # Go 版本设置
 export GO_INSTALL_DIR=/usr/local/src/go # Go 安装目录
 export GOROOT=$GO_INSTALL_DIR/$GOVERSION # GOROOT 设置
 export GOPATH=$HOME/golang # GOPATH 设置
@@ -159,10 +163,8 @@ EOF
 </code></pre>
 <p>最后，我们可以通过下面命令验证此次安装是否成功：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ go version
-go version go1.23.4 linux/amd64
+go version go1.24.4 linux/amd64
 </code></pre>
-<p>小脚本直接安装</p>
-<p>&lt;figure view-type=&quot;Preview&quot;&gt;&lt;source name=&quot;install_go.sh&quot; mime=&quot;text/x-sh&quot; size=&quot;852&quot; token=&quot;TztTb63uho4lLUxFhgIcJxIQnEo&quot;/&gt;&lt;/figure&gt;</p>
 <h2 id="安装多个go版本">安装多个Go版本</h2>
 <p>一般来说，Go初学者安装一个最新的Go版本就足够了，但随着Go编程的深入，我们通常会有使用多个Go版本的需求，比如一个版本用于学习或本地开发，另外一个版本用于生产构建等等。</p>
 <p>安装多个Go版本其实也很简单，这里介绍两种方法。</p>
@@ -218,6 +220,62 @@ go version go1.22.8 linux/amd64
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ go env
 </code></pre>
 <p>这里我也给你总结了一些常用配置项：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GOARCH</td>
+<td>指示Go编译器生成代码所针对的平台CPU架构</td>
+<td>主要值是AMD64、Arm等，默认值是本机的CPU架构</td>
+</tr>
+<tr>
+<td>GOOS</td>
+<td>指示Go编译器生成代码所针对的操作系统</td>
+<td>主要值是Linux、Darwin、Windows等，默认值是本机的操作系统</td>
+</tr>
+<tr>
+<td>GO111MODULE</td>
+<td>当前使用的构建模式是传统的GOPATH模式还是新引入的Go Module模式</td>
+<td>在Go 1.16版本 Go Module构建模式默认开启，该变量值默认为 on,默认不用管</td>
+</tr>
+<tr>
+<td>GOCACHE</td>
+<td>指示构建结果缓存的路径，这些缓存可能会被后续的构建所使用</td>
+<td>在不同的操作系统上，GOCACHE有不同的默认值。以Linux为例，我们使用go env GOCACHE 查看其值为： $HOME/.cache/go-build</td>
+</tr>
+<tr>
+<td>GOMODCACHE</td>
+<td>指示存放 Go Module 的路径</td>
+<td>在不同的操作系统上，GOMODCACHE 有不同的默认值。以Linux为例，我们使用go env GOMODCACHE查看其值为： $HOME/go/pkg/mod</td>
+</tr>
+<tr>
+<td>GOPROXY</td>
+<td>配置 Go Module proxy 服务</td>
+<td>默认值为”https://proxy.golang.org,direct”。</td>
+</tr>
+<tr>
+<td>GOPATH</td>
+<td>若干工作区目录的路径，关键</td>
+<td>自己定义的工作空间</td>
+</tr>
+<tr>
+<td>GOROOT</td>
+<td>Go 安装路径</td>
+<td></td>
+</tr>
+<tr>
+<td>GOPRIVATE</td>
+<td>指向自己的私有库</td>
+<td>比如说自己公司的私有库</td>
+</tr>
+</tbody>
+</table></div>
 <p>可以把GOPATH简单理解成Go语言的工作目录，它的值是一个目录的路径，也可以是多个目录路径，每个目录都代表Go语言的一个工作区（workspace）。</p>
 <p>如果你还要了解更多关于Go配置项的说明，你可以通过go help environment命令查看。</p>
 <h1 id="hello-world">Hello World</h1>

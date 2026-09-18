@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="rag-是什么">RAG 是什么</h1>
+<p>Retrieval -&gt; Augmentation -&gt; Generation</p>
+<p>检索 -&gt; 增强 -&gt; 生成</p>
+<p>RAG 全称是“Retrieval-Augmented Generation”，即 “检索增强的生成”。是一种结合了检索和生成的技术，用于增强语言模型的能力。RAG 的核心思想是利用外部知识库或数据集来辅助模型的生成过程。它通过以下两个步骤来生成更准确和相关的回答：</p>
+<ol>
+<li><strong>检索</strong>：从外部知识库或文档中检索与输入问题相关的信息。</li>
+<li><strong>生成</strong>：利用检索到的信息，生成更精确和上下文相关的回答。</li>
+</ol>
+<p>通俗地讲，就是用户问 AI 一个问题，然后 AI 马上去知识库（类似于翻书、翻词典）找到对应的词条，然后根据这个词条回答用户。</p>
+<p>看过其他文章的同学可能会问，为什么这里少了两个阶段：</p>
+<ol>
+<li>编码阶段：检索到的文档或文本片段会与原始查询一起被编码成高维向量（多维数组的专业说法，只不过这里的多维多到几百、上千的那种）。</li>
+<li>融合阶段：编码后的向量会进行融合，以生成一个综合的表示，这个表示同时包含了原始查询和检索到的相关信息。</li>
+</ol>
+<p>的确很多 RAG 应用（包括这门课后面的实战案例）是包含以上两个步骤的，也就是说会包含四个阶段：</p>
+<ol>
+<li>检索阶段</li>
+<li>编码阶段</li>
+<li>融合阶段</li>
+<li>生成阶段</li>
+</ol>
+<p>但是编码和融合阶段并不是 RAG 应用必需的，检索和生成阶段才是 RAG 应用必需的。</p>
+<p>根据奥卡姆剃刀原则，如无必要，勿增实体。我们在规划设计一个 RAG 应用的时候，也尽量勿增实体，如果不需要添加编码和融合阶段，那我们就不添加。</p>
+<h1 id="rag-索引">RAG-索引</h1>
+<p><img src="../../../assets/md-images/BPd9bxLEjoil28xrbufcg6Cfnnc.jpg" alt="图片展示了RAG技术中文档处理的四个步骤。Load步骤从JSON、URLs等格式加载文档；Split步骤按规则拆分文档；Embed步骤对文档块进行向量化处理；Store步骤将向量存储在向量数据库中。图片与上下文紧密相关，直观呈现了文档中RAG技术步骤的内容，帮助理解文档格式统一和内容解析在其中的作用。"></p>
+<p>步骤：</p>
+<ol>
+<li>
+<p>拆分：按一定规则把文档拆分成小块，借助文档拆分器实现</p>
+<ol>
+<li>加载：加载不同格式的文档，借助文档加载器实现</li>
+</ol>
+</li>
+<li>
+<p>存储：对文档块进行向量化，并存储在向量数据库中</p>
+</li>
+</ol>
+<h1 id="rag-检索和生成">RAG-检索和生成</h1>
+<p><img src="../../../assets/md-images/XyXtbYhQMoBpsUx9fyLcTBxTn6e.jpg" alt="图片展示了检索增强生成（RAG）技术的工作流程。左侧“Question”代表用户提问，经“RETRIEVE”检索器从向量数据库中检索相关块，再通过“PROMPT”生成提示，最后由LLM（大型语言模型）生成答案，以“Answer”显示。检索器以蓝色方块呈现，包含放大镜图标，提示其功能为从数据库检索相关块。该图与文档中RAG检索和生成步骤的上下文对应，直观呈现了检索和生成的流程。"></p>
+<p>步骤：</p>
+<ol>
+<li>检索：根据用户的输入，借助检索器从向量数据库中检索出相关的块</li>
+<li>生成：LLM 使用包含问题答案的块进行问答</li>
+</ol>
+<p><img src="../../../assets/md-images/HKDObcbixo2D7exsVKccP8Oknzb.jpg" alt="图片展示了RAG（检索增强生成）技术的导论流程。用户问题进入LLM，LLM判断问题是否完整、是否可检索、是否需要重问，若不完整则转述并询问补充信息，完整则生成答案。若不完整，LLM会思考、转述，循环N次，直到解决问题。LLM生成答案后，若答案不完整，RAG检索，生成答案。该图与上下文紧密相关，直观呈现了RAG技术中检索和生成的步骤及逻辑关系。"></p>
+<p><img src="../../../assets/md-images/KqU2bV2YQoZDxxxQMbRcQ1Jgnhg.jpg" alt="图片展示了RAG（检索增强生成）技术的流程。文档数据存储后，通过Parse语料、Chunk句子/段落、Embeddings嵌入等步骤，向量数据库中存储向量数据。检索器从向量数据库检索相关块，LLM使用包含问题答案的块进行问答。此外，还有提升索引准确率、改善排序方法、回答前反复思考等环节，以及让问题更好理解、支持多种数据源、改造信息抽取途径等扩展。该图与上下文介绍的RAG技术步骤紧密相关，直观呈现其工作流程。"></p>
+<p>在检索增强生成（RAG）技术中，文档格式的统一和内容解析是确保高质量输出的关键环节。</p>
+<p>RAG 需要处理来自多种来源的文档，因此有效地解析这些文档是其成功应用的基础。</p>
+<p>识别难度：</p>
+<ul>
+<li>票据                                    🌟🌟</li>
+<li>扫描件                                 🌟🌟🌟</li>
+<li>手写                                    🌟🌟🌟🌟</li>
+<li>文件里嵌入表格和数学公式     🌟🌟🌟🌟🌟</li>
+</ul>
+<p>对AI的挑战：不仅要看懂内容，还得学习格式。</p>
+<h1 id="为什么要掌握多源文档格式">为什么要掌握多源文档格式</h1>
+<ol>
+<li>提取图片的Word、PDF等格式中的特定内容</li>
+<li>增加对新格式的支持</li>
+<li>避免信息丢失或误读</li>
+<li>在后续检索与生成过程中提供更高质量的数据输入</li>
+<li>提升信息检索效率：统一格式后，可以使用相同的索引方法（如倒排索引、向量索引）对所有文档进行处理，避免为每种格式单独开发检索逻辑，提高系统的可维护性和扩展性</li>
+</ol>
+<h2 id="解析-md-文档">解析 md 文档</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 读取 ./data/data.md 文件作为运维知识库
+file_path = os.path.join('data', 'data.md')
+with open(file_path, 'r', encoding='utf-8') as file:
+    docs_string = file.read()
+
+# Split the document into chunks base on markdown headers.
+headers_to_split_on = [
+    (&quot;#&quot;, &quot;Header 1&quot;),
+    (&quot;##&quot;, &quot;Header 2&quot;),
+    (&quot;###&quot;, &quot;Header 3&quot;),
+]
+
+text_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
+splits = text_splitter.split_text(docs_string)
+
+print(&quot;Length of splits: &quot; + str(len(splits)))
+print(splits)
+</code></pre>
+<p>原理：</p>
+<ol>
+<li>借助 LangChain text_splitter 对 Markdown 运维专家知识库进行分片</li>
+<li>再将分片的段落进行 Embedding 向量化</li>
+</ol>
+<h1 id="rag-embedding-核心代码">RAG Embedding 核心代码</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 向量检索时会把 input Embedding 之后转成向量
+from openai import OpenAI
+client = OpenAI()
+
+response = client.embeddings.create(
+    input=&quot;payment 服务是谁维护的？&quot;,
+    model=&quot;text-embedding-3-small&quot;
+)
+
+print(response.data[0].embedding)
+
+# 输出 1536 维向量
+[0.013615109957754612, -0.03324897587299347, 0.055096786469221115, 0.008762987330555916, -0.004749380052089691, -0.0022156040649861097, -0.015192712657153606, 0.051093120127916336,
+......
+]
+</code></pre>
+<p>原理：</p>
+<ol>
+<li>借助 OpenAI Embedding 模型对每个分片进行向量化，返回特定维度的向量</li>
+<li>Embedding 模型可选：text-embedding-3-small、text-embedding-3-large</li>
+</ol>
+<h1 id="rag-embedding-模型选择">RAG Embedding 模型选择</h1>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>价格</th>
+<th>向量维度</th>
+<th>最大输入 Token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text-embedding-3-small</td>
+<td>0.02/1M Token</td>
+<td>1536</td>
+<td>8191</td>
+</tr>
+<tr>
+<td>text-embedding-3-large</td>
+<td>0.13/1M Token</td>
+<td>3072</td>
+<td>8191</td>
+</tr>
+<tr>
+<td>text-embedding-ada-002</td>
+<td>0.1/1K Token</td>
+<td>1536</td>
+<td>8191</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="基础概念">基础概念</h1>
+<p>最基础的两个概念：对话模式和返回结构化数据</p>
+<p>三个重要概念——元数据、文本摘要、机器翻译</p>
+<p>三个重要概念：向量与嵌入模型、向量数据库、通过相似度来检索知识</p>
+<h2 id="对话模式">对话模式</h2>
+<p>用户与 AI 进行对话</p>
+<h2 id="用户ai-与系统">用户、AI 与系统</h2>
+<p>三种角色：用户（User）、助手（assistant）、系统（system）</p>
+<p>系统消息是可选的。目前除了 OpenAI 之外，很多大模型都不支持系统这一角色。</p>
+<h2 id="记忆">记忆</h2>
+<p>AI 的记忆是有上限的，不同的大模型甚至同一个大模型在不同版本所支持的记忆上限是不同的，但是有一点是肯定的，就是记忆是有上限的，区别只是上限有多高而已。就像天才和普通人一样，都是会遗忘，只不过天才能够记住的东西更多而已。</p>
+<h1 id="rag-向量检索原理">RAG 向量检索原理</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install langchain
+pip install langchain-openai
+pip install langchain-community
+</code></pre>
+<p>计算距离的几个方法。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class EmbeddingDistance(str, Enum):
+    &quot;&quot;&quot;Embedding Distance Metric.
+
+    Attributes:
+        COSINE: Cosine distance metric.
+        EUCLIDEAN: Euclidean distance metric.
+        MANHATTAN: Manhattan distance metric.
+        CHEBYSHEV: Chebyshev distance metric.
+        HAMMING: Hamming distance metric.
+    &quot;&quot;&quot;
+
+    COSINE = &quot;cosine&quot;
+    EUCLIDEAN = &quot;euclidean&quot;
+    MANHATTAN = &quot;manhattan&quot;
+    CHEBYSHEV = &quot;chebyshev&quot;
+    HAMMING = &quot;hamming&quot;
+</code></pre>
+<h2 id="rag-提示语">RAG 提示语</h2>
+<p>System Prompt： 您是问答任务的助手。使用以下检索到的上下文来回答问题。如果您不知道答案，就说您不知道。最多使用三句话并保持答案简洁。 问题：{question} # 用户输入的问题 上下文：{context} # 最近似的 N 个分片 答案：</p>
+<h2 id="rag-运维知识库示例">RAG 运维知识库示例</h2>
+<p>module_4/demo_7/simple_rag.ipynb</p>
+<h2 id="rag-缺点">RAG 缺点</h2>
+<ol>
+<li>由于文本分片会把上下文逻辑截断，可能导致无法回答内在逻辑关联的问题</li>
+<li>只能回答显式检索问题，无法回答全局性/总结性问题，例如：“谁维护的服务最多？”</li>
+</ol>
+<h1 id="解析-word">解析 Word</h1>
+<h2 id="word-文件的特点">Word 文件的特点</h2>
+<p>Word文档格式：MS Office 2007 之前为doc，之后为 docx</p>
+<p>docx格式：.docs文件是Microsoft Word文档的Open XML格式。</p>
+<p>Open XML格式（.docx/.xlsx/.pptx）是所有受支持版本的 Microsoft Office 的默认格式</p>
+<p>DOCS 文档的组成部分可以主要分为以下几个类别：</p>
+<ul>
+<li>文件对象</li>
+<li>与样式相关的对象</li>
+<li>文字相关对象</li>
+<li>表对象</li>
+<li>块对象</li>
+<li>与形状相关对象</li>
+<li>DrawingML对象</li>
+</ul>
+<p>Python-decx 模块</p>
+<p>在DOCX文档中，主要有以下几种组成部分：</p>
+<ul>
+<li>标题</li>
+<li>Page_break</li>
+<li>段落</li>
+<li>图片</li>
+<li>节（Section）</li>
+<li>表格</li>
+</ul>
+<p>https://github.com/langgenius/dify/blob/main/api/core/rag/extractor/word_extractor.py</p>
+<p><img src="../../../assets/md-images/RIY0b1EsvoaQ9sx6QmbcD9rOn5e.png" alt="图片展示了Word文件解析代码，位于文档中“Word文件的解析逻辑”部分。代码中定义了类，包含方法，用于解析Word文档。关键部分是方法，用于提取图片，将图片保存到目录，并映射到字典中，键为图片引用ID，值为HTML格式标签。该图片直观呈现了Word文件解析中图片处理的代码实现，与上下文介绍的图片处理逻辑相呼应。"></p>
+<h2 id="word文件的解析逻辑">Word文件的解析逻辑</h2>
+<ol>
+<li>文字一般采用 python-docs 库直接解析</li>
+<li>图片保存到指定的image_floder 目录中，并被映射到一个image_map字典中，键是图片的引用ID，值是图片的HTML格式标签</li>
+<li>在处理文档内容时候，当遇到图片引用时，会从image_map中获取对应的HTML标签并插入到内容中，直接处理图片的逻辑相同。</li>
+<li>最终生成的文档内容会包含文本和图片的HTML表示</li>
+</ol>
+<h1 id="解析pdf">解析PDF</h1>
+<h2 id="解析pdf文件的特点">解析PDF文件的特点</h2>
+<ol>
+<li>Word、Markdown、HTML 等文档都属于有标记文档。因此它是结构化的，并且直接存储了文本的组织结构信息，例如段落、单元格和表格。这种特性使得Word文档相对容易被计算机直接处理和解析。</li>
+<li>PDF文档在实际工作场景中通常是<strong>非结构化的</strong>，其巨大价值若不经过解析将难以发掘。</li>
+</ol>
+<p><img src="../../../assets/md-images/LJKGbnNzxoac0jxqmV8cViUpnkb.jpg" alt="图片展示了PDF文件的特点相关内容。上方文字说明Word、Markdown、HTML等文档属于有标记文档，是结构化的，直接储存文本组织结构信息。PDF文档在实际工作场景中非结构化，巨大价值需解析发掘。下方代码示例展示了PDF文件的页面内容流，包括流开始、文本块开始、文本字符串放置、文本块结束、流结束等部分，直观呈现了PDF文件的结构。"></p>
+<h2 id="pdf文件的解析">PDF文件的解析</h2>
+<ol>
+<li>Dify 是如何解析PDF的？</li>
+</ol>
+<p>Dify 使用了pypdfium2 库</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">def parse(self, blob: Blob) -&gt; Iterator[Document]:
+    &quot;&quot;&quot;Lazily parse the blob.&quot;&quot;&quot;
+    import pypdfium2  # type: ignore
+
+    with blob.as_bytes_io() as file_path:
+        pdf_reader = pypdfium2.PdfDocument(file_path, autoclose=True)
+        try:
+            for page_number, page in enumerate(pdf_reader):
+                text_page = page.get_textpage()
+                content = text_page.get_text_range()
+                text_page.close()
+                page.close()
+                metadata = {&quot;source&quot;: blob.source, &quot;page&quot;: page_number}
+                yield Document(page_content=content, metadata=metadata)
+        finally:
+            pdf_reader.close()
+</code></pre>
+<ol>
+<li>优化解析的逻辑：通过OCR进行布局识别</li>
+<li>进行表格识别：</li>
+</ol>
+<p>参考代码：https://github.com/infiniflow/ragflow/tree/main/deepdoc</p>
+<h2 id="跨页表格对齐">跨页表格对齐</h2>
+<p>问题：</p>
+<ol>
+<li>表头重复：每一页可能都包含相同的表头。</li>
+<li>行列错位：页面分割导致行或列不完整。</li>
+<li>格式不一致：不同页中表格样式、排版存在差异。</li>
+<li>OCR 识别误差：尤其在扫描件中，文字识别错误影响结构恢复</li>
+</ol>
+<h2 id="关键技术方案">关键技术方案</h2>
+<ol>
+<li>表格结构识别（TSR）</li>
+</ol>
+<ul>
+<li>列（Column）</li>
+<li>行（Row）</li>
+<li>列标题（Header）</li>
+<li>行标题（Row Header）</li>
+<li>合并单元格（Merged Cells）</li>
+</ul>
+<ol>
+<li>
+<p>跨页表格合并策略</p>
+<ol>
+<li>
+<p>表头一致性检测</p>
+<ol>
+<li>使用文本匹配或语义向量判断是否为同一张表的重复表头</li>
+</ol>
+</li>
+<li>
+<p>表格位置分析（Bounding Box）</p>
+<ol>
+<li>判断相邻页中的表格是否在文档不居中连续。</li>
+</ol>
+</li>
+<li>
+<p>自动拼接与去重</p>
+<ol>
+<li>对于相同表头的多个分页表格，按行拼接，并去除重复的表头行</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>结构化输出</p>
+</li>
+</ol>
+<p>将合并后的表格转换为结构化格式，便于下游模型理解</p>
+<h2 id="完整流程示例">完整流程示例</h2>
+<ul>
+<li>步骤 1：布局预测（Layout Predict）</li>
+<li>步骤 2：文档格式检测（MFD Prodict）</li>
+<li>步骤 3：文档格式识别（MFR Predict）</li>
+<li>步骤 4：OCR 处理：自动检测到使用 CPU 时切换为 ch_lite 语言模型</li>
+<li>步骤 5：表格预测（Table Predict）</li>
+</ul>
+<h2 id="pdf-处理">PDF 处理</h2>
+<p><a href="https://mineru.net/">MinerU</a> 官网</p>
+<p>https://github.com/opendatalab/mineru</p>
+<p>本地部署方式和过程更简单，集成 Dify 容易。</p>
+<h1 id="rag-切片有哪几种方式">RAG 切片有哪几种方式？</h1>
+<p>RAG（Retrieval-Augmented Generation）里的**切片（Chunking）**是影响召回效果的核心步骤。切得好，召回准；切不好，模型就“找不到答案”。</p>
+<p>常见的 RAG 切片方式可以分为 6 大类：</p>
+<h2 id="固定长度切片fixed-size-chunking">固定长度切片（Fixed-size Chunking）</h2>
+<p>最简单粗暴的方式：</p>
+<p>按固定 token / 字符数切分，比如：</p>
+<ul>
+<li>每 500 tokens 一段</li>
+<li>每 1000 字符一段</li>
+</ul>
+<h2 id="2️⃣-滑动窗口切片sliding-window">2️⃣ 滑动窗口切片（Sliding Window）</h2>
+<p>在固定长度基础上加“重叠（overlap）”。</p>
+<p>例如：</p>
+<ul>
+<li>chunk_size = 500 tokens</li>
+<li>overlap = 100 tokens</li>
+</ul>
+<h2 id="3️⃣-语义切片semantic-chunking">3️⃣ 语义切片（Semantic Chunking）</h2>
+<p>基于语义边界切分，而不是固定长度。</p>
+<p>常见方式：</p>
+<ul>
+<li>按句子切</li>
+<li>按段落切</li>
+<li>根据 embedding 相似度检测语义断点</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>相邻句 embedding 相似度 &lt; 阈值 → 切断</li>
+</ul>
+<h2 id="4️⃣-结构化切片structure-based-chunking">4️⃣ 结构化切片（Structure-based Chunking）</h2>
+<p>利用文档结构切片：</p>
+<ul>
+<li>Markdown 标题</li>
+<li>HTML 标签</li>
+<li>PDF 目录</li>
+<li>代码函数 / 类</li>
+<li>JSON 字段</li>
+</ul>
+<p>例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 1. 简介
+作为一个 chunk
+
+## 1.1 背景
+作为一个 chunk
+</code></pre>
+<h2 id="5️⃣-递归切片recursive-chunking">5️⃣ 递归切片（Recursive Chunking）</h2>
+<p>常见于 LangChain 的 RecursiveCharacterTextSplitter 思路：</p>
+<p>切分优先级：</p>
+<ol>
+<li>先按段落分</li>
+<li>不够小再按句子分</li>
+<li>还不够再按字符分</li>
+</ol>
+<p>工业项目中非常常见。</p>
+<h2 id="6️⃣-基于问题优化切片query-aware-chunking">6️⃣ 基于问题优化切片（Query-aware Chunking）</h2>
+<p>高级玩法 🔥</p>
+<p>根据用户问题动态切片。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>简单</th>
+<th>精准</th>
+<th>工程复杂度</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定长度</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>滑动窗口</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>语义切片</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>结构化切片</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>递归切片</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Query-aware</td>
+<td>⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="ocr-结合-llm-纠错让图像文本也能精确使用">OCR 结合 LLM 纠错，让图像文本也能精确使用</h1>
+<h2 id="错误类型分析">错误类型分析</h2>
+<ol>
+<li>字符识别错误</li>
+<li>文字遗漏</li>
+<li>多字重复</li>
+<li>格式混乱</li>
+<li>特殊符号识别错误</li>
+</ol>
+<h1 id="faisshnsw还是bm25如何选择最适合业务的向量检索引擎">FAISS、HNSW还是BM25？如何选择最适合业务的向量检索引擎？</h1>
+<h1 id="graph-rag">Graph RAG</h1>
+<p>由微软提出的一种全新的方法 <a href="https://arxiv.org/pdf/2404.16130">https://arxiv.org/pdf/2404.16130</a> 借助 LLM 提取知识库内部实体之间的关系，并构建出知识图谱 基于知识图谱进行问答，提供全局性问题的答案</p>
+<h2 id="graph-rag-demo">Graph RAG Demo</h2>
+<p>借助 Graph Rag 实现运维专家知识库</p>
+<p>建立实体关系，解决全局性问题的对话</p>
+<p><a href="https://github.com/microsoft/graphrag">https://github.com/microsoft/graphrag</a></p>
+<h1 id="借助-neo4j-查看实体关系">借助 Neo4j 查看实体关系</h1>
+<p><img src="../../../assets/md-images/B1jrbWWosoJgPLxyx2TczsnLnLg.jpg" alt="图片展示了借助Neo"></p>
+<h1 id="零代码开源-rag-工具介绍ragflow">零代码开源 RAG 工具介绍：Ragflow</h1>
+<p>要求： CPU &gt;= 4 核 RAM &gt;= 16 GB Disk &gt;= 50 GB Docker &gt;= 24.0.0 &amp; Docker Compose &gt;= v2.26.1 安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">git clone https://github.com/infiniflow/ragflow.git
+cd ragflow/docker
+chmod +x ./entrypoint.sh
+# macOS 注意：docker-compose-base.yml mysql image: mariadb:10.5.8, .env file add 
+RAGFLOW_VERSION=v0.9.0
+MACOS=1
+sudo docker compose -f docker-compose.yml up -d , 访问 http://CVM_IP
+</code></pre>
+<h2 id="ragflow以运维专家知识库为例">Ragflow：以运维专家知识库为例</h2>
+<ol>
+<li>注册账号并登录</li>
+<li>点击右上角头像，进入模型供应商设置</li>
+<li>以 OpenAI 为例，点击添加模型，输入 Base URL 和 APIKEY</li>
+<li>返回首页，创建知识库，选择 Embedding 模型和文档解析方法</li>
+<li>上传文件，点击“启动”按钮进行 Embedding，等待处理完成</li>
+<li>新建助理并基于知识库进行对话</li>
+</ol>
+<h1 id="ragflow-vs-qanything">Ragflow VS QAnything</h1>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>开源厂商</th>
+<th>特色</th>
+<th>Star</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ragflow</td>
+<td>InfiniFlow</td>
+<td>1. 支持几乎所有常见的文档类型；2. 支持 OCR；3. 文本匹配+向量匹配混合排序</td>
+<td>13.8K</td>
+</tr>
+<tr>
+<td>QAnything</td>
+<td>网易</td>
+<td>1. Rerank 设计，检索更准确；2. 文档类型支持稍差；3. 采用 milvus 混合检索</td>
+<td>11K</td>
+</tr>
+</tbody>
+</table></div>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

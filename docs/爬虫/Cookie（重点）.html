@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookie（重点）</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="cookie-的由来">Cookie 的由来</h1>
+<p>大家都知道HTTP协议是无状态的。</p>
+<p>状态可以理解为客户端和服务器在某次会话中产生的数据，那无状态的就以为这些数据不会被保留。每当有新的请求发送时,就会有对应的新响应产生。协议本身并不保留之前一切的请求或响应的相关信息。</p>
+<p>一句有意思的话来描述就是人生只如初见，对服务器来说，每次的请求都是全新的，即使是同一个客户端发起的多个请求间。随着Web的不断发展,因无状态而导致业务处理变得棘手的情况增多，因此我们需要解决这个问题，也就是说要让http可以“保持状态”，那么Cookie就是在这样一个场景下诞生。</p>
+<h1 id="什么是-cookie">什么是 Cookie？</h1>
+<p>首先来讲，cookie是浏览器的技术，Cookie具体指的是一段小信息，它是服务器发送出来存储在浏览器上的一组组键值对，可以理解为服务端给客户端的一个小甜点，下次访问服务器时浏览器会自动携带这些键值对，以便服务器提取有用信息。</p>
+<p>Cookie的本质就是一组数据（键值对的形式存在）</p>
+<p>是<strong>由服务器创建</strong>，返回给客户端，最终会<strong>保存在客户端浏览器</strong>中。</p>
+<p>如果客户端保存了 Cookie，则下次再次访问该服务器，就会携带 Cookie 进行网络访问。</p>
+<p><img src="../../assets/md-images/KQ53bJ855o34Dux2NrsczIIbnae.png" alt="图片展示了浏览器开发者工具中Application标签下的Storage部分，重点突出Cookies选项。在Cookies列表中，以.key和.value标识的键值对形式呈现了多个Cookie信息，如._AspNetCore_Auth、_gat_gtag_UA等。该图片与上文介绍Cookie是服务器发送给客户端存储在浏览器上的一组键值对，下次访问服务器时浏览器会自动携带这些键值对，以便服务器提取有用信息的内容相呼应，直观呈现了Cookie在浏览器中的存储形式。"></p>
+<h1 id="cookie-的原理重点">cookie 的原理（重点）</h1>
+<ul>
+<li>
+<p>cookie 的工作原理是：</p>
+<ul>
+<li>浏览器访问服务端，带着一个空的cookie，然后由服务器产生内容，浏览器收到相应后保存在本地；</li>
+<li>当浏览器再次访问时，浏览器会自动带上Cookie，这样服务器就能通过Cookie的内容来判断这个是“谁”了。</li>
+<li>cookie的内容是由服务器自主设计的，客户端无法干涉！</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../assets/md-images/XRM7btBfColhBuxfkePcqueon6g.png" alt="图片展示了浏览器与服务器间Cookie的交互流程。浏览器发起第一次请求，携带cookie为空；服务器响应时将cookie（set_cookie:xxx=bobo）响应给浏览器客户端；浏览器在第二次请求时，携带cookie（xxx:bobo）。此图直观呈现了Cookie在浏览器与服务器间传递的过程，与上下文介绍的Cookie原理相呼应，帮助理解浏览器如何与服务器共享Cookie信息。"></p>
+<p>注意，不同浏览器之间是不共享Cookie的。也就是说在你使用IE访问服务器时，服务器会把Cookie发给IE，然后由IE保存起来，当你在使用FireFox访问服务器时，不可能把IE保存的Cookie发送给服务器。</p>
+<ul>
+<li>举个例子：不同用户去访问登录某商城网站：</li>
+</ul>
+<p><img src="../../assets/md-images/SJepb1It1oCY6FxFJUQc9XglnVh.png" alt="图片展示了网站登录流程。浏览器打开登录页面，服务器响应登录页面HTML；用户输入用户名密码并点击登陆，服务器存储用户信息，根据令牌验证用户身份，返回用户请求资源；服务器响应对应页面HTML。此图与上下文紧密相关，直观呈现了文档中提到的用户登录网站时，浏览器与服务器间交互的步骤及关键信息，帮助理解cookie在登录过程中的作用。"></p>
+<h3 id="典型的案例网站的免密登录">典型的案例：网站的免密登录</h3>
+<ul>
+<li>
+<p>爬取雪球网中的咨询数据</p>
+<ul>
+<li>url：https://xueqiu.com/，需求就是爬取热帖内容</li>
+</ul>
+</li>
+<li>
+<p>经过分析发现帖子的内容是通过ajax动态加载出来的，因此通过抓包工具，定位到ajax请求的数据包，从数据包中提取：</p>
+<ul>
+<li>url：https://xueqiu.com/statuses/hot/listV2.json?since_id=-1&amp;max_id=311519&amp;size=15</li>
+<li>请求方式：get</li>
+<li>请求参数：拼接在了url后面</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import requests
+import os
+headers = {
+    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36',
+}
+url = 'https://xueqiu.com/statuses/hot/listV2.json'
+param = {
+    &quot;since_id&quot;: &quot;-1&quot;,
+    &quot;max_id&quot;: &quot;311519&quot;,
+    &quot;size&quot;: &quot;15&quot;,
+}
+response = requests.get(url=url,headers=headers,params=param)
+data = response.json()
+print(data)
+#发现没有拿到我们想要的数据
+</code></pre>
+<ul>
+<li>
+<p>分析why？</p>
+<ul>
+<li>切记：只要爬虫拿不到你想要的数据，唯一的原因是爬虫程序模拟浏览器的力度不够！一般来讲，模拟的力度重点放置在请求头中！</li>
+<li>上述案例，只需要在请求头headers中添加cookie即可！</li>
+</ul>
+</li>
+</ul>
+<h1 id="爬虫中cookie的处理方式两种方式">爬虫中cookie的处理方式（两种方式）：</h1>
+<h2 id="手动处理将抓包工具中的cookie赋值到headers中即可">手动处理：将抓包工具中的cookie赋值到headers中即可</h2>
+<ul>
+<li>
+<p>缺点：</p>
+<ul>
+<li>编写麻烦</li>
+<li>cookie通常都会存在有效时长</li>
+<li>cookie中可能会存在实时变化的局部数据</li>
+</ul>
+</li>
+</ul>
+<h2 id="自动处理-重点">自动处理 (重点)</h2>
+<p>爬虫的session会话对象：</p>
+<p>在爬虫里，session对象是一个非常常用的对象，这个对象代表一次用户会话（从客户端浏览器连接服务器开始，到客户端浏览器与服务器断开）。session对象能让我们在跨请求时候保持某些参数，比如在同一个 Session 实例发出的所有请求之间保持 cookie 。</p>
+<p>基于session对象实现自动处理cookie。</p>
+<ul>
+<li>
+<ol>
+<li>创建一个空白的 session 对象。</li>
+</ol>
+</li>
+<li>
+<p>2.需要使用 session 对象发起请求，请求的目的是为了捕获 cookie</p>
+</li>
+<li>
+<p>注意：如果 session 对象在发请求的过程中，服务器端产生了 cookie，则 cookie 会自动存储在 session 对象中。</p>
+</li>
+<li>
+<p>3.使用携带 cookie 的 session 对象，对目的网址发起请求，就可以实现携带 cookie 的请求发送，从而获取想要的数据。</p>
+<ul>
+<li>注意：session 对象至少需要发起两次请求</li>
+</ul>
+</li>
+<li>
+<p>第一次请求的目的是为了捕获存储cookie到session对象</p>
+</li>
+<li>
+<p>后次的请求，就是携带cookie发起的请求了</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import requests
+from lxml import etree
+headers = {
+        'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+}
+
+#创建一个session对象
+session = requests.Session()
+'''
+session对象可以像reqeusts一样进行请求发送
+如果通过session进行请求发送，如果请求后会产生cookie的话，该cookie会被
+        自动保存到session对象中。
+'''
+#使用session对象发请求，获取cookie保存到该对象中
+session.get(url='https://xueqiu.com/',headers=headers)
+
+
+url = 'https://xueqiu.com/statuses/hot/listV3.json?page=3&amp;last_id=295721605'
+#使用了携带cookie的session发起请求
+ret = session.get(url=url,headers=headers).json()
+print(ret)
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
