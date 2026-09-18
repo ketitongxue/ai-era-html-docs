@@ -28,6 +28,14 @@
     {
       "oldPath": "docs/obsidian + claude code.html",
       "newPath": "docs/Claude Code/07 obsidian + claude code.html"
+    },
+    {
+      "oldPath": "docs/DevOps/基础篇/Linux 基础/用户管理.html",
+      "newPath": "docs/DevOps/基础篇/Linux 基础/用户和用户组.html"
+    },
+    {
+      "oldPath": "docs/DevOps/Go/Go 基础篇.html",
+      "newPath": "docs/Go/Go 基础篇.html"
     }
   ]
 }
