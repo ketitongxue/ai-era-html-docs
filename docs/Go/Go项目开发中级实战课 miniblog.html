@@ -198,7 +198,7 @@ $ go install github.com/onexstack/protoc-gen-defaults@v0.0.2
 </code></pre>
 <p>可以通过添加 -x 参数来打印详细的安装过程，从中查看具体哪个步骤耗时较长。</p>
 <h2 id="安装和配置-mariadb-数据库">安装和配置 MariaDB 数据库</h2>
-<p><a href="../%E6%95%B0%E6%8D%AE%E5%BA%93/MariaDB.html">MariaDB</a></p>
+<p>MariaDB</p>
 <h1 id="miniblog-简洁架构实现">miniblog 简洁架构实现</h1>
 <p><img src="../../assets/md-images/ICD3bur8JoexzmxUa9ccbiUMnzb.png" alt="图片展示了miniblog项目简洁架构中API请求的数据流转路径。请求从API开始，先抵达Handler层，依次经过Default（设置请求参数默认值）、Handler、validation（校验请求参数）模块。校验通过后转发到Biz层的Biz模块，其中的conversion模块负责将Biz层数据结构转换为Store层数据结构，随后调用Store层方法。Store层包含CronJob、Job等，其方法继承自Generic Store，最终通过Generic Store完成数据的CURD操作。此图与上文对架构三层及数据流转的描述相呼应。"></p>
 <p>整个软件架构一共分为以下三层：</p>

@@ -46,56 +46,8 @@
       "newPath": "docs/AIOps/AIOps.html"
     },
     {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/05-第一次调用大模型.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/05-第一次调用大模型.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/06-消息角色与多轮对话.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/06-消息角色与多轮对话.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/07-控制模型输出的关键参数.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/07-控制模型输出的关键参数.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/08-结构化输出与数据校验.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/08-结构化输出与数据校验.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/09-同步、流式与异步调用.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/09-同步、流式与异步调用.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/10-构建可靠的模型调用层.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/10-构建可靠的模型调用层.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/21-为什么需要引入开发框架.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/21-为什么需要引入开发框架.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/22-统一模型调用与消息处理.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/22-统一模型调用与消息处理.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/23-对话历史与ChatMemory.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/23-对话历史与ChatMemory.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/24-结构化输出与数据转换.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/24-结构化输出与数据转换.html"
-    },
-    {
       "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/Assistants API.html",
       "newPath": "docs/AIOps/AI 大模型应用开发/Assistants API.html"
-    },
-    {
-      "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/GPT 模型实战.html",
-      "newPath": "docs/AIOps/AI 大模型应用开发/GPT 模型实战.html"
     },
     {
       "oldPath": "docs/DevOps/AIOps/AI 大模型应用开发/OpenAI Embedding.html",
@@ -148,6 +100,10 @@
     {
       "oldPath": "docs/DevOps/AIOps/本地部署常见开源模型并推理（Llama3、Qwen、DeepSeek）.html",
       "newPath": "docs/AIOps/本地部署常见开源模型并推理（Llama3、Qwen、DeepSeek）.html"
+    },
+    {
+      "oldPath": "docs/爬虫/实战案例/00 笔记.html",
+      "newPath": "docs/爬虫/00 笔记.html"
     }
   ]
 }
