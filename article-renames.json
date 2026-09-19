@@ -104,6 +104,22 @@
     {
       "oldPath": "docs/爬虫/实战案例/00 笔记.html",
       "newPath": "docs/爬虫/00 笔记.html"
+    },
+    {
+      "oldPath": "docs/分布式/Paxos 算法.html",
+      "newPath": "docs/DevOps/分布式算法/Paxos 算法.html"
+    },
+    {
+      "oldPath": "docs/分布式/Raft算法.html",
+      "newPath": "docs/DevOps/分布式算法/Raft算法.html"
+    },
+    {
+      "oldPath": "docs/分布式/分布式协议与算法实战.html",
+      "newPath": "docs/DevOps/分布式算法/分布式协议与算法实战.html"
+    },
+    {
+      "oldPath": "docs/分布式/拜占庭将军问题.html",
+      "newPath": "docs/DevOps/分布式算法/拜占庭将军问题.html"
     }
   ]
 }
