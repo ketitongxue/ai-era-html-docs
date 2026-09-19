@@ -326,7 +326,7 @@ def call_with_repair(prompt: str, max_retries: int = 2):
 <li><strong>重试是兜底，不是常规流程。</strong> 能上 <code>json_schema</code> 就不要把这套循环当主要手段。它主要用于「提示词约束 + <code>json_object</code> 」这类弱约束场景的补救。</li>
 </ul>
 <p>如果不想因为重试而导致Token翻倍增加，我们还有一个优化的手段。假设十个字段里九个都对，只有 <code>priority</code> 越界了，没必要整段重来。只针对那一个字段，配上原文重新问一次，既省 Token 又更准，因为这次模型的注意力全在这一个问题上。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-04-%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C.png" alt="01-02-04-结构化输出与数据校验.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-04-%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C.png" alt="01-02-04-结构化输出与数据校验.png"></p>
 </article>
 </main>
 <script>

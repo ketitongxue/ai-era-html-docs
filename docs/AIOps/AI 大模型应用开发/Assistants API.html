@@ -126,9 +126,9 @@ th { background: #eaf0f7; }
 <p>给定一个包含对话的消息列表，返回模型生成的消息作为输出。尽管聊天格式旨在使多轮对话变得简单，但它同样适用于没有任何对话的单轮任务。</p>
 <h2 id="assistants-是什么">Assistants 是什么？</h2>
 <p>助手（Assistants） API 支持你在自己的应用程序中构建人工智能助手。一个助手有其专用的指令，并可以利用模型、工具和知识来回应用户查询。助手API 目前支持三种类型的工具：代码解释器、检索和函数调用。</p>
-<p><img src="../../../../assets/md-images/PrOabVjeOoK24rxADMqcfsSjnVg.png" alt=""></p>
+<p><img src="../../../assets/md-images/PrOabVjeOoK24rxADMqcfsSjnVg.png" alt=""></p>
 <h2 id="assistants-设计模式">Assistants 设计模式</h2>
-<p><img src="../../../../assets/md-images/NJCwbBA4WorwvTxTLBEcYS9Jngg.png" alt=""></p>
+<p><img src="../../../assets/md-images/NJCwbBA4WorwvTxTLBEcYS9Jngg.png" alt=""></p>
 <h2 id="assistants-关键对象说明">Assistants 关键对象说明</h2>
 <div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
 <thead>
@@ -161,9 +161,9 @@ th { background: #eaf0f7; }
 </tbody>
 </table></div>
 <h2 id="assistants-run-指令覆写">Assistants Run 指令覆写</h2>
-<p><img src="../../../../assets/md-images/RAdEbuq0NoLDJUxK7tIcj2HvnLg.png" alt=""></p>
+<p><img src="../../../assets/md-images/RAdEbuq0NoLDJUxK7tIcj2HvnLg.png" alt=""></p>
 <h2 id="assistants-run-生命周期管理">Assistants Run 生命周期管理</h2>
-<p><img src="../../../../assets/md-images/MfIdb2K8qowT3xxN6e7c0PfTnRg.png" alt=""></p>
+<p><img src="../../../assets/md-images/MfIdb2K8qowT3xxN6e7c0PfTnRg.png" alt=""></p>
 <h2 id="assistants-run-状态说明">Assistants Run 状态说明</h2>
 <div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
 <thead>
@@ -272,26 +272,26 @@ th { background: #eaf0f7; }
 <h2 id="代码解释器code-interpreter">代码解释器：Code Interpreter</h2>
 <p>代码解释器允许助手API 在一个沙箱执行环境中编写和运行Python 代码。这个工具可以处理具有多样数据和格式的文件，并生成包含数据和图形图像的文件。代码解释器使您的助手能够迭代运行代码，解决复杂的编码和数学问题。当您的助手编写的代码无法运行时，它可以通过尝试运行不同的代码来迭代这些代码，直到代码执行成功。</p>
 <p>代码解释器的收费标准为每个会话0.03 美元。如果您的助手在两个不同的线程中同时调用代码解释器（例如，每个终端用户一个线程），则会创建两个代码解释器会话。每个会话默认活跃一小时，这意味着如果用户在同一线程中与代码解释器交互一小时以内，只需为一个会话付费。</p>
-<p><img src="../../../../assets/md-images/Fx0cbTFj6orilexcHCNcJHK5ndb.png" alt=""></p>
+<p><img src="../../../assets/md-images/Fx0cbTFj6orilexcHCNcJHK5ndb.png" alt=""></p>
 <h2 id="信息检索knowledge-retrieval">信息检索：Knowledge Retrieval</h2>
 <p>检索功能通过从模型外部引入知识来增强助手的能力，例如来自您的专有产品信息或用户提供的文件。一旦文件被上传并传递给助手，OpenAI 将自动对您的文件进行分块处理，索引并存储嵌入，并实施向量搜索以检索相关内容以回答用户查询。</p>
 <p>检索的价格为每助手每天$0.20/GB。当启用检索工具时，将同一个文件ID 附加到多个助手将会产生每助手每天的费用。例如，如果您将同一个1GB的文件附加到两个启用了检索工具的不同助手（例如，面向客户的助手#1 和内部员工助手#2），您将为这个存储费用支付两次（每天2 * 0.20 美元）。这个费用不随给定助手检索知识的终端用户数量和线程数量而变化。</p>
-<p><img src="../../../../assets/md-images/PwUebjC5ko4QvaxwV6Lc2czXnSh.png" alt=""></p>
+<p><img src="../../../assets/md-images/PwUebjC5ko4QvaxwV6Lc2czXnSh.png" alt=""></p>
 <h3 id="assistants-支持文件类型">Assistants 支持文件类型</h3>
-<p><img src="../../../../assets/md-images/UbYKbCwyComYuTxxAzkc9vuwnrf.png" alt=""></p>
-<p><img src="../../../../assets/md-images/L59hbVau3oLewFxaIAncdE3lnUf.png" alt=""></p>
+<p><img src="../../../assets/md-images/UbYKbCwyComYuTxxAzkc9vuwnrf.png" alt=""></p>
+<p><img src="../../../assets/md-images/L59hbVau3oLewFxaIAncdE3lnUf.png" alt=""></p>
 <h3 id="openai-文件存储">OpenAI 文件存储</h3>
-<p><img src="../../../../assets/md-images/LDfWbE71coFJcRxkYVPci12XnWd.png" alt=""></p>
-<p><img src="../../../../assets/md-images/EP0rblN3MoInEKxuT2HcgE83nXg.png" alt=""></p>
+<p><img src="../../../assets/md-images/LDfWbE71coFJcRxkYVPci12XnWd.png" alt=""></p>
+<p><img src="../../../assets/md-images/EP0rblN3MoInEKxuT2HcgE83nXg.png" alt=""></p>
 <h2 id="函数调用function-calling">函数调用：Function Calling</h2>
 <p>类似Chat Completions API，助手API 也支持函数调用功能。</p>
 <p>函数调用允许用户向助手描述函数，并让其智能地返回需要调用的函数及其参数。</p>
 <p>当助手API 在运行中调用函数时，会暂停执行，您可以提供函数调用的结果以继续运行执行。</p>
-<p><img src="../../../../assets/md-images/TEBjbflo8oPyTIxLjGvcTAXpnHe.png" alt=""></p>
+<p><img src="../../../assets/md-images/TEBjbflo8oPyTIxLjGvcTAXpnHe.png" alt=""></p>
 <h1 id="assistants-开发实战">Assistants 开发实战</h1>
-<p><img src="../../../../assets/md-images/THT8bHLtHoK98jx4MLBcbXmhnGf.png" alt=""></p>
-<p><img src="../../../../assets/md-images/PzC5bPHHMobpsSxvtNscu9yTnDh.png" alt=""></p>
-<p><img src="../../../../assets/md-images/Szdlb5k6doBQcaxHw0HcfycbnzT.png" alt=""></p>
+<p><img src="../../../assets/md-images/THT8bHLtHoK98jx4MLBcbXmhnGf.png" alt=""></p>
+<p><img src="../../../assets/md-images/PzC5bPHHMobpsSxvtNscu9yTnDh.png" alt=""></p>
+<p><img src="../../../assets/md-images/Szdlb5k6doBQcaxHw0HcfycbnzT.png" alt=""></p>
 </article>
 </main>
 <script>

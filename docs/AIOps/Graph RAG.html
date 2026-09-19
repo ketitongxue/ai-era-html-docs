@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fine-tuning 实战</title>
+<title>Graph RAG</title>
 <style>
 :root {
   color-scheme: light;
@@ -120,107 +120,47 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="fine-tuning-实战">Fine-tuning 实战</h1>
-<p>微调通过输入给大模型更多的样本数据来改进模型的表现，使其在一些特定的任务上输出更好的结果。</p>
-<p>使用场景：</p>
-<ul>
-<li>要求输出特定的风格和格式等</li>
-<li>提高输出的可靠性</li>
-<li>纠正无法遵循复杂提示语的问题</li>
-<li>执行一项难以用语言表达的新技能或任务</li>
-</ul>
-<h1 id="fine-tuning-日志分析专家">Fine-tuning 日志分析专家</h1>
-<p>使用真实的已标注数据进行 Fine-tuning，使模型具备判断日志故障优先级的能力</p>
-<p>需要将表格处理成如下的格式：</p>
-<p>执行：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import csv
-import json
-import os
-
-
-def convert_csv_to_jsonl(csv_file_path, jsonl_file_path):
-    with open(csv_file_path, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-
-        with open(jsonl_file_path, mode=&quot;w&quot;, encoding=&quot;utf-8&quot;) as jsonl_file:
-            for row in csv_reader:
-                log = row[&quot;log&quot;]
-                priority = row[&quot;优先级&quot;]
-
-                jsonl_entry = {
-                    &quot;messages&quot;: [
-                        {
-                            &quot;role&quot;: &quot;system&quot;,
-                            &quot;content&quot;: &quot;你现在是一个日志告警专家，请根据日志内容去识别紧急程度，直接输出 P0 P1 或 P2，输出：&quot;,
-                        },
-                        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: log},
-                        {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: priority},
-                    ]
-                }
-
-                jsonl_file.write(json.dumps(jsonl_entry, ensure_ascii=False) + &quot;\n&quot;)
-
-
-csv_file_path = os.path.join(os.path.dirname(__file__), &quot;data&quot;, &quot;log.csv&quot;)
-print(f&quot;csv_file_path:{csv_file_path}&quot;)
-jsonl_file_path = &quot;log.jsonl&quot;
-print(f&quot;jsonl_file_path:{jsonl_file_path}&quot;)
-convert_csv_to_jsonl(csv_file_path, jsonl_file_path)
-</code></pre>
-<p><img src="../../../assets/md-images/ECFIbxsCLonvkoxNfs1cWRtlnV5.jpg" alt=""></p>
-<p>lesson/module_4/demo_6/process_data.py</p>
-<p>Fine-tuning 数据格式：jsonl</p>
-<p>包含 system prompt、user、assistant每行代表一条日志标注数据</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 02finetune.py
-from openai import OpenAI
-
-client = OpenAI()
-
-# 上传微调数据
-file_name = client.files.create(file=open(&quot;log.jsonl&quot;, &quot;rb&quot;), purpose=&quot;fine-tune&quot;)
-file_id = file_name.id
-print(&quot;file_id is: &quot;, file_id)
-
-# 创建微调任务
-finetune_job = client.fine_tuning.jobs.create(
-    training_file=file_id, model=&quot;gpt-4o-mini-2024-07-18&quot;
-)
-job_id = finetune_job.id
-print(&quot;job_id is: &quot;, job_id)
-</code></pre>
-<p>流程：</p>
-<ul>
-<li>准备微调数据</li>
-<li>上传微调文件</li>
-<li>创建微调任务</li>
-<li>获取微调后的模型 ID</li>
-</ul>
-<p>注意：</p>
-<ul>
-<li>微调时间取决于微调数据量大小，耗时较长</li>
-<li>可微调模型包括：gpt-4o-mini-2024-07-18、gpt-3.5-turbo-0125 等</li>
-</ul>
-<h1 id="fine-tuning-日志分析专家-推理">Fine-tuning 日志分析专家-推理</h1>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 04chat.py
-from openai import OpenAI
-
-client = OpenAI()
-
-model_id = &quot;ft:gpt-4o-mini-2024-07-18:he3::9tbKC81t&quot;
-
-completion = client.chat.completions.create(
-    model=model_id,
-    messages=[
-        {
-            &quot;role&quot;: &quot;system&quot;,
-            &quot;content&quot;: &quot;你现在是一个日志告警专家，请根据日志内容去识别紧急程度，直接输出 P1 P2 或 P3，输出：&quot;,
-        },
-        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Disk I/O error&quot;},
-    ],
-)
-
-print(&quot;ChatGPT resp: &quot;, completion.choices[0].message.content)
-</code></pre>
+<h1 id="graph-rag">Graph RAG</h1>
+<p>由微软提出的一种全新的方法 <a href="https://arxiv.org/pdf/2404.16130">https://arxiv.org/pdf/2404.16130</a> 借助 LLM 提取知识库内部实体之间的关系，并构建出知识图谱 基于知识图谱进行问答，提供全局性问题的答案</p>
+<h3 id="graph-rag-demo">Graph RAG Demo</h3>
+<p>借助 Graph Rag 实现运维专家知识库</p>
+<p>建立实体关系，解决全局性问题的对话</p>
+<p><a href="https://github.com/microsoft/graphrag">https://github.com/microsoft/graphrag</a></p>
+<h1 id="借助-neo4j-查看实体关系">借助 Neo4j 查看实体关系</h1>
+<p><img src="../../assets/md-images/Vjtbbq7Bmozr61xjVqNckCEbnOh.jpg" alt=""></p>
+<h1 id="零代码开源-rag-工具介绍ragflow">零代码开源 RAG 工具介绍：Ragflow</h1>
+<p>要求： CPU &gt;= 4 核 RAM &gt;= 16 GB Disk &gt;= 50 GB Docker &gt;= 24.0.0 &amp; Docker Compose &gt;= v2.26.1 安装：</p>
+<ol>
+<li>
+<p>git clone <a href="https://github.com/infiniflow/ragflow.git">https://github.com/infiniflow/ragflow.git</a></p>
+</li>
+<li>
+<p>cd ragflow/docker</p>
+</li>
+<li>
+<p>chmod +x ./entrypoint.sh</p>
+</li>
+<li>
+<p>macOS 注意：docker-compose-base.yml mysql image: mariadb:10.5.8, .env file add</p>
+<ol>
+<li>RAGFLOW_VERSION=v0.9.0</li>
+<li>MACOS=1</li>
+</ol>
+</li>
+<li>
+<p>sudo docker compose -f docker-compose.yml up -d , 访问 http://CVM_IP</p>
+</li>
+</ol>
+<h2 id="ragflow以运维专家知识库为例">Ragflow：以运维专家知识库为例</h2>
+<ol>
+<li>注册账号并登录</li>
+<li>点击右上角头像，进入模型供应商设置</li>
+<li>以 OpenAI 为例，点击添加模型，输入 Base URL 和 APIKEY</li>
+<li>返回首页，创建知识库，选择 Embedding 模型和文档解析方法</li>
+<li>上传文件，点击“启动”按钮进行 Embedding，等待处理完成</li>
+<li>新建助理并基于知识库进行对话</li>
+</ol>
+<h1 id="ragflow-vs-qanything">Ragflow VS QAnything</h1>
 </article>
 </main>
 <script>

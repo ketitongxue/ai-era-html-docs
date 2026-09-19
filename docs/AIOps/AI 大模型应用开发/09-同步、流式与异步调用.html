@@ -140,7 +140,7 @@ print(resp.choices[0].message.content)
 <p>但它有个绕不开的问题： <strong>对于输出较长的请求，用户要长时间等待</strong> 。这里要先回顾模块一讲过的一个关键事实：大模型是 <strong>逐 Token 生成</strong> 的，它不是一下子想好整段话，而是一个词一个词地逐个生成，前一个 token 是后一个 token 的输入。所以输出越长，生成耗时越久。</p>
 <p>假设模型每秒生成 50 个 token，一段 500 token 的回答，光生成就要 10 秒。同步模式下，用户盯着一个转圈的图标看整整 10 秒，屏幕上什么都没有。这 10 秒里内容其实早就一段段生成出来了，只是被服务端攒着暂时没返回。</p>
 <p>而且更糟的是： <strong>输出越长，越容易超时</strong> 。同步调用是一个从头到尾都不回传数据的长连接，中间一直没有任何数据往回传。可这条链路上多处存在超时限制：你代码里 HTTP 客户端的默认超时、中间的反向代理（如 Nginx）、网关、负载均衡器，很多默认就是 30 秒或 60 秒超时。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-05-%E5%90%8C%E6%AD%A5%E8%B0%83%E7%94%A8%E8%B6%85%E6%97%B6%E9%93%BE%E8%B7%AF.png" alt="01-02-05-同步调用超时链路.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-05-%E5%90%8C%E6%AD%A5%E8%B0%83%E7%94%A8%E8%B6%85%E6%97%B6%E9%93%BE%E8%B7%AF.png" alt="01-02-05-同步调用超时链路.png"></p>
 <p>一旦模型要生成一篇长文，几十秒才生成完，链路上任何一环等不及先掐断连接，你这边就直接报超时错误，前面已经生成好的内容也全部丢失了。</p>
 <p>正因为这个原因，OpenAI、Anthropic、Google 以及国内的 DeepSeek、Qwen 等厂商，在文档里都会明确提醒： <strong>当预期输出较长时，请使用流式调用</strong> ，用持续不断的数据流让连接保持活跃、不被超时断开，从根本上绕开这类超时。这就引出了下一个方案。</p>
 <h2 id="二流式调用">二、流式调用</h2>
@@ -148,7 +148,7 @@ print(resp.choices[0].message.content)
 <p>技术上，它通常基于 <strong>SSE（Server-Sent Events，服务器发送事件）</strong> 实现：客户端发起请求后，服务端不关闭连接，而是把生成的内容切成一个个小片段（称为 chunk，数据块），通过同一个长连接持续往回推，直到大模型生成完成，最后发一个结束标记。</p>
 <p>你在 ChatGPT 里看到的&quot;打字机&quot;效果，本质就是前端把这些 chunk 一到就立刻渲染出来。</p>
 <p>这里要澄清一个新手常犯的误区：流式并不是&quot;前端直连大模型&quot;。真实产品里链路是 <strong>分两段</strong> 的： <strong>前端（浏览器）通过 SSE 或 WebSocket 跟你自己的应用服务器通信，应用服务器再通过 SSE 跟大模型服务通信</strong> 。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-05-%E6%B5%81%E5%BC%8F%E4%B8%A4%E6%AE%B5%E9%93%BE%E8%B7%AF.png" alt="01-02-05-流式两段链路.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-05-%E6%B5%81%E5%BC%8F%E4%B8%A4%E6%AE%B5%E9%93%BE%E8%B7%AF.png" alt="01-02-05-流式两段链路.png"></p>
 <p>为什么这么分？</p>
 <p>一是安全，大模型的 API Key 绝不能下发到前端，必须由应用服务器持有并转发；</p>
 <p>二是应用服务器在中间还要做鉴权、限流、计费、敏感词过滤、多轮对话拼接等多项业务逻辑。</p>
@@ -184,7 +184,7 @@ for chunk in stream:
 <p>这背后还有一层更关键的服务端考量： <strong>在高并发下，绝不能让长任务长期占用请求处理线程（Web 线程）</strong> 。</p>
 <p>要知道，Web 服务器（如 Tomcat、Jetty）用来接请求的线程池是很宝贵且有限的，可能就几百个。如果每来一个长任务就占着一个 Web 线程死等几分钟，那么稍微来一点并发，这几百个线程立刻被占满，后续请求连&quot;被接收&quot;的机会都没有，整个服务直接瘫痪、无法响应。</p>
 <p>当单个任务耗时极长（几分钟甚至更久），你不可能让一个 HTTP 请求挂在那里等，用户的浏览器早超时了。正确的做法是：Web 线程只负责&quot;接收请求、把任务塞进队列、立刻返回任务 ID&quot;这种毫秒级的工作，随即被释放去处理下一个请求；真正耗时的大模型调用则丢进 <strong>任务队列</strong> ，交给 <strong>独立的后台线程池</strong> 慢慢处理，两者互不抢占。客户端再通过 <strong>轮询（Polling）</strong> 查任务状态，获取处理结果。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-05-%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E6%8F%90%E4%BA%A4%E4%B8%8E%E8%BD%AE%E8%AF%A2.png" alt="01-02-05-异步任务提交与轮询.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-05-%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E6%8F%90%E4%BA%A4%E4%B8%8E%E8%BD%AE%E8%AF%A2.png" alt="01-02-05-异步任务提交与轮询.png"></p>
 <p>有些大模型厂商甚至直接提供了 Batch（批处理）接口，你把一大批任务打包提交，它异步处理完再给你结果，价格还更便宜。</p>
 <p>以 OpenAI 为例。你不是在一个 HTTP 请求里直接塞多个任务，而是先在本地准备一个文本文件：每一行写一条完整的 JSON，对应一次普通的模型调用。这种「一行一条 JSON」的格式叫 <strong>JSONL（JSON Lines）</strong> 。</p>
 <p>文件准备好后，先把它上传到厂商的文件接口。上传成功会返回一个文件对象，里面最重要的是 <code>id</code> ，类似 <code>file-abc123</code> 。接着拿着这个 <code>id</code> ，作为 <code>input_file_id</code> 去提交一个批次，等于告诉厂商：「去跑我刚传上去的那份文件」。提交接口立刻返回 <code>batch_id</code> ，之后轮询这个 ID 的状态、下载结果即可，不用自己维持一条长时间的 HTTP 连接。Qwen 等国产厂商也有同类接口，路径和字段以各自文档为准。</p>
@@ -216,7 +216,7 @@ curl https://api.openai.com/v1/batches \
 curl https://api.openai.com/v1/batches/batch_abc123 \
   -H &quot;Authorization: Bearer $OPENAI_API_KEY&quot;
 </code></pre>
-<p><img src="../../../../assets/llm-application-basics/01-02-05-%E5%90%8C%E6%AD%A5%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8.png" alt="01-02-05-同步、流式与异步调用.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-05-%E5%90%8C%E6%AD%A5%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8.png" alt="01-02-05-同步、流式与异步调用.png"></p>
 </article>
 </main>
 <script>

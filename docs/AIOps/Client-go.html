@@ -127,13 +127,13 @@ th { background: #eaf0f7; }
 <h2 id="kubernetes-api-group">Kubernetes API Group</h2>
 <p>K8s API 分为核心 API（Core） 和命名 API 组（named），对资源的增删改查可以理解为是对 K8s API 的请求</p>
 <p>Client-go 封装了请求 API 所需的鉴权、请求参数以及将返回 JSON 转化为 Go 结构体（Unmarshaling）</p>
-<p><img src="../../../assets/md-images/HkH4bpmL4o1zTQxkPRRc7vqvn0f.jpg" alt=""></p>
+<p><img src="../../assets/md-images/HkH4bpmL4o1zTQxkPRRc7vqvn0f.jpg" alt=""></p>
 <h3 id="kubernetes-core-api">Kubernetes Core API</h3>
 <p>包括 namespace、 service、pods、nodes、configmap、secrets、pv 等对象</p>
-<p><img src="../../../assets/md-images/IKN5bbrhToKnTjxduWCccjqFnWc.jpg" alt=""></p>
+<p><img src="../../assets/md-images/IKN5bbrhToKnTjxduWCccjqFnWc.jpg" alt=""></p>
 <h3 id="kubernetes-named-api-groups">Kubernetes Named API Groups</h3>
 <p>包括 apps/v1/deployments、 apps/v1/replicasets 等对象</p>
-<p><img src="../../../assets/md-images/G2oQb68QCoFKMqxtArJcqdCInze.jpg" alt=""></p>
+<p><img src="../../assets/md-images/G2oQb68QCoFKMqxtArJcqdCInze.jpg" alt=""></p>
 <h2 id="验证-k8s-api-请求">验证 K8s API 请求</h2>
 <p>获取 namespaces(core API)：https://127.0.0.1:56025/api/v1/namespaces?limit=500</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% kubectl get ns -v6
@@ -431,7 +431,7 @@ kubectl create rolebinding incluster --role incluster --serviceaccount default:d
 <li>DiscoveryClient</li>
 </ol>
 <p>ClientSet 和 DynamicClient 用的会多一些。</p>
-<p><img src="../../../assets/md-images/AlaKbNaxsofUGJxYOexcEj39nmg.png" alt=""></p>
+<p><img src="../../assets/md-images/AlaKbNaxsofUGJxYOexcEj39nmg.png" alt=""></p>
 <h2 id="restclient">RestClient</h2>
 <p>源码：https://github.com/kubernetes/client-go/blob/master/rest/client.go</p>
 <p>最底层的客户端，直接跟 Rest API 交互</p>
@@ -837,7 +837,7 @@ func main() {
 </ul>
 <h1 id="实战一实现一个-client-go-watch-客户端">实战一：实现一个 Client-go Watch 客户端</h1>
 <h2 id="概述">概述</h2>
-<p><img src="../../../assets/md-images/VpJVb7nR1o13TTxiZJUcPOqQntd.png" alt=""></p>
+<p><img src="../../assets/md-images/VpJVb7nR1o13TTxiZJUcPOqQntd.png" alt=""></p>
 <p>Watch 指的是持续监听特定的资源变化，包括增删改查。</p>
 <p>使用 ClientSet 提供的 Watch 方法监听事件。</p>
 <p>一旦产生事件，则可以执行对应的业务逻辑。</p>
@@ -1065,7 +1065,7 @@ func onDeleteService(obj interface{}) {
 </ul>
 <h1 id="进阶informersindexerworkqueue">进阶：Informers、Indexer、Workqueue</h1>
 <h2 id="informer-架构">Informer 架构</h2>
-<p><img src="../../../assets/md-images/XGZzbhqiRoRmHWxvKwVcDMoXnJb.jpg" alt=""></p>
+<p><img src="../../assets/md-images/XGZzbhqiRoRmHWxvKwVcDMoXnJb.jpg" alt=""></p>
 <ul>
 <li>Reflector：借助 List/Watch 机制监听资源变化，并将对象放到 Delta Fifo 队列里</li>
 <li>Informer：从 Delta Fifo 队列里弹出对象，然后将对象缓存到 Indexer 里（线程安全的 Map</li>

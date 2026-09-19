@@ -130,7 +130,7 @@ th { background: #eaf0f7; }
 <p>API 你应该不陌生。它本质就是一个约定好的网络接口：你按规定的格式发一个 HTTP 请求过去，服务按规定的格式返回一个 JSON 响应。对大模型来说，这个约定就是：你把对话内容按照格式打包成 JSON 发过去，它把生成的文本打包成 JSON 还给你。 <strong>任何语言、任何程序，只要能发 HTTP 请求，就能调用大模型。</strong></p>
 <p>但直接手写 HTTP 请求较为繁琐：要拼 URL、设请求头、处理认证、解析 JSON、处理流式返回……于是厂商又提供了 <strong>SDK</strong> 。</p>
 <p>SDK 是对 API 的一层封装。它把「发 HTTP 请求」这件事包装成你熟悉的函数调用，你只管传参数、拿返回值，底层的拼装和解析它都替你做了。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-01-%E6%A8%A1%E5%9E%8B%E6%9C%8D%E5%8A%A1-API-SDK.png" alt="01-02-01-模型服务-API-SDK.png"><br>
+<p><img src="../../../assets/llm-application-basics/01-02-01-%E6%A8%A1%E5%9E%8B%E6%9C%8D%E5%8A%A1-API-SDK.png" alt="01-02-01-模型服务-API-SDK.png"><br>
 也就是说， <strong>SDK 是可选的、API 是必须的</strong> 。SDK 底下发的还是 HTTP 请求，只是你无法直接看到。理解这一点很重要：出了问题你才知道该去哪一层排查：是 SDK 配置不对，还是 API 参数传错，还是模型服务本身返回了错误。</p>
 <h2 id="二api-key-与基础配置">二、API Key 与基础配置</h2>
 <p>要调用付费的模型服务，服务得知道「你是谁、该向谁计费」。这靠的是 <strong>API 密钥（API Key）</strong> ：一串你在厂商控制台申请到的字符串，通常长这样： <code>sk-xxxxxxxxxxxxxxxx</code> 。每次请求都要带上它，服务验证通过才会响应。</p>
@@ -320,7 +320,7 @@ curl https://api.anthropic.com/v1/messages \
 }
 </code></pre>
 <p>API这块变化非常快，各家接口的字段和能力一直在更新，用的时候查下官方文档即可，这里我们只要建立一个认知： <strong>接口规范不止 Chat Completions API 一种，选接口本质是在「通用性」和「独家能力」之间做权衡。</strong></p>
-<p><img src="../../../../assets/llm-application-basics/01-02-01-%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%B0%83%E7%94%A8%E5%A4%A7%E6%A8%A1%E5%9E%8B.png" alt="01-02-01-第一次调用大模型.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-01-%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%B0%83%E7%94%A8%E5%A4%A7%E6%A8%A1%E5%9E%8B.png" alt="01-02-01-第一次调用大模型.png"></p>
 </article>
 </main>
 <script>

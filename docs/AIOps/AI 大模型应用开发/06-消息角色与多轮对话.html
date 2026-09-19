@@ -150,12 +150,12 @@ th { background: #eaf0f7; }
 <p><strong>第一，把最重要的约束放 System，把当前这轮最具体的要求放在 User 消息末尾。</strong> 比如 System 规定&quot;永远用 JSON 回答&quot;，而某一轮用户临时说&quot;这次用自然语言解释一下&quot;，模型大概率会顺从后者。如果你不希望被覆盖，就得在 System 里把约束写得更明确、不允许例外，或者在应用层拦截。</p>
 <p><strong>第二，警惕&quot;后文覆盖前文&quot;带来的指令漂移。</strong> 对话很长时，早期 System 设定的风格会被后面几十轮的对话稀释、偏离原设定。比如，客服机器人聊到第 20 轮，突然不按规范话术说话了。原因往往就是早期 System 权重被大量后续内容冲淡。工程上的应对办法是：在关键轮次 <strong>重新注入或强调 System 指令</strong> ，比如每隔若干轮，或在检测到偏离既定风格时，把核心规则再拼一遍到上下文靠后的位置。</p>
 <p>用一张图理解模型&quot;读&quot;上下文的顺序和注意力倾向：</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-02-%E4%B8%8A%E4%B8%8B%E6%96%87%E9%A1%BA%E5%BA%8F%E4%B8%8E%E6%B3%A8%E6%84%8F%E5%8A%9B.png" alt="01-02-02-上下文顺序与注意力.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-02-%E4%B8%8A%E4%B8%8B%E6%96%87%E9%A1%BA%E5%BA%8F%E4%B8%8E%E6%B3%A8%E6%84%8F%E5%8A%9B.png" alt="01-02-02-上下文顺序与注意力.png"></p>
 <h2 id="三无状态-api-与记忆的真相">三、无状态 API 与&quot;记忆&quot;的真相</h2>
 <p>现在讲最反直觉、也最重要的点。</p>
 <p>你可能会觉得，我和模型聊了好几轮，服务器那边肯定存着我们的对话吧？ <strong>恰恰相反。大模型的 API 是无状态的（Stateless）。每一次调用都是全新的、独立的、没有任何记忆的。</strong> 大模型不会帮你保存上一轮说了什么。这次请求结束，它不会保留任何上一轮状态。</p>
 <p>那对话为什么能连续？因为 <strong>&quot;记忆&quot;是由应用（对话助手）自己构造的</strong> 。每次调用时，应用把你从头到现在的所有历史消息，重新放入 <code>messages</code> 数组一起发过去。模型看到的从来不是&quot;第 5 轮&quot;，而是&quot;这 5 轮的完整文本&quot;。它不是记得，它是每次都重新读了一遍全部历史对话。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-02-%E6%9C%89%E7%8A%B6%E6%80%81%E4%B8%8E%E6%97%A0%E7%8A%B6%E6%80%81.png" alt="01-02-02-有状态与无状态.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-02-%E6%9C%89%E7%8A%B6%E6%80%81%E4%B8%8E%E6%97%A0%E7%8A%B6%E6%80%81.png" alt="01-02-02-有状态与无状态.png"></p>
 <p>理解了这点，很多现象就能解释清楚：为什么对话越长响应越慢、越贵（因为每次都在重发全部历史）；为什么同一个用户换个设备还能接着聊（因为历史存在应用的数据库里，不在模型那里）。</p>
 <p>下面是一个实现&quot;记忆&quot;的示例代码：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from openai import OpenAI
@@ -221,10 +221,10 @@ print(chat(&quot;我叫什么？&quot;))  # 能答对，因为上一轮的信息
 <li>热数据放缓存（如 Redis），读写快，适合正在进行的会话，可设过期时间自动清理；</li>
 <li>全量/长期历史落数据库（如 MySQL、MongoDB），持久、可追溯、支持跨设备续聊。</li>
 </ul>
-<p><img src="../../../../assets/llm-application-basics/01-02-02-%E5%A4%9A%E7%94%A8%E6%88%B7%E4%B8%8E%E5%8E%86%E5%8F%B2%E5%AD%98%E5%82%A8.png" alt="01-02-02-多用户与历史存储.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-02-%E5%A4%9A%E7%94%A8%E6%88%B7%E4%B8%8E%E5%8E%86%E5%8F%B2%E5%AD%98%E5%82%A8.png" alt="01-02-02-多用户与历史存储.png"></p>
 <p><strong>存储的可以是完整历史，每次真正发给模型的，是经过裁剪/摘要后的版本。</strong> 你库里存全量便于审计和回溯，发给模型的则是精挑细选、控制在预算内的那一份。两者分离，才能兼顾成本与可靠。</p>
 <p>同样，这里也只是简单讲了对话这个场景如何记录历史消息，在后面讲到的 Agent 的时候，我们还会详细讲解 Agent 的状态管理和记忆系统，会复杂得多。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-02-%E6%B6%88%E6%81%AF%E8%A7%92%E8%89%B2%E4%B8%8E%E5%A4%9A%E8%BD%AE%E5%AF%B9%E8%AF%9D.png" alt="01-02-02-消息角色与多轮对话.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-02-%E6%B6%88%E6%81%AF%E8%A7%92%E8%89%B2%E4%B8%8E%E5%A4%9A%E8%BD%AE%E5%AF%B9%E8%AF%9D.png" alt="01-02-02-消息角色与多轮对话.png"></p>
 </article>
 </main>
 <script>

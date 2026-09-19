@@ -230,7 +230,7 @@ th { background: #eaf0f7; }
 </table></div>
 <p>从上表中，我们可以发现，左右两列几乎可以逐行对上。这也意味着： <strong>你只要真正掌握其中一个开发框架，另一个对你来说就只是换了一批名字。</strong> 所以这门课不打算把两套框架的 API 逐个讲一遍，而是讲清楚这些抽象本身。</p>
 <p>有了这层认识，再回头看没有框架时的依赖关系，差别就很直观了：</p>
-<p><img src="../../../../assets/llm-application-basics/01-05-01-%E6%9C%89%E6%97%A0%E6%A1%86%E6%9E%B6%E4%BE%9D%E8%B5%96.png" alt="01-05-01-有无框架依赖.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-05-01-%E6%9C%89%E6%97%A0%E6%A1%86%E6%9E%B6%E4%BE%9D%E8%B5%96.png" alt="01-05-01-有无框架依赖.png"></p>
 <p>接口这一层，换来的最直接的收益就是可替换性。</p>
 <p>开发阶段用内存向量库，速度快，也不用额外部署中间件；上线换成 pgvector，业务代码一行不用改，只需要改依赖和配置：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># LangChain：换向量库只影响构造那一行，下游用法完全不变
@@ -284,7 +284,7 @@ answer = chain.invoke({&quot;question&quot;: &quot;出差住酒店最多能报�
 <p><strong>第一，你的业务系统在哪个生态。</strong> 这一条权重最大，基本是决定性的。大模型能力最终要接进订单、工单、客服、报销这些既有系统里。如果这些系统是 Spring Boot 写的，为了用 LangChain 而单独再开一个 Python 服务，就要额外承担一次跨进程调用、一套部署运维。这个代价通常比框架之间的差距大得多。</p>
 <p><strong>第二，你的需求离前沿有多近。</strong> 如果做的是标准的 RAG 问答、文档摘要、工单分类等业务，三个框架都够用，按第一条选就可以。但如果要做复杂 Agent、多 Agent 协作，或者需要及时跟进业界刚出现的新方法，LangChain是更好的选择，因为新方法基本都先在 LangChain 落地。</p>
 <p>现实中最常见的落地形态其实是混合： <strong>在线服务用 Java，离线链路用 Python。</strong> 用户请求走 Spring Boot，检索、模型调用、结果拼装都在 Java 里完成；文档解析、切分、批量向量化、效果评测等这些离线任务放在 Python里完成。两边通过向量库和数据库交换数据，各用各的强项。</p>
-<p><img src="../../../../assets/llm-application-basics/01-05-01-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%BC%95%E5%85%A5%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6.png" alt="01-05-01-为什么需要引入开发框架.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-05-01-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%BC%95%E5%85%A5%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6.png" alt="01-05-01-为什么需要引入开发框架.png"></p>
 </article>
 </main>
 <script>

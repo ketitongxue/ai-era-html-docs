@@ -278,7 +278,7 @@ claim = (prompt | structured_model).invoke({&quot;text&quot;: raw_text})
         .entity(ExpenseClaim.class, spec -&gt; spec.validateSchema());
 </code></pre>
 <p>它背后是自动注册的 <code>StructuredOutputValidationAdvisor</code> ，流程是这样的：</p>
-<p><img src="../../../../assets/llm-application-basics/01-05-04-%E6%A0%A1%E9%AA%8C%E5%A4%B1%E8%B4%A5%E9%87%8D%E8%AF%95.png" alt="01-05-04-校验失败重试.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-05-04-%E6%A0%A1%E9%AA%8C%E5%A4%B1%E8%B4%A5%E9%87%8D%E8%AF%95.png" alt="01-05-04-校验失败重试.png"></p>
 <p>想修改重试次数，需要自己创建一个 Advisor 注册上去，显式注册的会替换掉自动注册的那个：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-java">var validationAdvisor = StructuredOutputValidationAdvisor.builder()
         .outputType(ExpenseClaim.class)
@@ -296,7 +296,7 @@ result[&quot;parsed&quot;]         # 解析成功时的对象，失败时是 Non
 result[&quot;parsing_error&quot;]  # 解析失败时的异常
 </code></pre>
 <p><strong>注意默认行为：不加 <code>include_raw</code> ，解析失败会直接抛异常。</strong> 加上之后异常转换为 <code>parsing_error</code> 。</p>
-<p><img src="../../../../assets/llm-application-basics/01-05-04-%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2.png" alt="01-05-04-结构化输出与数据转换.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-05-04-%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2.png" alt="01-05-04-结构化输出与数据转换.png"></p>
 </article>
 </main>
 <script>

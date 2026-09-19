@@ -509,7 +509,7 @@ for chunk in model.stream(&quot;解释一下什么是 Token&quot;):
 <p><strong>限流的能力都很有限。</strong> LangChain 的 <code>InMemoryRateLimiter</code> 只能按「每秒请求数」限制，无法限制 TPM，而且只在单个进程内生效，多实例部署时就失去了作用。模块二讲过 Qwen 按 RPM/TPM、DeepSeek 按并发数，计量口径完全不同。 <strong>这部分能力两个框架都没有覆盖，真正要控制住调用量，仍然需要自己引入分布式限流。</strong></p>
 <p><strong>Spring AI 不直接提供降级和限流</strong> ，因为 Spring 生态里 Resilience4j 已经是标准方案，重复实现没有意义。它只做「AI 特有」的那部分，通用的工程能力交给Spring 已有生态。</p>
 <p><strong>可观测性上 Spring AI 占优。</strong> 只要用的是自动配置的 <code>ChatClient</code> ，Micrometer 的指标和链路追踪就是默认可用的，不需要额外开发，接入现有的 Prometheus 和 Grafana 就能查看。这对企业应用来说确实省了不少工作。</p>
-<p><img src="../../../../assets/llm-application-basics/01-05-02-%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86.png" alt="01-05-02-统一模型调用与消息处理.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-05-02-%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86.png" alt="01-05-02-统一模型调用与消息处理.png"></p>
 </article>
 </main>
 <script>

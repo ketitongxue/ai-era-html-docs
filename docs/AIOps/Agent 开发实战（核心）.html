@@ -124,7 +124,7 @@ th { background: #eaf0f7; }
 <h1 id="什么是-agent">什么是 Agent</h1>
 <p>具有复杂推理能力、记忆和执行任务手段的自主代理；</p>
 <p>Agent = 规划 + 记忆 + 工具 + 行动</p>
-<p><img src="../../../assets/md-images/EJrabsFeloOhWlxVdL9caAtrnVd.jpg" alt=""></p>
+<p><img src="../../assets/md-images/EJrabsFeloOhWlxVdL9caAtrnVd.jpg" alt=""></p>
 <h2 id="规划模块">规划模块</h2>
 <ul>
 <li>
@@ -140,7 +140,7 @@ th { background: #eaf0f7; }
 </ul>
 </li>
 </ul>
-<p><img src="../../../assets/md-images/Opcqb4zOSoIjSSxCGskckW7pnLh.jpg" alt=""></p>
+<p><img src="../../assets/md-images/Opcqb4zOSoIjSSxCGskckW7pnLh.jpg" alt=""></p>
 <h2 id="记忆模块">记忆模块</h2>
 <ul>
 <li>
@@ -154,7 +154,7 @@ th { background: #eaf0f7; }
 </code></pre>
 </li>
 </ul>
-<p><img src="../../../assets/md-images/B6OLb8jrjolvHNxR72wc1f8anSg.jpg" alt=""></p>
+<p><img src="../../assets/md-images/B6OLb8jrjolvHNxR72wc1f8anSg.jpg" alt=""></p>
 <h2 id="工具模块">工具模块</h2>
 <ul>
 <li>搜索</li>
@@ -163,14 +163,14 @@ th { background: #eaf0f7; }
 <li>数学计算</li>
 <li>其他任何 API 服务</li>
 </ul>
-<p><img src="../../../assets/md-images/XC9Xb9zFNolGl4xLnskcIfJinNe.jpg" alt=""></p>
+<p><img src="../../assets/md-images/XC9Xb9zFNolGl4xLnskcIfJinNe.jpg" alt=""></p>
 <h2 id="为什么要使用-agent">为什么要使用 Agent？</h2>
 <p>大模型就像人的大脑一样，如果你没有手脚和记忆，大脑无法独立行动；</p>
 <p>将大模型视为大脑，Agent 视为完整的身体。</p>
 <h2 id="以-rag-为例理解-agent">以 RAG 为例理解 Agent</h2>
 <p>传统 RAG 流程（左图）：从向量数据库检索文档相关内容后直接回答问题</p>
 <p>RAG Agent 流程（右图）：从向量数据库检索文档后，进一步检查文档内容跟问题是否匹配，如果匹配则回答问题，如果不匹配，则改写问题重新检索，循环往复。</p>
-<p><img src="../../../assets/md-images/CMe8bdc87oLafdx3WFFcZrfKnPb.jpg" alt=""></p>
+<p><img src="../../assets/md-images/CMe8bdc87oLafdx3WFFcZrfKnPb.jpg" alt=""></p>
 <h1 id="agent-四种设计模式">Agent 四种设计模式</h1>
 <h2 id="反馈reflection">反馈(Reflection)</h2>
 <p>定义：让 AI 模型自我反思和自我迭代，不断优化输出，提高任务准确率。</p>
@@ -333,7 +333,7 @@ print(&quot;匹配到能够回答问题的知识库，开始进行回答\n&quot;
 <li>优化输出：根据 LLM 提出的改进意见对翻译结果再次进行优化，得到最终结果</li>
 </ol>
 <h2 id="完整流程">完整流程</h2>
-<p><img src="../../../assets/md-images/UONNbW8GVovqlIxdTAecZfoenbc.png" alt=""></p>
+<p><img src="../../assets/md-images/UONNbW8GVovqlIxdTAecZfoenbc.png" alt=""></p>
 <h2 id="translation-agent-1">Translation Agent</h2>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install poetry
 
@@ -469,16 +469,16 @@ Output only the new translation and nothing else.&quot;&quot;&quot;
 </ol>
 <h2 id="stateful-graph">Stateful Graph</h2>
 <p>Stateful Graph 定义有向有环图及其保存的状态，需要往里面添加 Node 才能形成有向有环图.</p>
-<p><img src="../../../assets/md-images/VOXCbxGL4ouL9exxgescgbTEn9c.jpg" alt=""></p>
+<p><img src="../../assets/md-images/VOXCbxGL4ouL9exxgescgbTEn9c.jpg" alt=""></p>
 <h2 id="node">Node</h2>
 <p>Node 是 LangGraph 的节点，每个节点代表一个函数或一个计算步骤。</p>
 <p>你可以定义节点来执行特定任务，例如处理输入、做出决策或与外部 API 交互。</p>
 <p>节点相互依赖，可以是串行、并行和在某些节点循环运行</p>
-<p><img src="../../../assets/md-images/RJWBbZisbowX9nxgzeUcWHmcn3c.jpg" alt=""></p>
+<p><img src="../../assets/md-images/RJWBbZisbowX9nxgzeUcWHmcn3c.jpg" alt=""></p>
 <h2 id="edges">Edges</h2>
 <p>边连接图中的节点，定义计算流程（包括起始 Node 和终止 Node）。</p>
 <p>LangGraph 支持条件 Edges，可以根据图的当前状态动态确定要执行的下一个节点。</p>
-<p><img src="../../../assets/md-images/UyhobRTCloH2I9x6kcOcrCT2nV7.jpg" alt=""></p>
+<p><img src="../../assets/md-images/UyhobRTCloH2I9x6kcOcrCT2nV7.jpg" alt=""></p>
 <h2 id="langgraph-chat-example">LangGraph Chat Example</h2>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">llm = ChatOpenAI()
 
@@ -500,7 +500,7 @@ display(Image(graph.get_graph().draw_mermaid_png()))
 </code></pre>
 <p>核心概念：StateGraph、Node、Edges</p>
 <p>aiops_Learning\Week4\LangGraph Agent\langgraph_chat_example.ipynb</p>
-<p><img src="../../../assets/md-images/R70ibhnW2oVRCmxZWRvc7Gfdnqd.png" alt=""></p>
+<p><img src="../../assets/md-images/R70ibhnW2oVRCmxZWRvc7Gfdnqd.png" alt=""></p>
 <h2 id="用-langgraph-实现-translation-agent">用 LangGraph 实现 Translation Agent</h2>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># 初始翻译
 def initial_translation(state: State):
@@ -525,7 +525,7 @@ workflow.add_edge(&quot;improve_translation&quot;, END)
 
 </code></pre>
 <p>aiops_Learning\Week4\LangGraph Agent\langgraph_translation_agent.ipynb</p>
-<p><img src="../../../assets/md-images/LrBWbJdlrozb9ixtWPJcs5Sdnhb.png" alt=""></p>
+<p><img src="../../assets/md-images/LrBWbJdlrozb9ixtWPJcs5Sdnhb.png" alt=""></p>
 <h2 id="接入-langsmith">接入 LangSmith</h2>
 <p>LangSmith: Agent 开发的调试、日志和追踪平台，和 LangChain、LangGraph 原生集成</p>
 <p>URL: <a href="https://smith.langchain.com/">https://smith.langchain.com/</a></p>
@@ -537,7 +537,7 @@ os.environ[&quot;LANGCHAIN_API_KEY&quot;] = &quot;YOUR_LANGCHAIN_API_KEY&quot;
 os.environ[&quot;LANGCHAIN_PROJECT&quot;] = &quot;default&quot;
 </code></pre>
 <h2 id="agent-trace-调用监控">Agent Trace 调用监控</h2>
-<p><img src="../../../assets/md-images/SYSrbfmmtoS50lxdLGac841nncP.jpg" alt=""></p>
+<p><img src="../../assets/md-images/SYSrbfmmtoS50lxdLGac841nncP.jpg" alt=""></p>
 <h2 id="借助-langgraph-实现-react-agent">借助 LangGraph 实现 ReAct Agent</h2>
 <p>ReAcT Agent：根据用户输入进行思考，循环调用工具，直到有足够的信息来解决用户输入</p>
 <p>例子</p>
@@ -548,7 +548,7 @@ os.environ[&quot;LANGCHAIN_PROJECT&quot;] = &quot;default&quot;
 <li>Assistant：获取成功，再调用 tools：patch_deployment 修改工作负载</li>
 <li>Assistant：修改成功</li>
 </ul>
-<p><img src="../../../assets/md-images/FNXWbYFLKoQJF1xbi3acGexvn2g.jpg" alt=""></p>
+<p><img src="../../assets/md-images/FNXWbYFLKoQJF1xbi3acGexvn2g.jpg" alt=""></p>
 <h2 id="如何控制循环结束">如何控制循环结束？</h2>
 <p>借助 add_conditional_edges 实现动态控制，当条件函数返回 tools 字符串，则继续调用 tools 节点，当返回 <strong>end</strong> 字符串，则退出</p>
 <p>条件函数 should_continue 的条件逻辑是检查 AI 消息是否需要继续调用工具</p>
@@ -565,7 +565,7 @@ workflow.add_conditional_edges(
     should_continue,
 )
 </code></pre>
-<p><img src="../../../assets/md-images/IMjzbPqFwoAE88x4w0BcpmS5nOb.jpg" alt=""></p>
+<p><img src="../../assets/md-images/IMjzbPqFwoAE88x4w0BcpmS5nOb.jpg" alt=""></p>
 <h3 id="核心代码-1">核心代码</h3>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">def should_continue(state: MessagesState) -&gt; Literal[&quot;tools&quot;, &quot;__end__&quot;]:
     messages = state[&quot;messages&quot;]
@@ -595,11 +595,11 @@ app = workflow.compile()
 
 </code></pre>
 <h2 id="react-agent-trace-监控">ReAct Agent Trace 监控</h2>
-<p><img src="../../../assets/md-images/FABhbyXmYoMtg4xALxXc9H75nlg.jpg" alt=""></p>
+<p><img src="../../assets/md-images/FABhbyXmYoMtg4xALxXc9H75nlg.jpg" alt=""></p>
 <h2 id="深入-langgraph-并行-super-step">深入 LangGraph 并行 (Super-step)</h2>
-<p><img src="../../../assets/md-images/Ey7kbFceoonYXwxMJO9cBadlnIg.png" alt=""></p>
-<p><img src="../../../assets/md-images/A5U7b6FiZo9n5xx1Q7VcGgn1ntf.png" alt=""></p>
-<p><img src="../../../assets/md-images/TJikbyFgHo6Z8bxTFN3cz7AxnEe.png" alt=""></p>
+<p><img src="../../assets/md-images/Ey7kbFceoonYXwxMJO9cBadlnIg.png" alt=""></p>
+<p><img src="../../assets/md-images/A5U7b6FiZo9n5xx1Q7VcGgn1ntf.png" alt=""></p>
+<p><img src="../../assets/md-images/TJikbyFgHo6Z8bxTFN3cz7AxnEe.png" alt=""></p>
 <h1 id="从零开发个人运维知识库-agent">从零开发个人运维知识库 Agent</h1>
 <h2 id="三种落地方式">三种落地方式</h2>
 <ol>
@@ -637,7 +637,7 @@ app = workflow.compile()
 <li>自适应 RAG 工具：针对知识库相关问题</li>
 <li>路由器：判断问题交由 Web 搜索还是RAG 处理</li>
 </ul>
-<p><img src="../../../assets/md-images/E3tYb5x7DoBS4yxffBkc49Fmnhg.jpg" alt=""></p>
+<p><img src="../../assets/md-images/E3tYb5x7DoBS4yxffBkc49Fmnhg.jpg" alt=""></p>
 <h2 id="web-搜索tavily">Web 搜索：Tavily</h2>
 <p>使用 Tavily 执行网络搜索，让 LLM 感知现实世界</p>
 <p>特点：</p>
@@ -655,13 +655,13 @@ app = workflow.compile()
 <li>解决传统 RAG 粗暴检索固定数量段落以及回复准确性差的问题</li>
 <li>显著提升长文本检索的准确性</li>
 </ul>
-<p><img src="../../../assets/md-images/NlfXbKTgbowV3nxv14AcHTdCnfb.jpg" alt=""></p>
+<p><img src="../../assets/md-images/NlfXbKTgbowV3nxv14AcHTdCnfb.jpg" alt=""></p>
 <h2 id="自适应-rag-流程">自适应 RAG 流程</h2>
-<p><img src="../../../assets/md-images/NnjbbZKOioJIWDx5b7AcjfNxncf.png" alt=""></p>
-<p><img src="../../../assets/md-images/P96ybZz5nooeMCx1Hl3cn4ben1f.png" alt=""></p>
+<p><img src="../../assets/md-images/NnjbbZKOioJIWDx5b7AcjfNxncf.png" alt=""></p>
+<p><img src="../../assets/md-images/P96ybZz5nooeMCx1Hl3cn4ben1f.png" alt=""></p>
 <h2 id="结合-web-search-和-self-rag">结合 Web Search 和 Self-RAG</h2>
-<p><img src="../../../assets/md-images/IdOYbvDOdourCkxHhDccVsUfngh.jpg" alt=""></p>
-<p><img src="../../../assets/md-images/MHiCb24njo7H1MxemcHcpoa5noh.jpg" alt=""></p>
+<p><img src="../../assets/md-images/IdOYbvDOdourCkxHhDccVsUfngh.jpg" alt=""></p>
+<p><img src="../../assets/md-images/MHiCb24njo7H1MxemcHcpoa5noh.jpg" alt=""></p>
 </article>
 </main>
 <script>

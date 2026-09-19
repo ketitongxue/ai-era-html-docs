@@ -255,7 +255,7 @@ curl https://api.openai.com/v1/chat/completions \
 <p><strong>说个真实会踩的坑：</strong> 让模型输出 JSON。 <code>max_tokens</code> 设小了，模型写到 <code>{&quot;name&quot;: &quot;张三&quot;, &quot;age&quot;:</code> 就被切断，你的代码一解析就直接抛异常。</p>
 <p>所以 <strong>凡是消费模型输出的地方，先检查 <code>finish_reason</code> ，是 <code>length</code> 就报警或者重试，别默认它一定完整。</strong></p>
 <p>还有一个容易忽略的点。用推理模型的时候，思考过程也算 Token，和最终答案共享同一份 <code>max_tokens</code> 配额。所以开了思考模式，这个值要比平时留得宽裕得多，否则很容易出现「思考过程已经消耗了大量 Token，答案还没开始写就没配额了」的尴尬情况。</p>
-<p><img src="../../../../assets/llm-application-basics/01-02-03-%E6%8E%A7%E5%88%B6%E6%A8%A1%E5%9E%8B%E8%BE%93%E5%87%BA%E7%9A%84%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0.png" alt="01-02-03-控制模型输出的关键参数.png"></p>
+<p><img src="../../../assets/llm-application-basics/01-02-03-%E6%8E%A7%E5%88%B6%E6%A8%A1%E5%9E%8B%E8%BE%93%E5%87%BA%E7%9A%84%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0.png" alt="01-02-03-控制模型输出的关键参数.png"></p>
 </article>
 </main>
 <script>
