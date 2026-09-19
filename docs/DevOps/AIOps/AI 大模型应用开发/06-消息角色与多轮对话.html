@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06-消息角色与多轮对话</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+<meta name="source" content="https://www.codecrush.cn/lesson/355869806471151616">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="06-消息角色与多轮对话">06-消息角色与多轮对话</h1><p>上一篇我们留了个问题没回答： <code>messages</code> 为什么是个数组，而不是一段字符串？</p>
+<p>毕竟在那个最小调用里，数组里只有一条消息，却仍要标注 <code>&quot;role&quot;: &quot;user&quot;</code> 。只有用户发言时，这个身份字段看起来也是多余的。</p>
+<p>答案在你再往下做一步的时候才会显现。你想把那段代码改造成一个能连续聊天的助手，只把用户的当前问题发过去，是不行的。第一轮你告诉它&quot;我的项目用的是 Java 17&quot;，模型给出简短回复；第二轮你问&quot;那该选哪个 Spring Boot 版本&quot;，它完全想不起来你说过 Java 17。</p>
+<p><strong><code>messages</code> 数组就是模型能看到的全部世界。</strong> 它自己不存任何东西，你这次给它什么，它就只知道什么。所以这个数组必须能装下多条消息，不然上一轮的内容没地方放；也必须标清楚每条是谁说的，不然模型分不出哪句是你问的、哪句是它自己上轮答的。</p>
+<p>这一篇我们就把 <code>messages</code> 这个数组讲清楚：三种角色分别管什么、多轮对话到底怎么&quot;记住&quot;上文等等。</p>
+<h2 id="一三种消息角色systemuserassistant">一、三种消息角色：System、User、Assistant</h2>
+<p><code>messages</code> 数组不是一组普通字符串，而是一个个带&quot;身份&quot;的对象，每个对象有 <code>role</code> （角色）和 <code>content</code> （内容）两个字段。角色只有三种，各司其职。</p>
+<ul>
+<li><strong>系统提示词（System）</strong> ：给模型设定&quot;人设&quot;和规则的地方。你是谁、说话什么风格、能做什么不能做什么、输出格式要求，都写在这里。它在整段对话里持续生效。</li>
+<li><strong>用户消息（User）</strong> ：用户说的话，也就是真正的问题或指令。</li>
+<li><strong>助手消息（Assistant）</strong> ：模型自己的回复，你把它原样放回数组里。</li>
+</ul>
+<p>一个最简单的多轮对话， <code>messages</code> 长这样：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">messages = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;你是一个只用一句话回答的地理老师。&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;中国的首都是哪？&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;北京。&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;那它的人口大概多少？&quot;},
+]
+</code></pre>
+<p>模型看到最后那句&quot;它的人口&quot;，能正确理解&quot;它&quot;指北京，因为整个数组作为上下文一起发了过去。这就是多轮对话的核心机制，后面详细讲。</p>
+<p>这里要纠正一个常见误解： <strong>很多人把 System 当成&quot;更高级、约束力更强&quot;的指令，以为写在这里模型就一定照做，不是的。</strong> System 只是优先级更高的一段文本，本质还是被拼进上下文、一并发给模型。你写&quot;绝对不能透露你是 AI&quot;，经过几轮诱导仍可能被绕过。System 是&quot;强烈建议&quot;，不是强制约束。真正的硬约束（比如不能返回某些内容）要靠你在应用层做后置校验，而不能只靠一句 System 就认为约束已经生效。</p>
+<h2 id="二消息顺序与指令优先级">二、消息顺序与指令优先级</h2>
+<p>既然 System、User 都是文本，那它们冲突时听谁的？这就涉及优先级。</p>
+<p>主流模型的大致优先级是： <strong>System &gt; 靠后的消息 &gt; 靠前的消息</strong> 。也就是说，System 整体权重最高；而在同类消息里，越靠近末尾的内容，模型越倾向于遵从，因为那是&quot;最新的指令&quot;，离它要生成的答案最近。</p>
+<p>这带来两个非常实用的工程结论。</p>
+<p><strong>第一，把最重要的约束放 System，把当前这轮最具体的要求放在 User 消息末尾。</strong> 比如 System 规定&quot;永远用 JSON 回答&quot;，而某一轮用户临时说&quot;这次用自然语言解释一下&quot;，模型大概率会顺从后者。如果你不希望被覆盖，就得在 System 里把约束写得更明确、不允许例外，或者在应用层拦截。</p>
+<p><strong>第二，警惕&quot;后文覆盖前文&quot;带来的指令漂移。</strong> 对话很长时，早期 System 设定的风格会被后面几十轮的对话稀释、偏离原设定。比如，客服机器人聊到第 20 轮，突然不按规范话术说话了。原因往往就是早期 System 权重被大量后续内容冲淡。工程上的应对办法是：在关键轮次 <strong>重新注入或强调 System 指令</strong> ，比如每隔若干轮，或在检测到偏离既定风格时，把核心规则再拼一遍到上下文靠后的位置。</p>
+<p>用一张图理解模型&quot;读&quot;上下文的顺序和注意力倾向：</p>
+<p><img src="../../../../assets/llm-application-basics/01-02-02-%E4%B8%8A%E4%B8%8B%E6%96%87%E9%A1%BA%E5%BA%8F%E4%B8%8E%E6%B3%A8%E6%84%8F%E5%8A%9B.png" alt="01-02-02-上下文顺序与注意力.png"></p>
+<h2 id="三无状态-api-与记忆的真相">三、无状态 API 与&quot;记忆&quot;的真相</h2>
+<p>现在讲最反直觉、也最重要的点。</p>
+<p>你可能会觉得，我和模型聊了好几轮，服务器那边肯定存着我们的对话吧？ <strong>恰恰相反。大模型的 API 是无状态的（Stateless）。每一次调用都是全新的、独立的、没有任何记忆的。</strong> 大模型不会帮你保存上一轮说了什么。这次请求结束，它不会保留任何上一轮状态。</p>
+<p>那对话为什么能连续？因为 <strong>&quot;记忆&quot;是由应用（对话助手）自己构造的</strong> 。每次调用时，应用把你从头到现在的所有历史消息，重新放入 <code>messages</code> 数组一起发过去。模型看到的从来不是&quot;第 5 轮&quot;，而是&quot;这 5 轮的完整文本&quot;。它不是记得，它是每次都重新读了一遍全部历史对话。</p>
+<p><img src="../../../../assets/llm-application-basics/01-02-02-%E6%9C%89%E7%8A%B6%E6%80%81%E4%B8%8E%E6%97%A0%E7%8A%B6%E6%80%81.png" alt="01-02-02-有状态与无状态.png"></p>
+<p>理解了这点，很多现象就能解释清楚：为什么对话越长响应越慢、越贵（因为每次都在重发全部历史）；为什么同一个用户换个设备还能接着聊（因为历史存在应用的数据库里，不在模型那里）。</p>
+<p>下面是一个实现&quot;记忆&quot;的示例代码：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from openai import OpenAI
+
+client = OpenAI()
+
+# history就是一个不断追加的数组，由你的应用维护
+history = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;你是简洁的助手。&quot;},
+]
+
+def chat(user_input: str) -&gt; str:
+    # 1. 把用户这轮的话追加进history
+    history.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input})
+    # 2. 把【完整历史】一起发出去——这就是&quot;记忆&quot;的来源
+    resp = client.chat.completions.create(
+        model=&quot;gpt-5.6&quot;,
+        messages=history,
+    )
+    answer = resp.choices[0].message.content
+    # 3. 关键：把模型的回复也追加回history，下一轮它才&quot;记得&quot;自己说过什么
+    history.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: answer})
+    return answer
+
+chat(&quot;我叫小王&quot;)
+print(chat(&quot;我叫什么？&quot;))  # 能答对，因为上一轮的信息被重发了
+</code></pre>
+<h2 id="四历史对话过长的应对策略">四、历史对话过长的应对策略</h2>
+<p>无状态机制有个严重副作用： <strong>历史只会越来越长。</strong> 前面的章节中讲过上下文窗口（Context Window），即模型单次能处理的 Token 是有上限的。历史无限追加，迟早会超限报错；就算没超，成本也会明显上升。</p>
+<p>这里要算一笔账，也是面试常被追问的点： <strong>为什么对话成本不是线性的，而是接近平方级增长？</strong></p>
+<p>因为按 Token 计费，而你每一轮都要把前面所有历史重发。第 N 轮发送的 Token 约等于前 N-1 轮的累加。十几轮的闲聊成本差异还不明显，但客服、Agent 这类动辄几十上百轮的场景，Token 消耗会上升得很快。这就是为什么&quot;管理历史&quot;不是可选项，而是生产系统的必要工作。</p>
+<p>常见的应对策略一般有两种，各有取舍。</p>
+<p><strong>策略一：滑动窗口，即只保留最近 N 轮。</strong> 最简单，实现只需要几行代码。缺点是&quot;失忆&quot;：用户开头说的关键信息（比如&quot;我是 VIP 用户&quot;）一旦滑出窗口就丢了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">def trim_by_turns(history, keep_rounds=6):
+    system = [m for m in history if m[&quot;role&quot;] == &quot;system&quot;]
+    others = [m for m in history if m[&quot;role&quot;] != &quot;system&quot;]
+    # 一轮 = user + assistant 两条，保留最近 keep_rounds 轮
+    kept = others[-keep_rounds * 2:]
+    return system + kept
+</code></pre>
+<p>注意上面这个细节： <strong>System 消息必须单独取出并始终保留，不能被一起截掉。</strong></p>
+<p><strong>策略二：摘要压缩（Summarization）。</strong> 当历史过长时，先调用一次模型，把早期对话压缩成一段简短摘要，用这段摘要替换掉那批原始消息。这样既省 Token，又保住了关键信息。代价是多一次模型调用，而且摘要可能丢细节。工程上常用&quot;摘要 + 最近若干轮原文&quot;的组合：远期用摘要，近期用原文。</p>
+<p>拼出来的 <code>messages</code> 是这样的，注意摘要是数组里独立的一条，不要和其他内容写在同一个 <code>content</code> 里：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">messages = [
+    {&quot;role&quot;: &quot;system&quot;,    &quot;content&quot;: &quot;你是XX电商的客服助手，规则...&quot;},   # 静态人设
+    {&quot;role&quot;: &quot;system&quot;,    &quot;content&quot;: &quot;对话摘要：用户是VIP，咨询过退款，已确认订单号12345&quot;},
+    {&quot;role&quot;: &quot;user&quot;,      &quot;content&quot;: &quot;...&quot;},        # 以下是最近 3 轮原文
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;...&quot;},
+    {&quot;role&quot;: &quot;user&quot;,      &quot;content&quot;: &quot;...&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;...&quot;},
+    {&quot;role&quot;: &quot;user&quot;,      &quot;content&quot;: &quot;本轮问题&quot;},
+]
+</code></pre>
+<p>摘要的角色为什么是 System 而不是 User？因为它是 <strong>应用注入的状态，不是任何一方真说过的话</strong> 。放 System 语义最准，优先级也高，不容易被后面的对话稀释；要是当成 user 消息写进去，模型会以为这些话是用户说的，有时会顺着去&quot;回应&quot;摘要本身。</p>
+<p>这里还有个容易忽略的细节： <strong>摘要要另起一条 System，别拼进原来那条。</strong> 因为 Prompt Caching 是按前缀匹配的，静态人设每轮都一样、能稳定命中缓存，而摘要每次压缩都会变。拼成一条，摘要一变整个 System 的缓存就会失效；拆成两条，前面那条静态的仍然能稳定命中缓存。</p>
+<p>要提醒的是，这个写法是 OpenAI 风格的。Anthropic 的 <code>system</code> 是顶层参数、不在 <code>messages</code> 数组里，也只能是一个字符串，没法追加第二条，因此，摘要只能拼进 <code>system</code> 字符串（牺牲缓存），或者当成带显式标记的 user 消息发。</p>
+<p>这里只是针对对话这个场景，给你展示了如何进行历史消息过长的处理，后面，我们在讲到Agent开发的时候，还会有专门的一个专题：上下文工程，来讲如何在有限的上下文窗口内，放置最有价值的信息。</p>
+<h2 id="五多用户与长期历史存储">五、多用户与长期历史存储</h2>
+<p>前面 <code>history</code> 用的是全局变量，只是为了演示而简化代码。真实应用有成千上万用户同时在聊，你必须解决两个问题。</p>
+<p><strong>第一，会话隔离。</strong> 每个用户、甚至同一用户的每个会话，都要有独立的历史，绝不能互相混用。踩过的坑是把历史存成全局或单例，结果 A 用户看到了 B 用户的对话。这是严重的隐私事故。正确做法是用 <code>session_id</code> （或 <code>user_id + conversation_id</code> ）作为 key，分别存储。</p>
+<p><strong>第二，历史存哪。</strong> 只存在内存里并不可靠，服务一重启历史会全部丢失，多实例部署时请求还可能被负载均衡路由到不同实例。因此，生产方案通常是：</p>
+<ul>
+<li>热数据放缓存（如 Redis），读写快，适合正在进行的会话，可设过期时间自动清理；</li>
+<li>全量/长期历史落数据库（如 MySQL、MongoDB），持久、可追溯、支持跨设备续聊。</li>
+</ul>
+<p><img src="../../../../assets/llm-application-basics/01-02-02-%E5%A4%9A%E7%94%A8%E6%88%B7%E4%B8%8E%E5%8E%86%E5%8F%B2%E5%AD%98%E5%82%A8.png" alt="01-02-02-多用户与历史存储.png"></p>
+<p><strong>存储的可以是完整历史，每次真正发给模型的，是经过裁剪/摘要后的版本。</strong> 你库里存全量便于审计和回溯，发给模型的则是精挑细选、控制在预算内的那一份。两者分离，才能兼顾成本与可靠。</p>
+<p>同样，这里也只是简单讲了对话这个场景如何记录历史消息，在后面讲到的 Agent 的时候，我们还会详细讲解 Agent 的状态管理和记忆系统，会复杂得多。</p>
+<p><img src="../../../../assets/llm-application-basics/01-02-02-%E6%B6%88%E6%81%AF%E8%A7%92%E8%89%B2%E4%B8%8E%E5%A4%9A%E8%BD%AE%E5%AF%B9%E8%AF%9D.png" alt="01-02-02-消息角色与多轮对话.png"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

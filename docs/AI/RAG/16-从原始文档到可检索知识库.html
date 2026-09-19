@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>16-从原始文档到可检索知识库</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+<meta name="source" content="https://www.codecrush.cn/lesson/355874636317065216">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="16-从原始文档到可检索知识库">16-从原始文档到可检索知识库</h1><p>上一篇举例的时候，我拿了一份排版规整的《差旅报销制度》，解析出来是干净的纯文本，按小节一切就成了三个语义完整的片段。</p>
+<p>真实项目往往没那么简单了。你拿到的文件格式可能各式各样：Markdown、PDF、扫描版PDF、Word等。</p>
+<p>这一篇就详细讲RAG构建的第一个步骤：文档的解析和抽取。</p>
+<p>先给一个结论，好让你重视这一步：</p>
+<blockquote>
+<p><strong>RAG 效果不好，大多数问题出在数据处理，而不是模型或者检索算法。</strong></p>
+</blockquote>
+<p>切坏一个表格、丢掉一个章节标题、漏掉一条元数据，后面即使换更强的模型，也很难补回。 <strong>Garbage in, garbage out，在 RAG 里体现得格外明显。</strong></p>
+<h2 id="一文档解析">一、文档解析</h2>
+<p>文档解析就是把各种格式的文件变成纯文本。</p>
+<p><strong>Markdown、TXT、代码文件</strong> 最容易处理，本身就是纯文本，还自带结构，是 RAG 最友好的输入。</p>
+<p><strong>Word</strong> 本质是个 zip 包着的 XML，能拿到标题层级和表格结构，比 PDF 好处理得多。</p>
+<p><strong>PDF 最麻烦，也是最常用的文档格式，因此，我们重点说下它。</strong></p>
+<p>PDF 记录的是「哪个字符画在页面的哪个坐标」，它本身没有「段落」「标题」「表格」这些概念。所有结构都得靠解析器根据坐标去猜。</p>
+<p>于是通常会遇到这些问题：</p>
+<ul>
+<li><strong>双栏排版被读成一行。</strong> 学术论文、产品手册很常见。解析器按 Y 坐标扫过去，把左栏第一行和右栏第一行拼成了一句话，读出来的文本完全是乱的。</li>
+<li><strong>表格解析丢失对应关系。</strong> 表头和数据的对应关系没了，「800」还在，但你不知道它是住宿标准还是交通标准。</li>
+<li><strong>跨页段落被切断。</strong> 一句话从第 3 页末尾延续到第 4 页开头，按页解析就断成了两半。</li>
+<li><strong>扫描件根本没有文字层。</strong> PDF中的内容是图片，解析出来的文本是空的，必须先做 OCR 才行。</li>
+</ul>
+<p>当然，对于大部分开发者来说，都不可能从零手写代码去解决这些问题，而是找到合适的现成的工具。工具选型无外乎看这个工具，是否能处理复杂版面，是否具备OCR能力（针对扫描件）等。</p>
+<p>如果你用 LangChain4j 或 Spring AI，很多工具库都已经集成好了，不用自己对接。</p>
+<p>Spring AI 提供 <code>spring-ai-tika-document-reader</code> （全格式，利用 Apache Tika 从 PDF、DOC/DOCX、PPT/PPTX、HTML 等多种格式中提取文本）、 <code>spring-ai-pdf-document-reader</code> （底层 PDFBox，含按页切的 <code>PagePdfDocumentReader</code> 和按 PDF 目录切段的 <code>ParagraphPdfDocumentReader</code> ）、 <code>spring-ai-markdown-document-reader</code> ，HTML 有 <code>JsoupDocumentReader</code> 。</p>
+<p>LangChain 生态比 Spring AI 丰富得多，有大量社区加载器（Document Loader）。常用的有这样一些：</p>
+<ul>
+<li><strong>PDF</strong> ： <code>PyPDFLoader</code> （底层 pypdf 工具，速度快，复杂版面容易乱）、 <code>PyMuPDFLoader</code> （底层 PyMuPDF 工具，速度和文本质量兼顾，日常首选）、 <code>PDFPlumberLoader</code> （能抽表格，但慢一些）、 <code>UnstructuredPDFLoader</code> （底层 unstructured 工具，支持版面分析和OCR）</li>
+<li><strong>Word / PPT / Excel</strong> ： <code>Docx2txtLoader</code> （只要纯文本时最简便）、 <code>UnstructuredWordDocumentLoader</code> （保留标题、列表、表格结构）、 <code>UnstructuredPowerPointLoader</code> 、 <code>UnstructuredExcelLoader</code></li>
+<li><strong>网页与 Markdown</strong> ： <code>WebBaseLoader</code> 、 <code>BSHTMLLoader</code> 、 <code>UnstructuredMarkdownLoader</code></li>
+</ul>
+<p>除此之外，AI 的发展，还促生了一批 AI 原生解析器。</p>
+<p>它们的思路和传统解析器完全不同： <strong>不再靠字符坐标去猜结构，而是先用视觉模型做版面分析</strong> ，把页面切成标题、正文、表格、图片、公式这些区块，判断出正确的阅读顺序，再逐块转成文本，最后输出带结构的 Markdown 或 JSON。双栏、表格、公式这些传统解析器难以处理的地方，恰好是它们的强项。</p>
+<p>常见的有这么几个：</p>
+<ul>
+<li><strong>MinerU</strong> ：上海人工智能实验室开源，对中文文档和公式的支持是这批工具里最好的之一，可以本地部署，国内项目用得很多</li>
+<li><strong>Marker</strong> ：开源，专做 PDF 转 Markdown，速度快、输出干净，学术论文场景口碑不错</li>
+<li><strong>Docling</strong> ：IBM 开源，支持 PDF/DOCX/PPTX 等多种格式，表格结构还原做得比较细</li>
+<li><strong>Unstructured</strong> ：既是开源库也提供云服务，格式覆盖最全， <code>hi_res</code> 模式会调版面模型</li>
+</ul>
+<p>开源方案需要自己部署，需要使用 GPU，纯 CPU 上跑一页要几秒到几十秒，小规模试用不易察觉，等到批量导入几千份文档，这个差距会被放大。因此，除非你的项目的核心功能就是跟文档处理强相关的，不然，一般项目用不上。</p>
+<p><strong>其实，很多云厂商都提供了文档智能服务</strong> ：阿里云文档智能、腾讯云文档识别、百度智能文档分析、Azure AI Document Intelligence、Google Document AI，开箱可用、自带 OCR，是大部分项目的首选，当然，缺点是文档要出内网，涉密场景一般不适合。</p>
+<p>对于实在处理不了的复杂文档，我们还可以调用支持多模态的大模型，比如 <code>gpt-5.6</code> 、 <code>qwen3.8-max</code> 等，直接把页面图交给模型识别。但缺点也比较明显：成本高、速度慢。</p>
+<h2 id="二元数据">二、元数据</h2>
+<p>上一节，我们提到，存到向量数据库中的有向量和原文片段，向量是为了查询，原文片段是为了拼进Prompt。其实，除了这两个信息，向量数据库中还会存储 <strong>元数据（Metadata）</strong> ，它看似可有可无，实际很有必要！</p>
+<p>一个够用的元数据结构大概是这样：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">{
+    &quot;text&quot;: &quot;一线城市每晚不超过 800 元，二线城市不超过 500 元。&quot;,
+
+    # 溯源用：回答里要给出引用，出错要能查到原文
+    &quot;doc_id&quot;: &quot;policy-travel-2026&quot;,
+    &quot;doc_title&quot;: &quot;差旅报销制度&quot;,
+    &quot;source_url&quot;: &quot;https://wiki.internal/policy/travel&quot;,
+    &quot;page&quot;: 3,
+
+    # 结构用：片段在文档中的位置
+    &quot;heading_path&quot;: &quot;差旅报销制度 &gt; 三、费用标准 &gt; 3.1 住宿&quot;,
+
+    # 过滤用：检索时先按条件缩小范围
+    &quot;doc_type&quot;: &quot;制度文件&quot;,
+    &quot;department&quot;: &quot;HR&quot;,
+    &quot;effective_date&quot;: &quot;2026-01-01&quot;,
+    &quot;version&quot;: &quot;v3.2&quot;,
+
+    # 权限用：不同的人看到的资料不同
+    &quot;acl&quot;: [&quot;all_staff&quot;],
+}
+</code></pre>
+<p>上述示例展示了元数据的四个用途：</p>
+<p><strong>溯源。</strong> 用户问「住宿费多少」，你答「800 元」，必须能点开查看原文，用户才能信任回答。这是 RAG 相对微调最大的优势。</p>
+<p><strong>过滤。</strong> 用户问「今年的报销标准」，你希望只在 <code>effective_date &gt;= 2026-01-01</code> 的文档里检索，就可以使用元数据过滤。</p>
+<p><strong>权限。</strong> 如果检索时不带权限过滤，一个普通员工问「公司薪酬结构是怎样的」，向量库会把 HR 的机密文件检索出来并返回。</p>
+<p><strong>结构。</strong> <code>heading_path</code> 这个字段的价值很大，下一小节讲切分的时候会专门说。</p>
+<p>这里重点说明两点问题：</p>
+<p><strong>第一，元数据必须在解析和切片阶段就一并整理。</strong></p>
+<p><code>page</code> 、 <code>heading_path</code> 这些字段，只有解析和切分的时候才知道。等文本已经切成一批片段并写入库中，你没法再倒推某段话原来在第几页、属于哪个小节。</p>
+<p><strong>第二，要区分「参与向量化的字段」和「只用于过滤的字段」。</strong></p>
+<p>有人把整个元数据 JSON 一起塞进待 Embedding 的文本里，结果 <code>version</code> 、 <code>acl</code> 这些和语义毫无关系的字段干扰了向量方向。原则是： <code>doc_title</code> 、 <code>heading_path</code> 这类本身带语义的字段，可以拼进文本参与向量化；其余的只存成字段，只用于过滤。</p>
+<h2 id="三切块chunk">三、切块（Chunk）</h2>
+<p>为什么必须切块呢？主要有三个原因：</p>
+<p>上下文窗口和 Token 预算装不下整份文档；Embedding 模型本身有输入长度上限；更重要的是， <strong>Embedding 一次只能给一段文本算出一个向量。</strong> 整份长文档往往同时讲住宿、交通、审批很多件事，全压进这一个向量里，每个主题都被其余主题冲淡了。用户问「住宿标准」，这份文档的向量既不像住宿，也不像交通，跟具体问题对不上，检索精度极差。</p>
+<p>因此，切分的目标可以用一句话概括：</p>
+<blockquote>
+<p><strong>让每个片段自身语义完整，并且只讲一件事。</strong></p>
+</blockquote>
+<p>常用的切分方法有四种：固定长度切分、递归字符切分、结构化切分、语义切分。接下来，我们依次看下。</p>
+<h4 id="1-固定长度切分">1. 固定长度切分</h4>
+<p>最简单的办法：不管句子、不管段落，数到第 500 个字就切一刀。</p>
+<p>优点是实现简单，每段多长完全可控。但缺点很致命：它完全不管语义，经常把一句话从中间切断。比如原文是「一线城市每晚不超过 800 元」，硬切之后可能变成两段，前一段停在「一线城市每晚不超过」，后一段开头是「800 元」。单独看任何一段都缺信息，检索和回答都会出问题。</p>
+<h4 id="2-递归字符切分多数实际项目的默认选择">2. 递归字符切分：多数实际项目的默认选择</h4>
+<p>固定长度切分的致命问题，是断点完全不看语义，经常一句话切成两半。递归字符切分就是在优化断点：先尽量停在段落、句子这些自然边界上，实在找不到合适的边界，再退回去硬切。</p>
+<p>具体做法是给一组 <strong>优先级从高到低的分隔符</strong> 。先按空行切成段落；某一段还是超过 500 字，再按换行切；还是太大，再按句号、问号切；一直切到够短为止。到最后都找不到标点，才退化成按字符硬切。</p>
+<p>所以它叫「递归」：不是只切一次，而是对仍然超长的块，拿下一档分隔符再切一遍。一份差旅制度里，「住宿标准」那一节如果本身不到 500 字，就会整节留下来；「审批流程」那一节如果写得很长，才会继续按句切开。这样大多数片段都能在句子或段落的边界断开，不会再把「不超过」和「800 元」劈成两半。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=80,
+    # 优先在段落处断开，其次句号，最后才退化到硬切
+    separators=[&quot;\n\n&quot;, &quot;\n&quot;, &quot;。&quot;, &quot;！&quot;, &quot;？&quot;, &quot;；&quot;, &quot;，&quot;, &quot; &quot;, &quot;&quot;],
+)
+chunks = splitter.split_text(text)
+</code></pre>
+<p>注意 <code>separators</code> 这个列表： <strong>默认配置是给英文写的</strong> 。中文文档如果不改这一项，切分器几乎找不到该断的地方，最后会退化成跟固定长度切分差不多。这是中文 RAG 里最常见、也最容易被忽略的一个坑。</p>
+<h4 id="3-结构化切分">3. 结构化切分</h4>
+<p>如果文档本身有清晰结构，按结构切是最优的。</p>
+<ul>
+<li>Markdown / HTML：按标题层级切，一个小节一个片段</li>
+<li>法律、制度文件：按「第 X 条」切，条款天然是完整语义单元</li>
+<li>FAQ：一问一答一个片段，这是 RAG 最理想的数据形态</li>
+<li>代码：按函数、按类切</li>
+</ul>
+<p><strong>结构化切分最大的收益，是能顺手把标题路径带进片段里。</strong></p>
+<p>我们看这个片段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>一线城市每晚不超过 800 元，二线城市不超过 500 元。
+</code></pre>
+<p>它有两个问题：不知道说的是什么费用，也不知道是哪家公司哪一年的规定。用户问「差旅住宿标准」，这个片段的向量里并不包含「差旅」「住宿」这两个词的语义，很可能检索不到。</p>
+<p>把标题路径拼上去，检索命中率立刻提升一档。这个做法叫 <strong>上下文增强（Context Enrichment）</strong> ，成本几乎为零，收益却很高。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>差旅报销制度 &gt; 三、费用标准 &gt; 3.1 住宿标准
+一线城市每晚不超过 800 元，二线城市不超过 500 元。
+</code></pre>
+<h4 id="4-语义切分">4. 语义切分</h4>
+<p>前面三种方法，断点都是看「形式」：数到多少字、遇到什么标点、标题在哪里。语义切分换了个依据：看「意思变没变」。</p>
+<p>做法是先把文档拆成一句一句的，给每句算出一个向量，再比较相邻两句有多像。像，说明还在讲同一件事，继续放在一起；突然不像了，说明话题转了，就在那里切开。</p>
+<p>比如这两句紧挨着：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>一线城市每晚不超过 800 元，二线城市不超过 500 元。
+员工出差应提前填写申请，经直属领导审批。
+</code></pre>
+<p>前一句在讲住宿标准，后一句已经转到审批流程，两句向量会拉开距离，语义切分就会在这里断。反过来，「超标部分由个人承担」跟住宿标准是同一件事，相似度高，就会留在同一段里。</p>
+<p><strong>语义切分只需要 Embedding 模型，不需要接大模型。</strong> 它全程只是算向量、比距离，没有一次生成调用。</p>
+<p>语义切分的代价也不小。普通切分不需要额外调模型，语义切分却要给每句话都算一次向量，而句子数远多于片段数。另外阈值也很难调：太敏感，一段话会被切得过于细碎；太迟钝，又跟没切差不多。</p>
+<p><strong>我的建议是：先把递归切分 + 结构化切分做好，绝大多数场景够用了。语义切分留到文档结构很乱、靠标点和标题找不到话题边界时再上。</strong></p>
+<h4 id="框架支持情况">框架支持情况</h4>
+<p>上面这几种方法，两个主流框架（Spring AI 和 LangChain）的支持程度差得很远，后面会详细讲，这里稍微了解下。</p>
+<p><strong>LangChain：四种切分方式都有现成类。</strong></p>
+<p>切分器都在 <code>langchain_text_splitters</code> 包里：</p>
+<ul>
+<li>固定长度： <code>CharacterTextSplitter</code> （按单一分隔符切）、 <code>TokenTextSplitter</code> （直接按 token 数切）</li>
+<li>递归字符： <code>RecursiveCharacterTextSplitter</code> ，还有个 <code>from_language()</code> 工厂方法，内置了二十多种编程语言的分隔符（ <code>Language.PYTHON</code> 、 <code>Language.JAVA</code> ），切代码也不用自己配置分隔符。</li>
+<li>结构化： <code>MarkdownHeaderTextSplitter</code> 、 <code>HTMLHeaderTextSplitter</code> 、 <code>HTMLSectionSplitter</code> 、 <code>RecursiveJsonSplitter</code></li>
+<li>语义： <code>SemanticChunker</code></li>
+</ul>
+<p><strong>Spring AI：官方只支持固定长度切分。</strong></p>
+<p>Spring AI 支持有 <code>TokenTextSplitter</code> 。递归字符切分、结构化切分、语义切分都没有现成实现。Spring AI 的生态中，存在一些非官方的扩展实现。例如， <code>spring-ai-alibaba</code> 就提供了递归字符切分 <code>RecursiveCharacterTextSplitter</code></p>
+<h2 id="四chunk-大小与重叠">四、Chunk 大小与重叠</h2>
+<p>Chunk 到底切多大合适？</p>
+<blockquote>
+<p><strong>chunk 越小，检索越准但上下文越不完整；chunk 越大，上下文越完整但检索越不准。</strong></p>
+</blockquote>
+<p>先说为什么大 chunk 检索不准。因为**一个片段只有一个向量。**片段里塞了五个话题，这个向量就是五个方向的平均值，跟其中任何一个具体问题都不够接近。用户问的是第三个话题，向量被另外四个话题拉离了目标方向。也就是说， <strong>信息被稀释了。</strong></p>
+<p>这也解释了一个很多人觉得反直觉的现象：明明把 chunk 调大、让片段包含了更多信息，检索效果反而变差了。</p>
+<p>那反过来，把 chunk 切得足够小，是不是就没问题了？</p>
+<p>也不行，检索是准了，可检索到的片段模型读不懂。比如切出这么一段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>超出上述标准的部分由个人承担，特殊情况需提前报备。
+</code></pre>
+<p>「上述标准」是什么？被切走了。这段话单独看缺少必要信息，给到模型之后，模型只能猜，或者干脆答不出来。</p>
+<p><strong>中文文档里这个问题格外突出</strong> ，因为中文习惯用「该」「上述」「前款」这类指代词。一旦前文被切掉，片段就缺少指代对象，语义不完整。前面反复强调的结构化切分和上下文增强，本质上都是在补救这件事。</p>
+<p>Chunk太大也不行，太小也不行，所以，实际的做法是先挑一个合理的起点，再拿评测集往两边试。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>chunk_size（字）</th>
+<th>适合的场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>150 ~ 300</td>
+<td>FAQ、条款、术语表</td>
+</tr>
+<tr>
+<td>300 ~ 600</td>
+<td>通用文档问答， <strong>大多数项目从这里开始调整</strong></td>
+</tr>
+<tr>
+<td>600 ~ 1200</td>
+<td>需要连贯推理的技术文档、分析报告</td>
+</tr>
+<tr>
+<td>整节不切</td>
+<td>结构清晰且小节本身不长的文档</td>
+</tr>
+</tbody>
+</table></div>
+<p>再强调一遍： <strong>这是起点，不是答案。</strong> 你需要用评测集去测评切分得是否合理，再决定往哪边调，直到效果你满意为止！</p>
+<p>不过 chunk_size 只管片段有多长，管不了断点具体落在哪儿。哪怕你把 chunk_size 挑得很合适，也总会有一句关键的话，正好落在两个片段的接缝上。这次不是因为切太小，只是断点恰好落在关键句上。</p>
+<p><strong>overlap（重叠）</strong> 就是为解决这个问题发明的：让相邻片段共享一小段内容，前一段的尾巴同时出现在后一段的开头。这样接缝处的话，总能在其中一个片段里保持完整。举个例子，原文里有这么一段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>员工在一线城市出差，住宿费每晚不超过 800 元；在二线城市出差，住宿费每晚不超过 500 元。超出标准的部分由个人承担，特殊情况需提前报备。
+</code></pre>
+<p>如果没有 overlap，刚好切成两段，可能会变成这样：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>片段 A：员工在一线城市出差，住宿费每晚不超过 800 元；在二线城市出差，住宿费每晚不超过 500 元。
+片段 B：超出标准的部分由个人承担，特殊情况需提前报备。
+</code></pre>
+<p>用户问「住宿费超标怎么办」时，片段 B 很可能被检索出来，但模型只看到「超出标准」，不知道标准是多少，也不知道说的是住宿费。</p>
+<p>加上 overlap 之后，片段 B 的开头会带上前一段的尾巴：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>片段 B：在二线城市出差，住宿费每晚不超过 500 元。超出标准的部分由个人承担，特殊情况需提前报备。
+</code></pre>
+<p>这样模型至少能知道「超出标准」指的是住宿费标准，回答会准确得多。</p>
+<p>overlap的经验值是 chunk_size 的 10%~20%。如果你用的是结构化切分，可以直接设 0，因为断点本身就落在语义边界上，接缝处不会有断句。</p>
+<p><strong>overlap 不宜设得过大。</strong> 我见过设成 50% 的，索引体积直接翻倍，检索出来的 Top-5 里三段内容高度重复，上下文窗口被重复内容占满。</p>
+<p>讲到这里你可能会问：Chunk 大有大的问题、小有小的问题，就没有两全的办法吗？</p>
+<p>有，用小片段做检索，命中之后把它所属的大片段取出来给模型。</p>
+<p>检索走小片段，向量不被稀释，精度高；喂给模型的是大片段，上下文完整，指代关系也齐全。两个目标各自用最合适的粒度，不再互相牵制。</p>
+<p>落地方式有三种，按实现成本从低到高：</p>
+<ul>
+<li>索引小片段，元数据里记 <code>parent_id</code> ，命中后按 <code>parent_id</code> 把父片段拉出来（LangChain 里对应 <code>ParentDocumentRetriever</code> ）</li>
+<li>索引小片段，元数据里记它在原文中的起止位置，命中后按位置往前后各扩若干字</li>
+<li>索引一句话摘要，正文原文存在元数据里，检索匹配摘要、返回原文</li>
+</ul>
+<p><strong>这套做法几乎没有副作用，代价只是索引结构复杂一点。</strong> 一旦你发现 chunk 参数怎么调都是「提高精度就会损失完整度，反之亦然」，就该上它了，而不是继续只调整 chunk_size。</p>
+<h2 id="五数据更新与版本管理">五、数据更新与版本管理</h2>
+<p>前面几节默认文档处理完就入库，索引也就固定了。真实项目里文档不会不停变动：制度改版、旧文件作废、新文件进来，向量库里的索引得跟着改。这一节就讲索引建好之后，怎么跟上这些变化。</p>
+<p><strong>先说最常见的情况：更新。</strong></p>
+<p>库里有两千份文档，今天有人改了其中一份差旅制度。最省事的办法是两千份全部重跑一遍，但 Embedding 又贵又慢，为改一份重算两千份，显然不划算。正确的做法是 <strong>增量更新</strong> ：只动真正变了的那些片段。</p>
+<p>可你怎么知道哪些片段变了？给每个片段算一个 <strong>内容哈希</strong> 。同一段文本算出来的哈希相同，改了一个字，哈希就会变。拿这份文档新旧两批哈希对比，就能看出哪些是新加的、哪些删掉了、哪些没动。</p>
+<p><img src="../../../assets/llm-application-basics/01-04-02-%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E5%B7%AE%E9%9B%86.png" alt="01-04-02-增量更新差集.png"></p>
+<p>关键在第 5 步： <strong>没变的片段直接跳过，一次向量都不用重算。</strong> 对「文档只改了一个错别字」这种最常见的情况，一份文档里绝大多数片段的哈希都没变，这套逻辑能省下 99% 的开销。</p>
+<p><strong>更新讲完，接着说删除。</strong></p>
+<p>它看着最简单，却是最容易出事的。RAG 系统最常见的数据事故，就是文档删了，但向量还留在库里。</p>
+<p>设想这样一个场景：一份报销制度作废了，管理员把文件删掉了，以为这事就结束了。可这份文件对应的向量仍留在库中。三个月后，有新员工问起报销标准，系统仍会检索并返回这份作废文件，给出了早已过期的答案。</p>
+<p><strong>这类 bug 极其隐蔽</strong> ，因为答案看起来完全正常，格式、语气、引用一应俱全，你根本想不到它引的是一份早该消失的文件。</p>
+<p>要解决这个问题，我们得做好三件事。</p>
+<p>第一， <strong>每个片段都带上 <code>doc_id</code></strong> ，这样删文档时才能按 <code>doc_id</code> 把它的全部片段一次精确清掉。</p>
+<p>第二， <strong>优先用软删除，而不是直接做物理删除。</strong> 给片段打一个 <code>deleted=true</code> 的标记，检索时把带标记的过滤掉，数据本身仍保留。这样万一删错了还能找回来。</p>
+<p>第三， <strong>定期跑一致性校验。</strong> 拿向量库里的 <code>doc_id</code> 集合，和源系统里现存的文档对一遍，把两边对不上的数据找出来。这是兜底的最后一道防线。</p>
+<p>不过，删除也不总是「越干净越好」。制度类文档就有个相反的需求： <strong>旧版本不能真扔掉。</strong> 因为有人会问「去年的报销标准是多少」，真出了纠纷，也得能追溯当时依据的是哪一版。</p>
+<p>处理办法我们在元数据那一节其实已经提到过：把版本号和生效期存进元数据，检索时默认只查现行版本，需要追溯历史时，再放开过滤条件去查旧版本。</p>
+<p>最后要交代的是，有两种情况，增量这套逻辑会彻底失效， <strong>必须整库全量重建</strong> 。</p>
+<p>一种是 <strong>换了 Embedding 模型。</strong> 比如你从 OpenAI 的 <code>text-embedding-3-large</code> 换成了国产的 <code>Qwen3-Embedding</code> 。不同模型的向量空间是完全不通的两套坐标系，新旧向量混在一个库里算相似度，结果基本等于随机。下一篇还会再专门强调。</p>
+<p>另一种是 <strong>改了切分策略。</strong> 只要你动了 chunk 大小、overlap 或者分隔符，片段边界就全变了，哈希自然对不上，增量的差集算出来会是「全删全增」，等于变相全量重建，还不如直接做全量重建来得干净。</p>
+<p>正因为「全量重建」这件事早晚都会碰上，工程上有个强烈建议： <strong>把索引构建做成一条能一键重跑的流水线，并且支持双索引切换。</strong></p>
+<p>所谓双索引切换，其实就是软件部署里蓝绿发布的思路：新索引在旁路先建好，用评测集验证通过之后，再把线上流量切过去；万一新索引有问题，随时能切回旧的。这样重建的过程用户完全无感，还自带回滚能力。</p>
+<p><img src="../../../assets/llm-application-basics/01-04-02-%E4%BB%8E%E5%8E%9F%E5%A7%8B%E6%96%87%E6%A1%A3%E5%88%B0%E5%8F%AF%E6%A3%80%E7%B4%A2%E7%9F%A5%E8%AF%86%E5%BA%93.png" alt="01-04-02-从原始文档到可检索知识库.png"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

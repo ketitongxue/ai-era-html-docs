@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02-大模型中的一些常识概念</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+<meta name="source" content="https://www.codecrush.cn/lesson/355866857414066176">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="02-大模型中的一些常识概念">02-大模型中的一些常识概念</h1><p>上一篇我们介绍了大模型的发展历史，知道了 GPT、DeepSeek 这些模型是怎么一步步走到今天的。但你真去开发大模型应用时，会发现文档里全是「术语」：Token、上下文窗口、Prompt、7B、671B、知识截止、思维链……这些词频繁出现，但很多开发者其实只知其名不知其意。</p>
+<p>这一篇，我就把这些最基础、也最容易含糊过去的概念一次讲清楚。搞懂它们，你后面看任何大模型文档、API 文档都能顺畅读懂。</p>
+<h2 id="一token">一、Token</h2>
+<p>先说最重要的概念：Token。</p>
+<p>你跟大模型对话，它并不是一个字一个字地读你的话，而是先把文字切成一个个小块，这个小块就叫 <strong>Token</strong> 。你可以把它理解为大模型世界的「字节」：就像计算机底层不认识「图片」和「文字」，只认识 0 和 1，大模型底层也不认识「汉字」和「单词」，只认识 Token。</p>
+<p>那一个 Token 大概多大？</p>
+<ul>
+<li>英文：1 个 Token ≈ 4 个字符，约 0.75 个单词</li>
+<li>中文：波动很大，1 个汉字在 0.6 ~ 2 个 Token 之间，取决于分词器对中文优化到什么程度（下面会解释这个范围为什么这么宽）</li>
+</ul>
+<p>看到这里，你多半会冒出两个疑问：英文不应该按单词切吗，怎么一个单词还会被拆成两个 Token？中文不应该按字切吗，怎么一个字还能被拆开？</p>
+<p>实际上， <strong>大模型的「分词」根本不是语言学意义上的分词，而是一套纯统计的压缩算法。</strong></p>
+<p>主流模型用的是 <strong>BPE（Byte Pair Encoding，字节对编码）</strong> 。它的思路很朴素：先把文本拆成最小的字符，然后不断统计哪两个相邻片段一起出现得最频繁，就把它们「粘」成一个新 Token，反复迭代，直到词汇表达到预设大小（比如 10 万个）。</p>
+<p>结果就是： <strong>高频的整词独占一个 Token，低频的生僻词被拆开。</strong></p>
+<ul>
+<li><code>the</code> 、 <code>is</code> 、 <code>apple</code> 这类高频词，只需 1 个 Token</li>
+<li><code>unhappiness</code> 可能被拆成 <code>un</code> + <code>happi</code> + <code>ness</code></li>
+<li><code>ChatGPT</code> 可能被拆成 <code>Chat</code> + <code>G</code> + <code>PT</code> （训练时根本没见过这个新词）</li>
+</ul>
+<p>为什么非得这么麻烦？因为英语单词有 50 多万个，还每天在造新词。如果词汇表要囊括每一个单词，模型根本装不下。拆成子词，既把词汇表控制在可接受的规模，又保证任何生词都能被表示出来。</p>
+<p>中文走的是同一套逻辑，但结果差别大得多，原因在于： <strong>BPE 是在「字节」上做合并的，而一个汉字在 UTF-8 编码里占 3 个字节。</strong> 一个汉字如果没能在词汇表里占到一个位置，就得被拆成 2 ~ 3 个 Token；占到了，才算 1 个 Token。汉字总量又极其庞大（Unicode 收录超过 9 万个），词汇表根本装不下全部，于是就出现了明显的分化：</p>
+<ul>
+<li><strong>分词器以英文语料为主</strong> （比如 GPT-3.5/4 用的 cl100k_base）：中文词条收得少，常用字勉强占 1 个 Token，稍生僻的字要 2 ~ 3 个。这就是「1 个汉字 ≈ 1 ~ 2 个 Token」这个说法的由来。</li>
+<li><strong>分词器专门为中文优化过</strong> （Qwen、DeepSeek、GLM 等国产模型）：词汇表里塞进了大量中文常用词，「我们」「人工智能」这类高频词整体就是 1 个 Token。这时候情况反过来，1 个 Token 能覆盖一个半甚至更多汉字。</li>
+</ul>
+<p>所以同一段中文，换个模型数出来的 Token 数可能差出一倍，这并不奇怪，只取决于词汇表里给中文留了多少位置。落到实处就是： <strong>做中文业务时，用中文优化过的模型，Token 更省，同样的上下文窗口也能塞进更多内容。</strong></p>
+<p>一句话总结：</p>
+<blockquote>
+<p>大模型既不按单词读、也不按字读，而是用一张「高频片段表」，把你的输入压成最紧凑的 Token 序列。它不关心语法，只关心频率。</p>
+</blockquote>
+<h2 id="二上下文窗口">二、上下文窗口</h2>
+<p>第二个概念： <strong>上下文窗口（Context Window）</strong> 。</p>
+<p>上下文窗口指的是一次请求中，大模型能处理的最大 Token 数量，通常是输入 + 输出的总和。</p>
+<p>早期模型的上下文窗口只有几千 Token，大概相当于几页纸。到了 2026 年，主流模型普遍做到 100 万 Token 以上，大约相当于 2500 页纸。</p>
+<p>不过有个必须澄清的点： <strong>大模型本身是没有记忆的，接口调用也是无状态的。</strong> 模型处理你这次请求时，只看你这次传进去的 Token，它既不记得你上一轮问了什么，也不会替你保存聊天记录。</p>
+<p>你可能会反驳：我跟 ChatGPT、DeepSeek 聊天，它明明记得我前面说过的话啊？</p>
+<p>这里要区分两个东西： <strong>网页版的对话助手，和大模型不是一回事。</strong> 对话助手本身是一个独立的应用，它底层去调大模型。聊天记录是这个应用存在自己数据库里的，跟模型无关。</p>
+<p>你每发一条新消息，应用其实是把「历史对话 + 这条新消息」打包成一整段，重新发给模型。于是你就觉得它「记得」之前的聊天内容。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>你以为的：    你 ──新消息──▶ 大模型（记得前面所有对话）
+
+实际发生的：  你 ──新消息──▶ 应用 ──[历史对话 + 新消息]──▶ 大模型（每次都从零看起）
+</code></pre>
+<p>理解了这一点，一个很现实的问题就来了： <strong>对话越聊越长，每次都要累加在一起同时发给大模型，迟早会超出上下文窗口的上限。到时候会怎么样？</strong></p>
+<p>一旦超限，大模型会直接报错（提示超过最大上下文长度），请求整个失败。 <strong>善后工作得由应用（比如聊天助手、编程助手等）自己做。</strong></p>
+<p>常见的处理办法有三种（应用端处理）：</p>
+<ol>
+<li><strong>截断</strong> ：只保留最近 N 轮对话，把最早的丢掉。实现最简单，代价是模型会突然「失忆」，你开头交代过的关键信息可能已经被丢弃了。</li>
+<li><strong>压缩</strong> ：把早期对话交给模型总结成一段摘要，把摘要发给大模型，但细节一定有损失。Claude Code自动压缩都是这个思路。</li>
+<li><strong>提示新开会话</strong> ：直接把选择权交给用户，这也是很多产品的兜底做法，比如Deepseek的对话助手。</li>
+</ol>
+<p>在编程场景里，这件事的感受最明显。你用编程 Agent 改一个大项目，聊到后面往往会看到「上下文即将用尽」的提示，或者它自动做一次压缩。压缩之后你常会发现它「忘了」前面定好的某个约定，得重新交代一遍。所以经验做法是： <strong>长任务尽量拆成多个小任务、及时开新会话，而不是在一个会话里一直处理下去。</strong></p>
+<p>最后需要提醒的是： <strong>上下文窗口大，不等于把它塞满效果就好。</strong> 内容太长时，模型反而更容易漏掉夹在中间的信息（业界称为 Lost in the Middle）。</p>
+<h2 id="三提示词-prompt">三、提示词 Prompt</h2>
+<p>第三个概念： <strong>提示词（Prompt）</strong> 。</p>
+<p>简单来说，提示词就是你喂给大模型的那段输入文本，也就是你的问题、指令，或者交给它处理的资料。</p>
+<p>在普通用户眼里，提示词就是对话框里打的那句话；但在开发者眼里没这么简单，它被严格分成了两个角色： <strong>System Prompt（系统提示词）</strong> 和 <strong>User Prompt（用户提示词）</strong> 。</p>
+<p>User Prompt 很好理解，就是你平时输入的具体问题或任务，比如「帮我写一个排序算法的 Python 代码」「总结这篇文章的核心观点」。它告诉模型这一次具体要干什么。</p>
+<p>System Prompt 则是由开发者在后台加入的。它不出现在聊天界面上，但每一轮对话都会附带在请求的最前面，用来设定模型的全局人设、行为边界和输出格式。比如：</p>
+<blockquote>
+<ul>
+<li>你是一个资深 Python 工程师，回答要简洁，不要解释原理，直接给代码。</li>
+<li>你是一个客服机器人，只能回答公司产品相关的问题，超出范围统一回复「我不清楚」。</li>
+<li>所有输出必须使用 JSON 格式，包含 code 和 message 两个字段。</li>
+</ul>
+</blockquote>
+<p>虽然从「拼 Token」的角度看，System 和 User 最终只是被拼成一段长文本喂给模型，但现代大模型在训练阶段就被专门调教过，会区别对待这两种角色。通俗讲就是，模型在处理时会始终区分两者的优先级： <strong>System 里写的是不可突破的底线，User 里写的是具体需求；底线不能破，需求可以灵活响应。</strong> 这也是为什么你写 System 时语气可以强硬（「必须……」「禁止……」），而 User 里用自然的提问口吻就行。</p>
+<p>把 System 和 User 分开，有三个实际的好处：</p>
+<ol>
+<li><strong>权限分层，防住恶意注入。</strong> 规则写在 System 里，模型会当成最高优先级的铁律；而 User 内容来自用户输入，可能夹带恶意指令。两者冲突时模型优先服从 System，普通用户就很难绕过你预设的护栏。</li>
+<li><strong>分离规则与任务，便于工程化。</strong> System 放恒定不变的长期规则（人设、格式、安全边界），User 放千变万化的短期任务。你的代码只需要动态拼接 User 部分，System 固定复用，维护起来轻松得多。</li>
+<li><strong>方便利用缓存，节省成本。</strong> 很多模型支持对 System Prompt 做缓存（Prompt Caching，讲提示词工程时会展开）。如果 System 很长但内容固定，重复请求时这部分 Token 会被缓存并打折计费，能省下不少钱。</li>
+</ol>
+<h2 id="四参数量和激活参数量">四、参数量和激活参数量</h2>
+<p>你一定见过这样的模型名： <code>Qwen3-32B</code> 、 <code>Llama-3.1-70B</code> 、 <code>DeepSeek-V3-671B</code> 。数字后面那个 <code>B</code> 是 billion（十亿），说的是 <strong>参数量</strong> 。</p>
+<p>参数是什么？大模型本质是一个巨大的神经网络，里面有海量的数字（参数）决定信号怎么从输入流向输出，训练的过程就是拿数据反复调整这些数字。参数量就是这些数字的个数，可以粗略理解成模型的「脑容量」。</p>
+<p>对开发者来说，参数量最直接的意义是 <strong>决定你要准备多少显存</strong> ，才能在你的电脑上运行这个大模型。有个粗算公式：1B 参数约占 2GB显存。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>模型规模</th>
+<th>显存</th>
+<th>大致意味着</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7B</td>
+<td>~14 GB</td>
+<td>单张消费级显卡勉强能跑</td>
+</tr>
+<tr>
+<td>32B</td>
+<td>~64 GB</td>
+<td>得上专业卡或多卡</td>
+</tr>
+<tr>
+<td>671B</td>
+<td>~1.3 TB</td>
+<td>集群级部署</td>
+</tr>
+</tbody>
+</table></div>
+<p>但 <strong>参数多不等于更强。</strong> 数据质量、训练方法影响同样巨大，小模型在特定任务上超过大模型是常事。</p>
+<p>还有个容易困惑的地方：DeepSeek-V3 标称 671B，官方却说每次推理只激活 37B，这是怎么回事？因为它用的是 <strong>MoE（Mixture of Experts，混合专家）</strong> 架构。整个神经网络被拆成很多个「专家」子网络，每个 Token 只路由给其中少数几个。所以看 MoE 模型要关注两个数字： <strong>总参数量</strong> 决定你要多少显存， <strong>激活参数量</strong> 决定单次推理质量。</p>
+<p>最后需要说明的是：如果你只调 API，参数量基本不用操心，你该关心的是价格、速度和效果。参数量主要在你考虑私有化部署时才会用到。</p>
+<h2 id="五知识截止日期">五、知识截止日期</h2>
+<p>先讲一个很小、但特别能说明问题的场景。</p>
+<p>你打算在项目里引入 Spring AI，不想查官网，直接问模型：「Spring AI 最新的稳定版是多少？给我 Maven 依赖。」</p>
+<p>它答得干脆利落，版本号精确到小数点，连坐标都替你写好了：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-M6&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>你复制进 <code>pom.xml</code> ，构建居然过了，于是放心往下写。接着问题就出现了：官方文档里提到的类死活找不到，教程里的方法签名对不上，网上搜到的示例代码一个都跑不通。</p>
+<p>翻到官网你才明白怎么回事：Spring AI 早就发布了 1.0.0 正式版，连 artifactId 都换了名字， <code>spring-ai-openai-spring-boot-starter</code> 变成了 <code>spring-ai-starter-model-openai</code> 。</p>
+<p>这里最大的问题不是它答错了，而是 <strong>它答得毫不犹豫</strong> 。它没有说「我的信息可能过时，建议你查一下官网」，而是非常笃定地把这个已经过时的答案交给了你。</p>
+<p>模型给你的那个版本号，是一个老版本，是它训练时看到的「最新版」。它认识的世界，停在了训练数据采集完的那一刻。这个时间点就叫 <strong>知识截止日期（Knowledge Cutoff）</strong> 。在那之后发生的一切，比如新版本、新框架、新闻事件，模型统统不知道。</p>
+<p>想明白这一点，还有两个容易出错的细节。</p>
+<p><strong>第一，截止日期不是一条整齐的分割线。</strong> 你可能以为「截止到 2025 年 6 月」就意味着 5 月的事它非常清楚。其实不然。一件事发生之后，要过挺长时间才会被反复讨论、写成文章、沉淀成网上的资料。所以越靠近截止日期的内容，在训练数据里就越稀薄，模型对最后那几个月的了解往往是模模糊糊的。</p>
+<p><strong>第二，不要轻信模型自己报的日期。</strong> 你问它「你的知识截止到什么时候」，它给的答案未必可靠，那多半是从语料里学来的一句话，复述出来而已。想知道准确日期，得去查官方文档。</p>
+<p>那怎么办呢？答案很简单： <strong>模型不知道的，你喂给它。</strong> 把搜索结果、数据库查询结果、文档片段塞进 Prompt 里当上下文，模型就能基于这些新信息回答。回到开头那个例子，你有两条路可以走：要么把官网的依赖说明复制进去让它照着写，要么给它一个能实时查 Maven 仓库的工具让它自己去查。这两条路，正是后面 <strong>RAG</strong> 和 <strong>工具调用</strong> 两个模块要解决的核心问题。</p>
+<p>一句话总结： <strong>模型的知识是训练那一刻的冻结快照，想让它知道新知识，只能靠你在请求里带进去。</strong></p>
+<h2 id="六推理模型与思维链">六、推理模型与思维链</h2>
+<p>你打开 DeepSeek 的对话页面，会看到输入框下面有个「深度思考」按钮。按下去和不按，背后其实是两套不同的工作方式。</p>
+<p>我们拿一个例子来讲解。</p>
+<p>**9.11 和 9.9，哪个大？**你拿这个问题去问大模型。</p>
+<p>这个问题在 2024 年是典型的大模型出错案例，当时几乎所有主流模型都答错，直接回答「9.11 更大」。原因是：训练语料里长得像 9.11 的东西，大多是版本号和日期，模型顺着惯性就答了。今天的模型大多已经能答对，因为你能清楚看到，答对到底靠的是什么。</p>
+<p>打开深度思考再问一遍，画面完全不一样。正式答案出现之前，屏幕上会先滚出一大片灰色的文字，大意是这样（实际输出比这啰嗦得多）：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>用户问 9.11 和 9.9 哪个大。
+看着简单，但要小心：这可能是版本号，也可能是小数。
+按小数理解：9.11 = 9.110，9.9 = 9.900。
+比较小数部分，110 &lt; 900。
+所以 9.9 更大。
+再验算一次：9.9 - 9.11 = 0.79，大于 0，确认 9.9 更大。
+</code></pre>
+<p>等这段滚完，它才不紧不慢地给出结论：9.9 更大。</p>
+<p>前面输出的这片灰色文字就是 <strong>思维链（Chain of Thought，简称 CoT）</strong> ，而会主动生成它的模型，就叫 <strong>推理模型（Reasoning Model）</strong> 。代表选手是 OpenAI 的 o 系列、DeepSeek-R1，以及 Claude 和 Gemini 的 thinking 模式。</p>
+<p>为什么打个草稿就能答对？因为模型是一个 Token 一个 Token 逐个生成的，一旦开了头，后面就只能顺着前面的内容继续。不让它想，它等于要在第一个 Token 上就赌对答案；让它先把过程写出来，就把一次困难的任务拆成了若干次容易的小步。数学、逻辑推导、复杂代码这类任务，准确率提升非常明显。</p>
+<p>顺带提一下，DeepSeek-R1 当年引起轰动，一个重要原因就是它把完整的思维链摊开给你看。OpenAI 的 o 系列出于安全和竞争考虑，只给你一段摘要，真正的原始思考过程没有公开。</p>
+<p>当然，开启思维链也是有代价的：</p>
+<ol>
+<li><strong>慢。</strong> 那片灰色文字也是逐 Token 生成出来的。开了深度思考之后，你能明显感觉到要多等好几秒甚至几十秒才见到正式答案。</li>
+<li><strong>贵。</strong> 思考 Token 通常按输出价格计费。哪怕接口根本不把它们返回给你，钱也照样回收。</li>
+</ol>
+<p>分类、抽取、改写这类一步就能出结果的任务，推理模型不但没有优势，还白白烧时间和钱，让它反复推理「把这段话翻译成英文」，只会浪费时间和成本。</p>
+<p>所以选型原则很简单： <strong>需要多步推导才上推理模型，一步能给出答案的用普通模型。</strong></p>
+<h2 id="七大模型--大模型应用">七、大模型 ≠ 大模型应用</h2>
+<p>最后一个不算术语，但它是这门课的地基。</p>
+<p>回头看看前面几节，你会发现「应用」这个词反复出现：聊天记录是 <strong>应用</strong> 存的，上下文超了是 <strong>应用</strong> 去截断压缩，System Prompt 是 <strong>应用</strong> 拼进去的。</p>
+<p><strong>大模型本身功能极其单一</strong> ：</p>
+<blockquote>
+<p>给它一串 Token，它还你一串 Token，仅此而已。它没有记忆，不会联网，不会读你的文件，不会执行任何动作，甚至不知道今天几号。</p>
+</blockquote>
+<p>你在网页版对话助手里体验到的那一切：登录、历史会话、上传文件解析、联网搜索、代码执行、打字机效果、内容审核，没有一样是模型干的，全部由外面那层应用完成。应用替你把这些工作都完成了，所以你看到的只是一个干净的输入框。等你自己做项目，它们就全落回你项目身上了：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>大模型应用 = 模型调用
+           + 会话与状态管理
+           + 上下文组装
+           + 知识检索（RAG）
+           + 工具调用
+           + 输出校验与格式约束
+           + 重试、降级与限流
+           + 成本、延迟与效果监控
+           + 安全与合规
+           + 任务编排
+           + ...
+</code></pre>
+<p>看懂这个式子你就明白了： <strong>模型只是其中一个组件，这门课后面所有的模块，讲的都是「模型之外的这一圈」怎么做。</strong></p>
+<h2 id="八agent-智能体">八、Agent 智能体</h2>
+<p>理解了「应用」这一层，再往前迈一步，就能看懂 Agent 是什么了。</p>
+<p>同样是大模型应用，复杂度差别很大，大致可以分成三档。</p>
+<p><strong>第一档，单次调用。</strong> 你发一段 Prompt，模型回一段结果，结束。其实，很多应用对大模型的使用都还停留在这个层面。</p>
+<p><strong>第二档，Workflow（工作流）。</strong> 一次调用搞不定，就把任务拆成几步，用代码串起来：先让模型判断用户意图，再去数据库查数据，最后让模型基于查到的数据生成回复。关键在于， <strong>每一步走到哪、下一步干什么，都是你在代码里写死的</strong> ，模型只负责它那一环，不参与决策。</p>
+<p><strong>第三档，Agent（智能体）。</strong> 你不再规定路径，而是把目标和一组工具交给模型，让大模型自己判断：现在该调哪个工具、拿到结果后要不要再查一次、什么时候算干完了。程序进入一个循环：模型思考，调用工具，看结果，再思考，再调用，直到它认为任务完成。</p>
+<p>一句话点总结：</p>
+<blockquote>
+<p>Workflow 里路线是你规划的，模型是执行者；Agent 里路线是模型自己走出来的，你只给目标和工具。</p>
+</blockquote>
+<p>最好懂的例子就是 Cursor、Claude Code 这类编程 Agent。你输入一句「帮这个接口加上分页」，它自己去找相关文件、读代码、动手改、跑测试，测试挂了再回头改，这一串动作，没有一步是事先编排好的。</p>
+<p>自主带来灵活，也带来新麻烦：它可能绕远路，可能对着同一个工具反复调用，可能越跑越偏，甚至执行一些你根本没预期的危险操作。所以怎么给它划定边界、怎么控住成本、什么时候必须让人介入把关，才是 Agent 开发真正的难点。这些都是本课进阶篇的内容。</p>
+<p><img src="../../assets/llm-application-basics/01-01-02-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B8%B8%E8%AF%86%E6%A6%82%E5%BF%B5.png" alt="01-01-02-大模型中的一些常识概念.png"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

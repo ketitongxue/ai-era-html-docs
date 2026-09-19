@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03-你需要了解的大模型原理</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+<meta name="source" content="https://www.codecrush.cn/lesson/355867586795143168">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="03-你需要了解的大模型原理">03-你需要了解的大模型原理</h1><p>你一定好奇过：ChatGPT 背后到底发生了什么？我打了一行字进去，它怎么就噼里啪啦地吐出了一大段回复？它是在「思考」吗？它真的「理解」我在说什么吗？</p>
+<p>坦白告诉你，大模型根本不「理解」任何东西。</p>
+<p>它本质上就是一个超级强大的「词语接龙机器」。你给它一段话，它预测下一个最可能出现的词是什么。预测完，把这个词拼上去，再预测下一个。如此往复，直到它觉得「差不多了」才停下来。</p>
+<p>就这么简单？那它凭什么这么聪明？</p>
+<p>这篇文章，我们就把这台「接龙机器」拆开看一看。我们不会讲复杂公式，不会堆砌术语，所以，你不用担心听不懂。</p>
+<p>当然，一篇文章只能讲个大概。真要融入细节、公式和算法，要复杂得多，那些我们放到另一门课《大模型原理剖析》里讲。</p>
+<h2 id="一准备数据">一、准备数据</h2>
+<p>大模型的本事，来自互联网上海量的网页、代码和书籍。但它「读」这些资料的方式，跟传统的搜索引擎不同。它不是把内容存进某个库里备查，而是从里面总结规律：什么样的上文后面，通常跟着什么样的词。</p>
+<p>规律总结完，原始语料的任务就结束了。 <strong>模型里并没有存着那些网页和书，只留下了大量数字（也就是参数和向量），规律全被压缩在这些数字里。</strong></p>
+<p>所以模型生成内容的时候，它不是去哪个数据集里「找」答案，而是拿这些数字算一遍：眼下这个上下文，接哪个词的概率最大。后面讲 RAG 的时候你会看到，模型为什么会一本正经地编造事实，根源就在这里。</p>
+<p>接下来，我们用 5 个句子的微型语料，把大模型的构建过程讲清楚。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>我爱吃苹果
+我爱吃米饭
+你爱吃苹果
+我恨吃苦瓜
+你恨吃苦瓜
+</code></pre>
+<p>词表去重后共 9 项： <code>[&quot;我&quot;,&quot;你&quot;,&quot;爱&quot;,&quot;恨&quot;,&quot;吃&quot;,&quot;苹果&quot;,&quot;米饭&quot;,&quot;苦瓜&quot;,&quot;&lt;END&gt;&quot;]</code> 。其中 <code>&lt;END&gt;</code> 是一个特殊标记，表示「这句话说完了」。</p>
+<p><strong>词表里的每一项，就是一个 Token。</strong> 所谓词表（Vocabulary），指的就是模型认识的全部 Token 的清单。</p>
+<p>上一篇讲过，真实模型的词表是 BPE 靠统计高频片段自动生成的，「苹果」到底算 1 个 Token 还是被拆成 2 个，完全看词表里有没有它。这里为了讲清楚原理，我们手工指定了一张最简单的词表，让每个词正好对应 1 个 Token。所以 <strong>下文说的「词」，你都可以直接理解成「Token」</strong> 。</p>
+<p>模型只认数字，不认文字。所以第一步，必须把汉字翻译成一串数字。这串数字叫 <strong>向量（Vector）</strong> 。</p>
+<p>真实模型的向量维度很高，以 GPT-3 为例是 12288 维，也就是用 12288 个数字来表示一个词。为什么要这么高？因为维度越高，能表达的语义差异就越精细。</p>
+<p>为了演示，我们这里用 4 维向量，每个词先随机初始化一个向量值：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>我     [ 0.3,  0.1, -0.8,  0.5]
+你     [ 0.2,  0.4, -0.7,  0.6]
+爱     [ 0.9, -0.2,  0.1,  0.7]
+恨     [-0.8,  0.3,  0.2, -0.9]
+吃     [-0.5,  0.6,  0.4, -0.1]
+苹果   [ 0.1,  0.8, -0.3,  0.2]
+米饭   [ 0.15, 0.75,-0.2,  0.25]
+苦瓜   [-0.9,  0.1,  0.8, -0.2]
+&lt;END&gt;  [ 0.0,  0.0,  0.0,  0.0]
+</code></pre>
+<p>注意，真实训练也是这么随机给的。模型会一边训练一边调整这些数字，让语义相近的词，向量距离也相近（计算向量距离的算法有很多，比如欧氏距离、余弦相似度）。你可以看到上面「苹果」和「米饭」的向量已经挺接近了。这正是训练想要的结果，只不过真实情况下它是练出来的，不是我们编出来的。</p>
+<h2 id="二预训练">二、预训练</h2>
+<p>预训练的目标只有一个： <strong>让模型学会根据前文预测下一个词。</strong></p>
+<p>前面讲了词的向量表示。在开始训练之前，还有两个概念得先说清楚：Transformer 和参数。</p>
+<p><strong>Transformer</strong> 你可以理解为模型的「计算引擎」。它是一个神经网络，由多层堆叠而成。真实的 Transformer 有几十上百层，每层又有大量参数。</p>
+<p>Transformer 真正的杀手锏，是里面的 <strong>注意力机制（Attention）</strong> ：处理每个位置时，它会给前文所有词各算一个「关注度」权重，再按权重把它们的信息汇总起来。比如预测「吃」后面接什么，「爱」和「恨」拿到的权重就该很高，「我」「你」就该很低。这种 <strong>动态决定该看谁</strong> 的能力，正是 Transformer 比上一代模型强的关键。它具体是怎么做到的，待会再具体讲。</p>
+<p><strong>参数</strong> 则是这个引擎里那些可以被调节的数字。向量维度上万，参数动辄成百上千亿，头部模型已经到了万亿级。数量堆到这个程度，它才能表示极其复杂的词与词之间的关联关系。</p>
+<p>这里要提醒一下：整个大模型就像一个黑盒子，那些向量值和参数值，人是看不懂的，维度太高了。我们只能从结果上反向验证：给一段话，它能不能「正确」预测下一个词。能，就说明这些值调得合理。</p>
+<p>所以， <strong>所谓训练，就是拿「正确」的语料，让模型不断调整参数和向量值，直到它每次都能猜对下一个词。</strong></p>
+<p>前面说了初始向量是随机的，其实初始参数也是随机的。</p>
+<p>现在把 5 句话喂进去。模型对每句话做同样的事，即把它拆成一连串「填空题」，我们拿一句话举例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>输入「我」                → 记录输出「爱」的概率，假设 12%
+输入「我 爱」             → 记录输出「吃」的概率，假设 15%
+输入「我 爱 吃」          → 记录输出「苹果」的概率，假设 10%
+输入「我 爱 吃 苹果」      → 记录输出「&lt;END&gt;」的概率，假设 10%
+</code></pre>
+<p>因为参数是随机的，所以，猜对的概率都很低。</p>
+<p>接下来，我们给Transformer定义一个 <strong>损失函数（Loss）</strong> ：猜错得越离谱，惩罚越重。模型为了少挨罚，就会自己去调整参数。</p>
+<p>损失函数的公式特别简单： <code>Loss = -log(猜对的概率)</code> 。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>猜对概率 10%（0.10） → Loss = -log(0.10) ≈ 2.3
+猜对概率 90%（0.90） → Loss = -log(0.90) ≈ 0.1
+</code></pre>
+<p>Loss 越大，说明错得越离谱。把所有填空题的 Loss 加起来，于是就得到总 Loss，训练的目标就是让它无限趋近于 0。拿上面4个训练结果算一下：概率分别是 12%、15%、10%、9%，总 Loss ≈ 2.1 + 1.9 + 2.3 + 2.3= 8.6。错得很离谱，需要调整参数。</p>
+<p>于是模型开始不停调整向量值和参数值，朝着让 Loss 变小的方向走。把这 5 句话反复喂 1 万次，每喂一次就微调一次。</p>
+<p>1 万次之后再验证：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>输入「我爱吃」  →  苹果 48%   米饭 48%   苦瓜 2%
+输入「你恨吃」  →  苦瓜 92%   苹果 4%    米饭 4%
+</code></pre>
+<p>发现完全符合语料：「我爱吃」后面苹果和米饭各出现过一次，「你恨吃」后面只有苦瓜。</p>
+<p>最后要强调一点：模型记录的并不是词与词两两之间的关系，而是 <strong>「任意长度的前缀 → 下一个 Token」</strong> 这样的统计规律。</p>
+<p>别小看这个区别，提示词为什么有用，答案就在于此。还是拿我们的语料来举例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>只给「吃」     →  苹果、米饭、苦瓜都有可能，概率摊得很平
+给「爱吃」     →  苦瓜被排除了，苹果和米饭五五开
+给「你恨吃」   →  苦瓜 92%，几乎完全确定
+</code></pre>
+<p>看出规律了吗？ <strong>前缀越长、越具体，符合条件的续写就越少，模型的输出也就越确定。</strong> 反过来，你的话越含糊，能接上的说法就越多，模型只好挑一个最大众化的答案给你，但多半不是你想要的。</p>
+<p>真实模型的语料大到难以想象，这个效应会被放大。所以提示词工程的本质，就是 <strong>用更具体的前缀，帮它把概率分布收窄</strong> 。</p>
+<h2 id="三注意力-qkv">三、注意力 Q/K/V</h2>
+<p>上一小节提到，注意力机制能动态决定该关注前文的哪些词。这一节我们就来看看这件事到底是怎么做到的。</p>
+<p>先看它要解决什么问题。还是我们那份语料：「吃」后面接什么，完全取决于前面是「爱」还是「恨」。模型凭什么知道此刻该重点看「爱／恨」，而不是平均地看前面每一个字？</p>
+<p>换个更典型的例子：「小明把书给了小红，因为她想看」。这里的「她」指谁？人一眼就看出是小红。模型想接着往下写，也必须先把这件事搞清楚。</p>
+<p>做法是这样的。每个词的向量进入注意力层之后，会先被三个矩阵各乘一次，变成三个不同的向量：</p>
+<ul>
+<li><strong>Query（查询）</strong> ：我在找什么样的信息</li>
+<li><strong>Key（键）</strong> ：我是什么，我能被谁找到</li>
+<li><strong>Value（值）</strong> ：我实际携带的信息内容</li>
+</ul>
+<p>我们拿「她」这个位置走一遍。它的 Query 大致携带着「我是个女性第三人称代词，我在找前文里一个能被我指代的人」这样的诉求。而前面每个词都有自己的 Key：「小红」的 Key 带着「人名、女性、可作指代对象」，「小明」的 Key 带着「人名、男性」，「书」的 Key 带着「物品」。</p>
+<p><strong>拿「她」的 Query，去和前面每个词的 Key 做点积。两个向量方向越接近，点积越大，就说明越匹配。</strong> 算出来的分数归一化成一组加起来等于 1 的权重：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>她 → 小红    0.70
+她 → 小明    0.20
+她 → 给了    0.05
+她 → 书      0.05
+</code></pre>
+<p>最后按这组权重，把每个词的 Value 向量加权求和，放进「她」的Value里，其中，「小红」的信息占了七成。</p>
+<p>所谓「把注意力放到小红上」，就是这么一次加权求和。</p>
+<p>但是，你可能会说， <strong>Transformer怎么知道「她」应该去找女性名词啊。</strong></p>
+<p>Q、K、V 这三个投影矩阵，本身就是参数，就是上一小节说的那些参数。一开始它们是随机的，注意力自然也放得乱七八糟。但只要放错了位置，下一个词就会预测错，Loss 就变大，Transformer就会去调这三个矩阵，让Loss变小。几万亿语料喂下来，它们自己统计出了「代词该去找什么样的先行词」「动词该去找什么样的主语」这类本事。</p>
+<p><strong>所以，注意力不是被编程出来的规则，而是被 Loss 逼出来的结果。</strong> 该看谁不是写死的，是每次根据当前内容算出来的。这也正是 Transformer 强于上一代模型的地方。</p>
+<h2 id="四推理">四、推理</h2>
+<p>训练完成，向量值和参数就固定下来，不再变了。现在，用户输入「你爱吃」，我们来看模型是如何接龙的。</p>
+<p>第一轮，模型算出下一个词的概率分布：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>苹果 48%    米饭 48%    苦瓜 2%
+</code></pre>
+<p>这里有个容易被忽略的细节： <strong>模型输出的是一个概率分布，而不是一个确定的词。</strong> 到底挑哪一个，取决于采样策略：可以取概率最高的，也可以按概率随机抽（像转一个按概率划分扇区的转盘）。这套策略是怎么控制的，我们在《大模型调用》模块里专门讲。你现在只要记住一点： <strong>它不总是选概率最高的那个。</strong></p>
+<p>这也顺带解释了一个常见的困惑：为什么同一个问题问两次，答案会不一样？</p>
+<p>假设这一轮抽中了「苹果」。于是就得到了「你爱吃苹果」，把「你爱吃苹果」整个重新输入模型，再接一次龙：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>&lt;END&gt; 99%    其他词 1%
+</code></pre>
+<p>模型输出 <code>&lt;END&gt;</code> ，停止生成。最终结果：「你爱吃苹果」。</p>
+<p><strong>推理的本质，就是循环执行「预测一个词 → 拼到后面 → 再预测一个词」，直到吐出</strong> <code>&lt;END&gt;</code> <strong>。</strong> 整个过程里模型没有「理解」你的问题，只是在高维空间里算概率：「你爱吃」后面接「苹果」的概率比较大，于是它就选了「苹果」。</p>
+<p>顺便澄清一个容易搞混的问题：上一节讲的注意力，是训练的时候才用，还是推理的时候也用？答案是， <strong>两个阶段都在用。</strong> 只要模型处理输入，它就得跑一遍。区别只在于参数动不动：训练时算完还要回头调整 Q/K/V 这些矩阵，推理时参数已经冻结，只算不调。</p>
+<p>这一点直接决定了推理的成本。 <strong>在推理阶段，每生成一个新 Token，它的 Query 都要和前面每一个 Token 的 Key 做一次点积。</strong> 复杂度是O(n^2)量级的。 上下文里有 1000 个 Token 就得算将近 1000^2 次，有 10 万个就得算 10 万^2次。所以上下文越长，生成越慢也越贵。</p>
+<p>训练虽然也贵也慢，但是一次性投入；推理却是每次用户调用都要跑一次，所以， <strong>推理延迟成了工程上最核心的痛点。</strong></p>
+<p>好在这里有很大的优化空间。大模型常用文本的Key和Value记录在缓存中（ <strong>KV Cache</strong> ），如果推理的过程中，用户的问题命中了缓存，就不需要重新计算用户问题的Value了，省去了很多计算的成本和时间。</p>
+<p><strong>Prompt Caching</strong> 底层就是依赖 KV Cache，把跨请求都不会变的前缀（比如固定的 System Prompt）的 K、V 存下来，下次命中就不用重新计算了，于是，这部分 Token 的计费就能打折。我们在提示词工程模块会展开讲。</p>
+<h2 id="五sft">五、SFT</h2>
+<p>上面训练出来的模型叫 <strong>基座模型（Base Model）</strong> 。它只会接龙，不会对话。</p>
+<p>什么意思呢？你问它：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>用户：中国的首都是哪里？
+</code></pre>
+<p>基座模型很可能顺着你的话继续编下去：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>中国的首都是哪里？这是一个很好的问题，很多人都在问……
+</code></pre>
+<p>它没有「回答」这个概念，只是根据互联网上「中国的首都是哪里」这句话后面经常出现什么，接着往下写。这显然不是我们想要的 ChatGPT。</p>
+<p>要让模型学会对话，就得做 <strong>监督微调（Supervised Fine-Tuning，简称 SFT）</strong> 。</p>
+<p>SFT 的核心很简单： <strong>给模型看大量标准问答对，让它模仿。</strong></p>
+<p>我们准备一批人工标注或高质量生成的数据，格式是这样的：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>&lt;用户&gt;：中国的首都是哪里？
+&lt;助手&gt;：中国的首都是北京。
+
+&lt;用户&gt;：帮我写一首关于月亮的诗。
+&lt;助手&gt;：明月几时有，把酒问青天……
+</code></pre>
+<p>然后把这些数据继续喂给模型。训练方式和之前一模一样：输入前面的部分（用户的问题），让它预测后面的部分（助手的回答），猜错了就调整参数。</p>
+<p>经过大量对话样本的训练，模型逐渐学到一个模式：看到「用户：xxx？」的时候，后面该接「助手：xxx。」，而不是继续自由发挥。</p>
+<p><strong>它仍然在做词语接龙，只不过学会了在对话场景下，接龙的方向是「给出一个合适的回答」，而不是「接着往下编故事」。</strong></p>
+<p>经过 SFT，模型就从基座模型变成了对话模型。你再问「中国的首都是哪里？」，它就会回答「中国的首都是北京。」</p>
+<h2 id="六rlhf">六、RLHF</h2>
+<p>SFT 让模型学会了回答问题，但它只是在模仿人类写好的标准答案。真用起来你会发现毛病不少：</p>
+<ul>
+<li>问它「如何做炸弹」，它可能真的开始一步步教你；</li>
+<li>同一个问题，回答可能啰嗦、跑题，或者态度生硬；</li>
+</ul>
+<p>它不知道什么答案更让人舒服，只会按训练数据里的概率输出。换句话说， <strong>SFT 模型学会了「说话」，但还没学会「说人话」。</strong></p>
+<p>于是人们想了个办法：让人类当老师，告诉模型哪些回答更好，再让模型朝这个方向优化。这套流程就是 <strong>RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）</strong> 。</p>
+<p>当然，不能真让人类一直盯着模型改，那太慢了。所以要先训练一个 <strong>奖励模型（Reward Model，简称 RM）</strong> ，让它代替人类打分。</p>
+<p>这里有个恰当的类比： <strong>大模型是老师，奖励模型是评委。</strong> 评委不需要会讲课，他只需要能判断哪个回答更好。所以训练评委，比训练老师简单得多。它只要学会打分，不需要学会讲课。</p>
+<p>奖励模型怎么训练？分四步：</p>
+<ol>
+<li>拿同一个问题，让 SFT 模型生成好几个不同的回答。</li>
+<li>请人类标注员给这些回答排序。比如：</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code>问题：怎样缓解焦虑？
+回答 A：多运动，保持规律作息，必要时寻求专业帮助。
+回答 B：焦虑就是闲的，找点事做。
+回答 C：别焦虑了，焦虑不好。
+</code></pre>
+<ol start="3">
+<li>人类判断：A &gt; B &gt; C。</li>
+<li>把这些「问题 + 回答」的排序数据喂给奖励模型。它也是一个神经网络，最终输出一个分数，分数越高代表人类越喜欢。</li>
+</ol>
+<p>训练完成后，奖励模型就成了一个「虚拟评委」。你给它任意问题和回答，它都能给出一个大致符合人类偏好的分数，不用每次都麻烦真人。</p>
+<p>有了打分器，类似前面训练的逻辑就可以开始了：模型每生成一个回答，评委就打个分，分高奖励、分低惩罚。模型的目标，是不断调整参数，让自己拿到更高的分数。这一步通常也叫 <strong>对齐（Alignment）</strong> ，即把模型的输出，对齐到人类期望的「有用、诚实、无害」上。</p>
+<p><img src="../../assets/llm-application-basics/01-01-03-%E4%BD%A0%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E7%9A%84%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%8E%9F%E7%90%86.png" alt="01-01-03-你需要了解的大模型原理.png"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

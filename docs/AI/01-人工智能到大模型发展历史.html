@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01-人工智能到大模型发展历史</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+<meta name="source" content="https://www.codecrush.cn/lesson/355716679931527168">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="01-人工智能到大模型发展历史">01-人工智能到大模型发展历史</h1><p>假设现在是2019年，你跟别人说“未来会有一个AI，能跟你聊天、帮你写代码、甚至自己操作电脑”，对方大概率会觉得你在说科幻电影。但到了今天，这些事每天都在真实发生。</p>
+<p>从只能回答固定问题的“人工智障”，到能跟你谈笑风生的ChatGPT，再到能自己打开浏览器查资料、自己写代码修Bug、甚至自己操作鼠标键盘完成一整套任务的OpenClaw，用了不超过十年的时间。</p>
+<p>当然，这十年突飞猛进的发展，是站在之前几十年、上百年的人工智能的发展之上的。为了让你更好的理解大模型发展的历史，今天这篇文章，我们就回顾从人工智能开始，到机器学习、深度学习、再到生成式AI、大模型、ChatGPT、Agent（如Claude Code编程助手、OpenClaw）的整个发展历程。</p>
+<h2 id="一人工智能">一、人工智能</h2>
+<p>先回答一个最基础的问题：人工智能到底是什么？</p>
+<p>说白了，就是让机器做出像人一样智能的行为。但「智能」这个词太虚了，不同时代的人对它的理解完全不一样。</p>
+<p>1950 年，计算机科学之父图灵提出了一个思想实验—— <strong>图灵测试</strong> ：如果一台机器能在对话中让人分辨不出它是人还是机器，那这台机器就可以被认为是「智能」的。</p>
+<p>那一代人想得很简单：智能嘛，不就是逻辑推理吗？我把规则一条条写给机器，机器不就聪明了？</p>
+<p>典型成果是 1997 年 IBM 的「深蓝」击败国际象棋世界冠军卡斯帕罗夫。但它的本质是暴力穷举棋谱，加上人工设计的评估函数，并不真的「懂」下棋。</p>
+<p>这种做法的问题是什么？ <strong>太死板了。</strong> 你写了几百条规则，遇到规则外的情况就直接傻眼。而且很多东西，根本没法用几条规则描述清楚。</p>
+<h2 id="二机器学习">二、机器学习</h2>
+<p>于是大家换了个思路，提出了一个听起来朴素、但极其重要的观点：既然规则写不完，能不能让机器从大量例子里自己总结规则？</p>
+<p>这就是 <strong>机器学习</strong> 。一句话总结它的本质：</p>
+<blockquote>
+<p>不再把「规则」写给机器，而是把「题目 + 标准答案」一起喂给机器，让它自己找规律。</p>
+</blockquote>
+<p>举个最经典的例子：垃圾邮件分类。</p>
+<p>在「规则时代」，你想识别垃圾邮件，得手动写关键词，比如「免费」「中奖」「点击链接」。结果骗子把「免费」写成「免~费」，或者换个话术，你的规则就报废了。</p>
+<p>用机器学习怎么做？你先准备一万封邮件，每封都提前人工标好标签：「这是垃圾」或「这不是垃圾」。然后把每封邮件拆解成计算机能算的 <strong>特征</strong> ：这封邮件里有多少个感叹号？是否含「汇款」这个词？发件人是不是在通讯录里？</p>
+<p>这些特征密密麻麻排在一起，就形成了一个 <strong>向量</strong> ，也就是一个长长的数字列表，相当于这封邮件的「数学指纹」。</p>
+<p>接下来，把这一万个「数学指纹」和它们对应的标准答案，一起丢给一个算法（比如朴素贝叶斯或逻辑回归，知道有这么回事就行）。</p>
+<p>算法就像一个笨拙的学生，拿着这些数据反复计算，不断调整自己内部的权重参数。它的目标很简单：找到一条数学分界线，让「垃圾」和「正常」这两堆向量离得尽可能远。</p>
+<p>训练完成后，再来一封新邮件，算法把它转成向量往坐标系里一扔，看它落在分界线的哪一边，就能瞬间判断。</p>
+<p>注意这里的关键差别： <strong>程序员没有写任何「如果包含『中奖』就是垃圾邮件」这样的规则，规则是机器从那一万封样本里自己「悟」出来的。</strong></p>
+<h2 id="三深度学习">三、深度学习</h2>
+<p>机器学习比写规则强得多，但它有一个致命短板： <strong>特征得靠人来设计。</strong> 提取哪些特征、怎么量化，全凭专家经验。这不仅费时费力，而且有些东西人类自己都描述不清，比如「照片里是猫还是狗」，你怎么设计特征？</p>
+<p>深度学习的出现，彻底改变了这一切。它跟传统机器学习的本质区别是什么？</p>
+<blockquote>
+<p>深度学习把「人工设计特征」这一步，也交给了机器自己学。</p>
+</blockquote>
+<p>它的做法是搭建一个拥有多层「神经元」的巨大网络，也就是我们常说的 <strong>神经网络</strong> 。当你把一张猫的图片的原始像素（成百上千个数字）直接扔进这个网络时，第一层可能只识别出边缘和色块，第二层把边缘组合成耳朵或眼睛的形状，第三层再把形状组合成猫的脸……每一层都在自动抽象和提炼更高级的特征，完全不需要人类插手。</p>
+<p>只要层数够多、数据够大，这个网络就能提取出人脑都无法言说的微妙特征。</p>
+<p>2012 年，AlexNet 在 ImageNet 图像识别大赛上横空出世，把错误率从 26% 直接干到 15%，比第二名整整低了 10 个百分点。深度学习从此登上历史舞台，随后横扫人脸识别、语音识别、围棋（AlphaGo）等领域。</p>
+<p>但深度学习有个致命问题： <strong>一个模型只会一件事。</strong> 识别猫的模型不会识别狗，翻译模型不会写诗，想做新任务就得重新标注数据、重新训练，成本极高。</p>
+<p>能不能有一个「通才」模型，学一次啥都会？我们接着往下看。</p>
+<h2 id="四生成式-ai">四、生成式 AI</h2>
+<p>以往的 AI 大多是「判别式」的，只能回答「是或不是」「猫或狗」。而 <strong>生成式 AI（Generative AI）</strong> 的目标，是让它自己「造」出全新的东西，写一段从未有过的文字，画一幅不存在的画。</p>
+<p>ChatGPT 就是生成式 AI。你每次发问，它其实是在根据前文，预测「下一个字」最可能是什么。就这一个动作，重复成千上万次，就写出了一篇完整的回答。</p>
+<p>听起来很笨对吧？就这么个「接话」的能力，怎么就能聊天写代码了？</p>
+<p>关键突破发生在 2017 年。Google 那年发了一篇论文，标题嚣张得不行《Attention Is All You Need》，提出了 <strong>Transformer 架构</strong> 。</p>
+<p>Transformer 牛在哪？牛在它引入了 <strong>自注意力机制（Self-Attention）</strong> ，让模型处理每个词的时候，能同时「看到」整句话里所有其他词，并自动算出「谁跟谁关系更紧密」。</p>
+<p>举个例子：</p>
+<blockquote>
+<p>我把苹果放在桌上，它很快就不见了。</p>
+</blockquote>
+<p>「它」指的是苹果还是桌子？人类一眼就知道。但早期的模型要一个词一个词顺序读，读到「它」时早就忘了前面的苹果。Self-Attention 让「它」能直接跟「苹果」建立强连接，问题迎刃而解。</p>
+<p>而且 Transformer 还有个工程上的巨大优势，即 <strong>可以并行训练。</strong> 以前的模型得一个词一个词处理，现在能并行算，训练速度直接起飞。这才让后来「烧几亿美金训练一个模型」变得可行。</p>
+<h2 id="五chatgpt">五、ChatGPT</h2>
+<p>基于这个架构，OpenAI 做了一个大胆的尝试：把几乎整个互联网的公开文本都喂给模型，比如维基百科、全网网页、开源代码、几十万本电子书。这个拥有几千亿参数、读遍全球知识的庞然大物，就是 <strong>大语言模型（Large Language Model，LLM）</strong> 。</p>
+<p>其实 OpenAI 早在 2020 年就发布了 1750 亿参数的 GPT-3，但它只在圈内火，普通人无感。为什么？</p>
+<p>因为它有个致命毛病： <strong>很会「补全」，但不太会「回答」。</strong> 你问它「帮我写封邮件」，它可能给你续写三封不同风格的邮件让你挑，而不是真的替你写一封。</p>
+<p>怎么让它学会「回答」？OpenAI 用了**SFT（监督微调）**和 <strong>RLHF（基于人类反馈的强化学习）</strong> ，分三步：</p>
+<blockquote>
+<ol>
+<li>先找一批人写几万条「高质量问答对」，让模型模仿（SFT监督微调）；</li>
+<li>再让人类对模型的多个回答排序打分，训练出一个「打分器」（奖励模型）；</li>
+<li>最后借助打分器，用强化学习，让模型朝着「人类更喜欢」的方向优化。</li>
+</ol>
+</blockquote>
+<p>后面讲到大模型原理的时候，会详细的讲解。</p>
+<p>于是，一个「会接话的文本补全器」（GPT），被调教成了「能回答问题的对话助手」（ChatGPT）。</p>
+<p>2022 年 11 月 30 日，ChatGPT 上线。5 天破百万用户，2 个月破一亿，成为史上用户增长最快的消费级应用。对话助手是大模型最成功的应用，当然，后面有了了编程助手（Claude Code等），也是非常成功的应用。</p>
+<p>紧接着就是「百模大战」。短短一年多，各种模型井喷：Claude（Anthropic）、Gemini（Google）、文心一言（百度）、通义千问 Qwen（阿里）、豆包（字节）、Kimi（月之暗面）、DeepSeek、GLM（智谱）等等。</p>
+<h2 id="六多模态与-aigc">六、多模态与 AIGC</h2>
+<p>聊到这里，大模型已经很能干了。但它有一个容易被忽略的局限： <strong>它只活在文字的世界里。</strong></p>
+<p>你大概遇到过这种场景：程序报错了，你截了张图想丢给它看，结果它根本看不见，你只能对着屏幕，把报错信息一个字一个字敲进去。</p>
+<p>可人从来不是只靠文字理解世界的。一张图你扫一眼就懂，换成文字描述，写三百字可能还说不清。 <strong>AI 想更像人，迟早得能看、能听。</strong></p>
+<p>这里先解释一个词： <strong>模态（Modality）</strong> ，说的就是信息的形式。文字是一种模态，图像、声音、视频各是一种。让一个模型能同时处理好几种，就叫 <strong>多模态（Multimodal）</strong> 。</p>
+<p>那怎么让模型「看见」？</p>
+<p>最早的思路很直接：各干各的。图像模型负责识图，把图转成一句文字描述，再交给语言模型。这样确实能跑通，但很割裂。图片里的细节，在被压缩成一句「这是一张猫的照片」之后就全丢了，语言模型拿到的始终是二手信息。</p>
+<p>真正的转折，来自一个特别朴素的发现： <strong>Transformer 处理的从来就不是「文字」，而是一串向量。</strong> 文字也是先被切成小块、转成向量，才能进模型的。</p>
+<p>那图片为什么不行呢？把一张图切成一个个小方块，每个方块也转成向量，排成一排喂进去。对模型来说，它跟一串词根本没有本质区别。声音同理，按时间切片就行。</p>
+<p>想通这一点，路就打开了：</p>
+<blockquote>
+<p>多模态不是让模型额外学会了看图，而是把图片和声音，翻译成了它本来就懂的那种表示。</p>
+</blockquote>
+<p>能力一打通，两个方向同时爆发。</p>
+<p>一边是「生成」，也就是这几年常说的 <strong>AIGC（AI Generated Content，人工智能生成内容）</strong> 。DALL·E、Midjourney、Stable Diffusion 让你打一句话就出一张画，后来又有了文生视频、语音合成、AI 配音，做图做视频的门槛被直接抹平。</p>
+<p>另一边是「理解」。现在你可以把开头那张报错截图直接扔给模型，它能读出错误信息，甚至告诉你哪一行写错了；拍张发票，它能把金额和日期给你抽出来。</p>
+<p>而对我们这门课来说，多模态最重要的意义，可能还不是让 AI 会画画，而是这一句： <strong>AI 终于能看见屏幕了。</strong></p>
+<p>它不再只能读你打的字，还能看见屏幕上有哪些按钮、输入框在什么位置。这正是后面 OpenClaw能真正「上手操作电脑」的前提。</p>
+<h2 id="七agent-时代">七、Agent 时代</h2>
+<p>到这一步，大模型已经能对话、能写代码、能写文章了。但你有没有发现一个问题： <strong>它只会动嘴，不会动手。</strong></p>
+<p>你让 ChatGPT「帮我订个机票」，它只会输出一段文字告诉你怎么订，没法真的打开浏览器、点进携程、填入身份证号、完成支付。</p>
+<p>这就像你雇了一个博学的顾问：他懂所有事，但没有手也没有脚，只能坐在那儿给你出主意。</p>
+<p>怎么让他长出手脚，真正去干事，而不是告诉你怎么干？这就是 <strong>Agent（智能体）</strong> 要解决的问题。</p>
+<p>一句话定义 Agent 的本质：</p>
+<blockquote>
+<p>Agent = 大模型（大脑） + 工具（手） + 记忆（笔记本） + 规划（思考）</p>
+</blockquote>
+<p>之前大模型只能一问一答，而 Agent 让它具备了 <strong>工具调用（Tool Use）</strong> 的能力：模型可以根据需要，自己决定去调哪个工具，比如搜索网页、访问数据库、读写文件，拿到结果再继续思考下一步。整个过程可能循环几十次，直到任务完成。</p>
+<p>用一段极简伪代码感受一下这个循环（后面课程会详细展开讲解Agent，这里先建立直觉）：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python"># Agent 的核心循环：思考 → 行动 → 观察 → 再思考 …… 直到任务完成
+while not task_done:
+    # 1. 思考：大模型根据当前上下文，决定下一步做什么，可用的工具列表及其用法
+    thought = llm(f&quot;目标: {goal}\n已做的事: {history}\n下一步该做什么?&quot;)
+
+    # 2. 行动：决定调用什么工具（搜索/写文件/查数据库…）
+    action = parse_tool_call(thought)
+    result = tools[action.name](action.args)   # 工具调用，真正&quot;动手&quot;
+
+    # 3. 观察：把结果塞回上下文，进入下一轮
+    history.append((thought, action, result))
+</code></pre>
+<p>注意这里的关键差别：传统用法是「一问一答就结束」，Agent 则是一个 <strong>会循环、能自我修正的系统</strong> 。它的能力不只来自模型本身有多聪明，更来自「模型 + 工具 + 反馈循环」的组合。换句话说， <strong>开发一个优秀的Agent应用，不是一个算法问题，而是一个工程问题</strong> 。这也是本课程后半程要反复强调的事。</p>
+<p>其实 Agent 的雏形很早就有了。2023 年开源社区的 AutoGPT 一度刷屏：给它一个目标「帮我调研 XX 行业并写份报告」，它自己拆任务、自己搜、自己写。但当时模型太弱、Token 又贵，演示惊艳，生产拉胯。</p>
+<p>真正的爆发发生在 2024—2025 年，因为大模型终于同时做到了三件事：</p>
+<blockquote>
+<p><strong>足够聪明、足够便宜、上下文窗口足够大</strong> （上下文窗口在下一篇会讲）。</p>
+</blockquote>
+<p>于是 2025 年之后，Agent 产品井喷。其中最引人注目的是编程领域，代表作是 Claude Code。使用Claude Code，即便是对编程毫无概念的小白用户，给个目标，Claude Code 就能自己规划任务、自己写代码、自己跑测试、自己修 Bug，也能做出一个像样的 App 或网站。</p>
+<p>除此之外，垂直领域的行业智能体也在同步爆发：客服 Agent、销售 Agent、财务 Agent……AI 的应用形态，正在从只会聊天的 Chat Bot，变成会动手做事的「数字员工」。</p>
+<h2 id="八openclaw">八、OpenClaw</h2>
+<p>说到数字员工，不得不提 2025 年横空出世的 OpenClaw。因为它的 Logo 是只龙虾，中文社区里大家都叫它「小龙虾」。</p>
+<p>OpenClaw 到底是什么？简单说， <strong>它是一个能让大模型操作你电脑的Agent。</strong> 它装在你自己的机器里，可以接入微信、飞书等聊天软件。你在聊天框里发一句「帮我把这周的发票整理成 Excel」，它就在后台默默把活干完。</p>
+<p>Claude Code 因为让不会编程的人也能开发产品，已经够出圈了，但它需要通过命令行交互，稍稍还有点点门槛，而 OpenClaw 直接用聊天工具，对小白用户友好得多，火得更是一塌糊涂，一度全民养龙虾。</p>
+<p>OpenClaw 的基本工作原理并不复杂，大致是这样：</p>
+<ul>
+<li><strong>大语言模型是「大脑」</strong> ：理解你的指令，把「帮我整理一份行业报告」拆解成一步步具体操作；</li>
+<li><strong>视觉模型是「眼睛」</strong> ：不断截取屏幕画面，识别按钮、输入框在什么位置；</li>
+<li><strong>工具模块是「手脚」</strong> ：控制鼠标点击、键盘输入，就像有个隐形人在操作电脑。</li>
+</ul>
+<p>你会发现，这里正好把前面讲的东西全串起来了：大模型提供理解和规划，多模态提供「看见」的能力，工具调用提供「动手」的能力。三者合在一起，才有了今天的数字员工。</p>
+<p><img src="../../assets/llm-application-basics/01-01-01-%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%88%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2.png" alt="01-01-01-人工智能到大模型发展历史.png"></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
