@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="从业务目标出发，梳理 Agent 的意图识别、计划与执行、上下文管理、检索和评估反馈，并用六个问题检查项目的设计与证据。">
+<title>Agent 系统设计：核心环节与项目自检</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+/* 阅读笔记：沿用仓库的暖色纸张与正文排版。 */
+.article-meta { margin: 4px 0 12px; color: #536276; font-size: 14px; letter-spacing: .04em; }
+header h1 { margin-top: 0; margin-bottom: 18px; }
+.lead { font-size: 18px; color: #39475a; margin-bottom: 26px; }
+.reading-guide { margin: 28px 0 34px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.reading-guide p { margin: 0 0 10px; font-weight: 650; }
+.reading-guide ol { margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+.reading-guide li { margin: 3px 0; }
+.article-note, .example { padding: 14px 20px; margin: 22px 0; border-left: 3px solid #7ea2cd; background: #f0f4f8; }
+.article-note p, .example p { margin: 6px 0; }
+section { scroll-margin-top: 24px; }
+dt { margin-top: 20px; font-weight: 650; font-size: 18px; }
+dd { margin: 6px 0 18px; }
+caption { padding: 12px 14px; background: #eaf0f7; font-weight: 650; text-align: left; }
+footer { margin-top: 38px; padding-top: 18px; border-top: 1px solid var(--line); color: #536276; font-size: 14px; }
+@media (max-width: 600px) {
+  .reading-guide { padding: 16px 20px; }
+  .reading-guide ol { grid-template-columns: 1fr; }
+  .lead { font-size: 17px; }
+  .article-note, .example { padding: 12px 16px; }
+}
+@media print {
+  .reading-guide { display: none; }
+  h2, h3, dt { break-after: avoid; }
+  tr { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article aria-labelledby="article-title">
+<header>
+<p class="article-meta">AI Agent · 学习笔记</p>
+<h1 id="article-title">Agent 系统设计：<br>核心环节与项目自检</h1>
+<p class="lead">围绕一个具体任务，说明系统怎样理解目标、采取行动、使用信息，以及如何判断结果。把这些问题串起来，才能看清一个 Agent 项目的设计是否完整。</p>
+</header>
+<nav class="reading-guide" aria-label="本文目录">
+<p>本文目录</p>
+<ol>
+<li><a href="#business-goal">先说明业务目标</a></li>
+<li><a href="#design-dimensions">五个设计关注点</a></li>
+<li><a href="#project-checklist">六个项目自检问题</a></li>
+<li><a href="#engineering-tradeoffs">从项目经历中看工程取舍</a></li>
+<li><a href="#related-reading">关联阅读</a></li>
+</ol>
+</nav>
+<section aria-labelledby="business-goal">
+  <h2 id="business-goal">一、先说明业务目标</h2>
+  <p>讨论 Agent 之前，先说清楚谁遇到了什么问题、现在如何处理、希望改善什么。否则，工具调用、记忆和多 Agent 都可能只是组件清单，无法解释为什么需要这套系统。</p>
+  <p><strong>假想示例：</strong>为团队做一个内部知识问答助手。用户问“出差怎么报销”，系统需要结合适用地区和最新制度，回答办理步骤并给出出处。这里的目标不是“让模型会聊天”，而是让用户找到适用于自己的可靠信息；缺少地区信息时需要澄清，没有依据时需要说明。</p>
+  <p>由此可以写下一句项目定义：为谁，在什么输入和约束下，完成什么任务，以什么结果判断完成。再决定检索、工具和执行方式，避免先选框架再寻找需求。</p>
+</section>
+
+<section aria-labelledby="design-dimensions">
+  <h2 id="design-dimensions">二、五个设计关注点</h2>
+  <p>原文以五个主题组织 Agent 学习。它们适合作为检查系统是否考虑周全的设计维度，<strong>不是每次请求都必须依次经过的固定流水线</strong>。简单问题可能直接回答，复杂任务才需要规划和多次执行；检索结果也可能促使系统重新澄清目标。</p>
+  <dl>
+    <dt>1. 意图识别：到底要完成什么</dt>
+    <dd><p>区分用户说出的句子与实际目标，识别缺失条件、指代和含糊表达。知识问答示例中的“怎么报销”可能需要补充地区和费用类型。关键问题是：哪些信息可以合理推断，哪些信息必须询问，什么时候应该拒绝继续猜测？</p></dd>
+    <dt>2. 计划与执行：如何推进，以及何时停止</dt>
+    <dd><p>把目标转为可执行的步骤，并在得到新结果后决定下一步。工具是执行手段，需要明确输入、输出和权限边界。设计时应考虑工具失败、结果不符合预期、重复操作和停止条件；步骤固定且足够可靠时，也应比较确定流程是否已经能够满足需求。</p></dd>
+    <dt>3. 上下文管理：此刻需要知道什么</dt>
+    <dd><p>决定哪些规则、历史消息、检索内容和工具结果进入当前模型输入，哪些可以摘要或暂不加载。长期保存信息与本轮使用信息是两件事。需要追问：压缩后是否丢失关键条件，过期记忆会不会影响判断，怎样避免无关细节挤占有效信息？</p></dd>
+    <dt>4. 检索：去哪里找依据</dt>
+    <dd><p>外部信息不只有文档，还可能包含业务数据和历史状态。设计应先明确需要什么证据，再选择查找方式。对知识问答而言，找到相关段落还不够，还要判断来源、版本和适用范围；检索不到或来源冲突时，也需要预先定义处理方式。</p></dd>
+    <dt>5. 评估与反馈：怎样知道做得更好</dt>
+    <dd><p>回答流畅不等于任务完成。应围绕业务目标检查结果、依据和执行过程，并把失败样本整理为后续验证材料。用户反馈可以帮助发现问题，但还需要分析失败发生在哪一环，确认修改后是否改善目标能力、是否损害其他表现。</p></dd>
+  </dl>
+  <p>原文提供的是问题框架，并没有在开篇词中展开各环节的实现方案。上面的追问用于引导学习，不能替代具体项目中的设计、测试与取舍。</p>
+</section>
+
+<section aria-labelledby="project-checklist">
+  <h2 id="project-checklist">三、六个项目自检问题</h2>
+  <p>可以用下面的问题检查项目，也可以据此组织面试表达。每个回答都尽量落到可查看的材料上：做过的说明结果，尚未验证的写成假设，计划中的能力说明验证方法。</p>
+  <dl>
+    <dt>1. 它解决什么问题，边界在哪里？</dt>
+    <dd><p>说明目标用户、典型任务、输入条件与不支持的情形。<strong>准备证据：</strong>需求说明、代表性输入、验收条件，以及现有人工流程或已有方案。用这些材料解释为什么值得做。</p></dd>
+    <dt>2. 一次任务实际怎样完成？</dt>
+    <dd><p>沿着一个真实输入，说明目标判断、所用信息、执行动作和最终结果。<strong>准备证据：</strong>流程图、一条经过必要脱敏的执行记录、工具输入输出与结果出处。只画组件之间的箭头，还不足以证明链路跑通。</p></dd>
+    <dt>3. 为什么选择这套方案？</dt>
+    <dd><p>解释模型、工具、检索和编排方式各自解决的约束，并说明考虑过什么替代方案。<strong>准备证据：</strong>方案对照、选择理由和已有试验记录；没有比较实验时，把判断依据和待验证项分开写。</p></dd>
+    <dt>4. 哪里会失败，失败后怎么办？</dt>
+    <dd><p>分别考虑理解偏差、信息缺失、工具异常和结果错误，明确重试、澄清、停止或人工接手的条件。<strong>准备证据：</strong>失败样本、异常处理规则和恢复记录。不能只描述成功路径，也不能把无限重试当作兜底。</p></dd>
+    <dt>5. 如何证明效果，而非只看演示？</dt>
+    <dd><p>将“好用”拆成与目标相关的检查项，例如任务是否完成、答案是否有依据、等待时间和资源消耗。<strong>准备证据：</strong>测试样本、评分规则、运行条件与实际结果。说明样本覆盖范围，不把一次成功扩展为整体可靠性结论。</p></dd>
+    <dt>6. 下一步改什么，如何确认改进？</dt>
+    <dd><p>从失败记录中选择优先问题，说明预期收益、可能代价及验证办法。<strong>准备证据：</strong>问题分类、修改记录和同条件下的前后对照。模型、提示词或数据变更后，用保留的样本检查旧能力是否退步。</p></dd>
+  </dl>
+</section>
+
+<section aria-labelledby="engineering-tradeoffs">
+  <h2 id="engineering-tradeoffs">四、从项目经历中看工程取舍</h2>
+  <p>原文作者提到的项目经历是个人案例，适合用来发现值得追问的约束，不能直接视为通用商业结论或经过验证的架构方案。</p>
+  <ul>
+    <li><strong>生成内容：交付质量与成本。</strong>原文作者提到，商家关心可使用的图片或视频，视频生成还受模型成本、效果稳定性和素材质量影响。整理出的设计问题是：最终交付物如何验收，失败后如何返工，人工修订和等待时间是否计入成本？</li>
+    <li><strong>持续对话：连贯性与信息维护。</strong>原文作者提到，用户画像和前后对话一致性是项目关注点。由此可以追问：哪些用户信息值得保存，如何更新与纠正，旧信息如何避免干扰新需求？</li>
+    <li><strong>数据采集与分析：来源质量与运行稳定性。</strong>原文作者提到，数据来源不稳定会限制项目落地。相应的设计问题是：来源变化能否被发现，缺失或过期数据如何标记，采集失败是否会被误当成有效结果？</li>
+  </ul>
+  <p>这些取舍提醒我们，评估 Agent 应覆盖完整交付过程。模型能力只是其中一部分，输入质量、失败处理、人工投入和结果可用性同样需要说明。</p>
+</section>
+
+<section aria-labelledby="related-reading">
+  <h2 id="related-reading">五、关联阅读</h2>
+  <p>仓库内已有文章可以补充部分设计细节：</p>
+  <ul>
+    <li><a href="../Claude%20Code/Claude%20Code%20Skills.html">Claude Code Skills</a>：结合按需加载与渐进式披露，继续理解上下文组织。</li>
+    <li><a href="../Claude%20Code/Claude%20Code%20Sub-Agents%20的核心概念与应用价值.html">Claude Code Sub-Agents 的核心概念与应用价值</a>：阅读上下文隔离、架构选择、任务交接与失败处理。</li>
+    <li><a href="../Claude%20Code/SDD%20工作流.html">SDD 工作流</a>：参考规范、执行、验证和迭代的组织方式。</li>
+  </ul>
+</section>
+
+</article>
+</main>
+</body>
+</html>
