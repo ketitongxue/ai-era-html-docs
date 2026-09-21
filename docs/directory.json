@@ -1,8 +1,13 @@
 {
   "schemaVersion": 1,
-  "sha": "3e700a2b291ae677c8af2f8d40a04a141e83d6d3",
-  "generatedAt": "2026-09-20T17:53:37.000Z",
+  "sha": "248f49baa9bd263c3eca00f4b0cd0d4311bf4c24",
+  "generatedAt": "2026-09-21T14:31:14.190Z",
   "tree": [
+    {
+      "path": "docs/Claude Code/Claude Code 安装与使用.html",
+      "type": "blob",
+      "mode": "100644"
+    },
     {
       "path": "docs/Claude Code/SDD 工作流.html",
       "type": "blob",
