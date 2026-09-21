@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code 安装与使用</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="安装">安装</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># macOS / Linux / WSL（推荐，自动更新）
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Windows PowerShell
+irm https://claude.ai/install.ps1 | iex
+
+# 或使用 Homebrew（需手动更新）
+brew install --cask claude-code
+</code></pre>
+<p>然后进入操作系统的命令行，输入 claude 这个命令就可以开始对话了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">claude              # 首次运行会提示登录
+</code></pre>
+<p>Claude Code 是付费软件，需要在 Claude 网站开账户。它所支持的账户类型包括：</p>
+<ul>
+<li>
+<p>Claude Pro / Max / Teams / Enterprise（推荐）</p>
+</li>
+<li>
+<p>Claude Console（API 访问，需预付费）</p>
+</li>
+</ul>
+<p>Claude Code 支持自定义 API 端点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">export ANTHROPIC_BASE_URL=https://your-relay-service.com/v1
+export ANTHROPIC_API_KEY=sk-xxx
+</code></pre>
+<p>也可以使用 CC Switch（github.com/farion1231/cc-switch） 进行切换。跨平台桌面 + CLI 一体化，已迭代到 v3.x，腾讯云社区、知乎、CSDN 均有教程，是目前社区里最主流的 Claude Code 模型切换工具。</p>
+<p>命令行安装：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">npx @songhe/cc-switch
+</code></pre>
+<p>它做了三件事：模型切换、MCP 管理和  Skills 管理。</p>
+<p>模型切换方面，内置了 Anthropic Claude、OpenAI GPT、DeepSeek、Qwen、GLM（智谱）、MiniMax、Kimi 等模型模板。点击 “Add Provider”添加配置，选中后点“Enable”就切换，本质上是帮你改写项目级  .claude/settings.json  中的 API 配置。支持 Claude Code、Codex CLI、OpenCode、Gemini CLI 多种终端 Agent。在 Claude API 和国产模型之间一键切换，不用手动改环境变量。</p>
+<p>MCP 管理方面，内置常用 MCP 服务器模板，交互式添加。还支持&quot;Shared Config Snippet&quot;在不同 Provider 间共享通用配置。</p>
+<h1 id="常用操作">常用操作</h1>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>操作名称</th>
+<th>功能是什么</th>
+<th>什么时候用</th>
+<th>如何操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自动编辑模式</td>
+<td>让 Claude 自动修改代码，不用每次确认</td>
+<td>写代码、修 Bug、调逻辑等</td>
+<td>MAC：shift+Tab 一次</td>
+</tr>
+<tr>
+<td>@指定文件</td>
+<td>告诉 Cladue 只处理某个文件</td>
+<td>修改单个文件或定位错误</td>
+<td>在对话里输入 @文件名 即可</td>
+</tr>
+<tr>
+<td>粘贴图片</td>
+<td>让 Claude 看图调界面或排查错误</td>
+<td>前端调界面，查页面错误</td>
+<td>MAC：Ctrl+V（不是 Cmd+V）<br>Windows：Alt+V</td>
+</tr>
+<tr>
+<td>常用命令</td>
+<td>管理 Claude 的状态和上下文</td>
+<td>清空对话、切换模型、诊断问题</td>
+<td>/clear 清空上下文，重新开始；<br>/compact 清理但保留记忆</td>
+</tr>
+<tr>
+<td>Plan 模式</td>
+<td>Claude 先帮你想清楚方向再写代码</td>
+<td>项目刚开始、做方案设计或复杂功能时</td>
+<td>Shift+Tab 连按两次</td>
+</tr>
+<tr>
+<td>记忆文件（CLAUDE.md）</td>
+<td>让 Claude 记住你的使用习惯和项目环境</td>
+<td>希望长期保持同一风格或配置时</td>
+<td>全局：～/.claude/CLAUDE.md<br>项目：项目目录下创建CLAUDE.md</td>
+</tr>
+<tr>
+<td>打开思考模式</td>
+<td>普通思考模式<br>或者会使用思考模型</td>
+<td>基本常开</td>
+<td>tab 打开，右下角会提示</td>
+</tr>
+<tr>
+<td>深度思考（ultrathink）</td>
+<td>让 Claude 进入高强度思考模式</td>
+<td>遇到复杂问题、性能优化或大规划时</td>
+<td>提示词中加入“ultrathink”或“深度思考”</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="权限模式">权限模式</h1>
+<p>Claude Code 支持多种权限模式，通过  Shift+Tab  循环切换。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>行为</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td>首次使用工具时提示授权</td>
+<td>日常使用</td>
+</tr>
+<tr>
+<td>acceptEdits</td>
+<td>自动接受文件编辑，命令仍需确认</td>
+<td>信任度较高的修改任务</td>
+</tr>
+<tr>
+<td>plan</td>
+<td>只读模式，只能分析不能修改</td>
+<td>代码审查、方案设计</td>
+</tr>
+<tr>
+<td>delegate</td>
+<td>只能通过 Agent Teams 协调</td>
+<td>团队协作模式</td>
+</tr>
+<tr>
+<td>dontAsk</td>
+<td>自动拒绝未预授权的工具</td>
+<td>严格受控的自动化</td>
+</tr>
+<tr>
+<td>bypassPermissions</td>
+<td>跳过所有权限检查（危险！）</td>
+<td>隔离环境如容器/VM</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="yolo-模式">YOLO 模式</h1>
+<p>YOLO 模式通过一行启动命令开启：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>claude --dangerously-skip-permissions
+</code></pre>
+<p>如果我们发现 cc 左下角提示了一个 “bypass permissions on”，代表我们的 YOLO 模式已经成功启动了</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
