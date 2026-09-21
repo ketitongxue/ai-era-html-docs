@@ -1,10 +1,15 @@
 {
   "schemaVersion": 1,
-  "sha": "248f49baa9bd263c3eca00f4b0cd0d4311bf4c24",
-  "generatedAt": "2026-09-21T14:31:14.190Z",
+  "sha": "17d98aea19391f6bdccd8643eb125429d6fb1d56",
+  "generatedAt": "2026-09-21T15:16:36.806Z",
   "tree": [
     {
       "path": "docs/Claude Code/Claude Code 安装与使用.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/Claude Code/Claude Code 规则管理：CLAUDE.md 配置与编写指南.html",
       "type": "blob",
       "mode": "100644"
     },
