@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes 挂载阿里云</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<article>
+<h1 id="kubernetes-挂载阿里云">Kubernetes 挂载阿里云</h1>
+<p>注：实践发现ECS为麒麟操作系统，在使用ossfs工具时会有不兼容问题。推荐使用SDK或者ossutil工具访问OSS</p>
+<p>插件选择：CSI 或者 FlexVolume</p>
+<p>FlexVolume 是 Kubernetes v1.8+ 支持的一种存储插件扩展方式。类似于 CNI 插件，它需要外部插件将二进制文件放到预先配置的路径中（如 /usr/libexec/kubernetes/kubelet-plugins/volume/exec/），并需要在系统中安装好所有需要的依赖。 ## FlexVolume 接口 实现一个 FlexVolume 包括两个步骤</p>
+<ul>
+<li>实现 <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-storage/flexvolume.md" target="_blank" rel="noopener noreferrer">FlexVolume 插件接口</a>，包括 init/attach/detach/waitforattach/isattached/mountdevice/unmountdevice/mount/umount 等命令（可参考 <a href="https://github.com/kubernetes/examples/blob/master/staging/volumes/flexvolume/lvm" target="_blank" rel="noopener noreferrer">lvm 示例</a> 和 <a href="https://github.com/kubernetes/examples/blob/master/staging/volumes/flexvolume/nfs" target="_blank" rel="noopener noreferrer">NFS 示例</a>）</li>
+<li>将插件放到 /usr/libexec/kubernetes/kubelet-plugins/volume/exec/&lt;vendor~driver&gt;/</li>
+<li>目录中</li>
+<li></li>
+</ul>
+<p>FlexVolume 的接口包括</p>
+<ul>
+<li>init：kubelet/kube-controller-manager 初始化存储插件时调用，插件需要返回是否需要要 attach 和 detach 操作</li>
+<li>attach：将存储卷挂载到 Node 上</li>
+<li>detach：将存储卷从 Node 上卸载</li>
+<li>waitforattach： 等待 attach 操作成功（超时时间为 10 分钟）</li>
+<li>isattached：检查存储卷是否已经挂载</li>
+<li>mountdevice：将设备挂载到指定目录中以便后续 bind mount 使用</li>
+<li>unmountdevice：将设备取消挂载</li>
+<li>mount：将存储卷挂载到指定目录中</li>
+<li>umount：将存储卷取消挂载 ## 使用 FlexVolume 在使用 flexVolume 时，需要指定卷的 driver，格式为 &lt;vendor~driver&gt;/</li>
+<li>，如下面的例子使用了 <code>kubernetes.io/lvm</code></li>
+<li></li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: test
+      mountPath: /data
+    ports:
+    - containerPort: 80
+  volumes:
+  - name: test
+    flexVolume:
+      driver: &quot;kubernetes.io/lvm&quot;
+      fsType: &quot;ext4&quot;
+      options:
+        volumeID: &quot;vol1&quot;
+        size: &quot;1000m&quot;
+        volumegroup: &quot;kube_vg&quot;
+</code></pre>
+<p>总调环境采用阿里云oss插件，oss的 pv.yaml 格式为：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: PersistentVolume
+metadata:
+  finalizers:
+    - kubernetes.io/pv-protection
+  labels:
+    alicloud-pvname: hisdata-all
+  name: hisdata-all
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 10240Gi
+  csi:
+    driver: ossplugins.csi.alibabacloud.com
+    volumeAttributes:
+      akId: ***********
+      akSecret: **********
+      bucket: *********
+      url: *******
+    volumeHandle: hisdata-all
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: oss
+</code></pre>
+<p>pvc.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kine: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: 'yes'
+    pv.kubernetes.io/bind-by-controller: 'yes'
+  finalizers:
+    - kubernetes.io/pvc-protection
+  name: all-hisdata
+  namespaces: ******
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10240Gi
+    selector:
+      matchLabels:
+        alicloud-pvname: hisdata-all
+    stroageClassName: oss
+    volumeName: hisdata-all
+</code></pre>
+<p>**** 20240319更新****</p>
+<p>在麒麟操作系统中使用ossfs工具发现问题</p>
+<p>yaml中加了 -o allow_other参数，并且node节点上执行的ossfs命令也有该参数，但是在pod中查看文件的时候还是640的权限。导致非root用户无法访问该文件。（未解决）</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

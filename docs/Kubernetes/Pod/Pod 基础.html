@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pod 基础</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<article>
+<h1 id="pod-基础">Pod 基础</h1>
+<h1 id="什么是-pod">什么是 Pod？</h1>
+<ul>
+<li>
+<p>Pod 是一组（一个或多个）紧密关联的容器集合，是Kubernetes调度的基本单位。</p>
+</li>
+<li>
+<p>同一个 Pod中的不同容器共享 PID、IPC、Network 和 UTS namespaces</p>
+</li>
+<li>
+<p>另外封装的内容：可被该组容器共享的存储资源、网络协议栈及容器的运行控制策略等</p>
+</li>
+<li>
+<p>依赖于pause容器事先创建出可被各应用容器共享的基础环境</p>
+</li>
+<li>
+<p>每个pod中都可以包含一个或多个容器，这些容器可以分为两类</p>
+<ul>
+<li>
+<p>用户程序所在的容器，数量可多可少</p>
+</li>
+<li>
+<p>Pause容器，这是每个Pod都会有的一个根容器，它的作用有两个</p>
+<ul>
+<li>可以以它为根据，评估整个pod的健康状态</li>
+<li>可以在根容器上设置IP地址，其他容器都以此IP（Pod IP），以实现Pod内部的网络通信</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="pod-的组成形式">Pod 的组成形式</h1>
+<ul>
+<li>
+<p>单容器Pod：仅含有单个容器</p>
+</li>
+<li>
+<p>多容器Pod：含有多个具有“超亲密”关系的容器</p>
+<ul>
+<li>同一Pod内的所有容器都将运行于由Scheduler选定的同一个节点上</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/kubernetes/JDXLbNkHEoIsWbxGhipcvFuPnlc.png" alt=""></p>
+<h1 id="pod-资源规范的基础框架">Pod 资源规范的基础框架</h1>
+<p>在 k8s 中所有资源的一级属性都是一样的，主要包含5部分：</p>
+<ul>
+<li>
+<p>apiVersion：# 版本，由k8s内部定义，版本号可以用 kubectl api-versions 查询到</p>
+</li>
+<li>
+<p>kind: # 类型，由k8s内部定义，可以用 kubectl api-resources 查询到</p>
+</li>
+<li>
+<p>metadata: name: # Pod 的标识名，在名称空间中必须唯一；</p>
+</li>
+<li>
+<p>spec: # 配置中<strong>最重要</strong>的一部分，里面是对各种资源配置的详细描述</p>
+<ul>
+<li>containers: # 定义容器，它是一个列表对象，可包括多个容器的定义，至少得有一个；</li>
+<li>nodeName: #根据nodename的值将pod调度到指定的Node节点上</li>
+<li>nodeSelector: #  根据NodeSelector中定义的信息选择将该Pod调度到包含这些label的node上</li>
+<li>hostNetwork: # 是否使用主机网络模式，默认为false，如果设置为true，表示使用宿主机网络</li>
+<li>volumes: # 存储卷，用于定义Pod上面挂载的存储信息</li>
+<li>restartPolicy : # 重启策略，表示Pod在遇到故障的时候的处理策略</li>
+</ul>
+</li>
+<li>
+<p>status: # 状态信息，不需要人为定义，K8s 会自动生成</p>
+</li>
+</ul>
+<p>pause 容器无需定义</p>
+<ul>
+<li>下面是一个简单的Pod资源示例</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+</code></pre>
+<p>Pod 资源的可配置内容非常繁多，因此要一个一个记住是不现实的。对此，K8s 提供了能够查看每种资源的配置项的命令</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl explain 资源类型      #查看某种资源可以配置的一级属性
+kubectl explain 资源类型.属性   #查看属性的子属性
+</code></pre>
+<p>例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl explain pod
+kubectl explain pod.metadata
+</code></pre>
+<h1 id="如何通过pod对象定义支撑应用运行">如何通过Pod对象定义支撑应用运行</h1>
+<ul>
+<li>
+<p>环境变量：</p>
+<ul>
+<li>直接设置值。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">env:&#32;
+- name: HELLO
+  value: WORLD
+</code></pre>
+<ul>
+<li>读取 Pod Spec 的某些属性。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">env:&#32;
+- name: POD_NAME
+  valueFrom:&#32;
+    fieldRef:&#32;
+      apiVersion: v1
+      fieldPath: metadata.name
+</code></pre>
+<ul>
+<li>从 ConfigMap 读取某个值。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">env:&#32;
+- name: VARIABLE1
+  valueFrom:&#32;
+    configMapKeyRef:&#32;
+      name: my-env
+      key: VARIABLE1
+</code></pre>
+<ul>
+<li>从 Secret 读取某个值。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">env:&#32;
+- name: SECRET_USERNAME
+  valueFrom:&#32;
+    secretKeyRef:&#32;
+      name: mysecret
+      key: username
+</code></pre>
+</li>
+</ul>
+<h1 id="pod-的生命周期">Pod 的<strong>生命周期</strong></h1>
+<p>我们一般将Pod对象从创建到终止的这段时间范围称为Pod的生命周期，它主要包含下面的过程：</p>
+<ul>
+<li>
+<p>pod 创建过程</p>
+</li>
+<li>
+<p>运行初始化容器（init container）过程</p>
+</li>
+<li>
+<p>运行主容器（main container）</p>
+<ul>
+<li>容器启动后钩子（post start）、容器终止前钩子（pre stop）</li>
+<li>容器的存活性检测（liveness probe）、就绪性检测（readiness probe）</li>
+</ul>
+</li>
+<li>
+<p>pod 终止过程</p>
+</li>
+</ul>
+<p>我们可以通过<code>kubectl explain pod.status</code>命令来了解关于Pod的一些信息，Pod的状态定义在<code>PodStatus</code>对象中，其中有一个<code>phase</code>字段，下面是phase的可能取值：</p>
+<ul>
+<li>挂起（Pending）:Pod信息已经提交给了集群，但它尚未被调度完成或仍处于下载镜像的过程中。</li>
+<li>运行中（Running）:Pod已经被调度到某节点，并且所有容器已经被Kubectl创建完成。</li>
+<li>成功（Succeeded）:Pod中的所有容器都已经成功终止并且不会被重启。</li>
+<li>失败（Failed）:所有容器都已经终止，并且至少有一个容器是因为失败终止，即容器返回了非0值的退出状态或被系统终止。</li>
+<li>未知（Unknown）:API Server无法正常获取到Pod对象的状态信息，通常由于网络通信失败所导致。</li>
+</ul>
+<h2 id="pod-的-phase">Pod 的 phase</h2>
+<p><img src="../../../assets/kubernetes/Xvh4bByDHo5GXbxC7uBc25v2nXb.png" alt=""></p>
+<h2 id="对比容器的状态">对比：容器的状态</h2>
+<p><img src="../../../assets/kubernetes/HWufbrztLoK5lrxOtYpcVixynGh.png" alt=""></p>
+<h2 id="pod-的创建过程"><strong>Pod 的创建过程</strong></h2>
+<p><img src="../../../assets/kubernetes/FRMmbeAuNoSPplxbFMCck85onSe.png" alt=""></p>
+<ol>
+<li>用户通过 kubectl 或其他 api 客户端提交需要创建的 pod 信息给 apiserver</li>
+<li>apiserver开始生成pod对象的信息，并将信息存入etcd，然后返回确认信息至客户端</li>
+<li>apiserver开始反映etcd中pod对象的变化，其他组件使用watch机制来跟踪检查apiserver上的变动</li>
+<li>scheduler发现有新的pod对象要创建，开始为pod分配主机并将结果信息更新至apiserver</li>
+<li>node节点上的kubelet发现有pod调度过来，尝试调用docker启动容器，并将结果返回送至apiserver</li>
+<li>apiserver将接收到的pod状态信息存入etcd中</li>
+</ol>
+<h2 id="pod-的终止过程"><strong>Pod 的终止过程</strong></h2>
+<ol>
+<li>用户向apiserver发送删除pod对象的命令</li>
+<li>apiserver中的pod对象信息会随着时间的推移而更新，在宽限期内（默认30s），pod被视为dead</li>
+<li>将pod标记为terminating状态</li>
+<li>kubelet在监控到pod对象转为terminating状态的同时启动pod关闭进程</li>
+<li>端点控制器监控到pod对象的关闭行为时将其从所有匹配到此端点的service资源的端点列表移除</li>
+<li>如果当前pod对象定义了prestop钩子处理器，则在其标记为terminating后即会以同步的方式启动执行</li>
+<li>pod对象中的容器进程收到停止信号</li>
+<li>宽限期结束后，若pod中还存在仍在运行的进程，那么pod对象会收到立即终止的信号</li>
+<li>kubelet请求apiserver将此pod资源的宽限期设置为0从而完成删除操作，此时pod对于用户已不可见</li>
+</ol>
+<h1 id="初始化容器"><strong>初始化容器</strong></h1>
+<p>初始化容器<code>Init Container</code>是在Pod的主容器启动之前要运行的容器，主要是做一些主容器的前置工作，它具有两大特征：</p>
+<ul>
+<li>初始化容器必须运行完成直至结束，如果某个初始化容器运行失败，那么Kubernetes需要重启它直至成功完成。</li>
+<li>初始化容器必须按照定义的顺序执行，当且仅当前一个成功之后，后面一个才能运行。</li>
+</ul>
+<p>初始化容器有很多应用场景，下面列出的是最常见的几种：</p>
+<ul>
+<li>提供主容器镜像中不具备的工具程序或自定义代码。</li>
+<li>初始化容器要先于应用容器串行启动并运行完成；因此可用于延后应用容器的启动直至其依赖的条件得到满足。</li>
+</ul>
+<h1 id="pod的重启策略决定了容器终止后是否应该重启">Pod的重启策略：决定了容器终止后是否应该重启</h1>
+<p>3种重启策略：</p>
+<ul>
+<li>Always：无论何种exit code，都要重启容器</li>
+<li>OnFailure：仅在exit code为非0值（即错误退出）时才重启容器</li>
+<li>Never：无论何种exit code，都不重启容器</li>
+</ul>
+<p>重启策略适用于Pod对象中的所有容器，首次需要重启的容器，将在其需要的时候立即进行重启，随后再次重启的操作将由kubelet延迟一段时间后进行，且反复的重启操作的延迟时长以此为10s、20s、40s、80s、160s和300s，300s是最大的延迟时长。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

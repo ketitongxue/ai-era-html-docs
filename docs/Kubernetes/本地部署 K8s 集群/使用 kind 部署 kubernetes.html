@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>使用 kind 部署 kubernetes</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<article>
+<h1 id="使用-kind-部署-kubernetes">使用 kind 部署 kubernetes</h1>
+<h1 id="kind-介绍">Kind 介绍</h1>
+<p>Kind（Kubernetes In Docker） 是一个 Kubernetes SIG 项目，用来快速在本地创建一个开发、测试用的 Kubernetes 集群。Kind 使用 Docker/Podman 驱动，Kubernetes 组件都部署在用kindest/node镜像启动的 Docker 容器中。更多关于 kind 的介绍，可阅读其官方文档：<a href="https://kind.sigs.k8s.io/" target="_blank" rel="noopener noreferrer">https://kind.sigs.k8s.io/</a>。</p>
+<p>Kind 的核心特性如下：</p>
+<ul>
+<li>支持多个 Kubernetes 节点（支持集群 HA，其实就是创建多个 control-plane 类型的 Node 节点）；</li>
+<li>创建的 Kubernetes 集群经过 Kubernetes 一致性认证；</li>
+<li>支持 Linux、macOS 和 Windows；</li>
+<li>因为 Kind 足够轻量，所以 Kind 也大量使用于 CI 流程中的集群创建。</li>
+</ul>
+<h1 id="安装-kind">安装 kind</h1>
+<p><a href="https://kind.sigs.k8s.io/docs/user/quick-start/" target="_blank" rel="noopener noreferrer">https://kind.sigs.k8s.io/docs/user/quick-start/</a></p>
+<p>On Linux:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># For AMD64 / x86_64
+[ $(uname -m) = x86_64 ] &amp;&amp; curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-amd64
+# For ARM64
+[ $(uname -m) = aarch64 ] &amp;&amp; curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-arm64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+</code></pre>
+<h1 id="创建配置文件">创建配置文件</h1>
+<p><a href="%E4%BD%BF%E7%94%A8%20kind%20%E9%83%A8%E7%BD%B2%20kubernetes/%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3.html">配置文件详解</a></p>
+<p>示例:将以下内容保存为 config.yaml：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: &quot;ingress-ready=true&quot;
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+  - containerPort: 30000
+    hostPort: 30000
+    protocol: TCP
+</code></pre>
+<h1 id="创建集群">创建集群</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">% kind create cluster
+
+# 指定配置文件
+% kind create cluster --config config.yaml
+Creating cluster &quot;kind&quot; ...
+ ✓ Ensuring node image (kindest/node:v1.31.2) 🖼&#32;
+ ✓ Preparing nodes 📦&#32;&#32;
+ ✓ Writing configuration 📜&#32;
+ ✓ Starting control-plane 🕹️&#32;
+ ✓ Installing CNI 🔌&#32;
+ ✓ Installing StorageClass 💾&#32;
+Set kubectl context to &quot;kind-kind&quot;
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-kind
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+</code></pre>
+<h1 id="安装-ingress-nginx">安装 Ingress-nginx</h1>
+<p>ingress.yaml</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  name: ingress-nginx
+---
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx
+  namespace: ingress-nginx
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+  namespace: ingress-nginx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx
+  namespace: ingress-nginx
+rules:
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - namespaces
+  verbs:
+  - get
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - configmaps
+  - pods
+  - secrets
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingressclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - &quot;&quot;
+  resourceNames:
+  - ingress-controller-leader
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - configmaps
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resourceNames:
+  - ingress-controller-leader
+  resources:
+  - leases
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+  namespace: ingress-nginx
+rules:
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx
+rules:
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - configmaps
+  - endpoints
+  - nodes
+  - pods
+  - secrets
+  - namespaces
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - nodes
+  verbs:
+  - get
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingressclasses
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+rules:
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - get
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx
+  namespace: ingress-nginx
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ingress-nginx
+subjects:
+- kind: ServiceAccount
+  name: ingress-nginx
+  namespace: ingress-nginx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+  namespace: ingress-nginx
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ingress-nginx-admission
+subjects:
+- kind: ServiceAccount
+  name: ingress-nginx-admission
+  namespace: ingress-nginx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress-nginx
+subjects:
+- kind: ServiceAccount
+  name: ingress-nginx
+  namespace: ingress-nginx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress-nginx-admission
+subjects:
+- kind: ServiceAccount
+  name: ingress-nginx-admission
+  namespace: ingress-nginx
+---
+apiVersion: v1
+data:
+  allow-snippet-annotations: &quot;true&quot;
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - appProtocol: http
+    name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - appProtocol: https
+    name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-controller-admission
+  namespace: ingress-nginx
+spec:
+  ports:
+  - appProtocol: https
+    name: https-webhook
+    port: 443
+    targetPort: webhook
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  minReadySeconds: 0
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: ingress-nginx
+      app.kubernetes.io/name: ingress-nginx
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/name: ingress-nginx
+    spec:
+      containers:
+      - args:
+        - /nginx-ingress-controller
+        - --election-id=ingress-controller-leader
+        - --controller-class=k8s.io/ingress-nginx
+        - --ingress-class=nginx
+        - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
+        - --validating-webhook=:8443
+        - --validating-webhook-certificate=/usr/local/certificates/cert
+        - --validating-webhook-key=/usr/local/certificates/key
+        - --watch-ingress-without-class=true
+        - --publish-status-address=localhost
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: LD_PRELOAD
+          value: /usr/local/lib/libmimalloc.so
+        image: dyrnq/ingress-nginx-controller:v1.3.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /wait-shutdown
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: controller
+        ports:
+        - containerPort: 80
+          hostPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 443
+          hostPort: 443
+          name: https
+          protocol: TCP
+        - containerPort: 8443
+          name: webhook
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 90Mi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+          runAsUser: 101
+        volumeMounts:
+        - mountPath: /usr/local/certificates/
+          name: webhook-cert
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        ingress-ready: &quot;true&quot;
+        kubernetes.io/os: linux
+      serviceAccountName: ingress-nginx
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Equal
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Equal
+      volumes:
+      - name: webhook-cert
+        secret:
+          secretName: ingress-nginx-admission
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission-create
+  namespace: ingress-nginx
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: admission-webhook
+        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/part-of: ingress-nginx
+        app.kubernetes.io/version: 1.3.1
+      name: ingress-nginx-admission-create
+    spec:
+      containers:
+      - args:
+        - create
+        - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc
+        - --namespace=$(POD_NAMESPACE)
+        - --secret-name=ingress-nginx-admission
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: dyrnq/kube-webhook-certgen:v1.3.0
+        imagePullPolicy: IfNotPresent
+        name: create
+        securityContext:
+          allowPrivilegeEscalation: false
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+      serviceAccountName: ingress-nginx-admission
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission-patch
+  namespace: ingress-nginx
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: admission-webhook
+        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/part-of: ingress-nginx
+        app.kubernetes.io/version: 1.3.1
+      name: ingress-nginx-admission-patch
+    spec:
+      containers:
+      - args:
+        - patch
+        - --webhook-name=ingress-nginx-admission
+        - --namespace=$(POD_NAMESPACE)
+        - --patch-mutating=false
+        - --secret-name=ingress-nginx-admission
+        - --patch-failure-policy=Fail
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: dyrnq/kube-webhook-certgen:v1.3.0
+        imagePullPolicy: IfNotPresent
+        name: patch
+        securityContext:
+          allowPrivilegeEscalation: false
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+      serviceAccountName: ingress-nginx-admission
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  labels:
+    app.kubernetes.io/component: admission-webhook
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.3.1
+  name: ingress-nginx-admission
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: ingress-nginx-controller-admission
+      namespace: ingress-nginx
+      path: /networking/v1/ingresses
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: validate.nginx.ingress.kubernetes.io
+  rules:
+  - apiGroups:
+    - networking.k8s.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - ingresses
+  sideEffects: None
+</code></pre>
+<h1 id="kind-常用操作">kind 常用操作</h1>
+<h2 id="帮助">帮助</h2>
+<p>安装完 kind 命令后，可以执行 kind -h 来查看 kind 工具支持的命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ kind -h
+kind 使用 Docker 容器 'nodes' 创建和管理本地 Kubernetes 集群
+
+Usage:
+  kind [command]
+
+Available Commands:
+  build       构建 Node 镜像
+  completion  为指定的 shell（bash、zsh 或 fish）输出 shell 补全代码
+  create      创建 Kind 集群
+  delete      删除 Kind 集群
+  export      导出集群 kubeconfig 配置和集群日志
+  get         获取 Kind 集群列表、指定集群的 Node 列表、指定集群的 kubeconfig
+  help        打印帮助信息
+  load        将宿主机 Docker 镜像加载到 Kind 集群的 Node 节点
+  version     打印 kind 命令行工具版本
+
+Flags:
+  -h, --help              打印帮助信息
+      --loglevel string   DEPRECATED: see -v instead
+  -q, --quiet             不输出错误到标准错误
+  -v, --verbosity int32   设置 log 日志级别
+      --version           打印 kind 命令行工具版本
+
+使用 &quot;kind [command] --help&quot; 了解更多关于命令的信息
+</code></pre>
+<p>kind create cluster 提供了一些参数，参数如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ kind create cluster -h
+创建一个本地测试用的 Kubernetes 集群
+
+用法：
+  kind create cluster [flags]
+
+标志：
+      --config string       指定创建 Kind 集群时的配置文件
+  -h, --help                打印 kind create cluster 的帮助信息
+      --image string        指定创建 Kind 集群节点的 docker 镜像
+      --kubeconfig string   设置创建出的 Kind 集群的 kubeconfig 文件保存路径，替代 $KUBECONFIG 或 $HOME/.kube/config 所指定的默认路径
+  -n, --name string         设置集群名称，可以覆盖 KIND_CLUSTER_NAME、配置文件中指定的集群名字
+      --retain              在集群创建失败时，保留节点以进行调试
+      --wait duration       等待，直到控制面节点准备就绪 (默认 0s)
+</code></pre>
+<h2 id="查询-kind-集群">查询 Kind 集群</h2>
+<p>可以使用 kind get 命令查询集群信息，具体可以查询以下集群信息：</p>
+<ul>
+<li>获取 Kind 集群列表；</li>
+<li>获取指定集群的 Node 列表；</li>
+<li>获取指定集群的 kubeconfig。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># 获取所有的 Kind 集群
+$ kind get clusters
+onex
+test-k8s
+
+# 查询名为 test-k8s Kind 集群的节点列表
+$ kind get nodes -n test-k8s
+test-k8s-control-plane
+
+# 查询所有 Kind 集群的节点列表
+$ kind get nodes -A
+onex-control-plane
+onex-worker
+onex-worker3
+onex-worker2
+test-k8s-control-plane
+
+# 获取名为 test-k8s Kind 集群的 kubeconfig 文件内容
+$ kind get kubeconfig -n test-k8s
+apiVersion: v1
+clusters:
+- cluster:
+...
+</code></pre>
+<p>kind get clusters 命令，在实际开发中最经常被用到。其他查询命令使用的较少。</p>
+<h2 id="导出-kind-集群的-kubeconfig-文件">导出 Kind 集群的 kubeconfig 文件</h2>
+<p>使用 kind export 命令，可以导出集群的 kubeconfig 文件和日志。具体命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell"># 导出名为 test-k8s Kind 集群的 kubeconfig，并保存到 /tmp/test-k8s 文件中
+$ kind export kubeconfig -n test-k8s --kubeconfig /tmp/test-k8s
+Set kubectl context to &quot;kind-test-k8s&quot;
+# 导出名为 test-k8s Kind 集群的日志到 test-k8s-log 目录中
+$ kind export logs -n test-k8s test-k8s-log
+Exporting logs for cluster &quot;test-k8s&quot; to:
+test-k8s-log
+</code></pre>
+<p>kind export logs 命令，会将我们需要排障用的各类日志，例如：docker 和 kind 的版本、kubelet 日志、containerd 日志、标准输出、镜像列表、journald 日志、容器日志等导出到指定的目录中。</p>
+<p>kind export kubeconfig、kind export logs 2 个命令，在测试开发中，经常被用到。</p>
+<h2 id="导入镜像到-kind-节点容器">导入镜像到 Kind 节点容器</h2>
+<p>在 Kubernetes 开发中，我们通常会在开发机上使用 docker build 命令构建需要测试的组件镜像，例如：<a href="http://ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0" target="_blank" rel="noopener noreferrer">ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0</a>。构建的镜像保存在宿主机上，并没有保存在 Kubernetes 节点容器中。我们在节点容器中创建 Pod 加载的镜像是节点容器中的镜像。所以，我们还需要将宿主机上的 Docker 镜像加载到节点容器中。</p>
+<p>加载命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># 将 ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0 镜像加载到名为 onex Kind 集群的所有节点上
+$ kind load docker-image --name onex ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0
+</code></pre>
+<p>上述命令会将指定的镜像加载到所有的 Kind 集群节点中，kind load docker-image 还提供了 --nodes 参数，该参数可以将镜像加载到指定的节点容器中（逗号分裂，例如：--nodes onex-worker,onex-worker2），例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">$ kind load docker-image --name onex --nodes onex-worker,onex-worker2 ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0 --nodes onex-worker
+</code></pre>
+<h3 id="删除集群">删除集群</h3>
+<p>可以执行以下命令来删除一个或多个 Kind 集群：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go"># 删除名为 onex 的 Kind 集群
+$ kind delete cluster -n onex
+# 删除所有的 Kind 集群
+$ kind delete clusters -A
+</code></pre>
+<h1 id="总结">总结</h1>
+<p>在日常开发中，用的最多的命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">kind create cluster -n onex # 创建名为 onex 的 Kind 集群
+kind creatge cluster --config kind-onex.yaml # 指定配置文件创建 Kind 集群
+kind get clusters # 获取 Kind 集群列表
+kind delete cluster -n onex # 删除名为 onex 的 Kind 集群
+kind export kubeconfig -n onex --kubeconfig /tmp/onex-config # 导出名为 onex Kind 集群的 kubeconfig 到指定的文件中
+kind load docker-image -n onex ccr.ccs.tencentyun.com/superproj/onex-usercenter-amd64:v0.1.0 # 将指定的宿主机镜像导入到指定 Kind 集群的所有 Node 容器中
+</code></pre>
+<p>补充</p>
+<p>本节课，介绍了使用kind load docker-image 命令将宿主机镜像导入到 Kind 集群节点容器中。其实还可以使用kind load image-archive 来导入，请试着使用kind load image-archive命令，来导入一个测试镜像到节点容器中。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
