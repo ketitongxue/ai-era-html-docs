@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 模型调用：接口、流式与可靠性</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.article-meta { color:#536378;font-size:13px;margin:4px 0; }
+.toc { background:#f0f4f8;border:1px solid #ccd6e3;border-radius:8px;padding:16px 20px;margin:24px 0; }
+.toc summary { font-weight:600;cursor:pointer; }
+.toc ol { margin-bottom:0; }
+@media print { .breadcrumb,.toc { display:none; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 应用开发 · 整理于 2026-09-22</p>
+<h1 id="agent-模型调用接口流式与可靠性">Agent 模型调用：接口、流式与可靠性</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#1-把模型服务协议与业务接口分开">1. 把模型服务、协议与业务接口分开</a></li><li><a href="#2-控制输出时先检查模型支持什么">2. 控制输出时，先检查模型支持什么</a></li><li><a href="#3-非流式流式与异步不是同一条分类轴">3. 非流式、流式与异步不是同一条分类轴</a></li><li><a href="#4-超时重试限流共同服从一次任务的预算">4. 超时、重试、限流共同服从一次任务的预算</a></li><li><a href="#5-统一接口保留能力差异降级必须重新验收">5. 统一接口保留能力差异，降级必须重新验收</a></li><li><a href="#6-框架负责复用应用仍负责契约">6. 框架负责复用，应用仍负责契约</a></li><li><a href="#7-记录足够的证据才能解释一次失败">7. 记录足够的证据，才能解释一次失败</a></li><li><a href="#来源与延伸阅读">来源与延伸阅读</a></li></ol></details></nav>
+<p>Agent 的规划、检索和工具决策，都要经过模型调用。一次请求在本地返回了文字，只证明接口能通；要让它进入业务链路，还需要处理输出截断、连接中断、配额、重复请求、模型切换和追踪。</p>
+<p>本文把原生 API 与 Spring AI、LangChain 放在同一条调用链里理解：先定义应用需要的契约，再决定哪些工作由 SDK 或框架完成。结构化数据的生成与校验见<a href="Agent%20%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C.html">结构化输出与数据校验</a>，历史消息与记忆管理见<a href="Agent%20%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E6%8E%92%E4%B8%8E%E8%AE%B0%E5%BF%86%E5%8F%AC%E5%9B%9E.html">上下文编排与记忆召回</a>。</p>
+<blockquote>
+<p>整理来源：CodeCrush《大模型应用开发基础》第 05、07、09、10、21、22 篇。本文按主题合并原稿，删去重复入门解释，补充接口边界与失败处理。代码为教学示例；模型 ID、支持参数和依赖版本需要在自己的环境中确认，不构成已完成真实 API 联调的声明。官方资料复核日期：2026-09-22。</p>
+</blockquote>
+<h2 id="1-把模型服务协议与业务接口分开">1. 把模型服务、协议与业务接口分开</h2>
+<p>模型服务可以来自厂商 API、第三方托管或本地推理服务。个人设备也能运行合适大小的模型；是否适合生产，取决于硬件、模型质量、并发与维护成本。SDK 是 HTTP 等协议的封装，不是运行模型的必要条件。</p>
+<p>一个实用的分层是：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">业务：抽取工单、回答制度问题、决定下一步工具
+  ↓
+应用调用层：权限、预算、路由、截止时间、统一结果
+  ↓
+SDK / 框架 provider：协议映射、认证、流式事件、部分重试
+  ↓
+远程或本地模型服务
+</code></pre>
+<p>常见接口不能只按“都能聊天”来替换：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>请求形态</th>
+<th>响应读取</th>
+<th>需要保留的差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chat Completions</td>
+<td><code>messages</code> 消息数组</td>
+<td><code>choices</code>、<code>finish_reason</code>、<code>usage</code></td>
+<td>工具调用、拒答、空内容与厂商扩展字段</td>
+</tr>
+<tr>
+<td>OpenAI Responses</td>
+<td><code>input</code>，可含多种输入项</td>
+<td><code>output</code> 项与事件；SDK 可提供文本聚合</td>
+<td>完成状态、工具结果、不同类型的内容项</td>
+</tr>
+<tr>
+<td>Anthropic Messages</td>
+<td><code>messages</code>，系统说明在顶层 <code>system</code></td>
+<td><code>content</code> 块、<code>stop_reason</code></td>
+<td>原生内容块与工具协议</td>
+</tr>
+<tr>
+<td>其他原生协议</td>
+<td>各家请求结构</td>
+<td>各家响应结构</td>
+<td>模态、文件、推理、异步任务等能力</td>
+</tr>
+</tbody>
+</table></div>
+<p>“OpenAI 兼容”通常能减少基础文本对话的迁移工作，但不是全功能一致的承诺。换 <code>base_url</code>、密钥和模型名之后，还要逐项验证工具调用、结构化输出、流式用量、推理参数及错误格式。基础 SDK 用法可对照 <a href="https://github.com/openai/openai-python">OpenAI Python SDK</a>。</p>
+<h3 id="先跑通一次完整的文本调用">先跑通一次完整的文本调用</h3>
+<p>下面选择 Chat Completions 说明最小过程。<code>LLM_MODEL</code> 必须设为目标服务实际支持的模型 ID；<code>LLM_BASE_URL</code> 必须与密钥所属服务匹配。密钥只由服务端读取，<code>.env</code> 应排除在版本控制之外；写了 <code>.env</code> 文件并不代表程序会自动加载它。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ[&quot;LLM_API_KEY&quot;],
+    base_url=os.environ[&quot;LLM_BASE_URL&quot;],
+    timeout=60.0,
+    max_retries=2,
+)
+
+response = client.chat.completions.create(
+    model=os.environ[&quot;LLM_MODEL&quot;],
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;用一句话解释什么是 API。&quot;}],
+)
+if not response.choices:
+    raise RuntimeError(&quot;响应没有候选结果&quot;)
+
+choice = response.choices[0]
+if choice.finish_reason != &quot;stop&quot;:
+    raise RuntimeError(f&quot;本例要求完整文本，实际结束状态：{choice.finish_reason}&quot;)
+if getattr(choice.message, &quot;refusal&quot;, None):
+    raise RuntimeError(&quot;模型拒绝了当前请求&quot;)
+if choice.message.content is None:
+    raise RuntimeError(&quot;响应没有文本内容&quot;)
+
+print(choice.message.content)
+if response.usage is not None:
+    print(response.usage.model_dump())
+</code></pre>
+<p>这个例子有意只接受完整文本。真实 Agent 还应识别工具调用结束状态，交给执行循环处理；不能把 <code>tool_calls</code> 当作普通失败，也不能因为 HTTP 200 就认定任务完成。Responses 的结束状态也不能硬套 <code>finish_reason</code>。</p>
+<h2 id="2-控制输出时先检查模型支持什么">2. 控制输出时，先检查模型支持什么</h2>
+<p>Temperature 改变候选 Token 的相对概率；正温度的普通缩放不会改变同一组 logits 的排序。Top P 按累计概率保留候选集合，再从集合中采样。它们调整生成分布，不直接保证事实正确、格式合法或工具安全。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>设置</th>
+<th>适用问题</th>
+<th>常见误用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>temperature</code></td>
+<td>控制表达多样性</td>
+<td>认为设为 0 就能在所有服务环境中严格复现</td>
+</tr>
+<tr>
+<td><code>top_p</code></td>
+<td>控制采样候选范围</td>
+<td>把低概率候选都当成乱码，认为它能消除幻觉</td>
+</tr>
+<tr>
+<td>输出 Token 上限</td>
+<td>控制一次生成的资源边界</td>
+<td>把上限当成模型必须达到的目标长度</td>
+</tr>
+<tr>
+<td>推理强度或预算</td>
+<td>在支持的模型上调整推理资源</td>
+<td>将某厂商的档位和默认值套给所有模型</td>
+</tr>
+</tbody>
+</table></div>
+<p>调参先使用模型推荐默认值，一次只改变一个采样因素，用同一组任务比较。不同模型可能限制或不接受采样参数；不能把一个 <code>temperature=0.2, top_p=0.9</code> 组合当成通用生产配置。</p>
+<p>输出长度字段也不同：某些 Chat Completions 模型使用 <code>max_completion_tokens</code>，Responses 使用 <code>max_output_tokens</code>，其他接口可能使用 <code>max_tokens</code>。是否包含推理 Token、具体上限以及截断标记，要按目标模型核对。LangChain 的 OpenAI 集成也记录了相关参数转换，见<a href="https://docs.langchain.com/oss/python/integrations/chat/openai">集成说明</a>。</p>
+<p>输出被截断时，要保留“未完成”状态。对于长文，可以增加预算或拆成有边界的小任务；对于 JSON，要拒绝解析不完整对象。直接原样重试通常不会解决输出配额不足。</p>
+<h2 id="3-非流式流式与异步不是同一条分类轴">3. 非流式、流式与异步不是同一条分类轴</h2>
+<p>原稿把“同步”“流式”“异步 Batch”依次介绍，容易让人误以为三者互斥。实际要分别看两件事：结果怎样交付，以及客户端怎样等待。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>选择</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结果交付</td>
+<td>非流式 / 流式</td>
+<td>一次拿完整结果，或持续接收增量事件</td>
+</tr>
+<tr>
+<td>客户端调度</td>
+<td>阻塞 / <code>async</code></td>
+<td>当前线程等待，或由事件循环调度等待</td>
+</tr>
+<tr>
+<td>服务端任务</td>
+<td>在线请求 / 后台任务 / Batch</td>
+<td>当前连接返回结果，或提交任务后凭 ID 查询</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>await client...</code> 可以请求非流式结果；同步客户端也可以消费流。Batch 是服务端离线任务接口，和 Python 的 <code>async</code> 不是同一种能力。</p>
+<h3 id="流式需要管理两段连接">流式需要管理两段连接</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">浏览器 ← SSE / WebSocket → 应用服务 ← 厂商事件流 → 模型服务
+                          鉴权、限流、取消、聚合、记录状态
+</code></pre>
+<p>持续输出能改善首屏等待，并降低部分空闲读取超时的概率；它不能消除所有超时。代理仍可能缓冲内容，网关可能有连接总时长上限，推理阶段也可能长时间没有文本。停止生成可以通过取消请求或独立控制接口实现，并不必然要求 WebSocket。</p>
+<p>以下示例消费 Chat Completions 文本流。仅在目标服务支持时启用 <code>include_usage</code>；最后一块可能只有用量，没有 <code>choices</code>。中断时用量可能拿不到，应记录“未知”，不能记成零。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">pieces = []
+finish_reason = None
+usage = None
+
+stream = client.chat.completions.create(
+    model=os.environ[&quot;LLM_MODEL&quot;],
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;用三百字介绍杭州。&quot;}],
+    stream=True,
+    stream_options={&quot;include_usage&quot;: True},
+)
+try:
+    for chunk in stream:
+        if chunk.usage is not None:
+            usage = chunk.usage
+        if not chunk.choices:
+            continue
+        choice = chunk.choices[0]
+        if choice.delta.content:
+            pieces.append(choice.delta.content)
+            print(choice.delta.content, end=&quot;&quot;, flush=True)
+        if choice.finish_reason is not None:
+            finish_reason = choice.finish_reason
+finally:
+    stream.close()
+
+if finish_reason != &quot;stop&quot;:
+    raise RuntimeError(f&quot;文本流未完整结束：{finish_reason}&quot;)
+full_text = &quot;&quot;.join(pieces)
+</code></pre>
+<p>这里仍是文本专用例子。工具调用的名称和参数也可能分块返回，需要按调用 ID 聚合，全部接收并通过校验后才能执行。推理摘要、文本、工具、音频等内容应保留类型，不应全部串成一段普通文字。也不能假定厂商会暴露完整内部思考过程。</p>
+<h3 id="batch-保留请求与结果的对应关系">Batch 保留请求与结果的对应关系</h3>
+<p>适合容忍延迟的离线任务时，可以把请求写成 JSONL，提交批次，保存 <code>batch_id</code>，然后查询完成状态并下载结果。结果可能不按输入顺序返回，用自己的 <code>custom_id</code> 关联，不用行号关联。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">import json
+
+items = [(&quot;comment-1&quot;, &quot;物流很快，包装严实。&quot;), (&quot;comment-2&quot;, &quot;等了一周还没发货。&quot;)]
+with open(&quot;batch.jsonl&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as file:
+    for item_id, text in items:
+        request = {
+            &quot;custom_id&quot;: item_id,
+            &quot;method&quot;: &quot;POST&quot;,
+            &quot;url&quot;: &quot;/v1/chat/completions&quot;,
+            &quot;body&quot;: {
+                &quot;model&quot;: os.environ[&quot;LLM_MODEL&quot;],
+                &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: f&quot;判断评论情感：{text}&quot;}],
+            },
+        }
+        file.write(json.dumps(request, ensure_ascii=False) + &quot;\n&quot;)
+
+with open(&quot;batch.jsonl&quot;, &quot;rb&quot;) as file:
+    uploaded = client.files.create(file=file, purpose=&quot;batch&quot;)
+batch = client.batches.create(
+    input_file_id=uploaded.id,
+    endpoint=&quot;/v1/chat/completions&quot;,
+    completion_window=&quot;24h&quot;,
+)
+print(batch.id)  # 持久化此 ID；恢复任务时先查状态，避免重新提交整批
+</code></pre>
+<p>这段使用 OpenAI Batch 的调用形态，不能只改域名就假定另一家也支持。提交成功不等于所有条目成功；需要检查错误文件、过期或取消状态、每条结果及计费。价格、容量和完成窗口以<a href="https://developers.openai.com/api/docs/guides/batch">官方 Batch 文档</a>为准。</p>
+<h2 id="4-超时重试限流共同服从一次任务的预算">4. 超时、重试、限流共同服从一次任务的预算</h2>
+<p>连接超时限制建立连接的等待；读取超时限制下一块数据的等待；总截止时间限制整个业务请求。它们不是一个数值的三种名称。HTTPX 还区分写入与连接池等待，见<a href="https://www.python-httpx.org/advanced/timeouts/">超时说明</a>。SDK 的实际传输实现会随版本变化，应在锁定版本上检查配置方法。</p>
+<p>非流式请求的读取等待要覆盖生成时间；流式读取等待要考虑首块延迟和块间停顿。只在 <code>for chunk in stream</code> 内比较时间，不足以实现严格总截止：当循环正阻塞等待下一块时，检查语句根本不会运行。异步调用可以用外层取消机制限定整个消费过程：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">import asyncio
+from openai import AsyncOpenAI
+
+async def read_with_deadline(messages, seconds=90):
+    # Python 3.11+；SDK 的网络超时与业务总截止分别配置。
+    async with AsyncOpenAI(
+        api_key=os.environ[&quot;LLM_API_KEY&quot;],
+        base_url=os.environ[&quot;LLM_BASE_URL&quot;],
+        timeout=30.0,
+        max_retries=0,
+    ) as async_client:
+        async with asyncio.timeout(seconds):
+            stream = await async_client.chat.completions.create(
+                model=os.environ[&quot;LLM_MODEL&quot;], messages=messages, stream=True,
+            )
+            try:
+                async for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        print(chunk.choices[0].delta.content, end=&quot;&quot;, flush=True)
+            finally:
+                await stream.close()
+</code></pre>
+<p>这段只演示截止和关闭连接；业务仍要像上一例一样验证完整结束。断开本地连接也不保证服务端立即停止计算或不再计费。</p>
+<h3 id="先分类失败再决定是否重试">先分类失败，再决定是否重试</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>失败</th>
+<th>优先处理</th>
+<th>需要防止的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>连接中断、部分 5xx</td>
+<td>有界指数退避，加抖动</td>
+<td>重试风暴、总延迟失控</td>
+</tr>
+<tr>
+<td>429</td>
+<td>区分速率限制与余额/配额，读取 <code>Retry-After</code></td>
+<td>对不会自行恢复的错误反复重试</td>
+</tr>
+<tr>
+<td>参数错误、无效模型、鉴权失败</td>
+<td>修正配置或请求</td>
+<td>重试浪费费用</td>
+</tr>
+<tr>
+<td>截断、拒答、业务校验失败</td>
+<td>各自进入专门分支</td>
+<td>当成普通网络故障</td>
+</tr>
+<tr>
+<td>已输出部分内容后中断</td>
+<td>标记部分结果，明确重新生成或续接策略</td>
+<td>把第二次回答直接追加到第一次尾部</td>
+</tr>
+</tbody>
+</table></div>
+<p>不能把“除 429 外的全部 4xx 都不可重试”写成统一规则；例如具体 SDK 可能把 408、409 纳入重试。也不能把 SDK、框架、网关三层默认重试叠起来：每层 3 次尝试，最坏可放大到 27 次。让一个层级管理预算，其他层明确禁用或计入同一预算。</p>
+<p>模型生成的重试与工具副作用的重试要分开。发送消息、创建订单等工具动作必须先检查幂等键或已执行记录，避免模型调用重试间接造成重复操作。恢复策略见<a href="Agent%20%E5%8A%A8%E6%80%81%E9%87%8D%E8%A7%84%E5%88%92%E4%B8%8E%E9%95%BF%E4%BB%BB%E5%8A%A1%E6%81%A2%E5%A4%8D.html">动态重规划与长任务恢复</a>。</p>
+<h3 id="限流与排队有不同计量单位">限流与排队有不同计量单位</h3>
+<p>RPM、TPM、并发数可能同时约束一个账号、项目、地域或模型。配额应从当前控制台和响应头读取，不把课程中的固定数值写死。按请求速率用令牌桶，按在途数量用信号量；估计 Token 时考虑输入、预留输出与厂商实际计量规则。</p>
+<p>多实例服务需要共享限流状态，单进程 limiter 只能约束自己。队列还要有容量、等待上限、取消和背压：无界排队只会把 429 换成长时间卡住。Batch 可能有独立配额，但“独立配额”不等于没有限制。</p>
+<h2 id="5-统一接口保留能力差异降级必须重新验收">5. 统一接口保留能力差异，降级必须重新验收</h2>
+<p>调用层应统一应用需要的结果，而不是把所有厂商压成一个字符串：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">ModelResult
+  content_blocks        文本、工具调用、可见推理摘要等类型化内容
+  finish_state          complete / truncated / tool_call / refusal / error
+  usage                 输入、输出、缓存与推理用量；缺失值为 unknown
+  provider_request_id   关联服务端排障
+  model_version         实际返回版本与配置版本
+  attempts / fallback   尝试次数与路由变化
+</code></pre>
+<p>请求侧则应有能力要求，例如“必须支持图像输入”“必须提供 Schema 约束”“数据必须留在指定区域”。路由先筛掉不满足硬约束的候选，再在剩余模型中比较成本、延迟和任务质量。</p>
+<p>跨厂商备用能降低部分共同故障，但也可能改变数据处理边界、引用习惯与格式能力。切换后仍需通过同一校验；无法保持关键约束时，返回明确的不可用结果比伪造成功更合适。缓存回答也必须检查用户权限、内容版本和时效，不能任意拿历史答案兜底。</p>
+<h2 id="6-框架负责复用应用仍负责契约">6. 框架负责复用，应用仍负责契约</h2>
+<p>框架的主要价值是组件复用、接口抽象和编排。复用文档读取器、模型 provider、向量库适配器能减少样板代码；替换组件仍要检查语义差异，例如距离函数、元数据过滤、维度和错误处理，不保证换依赖后业务完全不用改。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>任务</th>
+<th>Spring AI</th>
+<th>LangChain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型调用</td>
+<td><code>ChatModel</code> / <code>ChatClient</code></td>
+<td>聊天模型与 provider 集成</td>
+</tr>
+<tr>
+<td>类型化消息</td>
+<td><code>UserMessage</code>、<code>AssistantMessage</code> 等</td>
+<td><code>HumanMessage</code>、<code>AIMessage</code> 等</td>
+</tr>
+<tr>
+<td>结构化结果</td>
+<td><code>.entity()</code> 与转换器</td>
+<td><code>with_structured_output()</code></td>
+</tr>
+<tr>
+<td>调用编排</td>
+<td>Advisor 链</td>
+<td>Runnable / LCEL，复杂状态流程可用 LangGraph</td>
+</tr>
+<tr>
+<td>生产治理</td>
+<td>对接现有 Spring 监控与韧性组件</td>
+<td>回调、追踪、限流与部署设施组合</td>
+</tr>
+</tbody>
+</table></div>
+<p>SDK 已经够用的短链路无需为了“完整”而引框架。已有 Spring 服务通常优先评估 Spring AI；Python 数据处理和已有 LangChain 生态可以延用 LangChain；Java 项目也有 LangChain4j 等独立选择。LangChain4j 不是 LangChain 的官方 Java 移植。选择时同时检查团队栈、必要集成、状态恢复和维护成本，不把“某生态唯一选择”“所有新方法都先到某框架”当成事实。</p>
+<h3 id="同一动作只保留一组并列例子">同一动作，只保留一组并列例子</h3>
+<p>LangChain 的 provider 是负责协议适配的集成。下面明确使用 OpenAI provider；换成兼容服务时，仍要检查它是否保留你需要的扩展字段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.chat_models import init_chat_model
+from langchain.messages import SystemMessage, HumanMessage
+
+model = init_chat_model(
+    model=os.environ[&quot;LLM_MODEL&quot;],
+    model_provider=&quot;openai&quot;,
+    api_key=os.environ[&quot;LLM_API_KEY&quot;],
+    base_url=os.environ[&quot;LLM_BASE_URL&quot;],
+    timeout=60,
+    max_retries=2,
+)
+messages = [
+    SystemMessage(&quot;你是简洁的技术助手。&quot;),
+    HumanMessage(&quot;解释模型调用层的作用。&quot;),
+]
+response = model.invoke(messages)
+print(response.text)
+print(response.usage_metadata)
+
+full = None
+for chunk in model.stream(messages):
+    full = chunk if full is None else full + chunk
+    print(chunk.text, end=&quot;&quot;, flush=True)
+</code></pre>
+<p>保留完整消息有助于保留工具调用与元数据；只拼文本后再作为历史消息使用，会丢失这些信息。框架消息本身也不是自动持久化，记忆组件需要显式接入。</p>
+<p>Spring AI 则在项目锁定的 BOM、模型 starter 和配置下构建 <code>ChatClient</code>。下面假设 <code>chatClient</code> 已由服务配置完成：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-java">ChatResponse response = chatClient.prompt()
+        .user(&quot;解释模型调用层的作用。&quot;)
+        .call()
+        .chatResponse();
+
+// 将 Flux 返回给响应式 HTTP 层；由应用处理取消、异常和终止状态。
+Flux&lt;String&gt; fragments = chatClient.prompt()
+        .user(&quot;解释模型调用层的作用。&quot;)
+        .stream()
+        .content();
+</code></pre>
+<p>需要响应元数据时，不要只取 <code>.content()</code>。在响应式请求路径里也不要为方便而 <code>.block()</code>；链路的消费、取消和错误传播应由应用统一控制。框架的默认重试、限流作用域和监控开关应按版本与 provider 核查，不能假定“装了框架”就完成生产治理。</p>
+<h2 id="7-记录足够的证据才能解释一次失败">7. 记录足够的证据，才能解释一次失败</h2>
+<p>最少记录任务 ID、调用 ID、模型与版本、Prompt/Schema 版本、尝试次数、结束状态、降级路径、Token 用量、总延迟以及流式 TTFT。汇总同时看 P50、P95、P99，避免平均值掩盖长尾；用量缺失单独计数，不能污染成本统计。</p>
+<p>请求日志默认做脱敏和访问控制，密钥不进入日志，原文是否留存由业务数据政策决定。调试可用抽样或受控存储，不必把所有用户输入永久写到公共追踪平台。</p>
+<p>验证调用层时至少覆盖：正常文本、无权限、429、持续 5xx、首次输出很慢、中途断流、用户取消、截断、拒答、备用模型能力不足、最后用量缺失，以及多实例配额争抢。端到端任务质量与错误传播的分析继续看<a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">评估、反馈与可观测性</a>。</p>
+<h2 id="来源与延伸阅读">来源与延伸阅读</h2>
+<ul>
+<li>CodeCrush 原始笔记：<a href="https://www.codecrush.cn/lesson/355868746033659904">05 第一次调用大模型</a>、<a href="https://www.codecrush.cn/lesson/355870338195652608">07 控制模型输出的关键参数</a>、<a href="https://www.codecrush.cn/lesson/355871271231160320">09 同步、流式与异步调用</a>、<a href="https://www.codecrush.cn/lesson/355872229944197120">10 构建可靠的模型调用层</a>。</li>
+<li>框架原始笔记：<a href="https://www.codecrush.cn/lesson/355876591336685568">21 为什么需要引入开发框架</a>、<a href="https://www.codecrush.cn/lesson/355877001912909824">22 统一模型调用与消息处理</a>。提示词模板细节与记忆策略在知识库对应主题中集中讲解。</li>
+<li>官方接口：<a href="https://github.com/openai/openai-python">OpenAI Python SDK</a>、<a href="https://developers.openai.com/api/docs/guides/batch">OpenAI Batch</a>、<a href="https://www.python-httpx.org/advanced/timeouts/">HTTPX 超时</a>。</li>
+<li>框架参考：<a href="https://docs.langchain.com/oss/python/langchain/models">LangChain 模型</a>、<a href="https://docs.langchain.com/oss/python/integrations/chat/openai">LangChain OpenAI 集成</a>、<a href="https://docs.spring.io/spring-ai/reference/api/chatclient.html">Spring AI ChatClient</a>。</li>
+</ul>
+<p><a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%87%AA%E6%A3%80.html">返回 Agent 系统设计总览</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
