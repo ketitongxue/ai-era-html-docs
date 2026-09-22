@@ -1,10 +1,65 @@
 {
   "schemaVersion": 1,
-  "sha": "98254f3ba242ae0ed48557873036ff803e16885a",
-  "generatedAt": "2026-09-21T16:31:21.261Z",
+  "sha": "7fdc093fe0407e31334093c6e17f803a0c3a48af",
+  "generatedAt": "2026-09-22T00:29:10.260740+00:00",
   "tree": [
     {
+      "path": "docs/AI Agent/Agent 上下文编排与记忆召回.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 任务规划与执行计划.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 动态重规划与长任务恢复.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 执行循环与工具选择.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 检索优化：召回质量、预算与缓存.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 检索设计：数据组织与分块.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 用户画像建模与更新.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 系统设计面试题与项目表达.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
       "path": "docs/AI Agent/Agent 系统设计：核心环节与项目自检.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 评估、反馈与可观测性.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 输入理解与意图识别.html",
+      "type": "blob",
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AI Agent/Agent 项目设计与实践记录.html",
       "type": "blob",
       "mode": "100644"
     },
