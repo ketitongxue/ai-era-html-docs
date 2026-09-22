@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#gitops">返回知识库 · GitOps</a> · <a href="../GitOps.html">GitOps 总览</a></nav>
 <article>
 <h1 id="githubaction">GitHubAction</h1>
 <h1 id="使用githubaction构建镜像">使用GitHubAction构建镜像</h1>
@@ -216,13 +216,13 @@ $ git push -u origin main
 <p>首先，使用你注册的账号密码登录 <a href="https://hub.docker.com/" target="_blank" rel="noopener noreferrer">https://hub.docker.com/</a>。然后，点击右上角的“用户名”，选择“Account Settings”，并进入左侧的“Personal access tokens”菜单。</p>
 <p>下一步点击右侧的“Generate new token”按钮，创建一个新的 Token。</p>
 <p>输入描述，然后点击“Genarate”按钮生成 Token。</p>
-<p><img src="../../../assets/kubernetes/ONNzbkQoYoBu3MxkKY4cAEDFnge.png" alt=""></p>
+<p><img src="../../assets/kubernetes/ONNzbkQoYoBu3MxkKY4cAEDFnge.png" alt=""></p>
 <p>点击“Copy and Close”将 Token 复制到剪贴板。 <strong>请注意，当窗口关闭后，Token 无法再次查看，所以请在其他地方先保存刚才生成的 Token。</strong></p>
-<p><img src="../../../assets/kubernetes/OTY0bMgO2oMTb5xG0LhcvDFOnXb.png" alt=""></p>
+<p><img src="../../assets/kubernetes/OTY0bMgO2oMTb5xG0LhcvDFOnXb.png" alt=""></p>
 <h3 id="创建-github-action-secret">创建 GitHub Action Secret</h3>
 <p>创建完 Docker Hub Token 之后，接下来我们就可以创建 GitHub Action Secret 了，也就是说我们要为 Workflow 提供 secrets.DOCKERHUB\_TOKEN 变量值。</p>
 <p>进入 kubernetes-example 仓库的 Settings 页面，点击左侧的“Secrets”，进入“Actions”菜单，然后点击右侧“New repository secret”创建新的 Secret。</p>
-<p><img src="../../../assets/kubernetes/github-actions-secret-redacted.png" alt=""></p>
+<p><img src="../../assets/kubernetes/github-actions-secret-redacted.png" alt=""></p>
 <p>在 Name 输入框中输入 DOCKERHUB\_TOKEN，这样在 GitHub Action 的 Step 中， **就可以通过 ${{ secrets.DOCKERHUB\_TOKEN }} 表达式来获取它的值**。</p>
 <p>在 Secret 输入框中输入刚才我们复制的 Docker Hub Token，点击“Add secret”创建。</p>
 <h3 id="触发-github-action-workflow">触发 GitHub Action Workflow</h3>
@@ -234,12 +234,12 @@ $ git push -u origin main
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">$ git push origin main
 </code></pre>
 <p>接下来，进入 kubernetes-example 仓库的“Actions”页面，你将看到我们刚才触发的工作流。</p>
-<p><img src="../../../assets/kubernetes/YhtkbkO1ioIqJDxxUBNcfpKNnsb.png" alt=""></p>
+<p><img src="../../assets/kubernetes/YhtkbkO1ioIqJDxxUBNcfpKNnsb.png" alt=""></p>
 <p>你可以点击工作流的标题进入工作流详情页面。</p>
-<p><img src="../../../assets/kubernetes/OyOsbzRMmo2mjNxOtg7c4Wownxd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/OyOsbzRMmo2mjNxOtg7c4Wownxd.png" alt=""></p>
 <p>在工作流的详情页面，我们能看到工作流的每一个 Step 的状态及其运行时输出的日志。</p>
 <p>当工作流运行完成后，进入到 Docker Hub frontend 或者 backend 镜像的详情页，你将看到刚才 GitHub Action 自动构建并推送的新版本镜像。</p>
-<p><img src="../../../assets/kubernetes/GBkubbHTcofjSHx6KAbcJRk1nVb.png" alt=""></p>
+<p><img src="../../assets/kubernetes/GBkubbHTcofjSHx6KAbcJRk1nVb.png" alt=""></p>
 <p>到这里，我们便完成了使用 GitHub Action 自动构建镜像的全过程。最终实现效果是，当我们向 main 分支提交代码时，GitHub 工作流将自动构建 frontend 和 backend 镜像， <strong>并且每一个 commit id 对应一个镜像版本。</strong></p>
 </article>
 </main>

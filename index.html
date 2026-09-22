@@ -81,7 +81,7 @@ th { background: #eaf0f7; }
 <main id="main-content" tabindex="-1">
 <h1>JuZX 的个人知识库</h1>
 <p>JuZX 的个人笔记和探索内容知识库。</p>
-<p>共 103 篇文章 · Claude Code 5 篇 · AI Agent 17 篇 · Kubernetes 59 篇 · etcd 22 篇</p>
+<p>共 100 篇文章 · Claude Code 5 篇 · AI Agent 17 篇 · Kubernetes 47 篇 · etcd 22 篇 · GitOps 5 篇 · 生态工具 4 篇</p>
 <nav aria-label="文章目录">
 <h2>Claude Code</h2>
 <ul>
@@ -116,7 +116,7 @@ th { background: #eaf0f7; }
 <li><a href="docs/AI%20Agent/Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE.html">Agent 系统设计面试题与项目表达</a></li>
 </ul>
 <h2 id="kubernetes">Kubernetes</h2>
-<p>共 59 份文档，按基础、部署、工作负载、网络、存储与生态实践分组。</p>
+<p>共 47 份文档，按基础、部署、工作负载、网络与集成实践分组。</p>
 <h3>总览与基础 · 14 篇</h3>
 <ul>
 <li><a href="docs/Kubernetes/Kubernetes.html">Kubernetes</a></li>
@@ -179,27 +179,6 @@ th { background: #eaf0f7; }
 <li><a href="docs/Kubernetes/%E5%BA%94%E7%94%A8%E9%85%8D%E7%BD%AE%EF%BC%88env%E3%80%81cm%E3%80%81secret%EF%BC%89/Secret.html">Secret</a></li>
 <li><a href="docs/Kubernetes/%E5%BA%94%E7%94%A8%E9%85%8D%E7%BD%AE%EF%BC%88env%E3%80%81cm%E3%80%81secret%EF%BC%89.html">应用配置（env、cm、secret）</a></li>
 </ul>
-<h3>存储 · 3 篇</h3>
-<ul>
-<li><a href="docs/Kubernetes/%E5%AD%98%E5%82%A8/Kubernetes%20%E6%8C%82%E8%BD%BD%E9%98%BF%E9%87%8C%E4%BA%91.html">Kubernetes 挂载阿里云</a></li>
-<li><a href="docs/Kubernetes/%E5%AD%98%E5%82%A8/Kubernetes%20%E6%8C%82%E8%BD%BD%E9%98%BF%E9%87%8C%E4%BA%91%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%20NAS.html">Kubernetes 挂载阿里云文件存储 NAS</a></li>
-<li><a href="docs/Kubernetes/%E5%AD%98%E5%82%A8.html">存储</a></li>
-</ul>
-<h3>生态工具 · 4 篇</h3>
-<ul>
-<li><a href="docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></li>
-<li><a href="docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Cert-manager.html">Cert-manager</a></li>
-<li><a href="docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Crossplane.html">Crossplane</a></li>
-<li><a href="docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81/Crossplane%20%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81%E6%A6%82%E8%A7%88.html">Crossplane · 基础设施即代码概览</a></li>
-</ul>
-<h3>GitOps 与发布 · 5 篇</h3>
-<ul>
-<li><a href="docs/Kubernetes/GitOps.html">GitOps</a></li>
-<li><a href="docs/Kubernetes/GitOps/ArgoCD.html">ArgoCD</a></li>
-<li><a href="docs/Kubernetes/GitOps/GitHubAction.html">GitHubAction</a></li>
-<li><a href="docs/Kubernetes/GitOps/GitLabCI.html">GitLabCI</a></li>
-<li><a href="docs/Kubernetes/GitOps/%E8%93%9D%E7%BB%BF%E5%8F%91%E5%B8%83.html">蓝绿发布</a></li>
-</ul>
 <h3>API 客户端 · 2 篇</h3>
 <ul>
 <li><a href="docs/Kubernetes/API%20%E5%AE%A2%E6%88%B7%E7%AB%AF/Client-go.html">Client-go</a></li>
@@ -234,6 +213,23 @@ th { background: #eaf0f7; }
 <li><a href="docs/etcd/%E9%89%B4%E6%9D%83%E6%A8%A1%E5%9D%97.html">鉴权模块</a></li>
 <li><a href="docs/etcd/%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86.html">高可用集群管理</a></li>
 <li><a href="docs/etcd.html">etcd</a></li>
+</ul>
+<h2 id="gitops">GitOps</h2>
+<p>共 5 份文档，覆盖 GitOps 理念与 ArgoCD、GitHub Actions、GitLab CI 等发布实践。</p>
+<ul>
+<li><a href="docs/GitOps.html">GitOps</a></li>
+<li><a href="docs/GitOps/ArgoCD.html">ArgoCD</a></li>
+<li><a href="docs/GitOps/GitHubAction.html">GitHubAction</a></li>
+<li><a href="docs/GitOps/GitLabCI.html">GitLabCI</a></li>
+<li><a href="docs/GitOps/%E8%93%9D%E7%BB%BF%E5%8F%91%E5%B8%83.html">蓝绿发布</a></li>
+</ul>
+<h2 id="eco-tools">生态工具</h2>
+<p>共 4 份文档，收录 Helm、Cert-manager 与 Crossplane 等云原生生态工具。</p>
+<ul>
+<li><a href="docs/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></li>
+<li><a href="docs/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Cert-manager.html">Cert-manager</a></li>
+<li><a href="docs/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Crossplane.html">Crossplane</a></li>
+<li><a href="docs/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81/Crossplane%20%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81%E6%A6%82%E8%A7%88.html">Crossplane · 基础设施即代码概览</a></li>
 </ul>
 </nav>
 </main>
