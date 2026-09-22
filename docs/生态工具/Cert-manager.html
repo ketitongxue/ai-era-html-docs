@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>蓝绿发布</title>
+<title>Cert-manager</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,12 +119,58 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#eco-tools">返回知识库 · 生态工具</a> · <a href="../Kubernetes/Kubernetes.html">Kubernetes 总览</a></nav>
 <article>
-<h1 id="蓝绿发布">蓝绿发布</h1>
-<p>蓝绿发布核心思想是： <strong>为应用提供两套环境，并且可以很方便地对它们进行流量切换。</strong></p>
-<p>在一次实际发布过程中，新版本的应用将以“绿色”环境部署到生产环境中，但在流量切换之前它并不接收外部流量。当我们完成“绿色”环境的测试之后，可以通过流量切换的方式让“绿色”环境接收外部请求，而旧的“蓝色”环境并不会立即销毁，而是作为灾备来使用。一旦发布过程产生故障，我们就可以将流量立即切换到旧的“蓝色”环境下。</p>
-<p>这种部署方式比较适合那些存在兼容问题，或者因为状态原因导致不能很好地使用 Kubernetes 滚动更新的应用。还有的项目希望在更新时部署一个新的版本，同时控制流量切换过程；或者是在发布出现问题时快速回滚。蓝绿发布也是不错的选择。</p>
+<h1 id="cert-manager">Cert-manager</h1>
+<h1 id="安装">安装</h1>
+<p>首先，运行 helm repo add 命令添加官方 Helm 仓库。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ helm repo add jetstack https://charts.jetstack.io
+&quot;jetstack&quot; has been added to your repositories
+</code></pre>
+<p>然后，运行 helm repo update 更新本地缓存。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ helm repo update
+...Successfully got an update from the &quot;jetstack&quot; chart repository
+</code></pre>
+<p>接下来，运行 helm install 来安装 Cert-manager。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ helm install cert-manager jetstack/cert-manager \
+--namespace cert-manager \
+--create-namespace \
+--version v1.10.0 \
+--set ingressShim.defaultIssuerName=letsencrypt-prod \
+--set ingressShim.defaultIssuerKind=ClusterIssuer \
+--set ingressShim.defaultIssuerGroup=cert-manager.io \
+--set installCRDs=true
+
+NAME: cert-manager
+LAST DEPLOYED: Mon Oct 17 21:26:44 2022
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.10.0 has been deployed successfully!
+</code></pre>
+<p>此外，还需要为 Cert-manager 创建 ClusterIssuer，用来提供签发机构。将下面的内容保存为 cluster-issuer.yaml。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: &quot;wo_sakura@163.com&quot;
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+</code></pre>
+<p><strong>注意，这里你需要将 spec.acme.email 替换为真实的邮箱地址。</strong> 然后运行 kubectl apply 提交到集群内。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">$ kubectl apply -f cluster-issuer.yaml
+clusterissuer.cert-manager.io/letsencrypt-prod created
+</code></pre>
+<p>到这里，Cert-manager 就已经配置好了。</p>
 </article>
 </main>
 <script>

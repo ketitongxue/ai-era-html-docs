@@ -1,3 +1,6 @@
 / /index.html 200
 /docs/Kubernetes/etcd.html /docs/etcd.html 301
 /docs/Kubernetes/etcd/* /docs/etcd/:splat 301
+/docs/Kubernetes/GitOps.html /docs/GitOps.html 301
+/docs/Kubernetes/GitOps/* /docs/GitOps/:splat 301
+/docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/* /docs/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/:splat 301

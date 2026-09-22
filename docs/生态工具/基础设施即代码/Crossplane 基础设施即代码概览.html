@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes 挂载阿里云文件存储 NAS</title>
+<title>Crossplane 基础设施即代码概览</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,22 +119,17 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#eco-tools">返回知识库 · 生态工具</a> · <a href="../../Kubernetes/Kubernetes.html">Kubernetes 总览</a></nav>
 <article>
-<h1 id="kubernetes-挂载阿里云文件存储-nas">Kubernetes 挂载阿里云文件存储 NAS</h1>
-<p>建议直接云管白屏操作。</p>
-<p>分两步，首先是对 NAS 进行配置，其次是在 K8s 中挂载。</p>
-<p>一、配置 NAS</p>
-<ol>
-<li>权限组，创建权限组，添加授权规则。</li>
-<li>选择文件系统列表，找到需要配置的 NAS 资源，点击管理，挂载使用，添加挂载点，等待状态从准备中变为可用。</li>
-</ol>
-<p>二、在 K8s 中挂载 NAS</p>
-<ol>
-<li>进入容器服务 Kubernetes，选择存储 - 存储卷</li>
-<li>创建存储卷，挂载点域名选择对应 NAS 挂载点，配置完后点击确认。</li>
-<li>创建对应的存储卷声明。</li>
-</ol>
+<h1 id="crossplane">Crossplane</h1>
+<p>K8s 控制器，CRD 方式定义资源</p>
+<ul>
+<li>无需代码，声明式 API</li>
+<li>基础设施控制平面</li>
+<li>多云和混合云支持</li>
+<li>在 K8s 里运行 “Terraform”</li>
+</ul>
+<p><img src="../../../assets/kubernetes/BVWHbpTdAohHhXxcLUfcBMCdnsf.jpg" alt=""></p>
 </article>
 </main>
 <script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes 挂载阿里云</title>
+<title>Crossplane</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,107 +119,49 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#eco-tools">返回知识库 · 生态工具</a> · <a href="../Kubernetes/Kubernetes.html">Kubernetes 总览</a></nav>
 <article>
-<h1 id="kubernetes-挂载阿里云">Kubernetes 挂载阿里云</h1>
-<p>注：实践发现ECS为麒麟操作系统，在使用ossfs工具时会有不兼容问题。推荐使用SDK或者ossutil工具访问OSS</p>
-<p>插件选择：CSI 或者 FlexVolume</p>
-<p>FlexVolume 是 Kubernetes v1.8+ 支持的一种存储插件扩展方式。类似于 CNI 插件，它需要外部插件将二进制文件放到预先配置的路径中（如 /usr/libexec/kubernetes/kubelet-plugins/volume/exec/），并需要在系统中安装好所有需要的依赖。 ## FlexVolume 接口 实现一个 FlexVolume 包括两个步骤</p>
+<h1 id="crossplane">Crossplane</h1>
 <ul>
-<li>实现 <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/sig-storage/flexvolume.md" target="_blank" rel="noopener noreferrer">FlexVolume 插件接口</a>，包括 init/attach/detach/waitforattach/isattached/mountdevice/unmountdevice/mount/umount 等命令（可参考 <a href="https://github.com/kubernetes/examples/blob/master/staging/volumes/flexvolume/lvm" target="_blank" rel="noopener noreferrer">lvm 示例</a> 和 <a href="https://github.com/kubernetes/examples/blob/master/staging/volumes/flexvolume/nfs" target="_blank" rel="noopener noreferrer">NFS 示例</a>）</li>
-<li>将插件放到 /usr/libexec/kubernetes/kubelet-plugins/volume/exec/&lt;vendor~driver&gt;/</li>
-<li>目录中</li>
-<li></li>
+<li>K8s 控制器，CRD 方式定义资源</li>
+<li>无需代码，声明式 API</li>
+<li>基础设施控制平面</li>
+<li>多云和混合云支持</li>
+<li>在 K8s 里运行 “Terraform”</li>
 </ul>
-<p>FlexVolume 的接口包括</p>
+<p>Operator = CRD + Custom Controller</p>
+<p><img src="../../assets/kubernetes/BdMObkawUo8gt5x2XTYcfI7znKg.png" alt=""></p>
+<p>http://marketplace.upbound.io/</p>
+<h2 id="安装-crossplane">安装 Crossplane</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">helm repo add crossplane-stable https://charts.crossplane.io/stable
+helm repo update
+helm install crossplane \
+--namespace crossplane-system \
+--create-namespace crossplane-stable/crossplane
+kubectl get pods -n crossplane-system
+</code></pre>
+<h2 id="借助-crossplane-快速自建-pass-平台">借助 Crossplane 快速自建 PaSS 平台</h2>
+<p><img src="../../assets/kubernetes/WaxzbeZW4oGQS1xOM0xcI1SFnac.png" alt=""></p>
+<h2 id="yaml-to-infragitops">YAML to Infra(GitOps)</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">#拉起 KIND 和 Argo CD
+export KUBECONFIG=&quot;$(pwd)/test-cluster-config&quot;
+kubectl apply -f setup
+get argo secret
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=&quot;{.data.password}&quot; | base64 -d
+kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:80
+delete argocd application
+</code></pre>
+<h3 id="思考使用-terraform-能否实现">思考：使用 Terraform 能否实现？</h3>
 <ul>
-<li>init：kubelet/kube-controller-manager 初始化存储插件时调用，插件需要返回是否需要要 attach 和 detach 操作</li>
-<li>attach：将存储卷挂载到 Node 上</li>
-<li>detach：将存储卷从 Node 上卸载</li>
-<li>waitforattach： 等待 attach 操作成功（超时时间为 10 分钟）</li>
-<li>isattached：检查存储卷是否已经挂载</li>
-<li>mountdevice：将设备挂载到指定目录中以便后续 bind mount 使用</li>
-<li>unmountdevice：将设备取消挂载</li>
-<li>mount：将存储卷挂载到指定目录中</li>
-<li>umount：将存储卷取消挂载 ## 使用 FlexVolume 在使用 flexVolume 时，需要指定卷的 driver，格式为 &lt;vendor~driver&gt;/</li>
-<li>，如下面的例子使用了 <code>kubernetes.io/lvm</code></li>
-<li></li>
+<li>Jenkins or Tekton Other CI</li>
+<li>https://hub.docker.com/r/hashicorp/terraform</li>
+<li>UI -&gt; IaC Code</li>
+<li>在容器里运行 IaC 代码即可</li>
 </ul>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-  namespace: default
-spec:
-  containers:
-  - name: nginx
-    image: nginx
-    volumeMounts:
-    - name: test
-      mountPath: /data
-    ports:
-    - containerPort: 80
-  volumes:
-  - name: test
-    flexVolume:
-      driver: &quot;kubernetes.io/lvm&quot;
-      fsType: &quot;ext4&quot;
-      options:
-        volumeID: &quot;vol1&quot;
-        size: &quot;1000m&quot;
-        volumegroup: &quot;kube_vg&quot;
-</code></pre>
-<p>总调环境采用阿里云oss插件，oss的 pv.yaml 格式为：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
-kind: PersistentVolume
-metadata:
-  finalizers:
-    - kubernetes.io/pv-protection
-  labels:
-    alicloud-pvname: hisdata-all
-  name: hisdata-all
-spec:
-  accessModes:
-    - ReadWriteMany
-  capacity:
-    storage: 10240Gi
-  csi:
-    driver: ossplugins.csi.alibabacloud.com
-    volumeAttributes:
-      akId: ***********
-      akSecret: **********
-      bucket: *********
-      url: *******
-    volumeHandle: hisdata-all
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: oss
-</code></pre>
-<p>pvc.yaml</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">apiVersion: v1
-kine: PersistentVolumeClaim
-metadata:
-  annotations:
-    pv.kubernetes.io/bind-completed: 'yes'
-    pv.kubernetes.io/bind-by-controller: 'yes'
-  finalizers:
-    - kubernetes.io/pvc-protection
-  name: all-hisdata
-  namespaces: ******
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10240Gi
-    selector:
-      matchLabels:
-        alicloud-pvname: hisdata-all
-    stroageClassName: oss
-    volumeName: hisdata-all
-</code></pre>
-<p>**** 20240319更新****</p>
-<p>在麒麟操作系统中使用ossfs工具发现问题</p>
-<p>yaml中加了 -o allow_other参数，并且node节点上执行的ossfs命令也有该参数，但是在pod中查看文件的时候还是640的权限。导致非root用户无法访问该文件。（未解决）</p>
+<h2 id="crossplane--terraform">Crossplane + Terraform</h2>
+<p><img src="../../assets/kubernetes/ERGZb51yuox2TzxCSRWcVDvPnse.png" alt=""></p>
+<h2 id="crossplane--terraform--gitops">Crossplane + Terraform + GitOps</h2>
+<p><img src="../../assets/kubernetes/B99ybFJcJoWOykxpCoQchK2xnAb.png" alt=""></p>
 </article>
 </main>
 <script>

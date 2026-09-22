@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crossplane</title>
+<title>GitOps</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,49 +119,44 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../index.html#gitops">返回知识库 · GitOps</a> · <a href="Kubernetes/Kubernetes.html">Kubernetes 总览</a></nav>
 <article>
-<h1 id="crossplane">Crossplane</h1>
+<h1 id="gitops">GitOps</h1>
+<h1 id="云原生">云原生</h1>
+<p>正如 CNCF 给出的云原生全景图呈现给我们的，云原生技术包括数十个垂直领域，每一个垂直领域都有数十款工具可供选择，这对于刚刚燃起学习热情的同学来说无疑是一个打击。 <strong>我们不知道该从哪里学起。</strong></p>
+<p><img src="../assets/kubernetes/OufFbKixEo0G9JxvTZ9cSuVdnsf.png" alt=""></p>
+<p>作为云原生架构师或者 SRE，在云原生工程实践中，为了构建研发和发布工作流，你不得不在下面这些垂直领域持续深耕，并掌握一系列技术和工具：</p>
+<p><img src="../assets/kubernetes/KaNRbqdkLov32wxXa7ZcOLJDnQ5.jpg" alt=""></p>
+<p>要入门云原生领域，也许从单项技术着手并不是很好的一个切入点。我们应该站在整体工程实践的视角去学习，快速得到工程化的输出反馈。</p>
+<p>在我看来，我们使用的大部分的云原生技术，最终都可以组合起来，演进成为一个<strong>标准的工程实践方法：GitOps。从知识体系上来说，GitOps 背后的技术几乎覆盖了“成为优秀的架构师”的所有能力 。 我们不再需要从头学习架构上的细节，这对传统的架构领域来说是一种降维打击。</strong></p>
+<p><strong>GitOps 的核心思想是，通过 Git 以声明式的方式来定义环境和基础设施。</strong></p>
+<p>现在请你试想一下这样的系统架构：当我提交代码后，环境也随之变更，同样地，当我回滚代码时，环境也随之回滚。业务启动时会自动以多副本负载均衡的方式运行，有效避免了单点故障。当业务处于流量高低峰时，会自动进行扩容和缩容操作；当业务宕机时会自动识别并重启；当请求异常比例超过阈值时会自动发出告警。</p>
+<p>我想，这一定是你理想的业务架构。但是对于传统的技术架构来说，实现以上任意一点可能都是有难度的。而 <strong>GitOps 工程实践作为云原生技术的集大成者，可以帮助我们一次性实现上面提到的所有架构能力。构建高可用、高并发、自动自愈的弹性应用架构不再是大厂专属了！</strong></p>
+<blockquote>
+<p>诺贝尔奖得主，心理学家 Daniel Kahneman，经过研究发现，人对事物体验的判断由两个因素决定：高峰时与结束时的感觉，这就是峰终定律（Peak-End Rule）。</p>
+</blockquote>
+<h1 id="什么是-gitops">什么是 GitOps</h1>
 <ul>
-<li>K8s 控制器，CRD 方式定义资源</li>
-<li>无需代码，声明式 API</li>
-<li>基础设施控制平面</li>
-<li>多云和混合云支持</li>
-<li>在 K8s 里运行 “Terraform”</li>
+<li>使用 Git 仓库作为应用状态唯一可信来源（IaC 代码、应用定义：Manifest、Helm、Kustomize）</li>
+<li>一旦 Git 仓库产生变更，随即执行同步和 Diff 检查</li>
+<li>Diff 指的是对比可信源的期望状态与当前真实状态</li>
+<li>应用可信源的期望状态</li>
 </ul>
-<p>Operator = CRD + Custom Controller</p>
-<p><img src="../../../assets/kubernetes/BdMObkawUo8gt5x2XTYcfI7znKg.png" alt=""></p>
-<p>http://marketplace.upbound.io/</p>
-<h2 id="安装-crossplane">安装 Crossplane</h2>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">helm repo add crossplane-stable https://charts.crossplane.io/stable
-helm repo update
-helm install crossplane \
---namespace crossplane-system \
---create-namespace crossplane-stable/crossplane
-kubectl get pods -n crossplane-system
-</code></pre>
-<h2 id="借助-crossplane-快速自建-pass-平台">借助 Crossplane 快速自建 PaSS 平台</h2>
-<p><img src="../../../assets/kubernetes/WaxzbeZW4oGQS1xOM0xcI1SFnac.png" alt=""></p>
-<h2 id="yaml-to-infragitops">YAML to Infra(GitOps)</h2>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">#拉起 KIND 和 Argo CD
-export KUBECONFIG=&quot;$(pwd)/test-cluster-config&quot;
-kubectl apply -f setup
-get argo secret
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=&quot;{.data.password}&quot; | base64 -d
-kubectl port-forward svc/argo-cd-argocd-server -n argocd 8080:80
-delete argocd application
-</code></pre>
-<h3 id="思考使用-terraform-能否实现">思考：使用 Terraform 能否实现？</h3>
+<p><img src="../assets/kubernetes/K1S6b0VdVofhUKxSu9qc2ivFn5f.png" alt=""></p>
+<h1 id="gitops-工具">GitOps 工具</h1>
 <ul>
-<li>Jenkins or Tekton Other CI</li>
-<li>https://hub.docker.com/r/hashicorp/terraform</li>
-<li>UI -&gt; IaC Code</li>
-<li>在容器里运行 IaC 代码即可</li>
+<li><a href="GitOps/ArgoCD.html">ArgoCD</a></li>
+<li><span>FluxCD</span> <small>（原附件待补，文档暂未上线）</small></li>
+<li><a href="GitOps/GitHubAction.html">GitHubAction</a></li>
+<li><a href="GitOps/GitLabCI.html">GitLabCI</a></li>
 </ul>
-<h2 id="crossplane--terraform">Crossplane + Terraform</h2>
-<p><img src="../../../assets/kubernetes/ERGZb51yuox2TzxCSRWcVDvPnse.png" alt=""></p>
-<h2 id="crossplane--terraform--gitops">Crossplane + Terraform + GitOps</h2>
-<p><img src="../../../assets/kubernetes/B99ybFJcJoWOykxpCoQchK2xnAb.png" alt=""></p>
+<h2 id="argocd-和-fluxcd-对比">ArgoCD 和 FluxCD 对比</h2>
+<p>ArgoCD 和 FluxCD 各有自己的特点。首先，FluxCD 整体架构比较简单、轻量，也比较容易维护。不过，FluxCD 并没有像 ArgoCD 一样提供 Dashboard，对于喜欢通过界面操作的开发者来说，ArgoCD 是更好的选择。</p>
+<p>其次，在单实例的条件下，FluxCD 缺少多租户和多集群的支持。在中大型团队中，ArgoCD 是一个更好的选择。当然，FluxCD 多实例的部署方式虽然能间接实现多租户和多集群的支持，但在管理上也带来了更高的复杂度。</p>
+<p>然后，在 GitOps 部署能力的支持上，两者并没有太大的差异。它们都只是部署工具，无法帮助你自动构建镜像，并且都符合 GitOps 所要求的几大原则。</p>
+<p>最后，如果你希望通过二次开发的方法构建自己的 GitOps 工具，同时根据自己的组织实现多租户，那么 FluxCD 可能是更好的选择。</p>
+<h1 id="生产稳定的秘密武器">生产稳定的秘密武器</h1>
+<p><a href="GitOps/%E8%93%9D%E7%BB%BF%E5%8F%91%E5%B8%83.html">蓝绿发布</a></p>
 </article>
 </main>
 <script>

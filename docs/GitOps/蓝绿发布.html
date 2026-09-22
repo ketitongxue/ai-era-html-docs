@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crossplane 基础设施即代码概览</title>
+<title>蓝绿发布</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,17 +119,12 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#gitops">返回知识库 · GitOps</a> · <a href="../GitOps.html">GitOps 总览</a></nav>
 <article>
-<h1 id="crossplane">Crossplane</h1>
-<p>K8s 控制器，CRD 方式定义资源</p>
-<ul>
-<li>无需代码，声明式 API</li>
-<li>基础设施控制平面</li>
-<li>多云和混合云支持</li>
-<li>在 K8s 里运行 “Terraform”</li>
-</ul>
-<p><img src="../../../../assets/kubernetes/BVWHbpTdAohHhXxcLUfcBMCdnsf.jpg" alt=""></p>
+<h1 id="蓝绿发布">蓝绿发布</h1>
+<p>蓝绿发布核心思想是： <strong>为应用提供两套环境，并且可以很方便地对它们进行流量切换。</strong></p>
+<p>在一次实际发布过程中，新版本的应用将以“绿色”环境部署到生产环境中，但在流量切换之前它并不接收外部流量。当我们完成“绿色”环境的测试之后，可以通过流量切换的方式让“绿色”环境接收外部请求，而旧的“蓝色”环境并不会立即销毁，而是作为灾备来使用。一旦发布过程产生故障，我们就可以将流量立即切换到旧的“蓝色”环境下。</p>
+<p>这种部署方式比较适合那些存在兼容问题，或者因为状态原因导致不能很好地使用 Kubernetes 滚动更新的应用。还有的项目希望在更新时部署一个新的版本，同时控制流量切换过程；或者是在发布出现问题时快速回滚。蓝绿发布也是不错的选择。</p>
 </article>
 </main>
 <script>
