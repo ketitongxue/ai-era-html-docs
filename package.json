@@ -1,0 +1,13 @@
+{
+  "name": "ai-era-knowledge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-cloudflare.mjs",
+    "test": "node --test scripts/build-cloudflare.test.mjs",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.136.1"
+  }
+}
