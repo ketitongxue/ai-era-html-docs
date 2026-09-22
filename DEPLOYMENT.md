@@ -28,6 +28,8 @@ npx wrangler dev
 
 连接完成后，合并或推送到 `main` 会触发独立的知识库部署，不需要重新部署主站。文章、图片和目录随同一次静态资源部署一起生效。
 
+如果设置页提示项目已与 Git 帐户断开，先在 **设置 → 构建 → Git 存储库 → 管理** 中重新授权 Cloudflare Workers and Pages，并确认 GitHub App 的仓库访问权限包含 `ketitongxue/ai-era-html-docs`。恢复连接后，再推送一次 `main` 提交确认构建记录出现新的提交 SHA。
+
 已登录 Wrangler 的维护者也可执行 `npm run deploy`。发布后检查 Cloudflare 构建状态、线上目录 SHA，以及新文章和图片；GitHub Pages 发布成功不代表 Cloudflare 已部署成功。
 
 ## 路由与回滚
