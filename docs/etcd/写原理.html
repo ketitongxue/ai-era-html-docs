@@ -119,10 +119,10 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
 <h1 id="写原理">写原理</h1>
-<p><img src="../../../assets/kubernetes/ODvYbQN3MoT7n9xYTuMcade7n7e.png" alt=""></p>
+<p><img src="../../assets/kubernetes/ODvYbQN3MoT7n9xYTuMcade7n7e.png" alt=""></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">/tmp/etcd-download-test/etcdctl --endpoints=localhost:2379 put foo bar
 OK
 </code></pre>
@@ -152,7 +152,7 @@ OK
 <p>通过流程二的配额检查后，请求就从API层转发到了流程三的KVServer模块的put方法，我们知道etcd是基于Raft算法实现节点间数据复制的，因此它需要将put写请求内容打包成一个提案消息，提交给Raft模块。不过KVServer模块在提交提案前，还有如下的一系列检查和限速。</p>
 <h3 id="preflight-check"><strong>Preflight Check</strong></h3>
 <p>为了保证集群稳定性，避免雪崩，任何提交到Raft模块的请求，都会做一些简单的限速判断。如下面的流程图所示，首先，如果Raft模块已提交的日志索引（committed index）比已应用到状态机的日志索引（applied index）超过了5000，那么它就返回一个&quot;etcdserver: too many requests&quot;错误给client。</p>
-<p><img src="../../../assets/kubernetes/E4EUbGQOZodvzNxL8d7c7TQsnde.png" alt=""></p>
+<p><img src="../../assets/kubernetes/E4EUbGQOZodvzNxL8d7c7TQsnde.png" alt=""></p>
 <p>然后它会尝试去获取请求中的鉴权信息，若使用了密码鉴权、请求中携带了token，如果token无效，则返回&quot;auth: invalid auth token&quot;错误给client。</p>
 <p>其次它会检查你写入的包大小是否超过默认的1.5MB， 如果超过了会返回&quot;etcdserver: request is too large&quot;错误给给client。</p>
 <h3 id="propose"><strong>Propose</strong></h3>
@@ -162,7 +162,7 @@ OK
 <p>Raft模块收到提案后，如果当前节点是Follower，它会转发给Leader，只有Leader才能处理写请求。Leader收到提案后，通过Raft模块输出待转发给Follower节点的消息和待持久化的日志条目，日志条目则封装了我们上面所说的put hello提案内容。</p>
 <p>etcdserver从Raft模块获取到以上消息和日志条目后，作为Leader，它会将put提案消息广播给集群各个节点，同时需要把集群Leader任期号、投票信息、已提交索引、提案内容持久化到一个WAL（Write Ahead Log）日志文件中，用于保证集群的一致性、可恢复性，也就是我们图中的流程五模块。</p>
 <p>WAL日志结构是怎样的呢？</p>
-<p><img src="../../../assets/kubernetes/XFNobEEALoOuHdxOEVnczNe4ntl.png" alt=""></p>
+<p><img src="../../assets/kubernetes/XFNobEEALoOuHdxOEVnczNe4ntl.png" alt=""></p>
 <p>上图是WAL结构，它由多种类型的WAL记录顺序追加写入组成，每个记录由类型、数据、循环冗余校验码组成。不同类型的记录通过Type字段区分，Data为对应记录内容，CRC为循环校验码信息。</p>
 <p>WAL记录类型目前支持5种，分别是文件元数据记录、日志条目记录、状态信息记录、CRC记录、快照记录：</p>
 <ul>
@@ -197,7 +197,7 @@ protobuf:&quot;bytes，4，opt，name=Data&quot; json:&quot;Data，omitempty&quo
 <p>于是进入流程六，etcdserver模块从channel取出提案内容，添加到先进先出（FIFO）调度队列，随后通过Apply模块按入队顺序，异步、依次执行提案内容。</p>
 <h2 id="apply模块"><strong>Apply模块</strong></h2>
 <p>执行put提案内容对应我们架构图中的流程七，其细节图如下。那么Apply模块是如何执行put请求的呢？若put请求提案在执行流程七的时候etcd突然crash了， 重启恢复的时候，etcd是如何找回异常提案，再次执行的呢？</p>
-<p><img src="../../../assets/kubernetes/LGVIbA17VoM6cFxHnNscMcV7nWg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/LGVIbA17VoM6cFxHnNscMcV7nWg.png" alt=""></p>
 <p>核心就是我们上面介绍的WAL日志，因为提交给Apply模块执行的提案已获得多数节点确认、持久化，etcd重启时，会从WAL中解析出Raft日志条目内容，追加到Raft日志的存储中，并重放已提交的日志提案给Apply模块执行。</p>
 <p>然而这又引发了另外一个问题，如何确保幂等性，防止提案重复执行导致数据混乱呢?</p>
 <p>我们在上一节课里讲到，etcd是个MVCC数据库，每次更新都会生成新的版本号。如果没有幂等性保护，同样的命令，一部分节点执行一次，一部分节点遭遇异常故障后执行多次，则系统的各节点一致性状态无法得到保证，导致数据混乱，这是严重故障。</p>
@@ -214,7 +214,7 @@ protobuf:&quot;bytes，4，opt，name=Data&quot; json:&quot;Data，omitempty&quo
 <p>版本号（revision）在etcd里面发挥着重大作用，它是etcd的逻辑时钟。etcd启动的时候默认版本号是1，随着你对key的增、删、改操作而全局单调递增。</p>
 <p>因为boltdb中的key就包含此信息，所以etcd并不需要再去持久化一个全局版本号。我们只需要在启动的时候，从最小值1开始枚举到最大值，未读到数据的时候则结束，最后读出来的版本号即是当前etcd的最大版本号currentRevision。</p>
 <p>MVCC写事务在执行put hello为world的请求时，会基于currentRevision自增生成新的revision如{2,0}，然后从treeIndex模块中查询key的创建版本号、修改次数信息。这些信息将填充到boltdb的value中，同时将用户的hello key和revision等信息存储到B-tree，也就是下面简易写事务图的流程一，整体架构图中的流程八。</p>
-<p><img src="../../../assets/kubernetes/CbEvburc9ormaBxVA5qch8yynsh.png" alt=""></p>
+<p><img src="../../assets/kubernetes/CbEvburc9ormaBxVA5qch8yynsh.png" alt=""></p>
 <h3 id="boltdb"><strong>boltdb</strong></h3>
 <p>MVCC写事务自增全局版本号后生成的revision{2,0}，它就是boltdb的key，通过它就可以往boltdb写数据了，进入了整体架构图中的流程九。</p>
 <p>boltdb上一篇我们提过它是一个基于B+tree实现的key-value嵌入式db，它通过提供桶（bucket）机制实现类似MySQL表的逻辑隔离。</p>

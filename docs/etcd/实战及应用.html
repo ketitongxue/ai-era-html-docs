@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
 <h1 id="实战及应用">实战及应用</h1>
 <h1 id="如何基于raft从0到1构建一个支持多存储引擎分布式kv服务"><strong>如何基于Raft从0到1构建一个支持多存储引擎分布式KV服务？</strong></h1>
@@ -130,7 +130,7 @@ th { background: #eaf0f7; }
 <p>在和你深入聊代码细节之前，首先我和你从整体上介绍下系统架构。</p>
 <p>下面是我给你画的metcd整体架构设计，它由API层、Raft层的共识模块、逻辑层及存储层组成的状态机组成。</p>
 <p>接下来，我分别和你简要分析下API设计及复制状态机。</p>
-<p><img src="../../../assets/kubernetes/Qyowb7EOQoB7KyxoMt7cLgDqnh5.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Qyowb7EOQoB7KyxoMt7cLgDqnh5.png" alt=""></p>
 <h3 id="api设计"><strong>API设计</strong></h3>
 <p>API是软件系统对外的语言，它是应用编程接口的缩写，由一组接口定义和协议组成。</p>
 <p>在设计API的时候，我们往往会考虑以下几个因素：</p>
@@ -159,7 +159,7 @@ world
 <h3 id="复制状态机"><strong>复制状态机</strong></h3>
 <p>了解完API设计，那最核心的复制状态机是如何工作的呢？</p>
 <p>我们知道etcd是基于下图复制状态机实现的分布式KV服务，复制状态机由共识模块、日志模块、状态机组成。</p>
-<p><img src="../../../assets/kubernetes/CCNjb2e0Uol3nlxlHgGco4lSnwe.png" alt=""></p>
+<p><img src="../../assets/kubernetes/CCNjb2e0Uol3nlxlHgGco4lSnwe.png" alt=""></p>
 <p>我们的实战项目metcd，也正是使用与之一样的模型，并且使用etcd项目中实现的Raft算法库作为共识模块，此算法库已被广泛应用在etcd、cockroachdb、dgraph等开源项目中。</p>
 <p>以下是复制状态机的写请求流程：</p>
 <ul>
@@ -213,7 +213,7 @@ world
 <p>快速了解完存储引擎提升写性能的核心思路（随机写转化为顺序写）之后，那leveldb它的原理是怎样的呢？与Bitcask存储模型有什么不一样？</p>
 <p>leveldb是基于LSM tree(log-structured merge-tree)实现的key-value存储，它的架构如下图所示（ <a href="https://microsoft.github.io/MLOS/notebooks/LevelDbTuning/" target="_blank" rel="noopener noreferrer">引用自微软博客</a>）。</p>
 <p>它提升写性能的核心思路同样是将随机写转化为顺序写磁盘WAL文件和内存，结合了我们上面讨论的写内存和磁盘两种方法。数据持久化到WAL文件是为了确保机器crash后数据不丢失。</p>
-<p><img src="../../../assets/kubernetes/Kfw8bEimaojR8WxSmLUcNqpgnkf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Kfw8bEimaojR8WxSmLUcNqpgnkf.png" alt=""></p>
 <p>那么它要如何解决内存不足和查询的痛点问题呢？</p>
 <p>核心解决方案是分层的设计和基于一系列对象的转换和压缩。接下来我给你分析一下上面架构图写流程和后台compaction任务：</p>
 <ul>
@@ -248,7 +248,7 @@ world
 <li>Step，向Raft状态机提交收到的消息，比如当Leader广播完MsgApp消息给Follower节点后，Leader收到Follower节点回复的MsgAppResp消息时，就通过Step接口将此消息提交给Raft状态机驱动其工作；</li>
 <li>ReadIndex，用于实现线性读。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/L0jsb1TFOoZJapxBC14cqMM7nBe.png" alt=""></p>
+<p><img src="../../assets/kubernetes/L0jsb1TFOoZJapxBC14cqMM7nBe.png" alt=""></p>
 <p>上面提到的Raft状态机的输出 <a href="https://github.com/etcd-io/etcd/blob/v3.4.9/raft/node.go#L52:L90" target="_blank" rel="noopener noreferrer">Ready结构</a> 含有哪些信息呢? 下图是其详细字段，含义如下：</p>
 <ul>
 <li>SoftState，软状态。包括集群Leader和节点状态，不需要持久化到WAL；</li>
@@ -260,7 +260,7 @@ world
 <li>Snapshot，快照需保存到持久化存储中；</li>
 <li>MustSync，HardState和Entries是否要持久化到WAL中；</li>
 </ul>
-<p><img src="../../../assets/kubernetes/JlFkb3PiYoEzr4xgZ0EcYWBNnke.png" alt=""></p>
+<p><img src="../../assets/kubernetes/JlFkb3PiYoEzr4xgZ0EcYWBNnke.png" alt=""></p>
 <p>了解完API后，我们接下来继续看看代码如何使用Raft的Node API。</p>
 <p>正如我在 <a href="https://time.geekbang.org/column/article/337604" target="_blank" rel="noopener noreferrer">04</a> 中和你介绍的，etcd Raft库的设计抽象了网络、Raft日志存储等模块，它本身并不会进行网络、存储相关的操作，上层应用需结合自己业务场景选择内置的模块或自定义实现网络、存储、日志等模块。</p>
 <p>因此我们在使用Raft库时，需要先自定义好相关网络、存储等模块，再结合上面介绍的Raft Node API，就可以完成一个Node的核心操作了。其数据结构定义如下：</p>
@@ -445,7 +445,7 @@ err = db.Delete([]byte(&quot;key&quot;), nil)
 <li>集群多数节点持久化此日志条目后，这个日志条目被提交给存储状态机KVStore执行；</li>
 <li>KVStore根据启动的backend存储引擎名称，调用对应的Put接口即可。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/TCARbr0DBo2epYxxG9ccx2Dgnjg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/TCARbr0DBo2epYxxG9ccx2Dgnjg.png" alt=""></p>
 <h3 id="读流程"><strong>读流程</strong></h3>
 <p>当你通过如下curl命令发起一个读操作时，读流程如下面架构图序号所示：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">curl -L http://127.0.0.1:3379/hello
@@ -456,7 +456,7 @@ world
 <li>client通过curl发送HTTP Get请求到server；</li>
 <li>server收到后，根据KVStore的存储引擎，从后端查询出对应的key-value数据。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/DUjObAxxio9BZUxZy1nc8Iz7npg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/DUjObAxxio9BZUxZy1nc8Iz7npg.png" alt=""></p>
 <h1 id="kubernetes">Kubernetes</h1>
 <p><span>Kubernetes基础应用：创建一个Pod背后etcd发生了什么？</span> <small>（原附件待补，文档暂未上线）</small></p>
 <p><span>Kubernetes高级应用：如何优化业务场景使etcd能支撑上万节点集群？</span> <small>（原附件待补，文档暂未上线）</small></p>
@@ -528,12 +528,12 @@ Del key
 <p>首先，如果我们的分布式锁跑在单节点的Redis Master节点上，那么它就存在单点故障，无法保证分布式锁的高可用。</p>
 <p>于是我们需要一个主备版的Redis服务，至少具备一个Slave节点。</p>
 <p>我们又知道Redis是基于主备异步复制协议实现的Master-Slave数据同步，如下图所示，若client A执行SET key value EX 10 NX命令，redis-server返回给client A成功后，Redis Master节点突然出现crash等异常，这时候Redis Slave节点还未收到此命令的同步。</p>
-<p><img src="../../../assets/kubernetes/Dy4zbWhWIotg8HxBRxJcq0lun6v.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Dy4zbWhWIotg8HxBRxJcq0lun6v.png" alt=""></p>
 <p>若你部署了Redis Sentinel等主备切换服务，那么它就会以Slave节点提升为主，此时Slave节点因并未执行SET key value EX 10 NX命令，因此它收到client B发起的加锁的此命令后，它也会返回成功给client。</p>
 <p>那么在同一时刻，集群就出现了两个client同时获得锁，分布式锁的互斥性、安全性就被破坏了。</p>
 <p>除了主备切换可能会导致基于Redis实现的分布式锁出现安全性问题，在发生网络分区等场景下也可能会导致出现脑裂，Redis集群出现多个Master，进而也会导致多个client同时获得锁。</p>
 <p>如下图所示，Master节点在可用区1，Slave节点在可用区2，当可用区1和可用区2发生网络分区后，部署在可用区2的Redis Sentinel服务就会将可用区2的Slave提升为Master，而此时可用区1的Master也在对外提供服务。因此集群就出现了脑裂，出现了两个Master，都可对外提供分布式锁申请与释放服务，分布式锁的互斥性被严重破坏。</p>
-<p><img src="../../../assets/kubernetes/QlnubxpD6ogzrgxUjfGcRWrYnSf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/QlnubxpD6ogzrgxUjfGcRWrYnSf.png" alt=""></p>
 <p><strong>主备切换、脑裂是Redis分布式锁的两个典型不安全的因素，本质原因是Redis为了满足高性能，采用了主备异步复制协议，同时也与负责主备切换的Redis Sentinel服务是否合理部署有关。</strong></p>
 <p>有没有其他方案解决呢？</p>
 <p>当然有，Redis作者为了解决SET key value [EX] 10 [NX]命令实现分布式锁不安全的问题，提出了 <a href="https://redis.io/topics/distlock" target="_blank" rel="noopener noreferrer">RedLock算法</a>。它是基于多个独立的Redis Master节点的一种实现（一般为5）。client依次向各个节点申请锁，若能从多数个节点中申请锁成功并满足一些条件限制，那么client就能获取锁成功。</p>
@@ -687,7 +687,7 @@ if werr != nil {
 <li>其他客服系统、客户管理系统等。</li>
 </ul>
 <p>因此在分布式架构中，你可以按整体功能，将单体应用垂直拆分成以上三大功能模块，各个功能模块可以选择不同的技术栈实现，按需弹性扩缩容，如下图所示。</p>
-<p><img src="../../../assets/kubernetes/BzRwbOxMooxEvex0I4lcMpG9nRc.png" alt=""></p>
+<p><img src="../../assets/kubernetes/BzRwbOxMooxEvex0I4lcMpG9nRc.png" alt=""></p>
 <p>那什么又是微服务架构呢？</p>
 <p>它是对各个功能模块进行更细立度的拆分，比如商城系统模块可以拆分成：</p>
 <ul>
@@ -699,7 +699,7 @@ if werr != nil {
 <li>……</li>
 </ul>
 <p>在微服务架构中，每个模块职责更单一、独立部署、开发迭代快，如下图所示。</p>
-<p><img src="../../../assets/kubernetes/IdHPbxzsJoXSfpxvYFHcrMcrnIX.png" alt=""></p>
+<p><img src="../../assets/kubernetes/IdHPbxzsJoXSfpxvYFHcrMcrnIX.png" alt=""></p>
 <p>那么在分布式及微服务架构中，各个模块之间如何及时知道对方网络地址与端口、协议，进行接口调用呢？</p>
 <h3 id="为什么需要服务发现中间件"><strong>为什么需要服务发现中间件?</strong></h3>
 <p>其实这个知道的过程，就是服务发现。在早期的时候我们往往通过硬编码、配置文件声明各个依赖模块的网络地址、端口，然而这种方式在分布式及微服务架构中，其运维效率、服务可用性是远远不够的。</p>
@@ -714,7 +714,7 @@ if werr != nil {
 <li>proxy组件收到client的请求后，它根据从etcd读取到的对应服务的路由配置、负载均衡算法（比如Round-robin）转发到对应的业务server。</li>
 <li>业务server启动的时候，通过etcd的写接口Txn/Put等，注册自身地址信息、协议到高可用的etcd集群上。业务server缩容、故障时，对应的key应能自动从etcd集群删除，因此相关key需要关联lease信息，设置一个合理的TTL，并定时发送keepalive请求给Leader续租，以防止租约及key被淘汰。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/DlDBbzqTPoHqE6x1D0ZclhqFnIc.png" alt=""></p>
+<p><img src="../../assets/kubernetes/DlDBbzqTPoHqE6x1D0ZclhqFnIc.png" alt=""></p>
 <p>当然，在分布式及微服务架构中，我们面对的问题不仅仅是服务发现，还包括如下痛点：</p>
 <ul>
 <li>限速；</li>
@@ -731,12 +731,12 @@ if werr != nil {
 <p>Apache APISIX它具备哪些功能呢？</p>
 <p>它的本质是一个无状态、高性能、实时、动态、可水平扩展的API网关。核心原理就是基于你配置的服务信息、路由规则等信息，将收到的请求通过一系列规则后，正确转发给后端的服务。</p>
 <p>Apache APISIX其实就是上面服务发现原理架构图中的proxy组件，如下图红色虚线框所示。</p>
-<p><img src="../../../assets/kubernetes/SCJGbkRy2oURgjxITxicSN71nZc.png" alt=""></p>
+<p><img src="../../assets/kubernetes/SCJGbkRy2oURgjxITxicSN71nZc.png" alt=""></p>
 <p>Apache APISIX详细架构图如下（ <a href="https://github.com/apache/apisix" target="_blank" rel="noopener noreferrer">引用自社区项目文档</a>）。从图中你可以看到，它由控制面和数据面组成。</p>
 <p>控制面顾名思义，就是你通过Admin API下发服务、路由、安全配置的操作。控制面默认的服务发现存储是etcd，当然也支持consul、nacos等。</p>
 <p>你如果没有使用过Apache APISIX的话，可以参考下这个 <a href="https://github.com/apache/apisix-docker/tree/master/example" target="_blank" rel="noopener noreferrer">example</a>，快速、直观的了解下Apache APISIX是如何通过Admin API下发服务和路由配置的。</p>
 <p>数据面是在实现基于服务路由信息数据转发的基础上，提供了限速、鉴权、安全、日志等一系列功能，也就是解决了我们上面提的分布式及微服务架构中的典型痛点。</p>
-<p><img src="../../../assets/kubernetes/Dd5RbbEA3oojwFxuFIocBwsXnhd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Dd5RbbEA3oojwFxuFIocBwsXnhd.png" alt=""></p>
 <p>那么当我们通过控制面API新增一个服务时，Apache APISIX是是如何实现实时、动态调整服务配置，而不需要重启网关服务的呢？</p>
 <p>下面，我就和你聊聊etcd在Apache APISIX项目中的应用。</p>
 <h3 id="etcd在apache-apisix中的应用"><strong>etcd在Apache APISIX中的应用</strong></h3>
@@ -869,7 +869,7 @@ end
 <p>在详细和你介绍对比etcd、ZooKeeper、Consul特性之前，我们先从整体架构上来了解一下各开源项目的核心架构及原理。</p>
 <h3 id="etcd架构及原理"><strong>etcd架构及原理</strong></h3>
 <p>首先是etcd，etcd我们知道它是基于复制状态机实现的分布式协调服务。如下图所示，由Raft共识模块、日志模块、基于boltdb持久化存储的状态机组成。</p>
-<p><img src="../../../assets/kubernetes/L8qMbkNeootiUUxL4MncozmXnic.png" alt=""></p>
+<p><img src="../../assets/kubernetes/L8qMbkNeootiUUxL4MncozmXnic.png" alt=""></p>
 <p>以下是etcd基于复制状态机模型的写请求流程：</p>
 <ul>
 <li>client发起一个写请求（put x = 3）；</li>
@@ -886,7 +886,7 @@ end
 <li>在读行为上，ZooKeeper默认读可能会返回stale data，而etcd使用的线性读，能确保读取到反应集群共识的最新数据。</li>
 <li>共识算法上，etcd使用的是Raft，ZooKeeper使用的是Zab。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/HiQ2b1KnHotyefxjDx2cz6YgnWf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/HiQ2b1KnHotyefxjDx2cz6YgnWf.png" alt=""></p>
 <p>那什么是Zab协议呢？</p>
 <p>Zab协议可以分为以下阶段：</p>
 <ul>
@@ -906,13 +906,13 @@ end
 <h3 id="consul架构及原理"><strong>Consul架构及原理</strong></h3>
 <p>了解完ZooKeeper架构及原理后，我们再看看Consul，它的架构和原理是怎样的呢？</p>
 <p>下图是 <a href="https://www.consul.io/docs/architecture" target="_blank" rel="noopener noreferrer">Consul架构图</a>（引用自HashiCorp官方文档）。</p>
-<p><img src="../../../assets/kubernetes/PwTxbuCw4oxkmlxhIu9cWZmdnlh.png" alt=""></p>
+<p><img src="../../assets/kubernetes/PwTxbuCw4oxkmlxhIu9cWZmdnlh.png" alt=""></p>
 <p>从图中你可以看到，它由Client、Server、Gossip协议、Raft共识算法、两个数据中心组成。每个数据中心内的Server基于Raft共识算法复制日志，Server节点分为Leader、Follower等角色。Client通过Gossip协议发现Server地址、分布式探测节点健康状态等。</p>
 <p>那什么是Gossip协议呢？</p>
 <p>Gossip中文名称叫流言协议，它是一种消息传播协议。它的核心思想其实源自我们生活中的八卦、闲聊。我们在日常生活中所看到的劲爆消息其实源于两类，一类是权威机构如国家新闻媒体发布的消息，另一类则是大家通过微信等社交聊天软件相互八卦，一传十，十传百的结果。</p>
 <p>Gossip协议的基本工作原理与我们八卦类似，在Gossip协议中，如下图所示，各个节点会周期性地选择一定数量节点，然后将消息同步给这些节点。收到消息后的节点同样做出类似的动作，随机的选择节点，继续扩散给其他节点。</p>
 <p>最终经过一定次数的扩散、传播，整个集群的各个节点都能感知到此消息，各个节点的数据趋于一致。Gossip协议被广泛应用在多个知名项目中，比如Redis Cluster集群版，Apache Cassandra，AWS Dynamo。</p>
-<p><img src="../../../assets/kubernetes/HzrvbdU9soOpn4xuOd9cdlG0nbe.png" alt=""></p>
+<p><img src="../../assets/kubernetes/HzrvbdU9soOpn4xuOd9cdlG0nbe.png" alt=""></p>
 <p>了解完Gossip协议，我们再看看架构图中的多数据中心，Consul支持数据跨数据中心自动同步吗？</p>
 <p>你需要注意的是，虽然Consul天然支持多数据中心，但是多数据中心内的服务数据并不会跨数据中心同步，各个数据中心的Server集群是独立的。不过，Consul提供了 <a href="https://www.consul.io/api-docs/query" target="_blank" rel="noopener noreferrer">Prepared Query</a> 功能，它支持根据一定的策略返回多数据中心下的最佳的服务实例地址，使你的服务具备跨数据中心容灾。</p>
 <p>比如当你的API网关收到用户请求查询A服务，API网关服务优先从缓存中查找A服务对应的最佳实例。若无缓存则向Consul发起一个Prepared Query请求查询A服务实例，Consul收到请求后，优先返回本数据中心下的服务实例。如果本数据中心没有或异常则根据数据中心间 RTT 由近到远查询其它数据中心数据，最终网关可将用户请求转发给最佳的数据中心下的实例地址。</p>
@@ -926,7 +926,7 @@ end
 <h2 id="重点特性比较"><strong>重点特性比较</strong></h2>
 <p>初步了解完etcd、ZooKeeper、Consul架构及原理后，你可以看到，他们都是基于共识算法实现的强一致的分布式存储系统，并都提供了多种模式的读机制。</p>
 <p>除了以上共性，那么它们之间有哪些差异呢？ 下表是etcd开源社区总结的一个 <a href="https://etcd.io/docs/current/learning/why/" target="_blank" rel="noopener noreferrer">详细对比项</a>，我们就从并发原语、健康检查及服务发现、数据模型、Watch特性等功能上详细比较下它们功能和区别。</p>
-<p><img src="../../../assets/kubernetes/LZJVbTp2dooc6pxIY1UcVmmwnlf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/LZJVbTp2dooc6pxIY1UcVmmwnlf.png" alt=""></p>
 <h3 id="并发原语"><strong>并发原语</strong></h3>
 <p>etcd和ZooKeeper、Consul的典型应用场景都是分布式锁、Leader选举，以上场景就涉及到并发原语控制。然而etcd和ZooKeeper并未提供原生的分布式锁、Leader选举支持，只提供了核心的基本数据读写、并发控制API，由应用上层去封装。</p>
 <p>为了帮助开发者更加轻松的使用etcd去解决分布式锁、Leader选举等问题，etcd社区提供了 <a href="https://github.com/etcd-io/etcd/tree/v3.4.9/clientv3/concurrency" target="_blank" rel="noopener noreferrer">concurrency包</a> 来实现以上功能。同时，在etcdserver中内置了Lock和Election服务，不过其也是基于concurrency包做了一层封装而已，clientv3并未提供Lock和Election服务API给Client使用。 ZooKeeper所属的Apache社区提供了 <a href="http://curator.apache.org/curator-recipes/index.html" target="_blank" rel="noopener noreferrer">Apache Curator Recipes</a> 库来帮助大家快速使用分布式锁、Leader选举功能。</p>
@@ -965,7 +965,7 @@ end
 <p>从并发原语、健康检查、服务发现等维度了解完etcd、ZooKeeper、Consul的实现区别之后，我们再从数据模型上对比下三者。</p>
 <p>首先etcd正如我们在 <a href="https://time.geekbang.org/column/article/340226" target="_blank" rel="noopener noreferrer">07</a> 节MVCC和 <a href="https://time.geekbang.org/column/article/342527" target="_blank" rel="noopener noreferrer">10</a> 节boltdb所介绍的，它是个扁平的key-value模型，内存索引通过B-tree实现，数据持久化存储基于B+ tree的boltdb，支持范围查询、适合读多写少，可容纳数G的数据。</p>
 <p><a href="https://www.usenix.org/legacy/event/atc10/tech/full_papers/Hunt.pdf" target="_blank" rel="noopener noreferrer">ZooKeeper的数据模型</a> 如下。</p>
-<p><img src="../../../assets/kubernetes/BGrsbEgFHomDPfxP4fucG01enpf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/BGrsbEgFHomDPfxP4fucG01enpf.png" alt=""></p>
 <p>如上图所示，它是一种层次模型，你可能已经发现，etcd v2的内存数据模型与它是一样的。ZooKeeper作为分布式协调服务的祖师爷，早期etcd v2的确就是参考它而设计的。</p>
 <p>ZooKeeper的层次模型中的每个节点叫Znode，它分为持久性和临时型两种。</p>
 <ul>

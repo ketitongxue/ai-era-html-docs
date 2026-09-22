@@ -119,10 +119,10 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
 <h1 id="etcd-的数据一致性">Etcd 的数据一致性</h1>
-<p><img src="../../../assets/kubernetes/PMcUbOeldoBVeoxUTe8ctfrgnwd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/PMcUbOeldoBVeoxUTe8ctfrgnwd.png" alt=""></p>
 <h1 id="一致性">一致性</h1>
 <p>我们都知道etcd是基于Raft实现的高可用、强一致分布式存储。但是有一天我却遭遇了一系列诡异的现象：用户在更新Kubernetes集群中的Deployment资源镜像后，无法创建出新Pod，Deployment控制器莫名其妙不工作了。更令人细思极恐的是，部分Node莫名其妙消失了。</p>
 <p>我们当时随便找了一个etcd节点查看存储数据，发现Node节点却在。这究竟是怎么一回事呢？ 今天我将和你分享这背后的故事，以及由它带给我们的教训和启发。希望通过这节课，能帮助你搞懂为什么基于Raft实现的etcd有可能出现数据不一致，以及我们应该如何提前规避、预防类似问题。</p>
@@ -133,7 +133,7 @@ th { background: #eaf0f7; }
 <p>我尝试重启APIServer，可Node依旧消失。百思不得其解的同时，只能去确认各个etcd节点上数据是否存在，结果却有了颠覆你固定思维的发现，那就是基于Raft实现的强一致存储竟然出现不一致、数据丢失。除了第一个节点含有数据，另外两个节点竟然找不到。那么问题就来了，另外两个节点数据是如何丢失的呢？</p>
 <h2 id="一步步解密真相"><strong>一步步解密真相</strong></h2>
 <p>在进一步深入分析前，我们结合对etcd写流程原理的介绍（如下图），先大胆猜测下可能的原因。</p>
-<p><img src="../../../assets/kubernetes/Ragtb0JV8o4Au5xCud7cLkSwnPd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Ragtb0JV8o4Au5xCud7cLkSwnPd.png" alt=""></p>
 <p>猜测1：etcd集群出现分裂，三个节点分裂成两个集群。APIServer配置的后端etcd server地址是三个节点，APIServer并不会检查各节点集群ID是否一致，因此如果分裂，有可能会出现数据“消失”现象。这种故障之前在Kubernetes社区的确也见到过相关issue，一般是变更异常导致的，显著特点是集群ID会不一致。</p>
 <p>猜测2：Raft日志同步异常，其他两个节点会不会因为Raft模块存在特殊Bug导致未收取到相关日志条目呢？这种怀疑我们可以通过etcd自带的WAL工具来判断，它可以显示WAL日志中收到的命令（流程四、五、六）。</p>
 <p>猜测3：如果日志同步没问题，那有没有可能是Apply模块出现了问题，导致日志条目未被应用到MVCC模块呢（流程七）？</p>
@@ -248,7 +248,7 @@ func （s *EtcdServer） ApplyEntryNormal（e *Raftpb.Entry） {
 <li>当一半以上节点持久化日志条目后，Leader的一致性模块将此日志条目标记为已提交（committed），并通知其他节点提交；</li>
 <li>server从一致性模块获取已经提交的日志条目，异步应用到状态机持久化存储中（boltdb等），然后返回给client。</li>
 </ul>
-<p><img src="../../../assets/kubernetes/AQ7MbWOAEoP77PxaXCfcAX6Fnlb.png" alt=""></p>
+<p><img src="../../assets/kubernetes/AQ7MbWOAEoP77PxaXCfcAX6Fnlb.png" alt=""></p>
 <p>从图中我们可以了解到，在基于复制状态机实现的分布式存储系统中，Raft等一致性算法它只能确保各个节点的日志一致性，也就是图中的流程二。</p>
 <p>而对于流程三来说，server从日志里面获取已提交的日志条目，将其应用到状态机的过程，跟Raft算法本身无关，属于server本身的数据存储逻辑。</p>
 <p><strong>也就是说有可能存在server应用日志条目到状态机失败，进而导致各个节点出现数据不一致。但是这个不一致并非Raft模块导致的，它已超过Raft模块的功能界限。</strong></p>

@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../index.html#etcd">返回知识库 · etcd</a> · <a href="Kubernetes/Kubernetes.html">Kubernetes 总览</a></nav>
 <article>
 <h1 id="etcd">etcd</h1>
 <p>etcd 是 CoreOs 基于 Raft 开发的分布式 key-value 存储，可用于服务发现、共享配置以及一致性保障（如数据库选主、分布式锁等）。</p>
@@ -147,7 +147,7 @@ th { background: #eaf0f7; }
 </ul>
 </li>
 </ul>
-<p><img src="../../assets/kubernetes/XbvoblabWo9l8lxXZa1cjxdBnub.png" alt=""></p>
+<p><img src="../assets/kubernetes/XbvoblabWo9l8lxXZa1cjxdBnub.png" alt=""></p>
 <hr>
 <h1 id="基础篇">基础篇</h1>
 <h2 id="etcd-起源">Etcd 起源</h2>
@@ -168,7 +168,7 @@ th { background: #eaf0f7; }
 <li>多个 candidate:冲突后 candidate 将随机选择一个等待间隔(150ms~300ms)再次发起投票，得到集群中半数以上Follower 接受的 candidate 将成为 Leader。</li>
 </ol>
 <h3 id="wal-日志write-ahead-log">wal 日志（Write ahead log）</h3>
-<p><img src="../../assets/kubernetes/SBsObYXdWoc4Isx3eT7cUE1pnte.png" alt=""></p>
+<p><img src="../assets/kubernetes/SBsObYXdWoc4Isx3eT7cUE1pnte.png" alt=""></p>
 <ul>
 <li>
 <p>Wal 日志是二进制的，解析出来后是以上数据结构 LogEntry。</p>
@@ -220,7 +220,7 @@ th { background: #eaf0f7; }
 <h2 id="事务">事务</h2>
 <p><a href="etcd/%E4%BA%8B%E5%8A%A1.html">事务</a></p>
 <h2 id="etcd-v3-存储watch-以及过期机制">Etcd v3 存储，Watch 以及过期机制</h2>
-<p><img src="../../assets/kubernetes/C6CObLyWVo9ZjFxUTcMckVx4nkf.jpg" alt=""></p>
+<p><img src="../assets/kubernetes/C6CObLyWVo9ZjFxUTcMckVx4nkf.jpg" alt=""></p>
 <h3 id="存储机制">存储机制</h3>
 <p>etcd v3 store 分为两部分:一部分是内存中的索引，kvindex，是基于 Google 开源的一个Golang的 Btree 实现的，是一个 inmemory 的kvstore，用于快速查找；另外一部分是后端存储。按照它的设计，backend 可以对接多种存储，当前使用的是 boltdb。</p>
 <p>boltdb 是一个单机的支持事务的 KV 存储，etcd 的事务是基于boltdb 的事务实现的。etcd 在boltdb 中存储的 key是reversion，value 是etcd 自己的 key-value 组合，也就是说 etcd 会在 boltdb 中把每个版本都保存下，从而实现了多版本机制。</p>
@@ -229,7 +229,7 @@ th { background: #eaf0f7; }
 <p>etcd 提供了命令和设置选项来控制compact，同时支持put操作的参数来精确控制某个key的历史版本数。</p>
 <p>内存 kvindex 保存的就是 key和reversion 之前的映射关系，用来加速查询。</p>
 <h3 id="数据存储流程">数据存储流程</h3>
-<p><img src="../../assets/kubernetes/BIOHbkbOEoosRnxMMkYcyXZBnyf.png" alt=""></p>
+<p><img src="../assets/kubernetes/BIOHbkbOEoosRnxMMkYcyXZBnyf.png" alt=""></p>
 <p>客户端发起写请求，请求会被转到一致性模块，一致性模块会检查自己是不是Leader，如果是Leader就直接处理，如果不是就会被转到Leader。</p>
 <p>客户端发起写请求到Leader，首先进行预检查，配额、限速、鉴权、包大小检查（限制数据包超过1.5M无法写入）。</p>
 <p>预检查完成后，请求被转到KVserver，KVserver识别写请求，通过 Propose 方法发到一致性模块。一致性模块负责选主和日志复制，先在memory里面构建 raftLog，然后请求会被同步写入本地 wal，wal落盘是由 fsync，写wal log同时有另外的goroutine，把同样的msg发到其他所有follower。所有的follower会同步写入自己的wallog，并且回MsgAppResp，回到Leader，当超过半数，Leader会认为已写入，Leader 更新 MatchIndex。</p>
@@ -257,7 +257,7 @@ th { background: #eaf0f7; }
 <p><a href="etcd/%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86.html">高可用集群管理</a></p>
 <p><a href="etcd/etcd%20%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98.html">etcd 典型问题</a></p>
 <p><a href="etcd/%E6%80%9D%E8%80%83%E9%A2%98.html">思考题</a></p>
-<p><img src="../../assets/kubernetes/LBkXbTmrMoykRVx62hgcL91hngf.png" alt=""></p>
+<p><img src="../assets/kubernetes/LBkXbTmrMoykRVx62hgcL91hngf.png" alt=""></p>
 <h2 id="补充资料">补充资料</h2>
 <p><a href="https://learnk8s.io/etcd-kubernetes" target="_blank" rel="noopener noreferrer">How etcd works with and without Kubernetes</a></p>
 <p>raft算法: <a href="https://raft.github.io/" target="_blank" rel="noopener noreferrer">https://raft.github.io/</a></p>

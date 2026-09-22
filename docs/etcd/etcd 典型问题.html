@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>思考题</title>
+<title>etcd 典型问题</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,29 +119,37 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
-<h1 id="思考题">思考题</h1>
-<p>Q：etcd在执行读请求过程中涉及磁盘IO吗？如果涉及，是什么模块在什么场景下会触发呢？如果不涉及，又是什么原因呢？</p>
-<p>A：etcd在启动的时候会通过mmap机制将etcd db文件映射到etcd进程地址空间，并设置了mmap的MAP\_POPULATE flag，它会告诉Linux内核预读文件，Linux内核会将文件内容拷贝到物理内存中，此时会产生磁盘I/O。节点内存足够的请求下，后续处理读请求过程中就不会产生磁盘I/IO了。</p>
-<p>若etcd节点内存不足，可能会导致db文件对应的内存页被换出，当读请求命中的页未在内存中时，就会产生缺页异常，导致读过程中产生磁盘IO，你可以通过观察etcd进程的majflt字段来判断etcd是否产生了主缺页中断。</p>
-<hr>
-<p>Q：expensive read请求（如Kubernetes场景中查询大量pod）会影响写请求的性能吗？</p>
-<p>A：要搞懂这个问题，我们得回顾下etcd读写性能优化历史。</p>
-<p>在etcd 3.0中，线性读请求需要走一遍Raft协议持久化到WAL日志中，因此读性能非常差，写请求肯定也会被影响。</p>
-<p>在etcd 3.1中，引入了ReadIndex机制提升读性能，读请求无需再持久化到WAL中。</p>
-<p>在etcd 3.2中, 优化思路转移到了MVCC/boltdb模块，boltdb的事务锁由粗粒度的互斥锁，优化成读写锁，实现“N reads or 1 write”的并行，同时引入了buffer来提升吞吐量。问题就出在这个buffer，读事务会加读锁，写事务结束时要升级锁更新buffer，但是expensive request导致读事务长时间持有锁，最终导致写请求超时。</p>
-<p>在etcd 3.4中，实现了全并发读，创建读事务的时候会全量拷贝buffer, 读写事务不再因为buffer阻塞，大大缓解了expensive request对etcd性能的影响。尤其是Kubernetes List Pod等资源场景来说，etcd稳定性显著提升。</p>
-<hr>
-<p>Q：哪些场景会出现Follower日志与Leader冲突，我们知道etcd WAL模块只能持续追加日志条目，那冲突后Follower是如何删除无效的日志条目呢？</p>
-<p>A：1.哪些场景会出现 Follower 日志与 Leader 冲突？</p>
-<p>leader崩溃的情况下可能(如老的leader可能还没有完全复制所有的日志条目)，如果leader和follower出现持续崩溃会加剧这个现象。follower可能会丢失一些在新的leader中有的日志条目，他也可能拥有一些leader没有的日志条目，或者两者都发生。</p>
-<p>2.follower如何删除无效日志？</p>
-<p>leader处理不一致是通过强制follower直接复制自己的日志来解决。因此在follower中的冲突的日志条目会被leader的日志覆盖。leader会记录follower的日志复制进度nextIndex，如果follower在追加日志时一致性检查失败，就会拒绝请求，此时leader就会减小 nextIndex 值并进行重试，最终在某个位置让follower跟leader一致。</p>
-<p>这里我补充下为什么WAL日志模块只通过追加，也能删除已持久化冲突的日志条目呢？ 其实这里etcd在实现上采用了一些比较有技巧的方法，在WAL日志中的确没删除废弃的日志条目，你可以在其中搜索到冲突的日志条目。只是etcd加载WAL日志时，发现一个raft log index位置上有多个日志条目的时候，会通过覆盖的方式，将最后写入的日志条目追加到raft log中，实现了删除冲突日志条目效果，你如果感兴趣可以参考下我和Google ptabor <a href="https://github.com/etcd-io/etcd/issues/12589" target="_blank" rel="noopener noreferrer">关于这个问题的讨论</a>。</p>
-<hr>
-<p>Q：etcd lease最小的TTL时间是多少？它跟什么因素有关呢？</p>
-<p>A：</p>
+<h1 id="etcd-典型问题">etcd 典型问题</h1>
+<h1 id="原理类">原理类</h1>
+<p>为什么etcd适合读多写少？线性读和串行读各自适合什么业务场景，分别是如何实现的？</p>
+<p>如何判断etcd是否适合自己的业务场景？</p>
+<p>为什么 Follower 节点的 Raft 日志条目可能会与 Leader 冲突？冲突时 Follower 节点的 WAL 日志如何删除已持久化但冲突的日志条目？</p>
+<p>etcd Watch 机制能保证事件不丢失吗？</p>
+<p>不小心删除一个 key 之后，可以马上找回来吗？</p>
+<h1 id="稳定性及性能类">稳定性及性能类</h1>
+<p>哪些因素会导致 Leader 发生切换？</p>
+<p>为什么 etcd 社区压测结果显示读能达到10几万每秒，在你的业务集群中 QPS 可能未过百就出现超市错误了？</p>
+<p>etcd 能跨地域部署吗？</p>
+<p>如何优化、提升 etcd 性能及稳定性？</p>
+<h1 id="一致性延时内存">一致性/延时/内存</h1>
+<p>为什么基于 Raft 的实现 etcd 还会出现数据不一致？</p>
+<p>为什么集群节点磁盘 I/O 延时很低，写请求也会超时呢？</p>
+<p>为什么你只存储了1个几百KB的key/value，etcd进程却可能消耗数G的内存？</p>
+<p>如何分析etcd 内存和延时异常背后的原因？</p>
+<h1 id="db大小">db大小</h1>
+<p>为什么你删除了大量数据，db大小不减小？</p>
+<p>为什么etcd社区建议db大小不要超过8G？</p>
+<p>哪些因素会导致db大小增加？</p>
+<h1 id="kubernetes">Kubernetes</h1>
+<p>Kubernetes 创建 Pod 背后 etcd 是如何工作的？</p>
+<p>etcd 如何为 Kubernetes 控制器编程模型提供支撑？</p>
+<p>APIServer 的“too old resource version”错误跟 etcd有什么关系？</p>
+<h1 id="最佳实践">最佳实践</h1>
+<p>当你在一个 namespace 在创建了数万个 Pod/CRD 资源时，同时频繁通过标签去查询指定 Pod/CRD 资源时，APIServer 和 etcd 为什么扛不住？</p>
+<p>快速增长的业务应如何避免单 etcd 集群出现性能瓶颈？</p>
+<p>如何构建安全、高可靠的etcd 集群运维体系？</p>
 </article>
 </main>
 <script>
