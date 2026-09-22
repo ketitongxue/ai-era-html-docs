@@ -81,7 +81,7 @@ th { background: #eaf0f7; }
 <main id="main-content" tabindex="-1">
 <h1>JuZX 的个人知识库</h1>
 <p>JuZX 的个人笔记和探索内容知识库。</p>
-<p>共 103 篇文章 · Claude Code 5 篇 · AI Agent 17 篇 · Kubernetes 81 篇</p>
+<p>共 103 篇文章 · Claude Code 5 篇 · AI Agent 17 篇 · Kubernetes 59 篇 · etcd 22 篇</p>
 <nav aria-label="文章目录">
 <h2>Claude Code</h2>
 <ul>
@@ -116,7 +116,7 @@ th { background: #eaf0f7; }
 <li><a href="docs/AI%20Agent/Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE.html">Agent 系统设计面试题与项目表达</a></li>
 </ul>
 <h2 id="kubernetes">Kubernetes</h2>
-<p>共 81 份文档，按基础、部署、工作负载、网络、存储、etcd 与生态实践分组。</p>
+<p>共 59 份文档，按基础、部署、工作负载、网络、存储与生态实践分组。</p>
 <h3>总览与基础 · 14 篇</h3>
 <ul>
 <li><a href="docs/Kubernetes/Kubernetes.html">Kubernetes</a></li>
@@ -185,31 +185,6 @@ th { background: #eaf0f7; }
 <li><a href="docs/Kubernetes/%E5%AD%98%E5%82%A8/Kubernetes%20%E6%8C%82%E8%BD%BD%E9%98%BF%E9%87%8C%E4%BA%91%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%20NAS.html">Kubernetes 挂载阿里云文件存储 NAS</a></li>
 <li><a href="docs/Kubernetes/%E5%AD%98%E5%82%A8.html">存储</a></li>
 </ul>
-<h3>etcd · 22 篇</h3>
-<ul>
-<li><a href="docs/Kubernetes/etcd/MVCC%20%E6%A8%A1%E5%9D%97.html">MVCC 模块</a></li>
-<li><a href="docs/Kubernetes/etcd/QPS%20%E5%BB%B6%E6%97%B6%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%20etcd%20%E8%AF%B7%E6%B1%82%E4%BC%9A%E5%87%BA%E7%8E%B0%E8%B6%85%E6%97%B6%EF%BC%9F.html">QPS 延时：为什么 etcd 请求会出现超时？</a></li>
-<li><a href="docs/Kubernetes/etcd/Watch%20%E6%9C%BA%E5%88%B6.html">Watch 机制</a></li>
-<li><a href="docs/Kubernetes/etcd/boltdb.html">boltdb</a></li>
-<li><a href="docs/Kubernetes/etcd/db%20%E5%A4%A7%E5%B0%8F.html">db 大小</a></li>
-<li><a href="docs/Kubernetes/etcd/etcd%20%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98.html">etcd 典型问题</a></li>
-<li><a href="docs/Kubernetes/etcd/etcd%20%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84.html">etcd 基础架构</a></li>
-<li><a href="docs/Kubernetes/etcd/etcd%20%E8%B5%B7%E6%BA%90.html">etcd 起源</a></li>
-<li><a href="docs/Kubernetes/etcd/%E4%B8%80%E8%87%B4%E6%80%A7.html">Etcd 的数据一致性</a></li>
-<li><a href="docs/Kubernetes/etcd/%E4%BA%8B%E5%8A%A1.html">事务</a></li>
-<li><a href="docs/Kubernetes/etcd/%E5%86%85%E5%AD%98.html">内存</a></li>
-<li><a href="docs/Kubernetes/etcd/%E5%86%99%E5%8E%9F%E7%90%86.html">写原理</a></li>
-<li><a href="docs/Kubernetes/etcd/%E5%8E%8B%E7%BC%A9%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9B%9E%E6%94%B6%E6%97%A7%E7%89%88%E6%9C%AC%E6%95%B0%E6%8D%AE%EF%BC%9F.html">压缩：如何回收旧版本数据？</a></li>
-<li><a href="docs/Kubernetes/etcd/%E5%AE%89%E8%A3%85%20etcd%20%E9%9B%86%E7%BE%A4.html">安装 etcd 集群</a></li>
-<li><a href="docs/Kubernetes/etcd/%E5%AE%9E%E6%88%98%E5%8F%8A%E5%BA%94%E7%94%A8.html">实战及应用</a></li>
-<li><a href="docs/Kubernetes/etcd/%E6%80%9D%E8%80%83%E9%A2%98.html">思考题</a></li>
-<li><a href="docs/Kubernetes/etcd/%E6%80%A7%E8%83%BD%E5%8F%8A%E7%A8%B3%E5%AE%9A%E6%80%A7.html">性能及稳定性</a></li>
-<li><a href="docs/Kubernetes/etcd/%E7%A7%9F%E7%BA%A6%28Lease%29%E6%A8%A1%E5%9D%97.html">租约(Lease)模块</a></li>
-<li><a href="docs/Kubernetes/etcd/%E8%AF%BB%E5%8E%9F%E7%90%86.html">读原理</a></li>
-<li><a href="docs/Kubernetes/etcd/%E9%89%B4%E6%9D%83%E6%A8%A1%E5%9D%97.html">鉴权模块</a></li>
-<li><a href="docs/Kubernetes/etcd/%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86.html">高可用集群管理</a></li>
-<li><a href="docs/Kubernetes/etcd.html">etcd</a></li>
-</ul>
 <h3>生态工具 · 4 篇</h3>
 <ul>
 <li><a href="docs/Kubernetes/%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></li>
@@ -233,6 +208,32 @@ th { background: #eaf0f7; }
 <h3>组件监控 · 1 篇</h3>
 <ul>
 <li><a href="docs/Kubernetes/%E7%9B%91%E6%8E%A7/Kubernetes%20%E7%BB%84%E4%BB%B6%E7%9B%91%E6%8E%A7.html">Kubernetes 组件监控</a></li>
+</ul>
+<h2 id="etcd">etcd</h2>
+<p>共 22 份文档，覆盖 etcd 的起源与架构、读写原理、核心模块、集群管理与实战应用。</p>
+<ul>
+<li><a href="docs/etcd/MVCC%20%E6%A8%A1%E5%9D%97.html">MVCC 模块</a></li>
+<li><a href="docs/etcd/QPS%20%E5%BB%B6%E6%97%B6%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%20etcd%20%E8%AF%B7%E6%B1%82%E4%BC%9A%E5%87%BA%E7%8E%B0%E8%B6%85%E6%97%B6%EF%BC%9F.html">QPS 延时：为什么 etcd 请求会出现超时？</a></li>
+<li><a href="docs/etcd/Watch%20%E6%9C%BA%E5%88%B6.html">Watch 机制</a></li>
+<li><a href="docs/etcd/boltdb.html">boltdb</a></li>
+<li><a href="docs/etcd/db%20%E5%A4%A7%E5%B0%8F.html">db 大小</a></li>
+<li><a href="docs/etcd/etcd%20%E5%85%B8%E5%9E%8B%E9%97%AE%E9%A2%98.html">etcd 典型问题</a></li>
+<li><a href="docs/etcd/etcd%20%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84.html">etcd 基础架构</a></li>
+<li><a href="docs/etcd/etcd%20%E8%B5%B7%E6%BA%90.html">etcd 起源</a></li>
+<li><a href="docs/etcd/%E4%B8%80%E8%87%B4%E6%80%A7.html">Etcd 的数据一致性</a></li>
+<li><a href="docs/etcd/%E4%BA%8B%E5%8A%A1.html">事务</a></li>
+<li><a href="docs/etcd/%E5%86%85%E5%AD%98.html">内存</a></li>
+<li><a href="docs/etcd/%E5%86%99%E5%8E%9F%E7%90%86.html">写原理</a></li>
+<li><a href="docs/etcd/%E5%8E%8B%E7%BC%A9%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9B%9E%E6%94%B6%E6%97%A7%E7%89%88%E6%9C%AC%E6%95%B0%E6%8D%AE%EF%BC%9F.html">压缩：如何回收旧版本数据？</a></li>
+<li><a href="docs/etcd/%E5%AE%89%E8%A3%85%20etcd%20%E9%9B%86%E7%BE%A4.html">安装 etcd 集群</a></li>
+<li><a href="docs/etcd/%E5%AE%9E%E6%88%98%E5%8F%8A%E5%BA%94%E7%94%A8.html">实战及应用</a></li>
+<li><a href="docs/etcd/%E6%80%9D%E8%80%83%E9%A2%98.html">思考题</a></li>
+<li><a href="docs/etcd/%E6%80%A7%E8%83%BD%E5%8F%8A%E7%A8%B3%E5%AE%9A%E6%80%A7.html">性能及稳定性</a></li>
+<li><a href="docs/etcd/%E7%A7%9F%E7%BA%A6%28Lease%29%E6%A8%A1%E5%9D%97.html">租约(Lease)模块</a></li>
+<li><a href="docs/etcd/%E8%AF%BB%E5%8E%9F%E7%90%86.html">读原理</a></li>
+<li><a href="docs/etcd/%E9%89%B4%E6%9D%83%E6%A8%A1%E5%9D%97.html">鉴权模块</a></li>
+<li><a href="docs/etcd/%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86.html">高可用集群管理</a></li>
+<li><a href="docs/etcd.html">etcd</a></li>
 </ul>
 </nav>
 </main>

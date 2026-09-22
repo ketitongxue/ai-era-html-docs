@@ -1,1 +1,3 @@
 / /index.html 200
+/docs/Kubernetes/etcd.html /docs/etcd.html 301
+/docs/Kubernetes/etcd/* /docs/etcd/:splat 301

@@ -119,14 +119,14 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
 <h1 id="etcd-起源">etcd 起源</h1>
 <h1 id="etcd-v1和v2诞生"><strong>etcd v1和v2诞生</strong></h1>
 <p>单副本存在单点故障，而多副本又引入数据一致性问题。为了解决数据一致性问题，需要引入一个共识算法，确保各节点数据一致性，并可容忍一定节点故障。常见的共识算法有Paxos、ZAB、Raft等。CoreOS团队选择了易理解实现的Raft算法，它将复杂的一致性问题分解成Leader选举、日志同步、安全性三个相对独立的子问题，只要集群一半以上节点存活就可提供服务，具备良好的可用性。</p>
 <p>其次我们再来看数据模型（Data Model）和API。数据模型参考了ZooKeeper，使用的是基于目录的层次模式。API相比ZooKeeper来说，使用了简单、易用的REST API，提供了常用的Get/Set/Delete/Watch等API，实现对key-value数据的查询、更新、删除、监听等操作。</p>
 <p>key-value存储引擎上，ZooKeeper使用的是Concurrent HashMap，而etcd使用的是则是简单内存树，它的节点数据结构精简后如下，含节点路径、值、孩子节点信息。这是一个典型的低容量设计，数据全放在内存，无需考虑数据分片，只能保存key的最新版本，简单易实现。</p>
-<p><img src="../../../assets/kubernetes/RWVLblmbzoNldjxbTYAcgLiVnNe.png" alt=""></p>
+<p><img src="../../assets/kubernetes/RWVLblmbzoNldjxbTYAcgLiVnNe.png" alt=""></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">type node struct {
    Path string  //节点路径
    Parent *node //关联父亲节点
@@ -136,11 +136,11 @@ th { background: #eaf0f7; }
 }
 </code></pre>
 <p>最后我们再来看可维护性。Raft算法提供了成员变更算法，可基于此实现成员在线、安全变更，同时此协调服务使用Go语言编写，无依赖，部署简单。</p>
-<p><img src="../../../assets/kubernetes/Wb3PbtzCSoR5Kkx3QbZcxreFnOb.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Wb3PbtzCSoR5Kkx3QbZcxreFnOb.png" alt=""></p>
 <p>基于以上技术方案和架构图，CoreOS团队在2013年8月对外发布了第一个测试版本v0.1，API v1版本，命名为etcd。</p>
 <p>那么etcd这个名字是怎么来的呢？其实它源于两个方面，unix的“/etc”文件夹和分布式系统(“D”istribute system)的D，组合在一起表示etcd是用于存储分布式配置的信息存储服务。</p>
 <p>v0.1版本实现了简单的HTTP Get/Set/Delete/Watch API，但读数据一致性无法保证。v0.2版本，支持通过指定consistent模式，从Leader读取数据，并将Test And Set机制修正为CAS(Compare And Swap)，解决原子更新的问题，同时发布了新的API版本v2，这就是大家熟悉的etcd v2版本，第一个非stable版本。</p>
-<p><img src="../../../assets/kubernetes/PtzpbGtSpoEBCExNKkDcRR6anPg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/PtzpbGtSpoEBCExNKkDcRR6anPg.png" alt=""></p>
 <h2 id="为什么kubernetes使用etcd"><strong>为什么Kubernetes使用etcd?</strong></h2>
 <p>这张图里，我特别标注出了Kubernetes的发布时间点，这个非常关键。我们必须先来说说这个事儿，也就是Kubernetes和etcd的故事。</p>
 <p>2014年6月，Google的Kubernetes项目诞生了，我们前面所讨论到Go语言编写、etcd高可用、Watch机制、CAS、TTL等特性正是Kubernetes所需要的，它早期的0.4版本，使用的正是etcd v0.2版本。</p>
@@ -151,10 +151,10 @@ th { background: #eaf0f7; }
 <p>最终CoreOS与Docker分道扬镳，并推出了rkt项目来对抗Docker，然而此时Docker已深入人心，CoreOS被Docker全面压制。</p>
 <p>以Google、RedHat为首的阵营，基于Google多年的大规模容器管理系统Borg经验，结合社区的建议和实践，构建以Kubernetes为核心的容器生态圈。相比Docker的垄断、独裁，Kubernetes社区推行的是民主、开放原则，Kubernetes每一层都可以通过插件化扩展，在Google、RedHat的带领下不断发展壮大，etcd也进入了快速发展期。</p>
 <p>在2015年1月，CoreOS发布了etcd第一个稳定版本2.0，支持了quorum read，提供了严格的线性一致性读能力。7月，基于etcd 2.0的Kubernetes第一个生产环境可用版本v1.0.1发布了，Kubernetes开始了新的里程碑的发展。</p>
-<p><img src="../../../assets/kubernetes/IHJhbFeito3MvtxyUmucEZ0MnRh.png" alt=""></p>
+<p><img src="../../assets/kubernetes/IHJhbFeito3MvtxyUmucEZ0MnRh.png" alt=""></p>
 <h1 id="etcd-v3">etcd v3</h1>
 <p>随着Kubernetes项目不断发展，v2版本的瓶颈和缺陷逐渐暴露，遇到了若干性能和稳定性问题，Kubernetes社区呼吁支持新的存储、批评etcd不可靠的声音开始不断出现。</p>
-<p><img src="../../../assets/kubernetes/McIjbJgo3oyQZQx6jaQcH6WPnXg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/McIjbJgo3oyQZQx6jaQcH6WPnXg.png" alt=""></p>
 <p>首先是 <strong>功能局限性问题。</strong> 它主要是指etcd v2不支持范围和分页查询、不支持多key事务。</p>
 <p>第一，etcd v2不支持范围查询和分页。分页对于数据较多的场景是必不可少的。在Kubernetes中，在集群规模增大后，Pod、Event等资源可能会出现数千个以上，但是etcd v2不支持分页，不支持范围查询，大包等expensive request会导致严重的性能乃至雪崩问题。</p>
 <p>第二，etcd v2不支持多key事务。在实际转账等业务场景中，往往我们需要在一个事务中同时更新多个key。</p>
@@ -174,7 +174,7 @@ th { background: #eaf0f7; }
 <p>最后是etcd v3支持范围、分页查询，可避免大包等expensive request。</p>
 <p>2016年6月，etcd 3.0诞生，随后Kubernetes 1.6发布，默认启用etcd v3，助力Kubernetes支撑5000节点集群规模。</p>
 <p>下面的时间轴图，总结了etcd3重要特性及版本发布时间。从图中你可以看出，从3.0到未来的3.5，更稳、更快是etcd的追求目标。</p>
-<p><img src="../../../assets/kubernetes/S5D0bTjeToQgVaxjzITcUc8SnFg.png" alt=""></p>
+<p><img src="../../assets/kubernetes/S5D0bTjeToQgVaxjzITcUc8SnFg.png" alt=""></p>
 <p><strong>v3方案的发布，标志着etcd进入了技术成熟期，成为云原生时代的首选元数据存储产品。</strong></p>
 </article>
 </main>

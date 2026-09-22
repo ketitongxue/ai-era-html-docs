@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#etcd">返回知识库 · etcd</a> · <a href="../etcd.html">etcd 总览</a></nav>
 <article>
 <h1 id="内存">内存</h1>
 <p>在使用etcd的过程中，你是否被异常内存占用等现象困扰过？比如etcd中只保存了1个1MB的key-value，但是经过若干次修改后，最终etcd内存可能达到数G。它是由什么原因导致的？如何分析呢？</p>
@@ -131,7 +131,7 @@ th { background: #eaf0f7; }
 <p>以上措施都有其合理性。但作为团队内etcd高手的你，在集群稳定性还不影响业务的前提下，能否先通过内存异常的现场，结合etcd的读写流程、各核心模块中可能会使用较多内存的关键数据结构，推测出内存异常的可能原因？</p>
 <p>全方位的分析内存异常现场，可以帮助我们节省大量复现和定位时间，也是你专业性的体现。</p>
 <p>下图是我以etcd写请求流程为例，给你总结的可能导致etcd内存占用较高的核心模块与其数据结构。</p>
-<p><img src="../../../assets/kubernetes/Li2abJgI5ovrBXxrgVocwizOnGh.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Li2abJgI5ovrBXxrgVocwizOnGh.png" alt=""></p>
 <p>从图中你可以看到，当etcd收到一个写请求后，gRPC Server会和你建立连接。连接数越多，会导致etcd进程的fd、goroutine等资源上涨，因此会使用越来越多的内存。</p>
 <p>其次，基于我们 <a href="https://time.geekbang.org/column/article/337604" target="_blank" rel="noopener noreferrer">04</a> 介绍的Raft知识背景，它需要将此请求的日志条目保存在raftLog里面。etcd raftLog后端实现是内存存储，核心就是数组。因此raftLog使用的内存与其保存的日志条目成正比，它也是内存分析过程中最容易被忽视的一个数据结构。</p>
 <p>然后当此日志条目被集群多数节点确认后，在应用到状态机的过程中，会在内存treeIndex模块的B-tree中创建、更新key与版本号信息。 在这过程中treeIndex模块的B-tree使用的内存与key、历史版本号数量成正比。</p>
@@ -160,19 +160,19 @@ etcdctl defrag --cluster
 ​
 </code></pre>
 <p>在执行操作前，空集群etcd db size 20KB，etcd进程内存36M左右，分别如下图所示。</p>
-<p><img src="../../../assets/kubernetes/DDZLbupAcowVzhxjHADcmOkFnGR.png" alt=""></p>
-<p><img src="../../../assets/kubernetes/JRWFbKcgco00vjxDLdCcawOqnRc.png" alt=""></p>
+<p><img src="../../assets/kubernetes/DDZLbupAcowVzhxjHADcmOkFnGR.png" alt=""></p>
+<p><img src="../../assets/kubernetes/JRWFbKcgco00vjxDLdCcawOqnRc.png" alt=""></p>
 <p>你预测执行1000次同样key更新后，etcd进程占用了多少内存呢? 约37M？ 1G？ 2G？3G？ 还是其他呢？</p>
 <p>执行1000次的put操作后，db大小和etcd内存占用分别如下图所示。</p>
-<p><img src="../../../assets/kubernetes/MKt2b4TOTofTQyxc3jrc0e4InlB.png" alt=""></p>
-<p><img src="../../../assets/kubernetes/XRMTbJU7eoevGLxtd6Pcj9fUnqd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/MKt2b4TOTofTQyxc3jrc0e4InlB.png" alt=""></p>
+<p><img src="../../assets/kubernetes/XRMTbJU7eoevGLxtd6Pcj9fUnqd.png" alt=""></p>
 <p>当我们执行compact、defrag命令后，如下图所示，db大小只有1M左右，但是你会发现etcd进程实际却仍占用了2G左右内存。</p>
-<p><img src="../../../assets/kubernetes/OW9mbj4veomLy5xJkXCcg4AZnAf.png" alt=""></p>
-<p><img src="../../../assets/kubernetes/Sd5kbaHvyo3rzvxN7sscgguan1g.png" alt=""></p>
+<p><img src="../../assets/kubernetes/OW9mbj4veomLy5xJkXCcg4AZnAf.png" alt=""></p>
+<p><img src="../../assets/kubernetes/Sd5kbaHvyo3rzvxN7sscgguan1g.png" alt=""></p>
 <p>整个集群只有一个key，为什么etcd占用了这么多的内存呢？是etcd发生了内存泄露吗？</p>
 <h1 id="raft-log">Raft log</h1>
 <p>当你发起一个put请求的时候，etcd需通过Raft模块将此请求同步到其他节点，详细流程你可结合下图再次了解下。</p>
-<p><img src="../../../assets/kubernetes/R58obsjb9o4k1kxCUSkcpFfZn9k.png" alt=""></p>
+<p><img src="../../assets/kubernetes/R58obsjb9o4k1kxCUSkcpFfZn9k.png" alt=""></p>
 <p>从图中你可以看到，Raft模块的输入是一个消息/Msg，输出统一为Ready结构。etcd会把此请求封装成一个消息，提交到Raft模块。</p>
 <p>Raft模块收到此请求后，会把此消息追加到raftLog的unstable存储的entry内存数组中（图中流程2），并且将待持久化的此消息封装到Ready结构内，通过管道通知到etcdserver（图中流程3）。</p>
 <p>etcdserver取出消息，持久化到WAL中，并追加到raftLog的内存存储storage的entry数组中（图中流程5）。</p>
@@ -255,7 +255,7 @@ type MemoryStorage struct {
 <p>在 <a href="https://time.geekbang.org/column/article/341060" target="_blank" rel="noopener noreferrer">08</a> Watch机制设计与实现分析中，我和你介绍过创建watcher的整体流程与架构，如下图所示。当你创建一个watcher时，client与server建立连接后，会创建一个gRPC Watch Stream，随后通过这个gRPC Watch Stream发送创建watcher请求。</p>
 <p>每个gRPC Watch Stream中etcd WatchServer会分配两个goroutine处理，一个是sendLoop，它负责Watch事件的推送。一个是recvLoop，负责接收client的创建、取消watcher请求消息。</p>
 <p>同时对每个watcher来说，etcd的WatchableKV模块需将其保存到相应的内存管理数据结构中，实现可靠的Watch事件推送。</p>
-<p><img src="../../../assets/kubernetes/QJzFbQHfgon2d3xGgckcedvgnkd.png" alt=""></p>
+<p><img src="../../assets/kubernetes/QJzFbQHfgon2d3xGgckcedvgnkd.png" alt=""></p>
 <p>因此watch监听机制耗费的内存跟client连接数、gRPC Stream、watcher数(watching)有关，如下面公式所示：</p>
 <ul>
 <li>c1表示每个连接耗费的内存；</li>
