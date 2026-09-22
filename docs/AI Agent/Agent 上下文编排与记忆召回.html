@@ -266,7 +266,7 @@ input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid 
 </table></div>
 <p>“只放索引”成立的前提是索引能解析为可访问、仍有效的内容。如果工具返回未持久化、链接会立即失效，就不能丢掉唯一原文。同样，关键约束本身过大而无法容纳时，应拆分任务、切换适当模型或明确报告限制，不能静默删减。</p>
 <p>排列时用清楚的分区区别指令、当前状态、事实证据和待验证材料。检索文本中的指令仍是材料内容，不应提升为系统规则。重要信息放置的位置需要通过模型和任务测试确认，不能把“越靠前越好”当作普遍规律。</p>
-<p>稳定提示内容的复用可能节省处理成本，但提示缓存依赖提供商、模型、请求结构及保留策略；不能仅凭前缀相同就假定一定命中。上线时应读具体服务文档并检查实际缓存指标，不为缓存命中保留过期事实。相关约束可参照 <a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI 提示缓存文档</a>与 <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Claude 提示缓存文档</a>。</p>
+<p>稳定提示内容的复用可能节省处理成本，但提示缓存依赖提供商、模型、请求结构及保留策略；不能仅凭前缀相同就假定一定命中。上线时应读具体服务文档并检查实际缓存指标，不为缓存命中保留过期事实。相关约束可参照 <a href="https://developers.openai.com/api/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer">OpenAI 提示缓存文档</a>与 <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching" target="_blank" rel="noopener noreferrer">Claude 提示缓存文档</a>。</p>
 <h2 id="近期原文关键事实和摘要分别承担什么">近期原文、关键事实和摘要分别承担什么</h2>
 <p>滑动窗口适合保留近期对话，但轮数只是粗略单位。一轮可能包含一整份报告，因此应同时限制 token，并尽量保留工具调用与结果的配对关系。较早内容可以使用摘要，关键事实则独立保存，不随普通聊天一起滑出。</p>
 <p>摘要至少应区分三类：总体摘要说明目标与进度；章节摘要保留某一阶段的决策和变化；输出摘要删去长回答中不再需要的铺垫。目标、硬约束、用户确认与否定、实体引用、决策理由、未完成事项都要有明确位置。不同任务的摘要字段不同，没有一种通用短文模板能覆盖所有情况。</p>
