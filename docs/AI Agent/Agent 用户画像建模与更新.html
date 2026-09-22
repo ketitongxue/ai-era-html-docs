@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 用户画像建模与更新</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 9 分钟</p>
+<h1 id="agent-用户画像建模与更新">Agent 用户画像建模与更新</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#从业务决策反推画像字段">从业务决策反推画像字段</a></li><li><a href="#将当前候选和长期信息分开">将当前、候选和长期信息分开</a></li><li><a href="#提取信号时事实表达和推断分栏保存">提取信号时，事实、表达和推断分栏保存</a></li><li><a href="#实时响应与长期更新使用不同节奏">实时响应与长期更新使用不同节奏</a></li><li><a href="#用-4c-整理稳定性证据不把分数当心理定律">用 4C 整理稳定性证据，不把分数当心理定律</a></li><li><a href="#冲突处理与生命周期">冲突处理与生命周期</a></li><li><a href="#两类业务建模示例">两类业务建模示例</a></li><li><a href="#如何验证画像确实帮助了任务">如何验证画像确实帮助了任务</a></li></ol></details></nav>
+<p>用户画像的作用，是让 Agent 在下一次理解需求、组织方案和表达结果时，使用已经获得的有效信息。例如，用户明确要求回答简洁，系统就不必每次重新询问；用户这次替家人挑设备，系统也不该把收礼人的需要写成购买者的长期偏好。</p>
+<p>画像是否有用，取决于它能否改变合理的决策，而不是标签数量。设计的难点集中在三个地方：记录什么、什么证据足以更新、当前要求与历史默认值如何共存。</p>
+<h2 id="从业务决策反推画像字段">从业务决策反推画像字段</h2>
+<p>不要先造一张包含年龄、职业、兴趣等所有字段的用户表。先列出 Agent 必须做的判断，再问哪些用户信息会影响这些判断。一个代码解释助手可能只需要领域熟悉程度、语言偏好和解释深度，不必了解与任务无关的人口属性。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>记录的重点</th>
+<th>能改变的行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标</td>
+<td>用户在某个领域希望达成什么</td>
+<td>学习或工作计划的终点</td>
+</tr>
+<tr>
+<td>能力与经验</td>
+<td>对特定主题的熟悉程度、已掌握内容</td>
+<td>解释深度、示例和步骤安排</td>
+</tr>
+<tr>
+<td>正负偏好</td>
+<td>喜欢、排斥或明确禁止的选项</td>
+<td>候选排序、排除规则、输出形式</td>
+</tr>
+<tr>
+<td>决策方式</td>
+<td>在本领域怎样权衡成本、速度和风险</td>
+<td>方案排序及理由呈现</td>
+</tr>
+<tr>
+<td>关系与角色</td>
+<td>当前涉及的人是谁，用户与其关系</td>
+<td>指代解析、语气和信息边界</td>
+</tr>
+</tbody>
+</table></div>
+<p>这些维度并非每个 Agent 都要齐备。能力判断应限定主题，不能因为用户不熟悉一个概念，就把用户整体标为“理解能力低”。“不太喜欢”也不自动等于永久禁止，应结合明确措辞和适用范围确定约束强度。</p>
+<p>画像影响的是默认行为。当前用户要求、系统权限与业务约束仍各有自己的效力来源，不能被一个画像分数取代。</p>
+<h2 id="将当前候选和长期信息分开">将当前、候选和长期信息分开</h2>
+<p>假设用户以往喜欢详细讲解，这次说“我赶时间，先给步骤”。当前会话应立即改为简洁输出，但这并不证明长期偏好已经改变。三层结构可以表达这种区别：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>记录什么</th>
+<th>何时使用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>当前画像</td>
+<td>本任务明确表达的需要与限制</td>
+<td>立即影响本任务，结束后评估是否保留</td>
+</tr>
+<tr>
+<td>候选画像</td>
+<td>有证据但尚不稳定的推断</td>
+<td>可用于低影响排序，必要时确认</td>
+</tr>
+<tr>
+<td>长期画像</td>
+<td>在明确范围内反复验证或被用户确认的默认值</td>
+<td>跨任务使用，允许修正和撤销</td>
+</tr>
+</tbody>
+</table></div>
+<p>三层不只是三张表，还需要记录作用域。用户在手机上重视重量，在台式机上重视性能，两者并不冲突。比“当前覆盖长期”更准确的规则是：<strong>先判断对象、领域、任务和时间是否重合，再决定覆盖关系。</strong></p>
+<p>下面是教学用的偏好记录。强度、置信度和稳定性是不同概念：前者描述偏好的力度，后两者分别描述证据可靠性与跨时间稳定性，不宜压成一个数。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;subject_id&quot;: &quot;user-a&quot;,
+  &quot;domain&quot;: &quot;mobile_devices&quot;,
+  &quot;key&quot;: &quot;portability&quot;,
+  &quot;value&quot;: &quot;prefer_lightweight&quot;,
+  &quot;mode&quot;: &quot;soft_preference&quot;,
+  &quot;scope&quot;: &quot;current_purchase&quot;,
+  &quot;layer&quot;: &quot;current&quot;,
+  &quot;evidence&quot;: [
+    {&quot;ref&quot;: &quot;message-28&quot;, &quot;type&quot;: &quot;explicit_statement&quot;}
+  ],
+  &quot;status&quot;: &quot;active&quot;,
+  &quot;review_after&quot;: &quot;task_end&quot;,
+  &quot;version&quot;: 1
+}
+</code></pre>
+<p>画像应能追溯到原始表达和当时的对象。否则后续很难回答“为什么系统认为我喜欢轻便”。</p>
+<h2 id="提取信号时事实表达和推断分栏保存">提取信号时，事实、表达和推断分栏保存</h2>
+<p>常见来源包括用户明确表达、业务行为、多轮选择过程和外部系统记录。它们都提供证据，但含义不同。</p>
+<p>用户说“本次不要黑色”足以产生当前限制，却不足以证明长期讨厌黑色。购买一件低价商品，只能证明发生过一次购买；原因可能是预算、促销或代购。浏览后没有下单，也可能只是暂时离开页面，不能直接标记为不满意。</p>
+<p>多轮对话通常比单个点击更能解释偏好。例如，用户先追求性能，后来因为重量放弃某款设备，最终说“每天通勤还是轻一点”。可以记录：本次选择由便携性主导，性能需求作出妥协；不要把最终商品的全部属性都推断成喜好。</p>
+<p>外部推荐系统的“高端用户”“价格敏感”标签也应经过语义转换。先确认标签定义、适用商品范围和更新时间，不能只因为来自业务库就把它当作精确事实。</p>
+<p>一个实用的提取结果应包含：原始表达、被描述对象、领域、适用时间、候选偏好、支持证据、反证和是否需要确认。模型可以负责抽取这些字段，持久化写入前再由规则检查完整性及允许的状态转换。</p>
+<h2 id="实时响应与长期更新使用不同节奏">实时响应与长期更新使用不同节奏</h2>
+<p>实时链路负责“这一轮开始就别再犯同样的错”，适合更新当前偏好、禁止项和纠正记录。任务结束后再回看初始要求、修改原因和最终选择，辨认哪些是临时妥协。离线任务负责合并重复证据、检查冲突和发现稳定趋势。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">新表达或行为
+→ 记录证据并去重
+→ 提取当前偏好与候选推断
+→ 当前任务即时使用明确要求
+→ 任务结束检查选择理由与反证
+→ 离线评估稳定性及适用范围
+→ 保持候选、升级默认值，或撤销错误判断
+</code></pre>
+<p>这里有两个常见的工程错误。第一，同一条消息被多个异步任务重复消费，使“一次表达”被算成多次证据；可用事件 ID 和提取版本去重。第二，离线任务完成得较晚，用旧画像覆盖了刚收到的纠正；应按版本或事件时间检查更新条件，并保留变更历史。</p>
+<p>删除和纠正也要进入更新链。用户撤销某个偏好时，相关缓存、摘要和候选推断应同步失效，不能主表删了，后续又从旧摘要中重新提取回来。</p>
+<h2 id="用-4c-整理稳定性证据不把分数当心理定律">用 4C 整理稳定性证据，不把分数当心理定律</h2>
+<p>判断“一时兴起”可以检查四类信号：出现次数 Count、持续时间 Continuity、跨场景一致性 Cross-context、用户确认 Confirmation。它们提供一个可解释的证据清单，并不是经过通用验证的心理模型，也不存在适用于所有偏好的固定阈值。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>信号</th>
+<th>需要检查的问题</th>
+<th>容易误判的情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>出现次数</td>
+<td>是否来自独立选择或任务</td>
+<td>同一对话重复强调被累计多次</td>
+</tr>
+<tr>
+<td>持续时间</td>
+<td>首次与最近证据是否跨越足够时间</td>
+<td>时间过去很久，却没有新证据</td>
+</tr>
+<tr>
+<td>跨场景一致性</td>
+<td>是否在不同任务条件下仍成立</td>
+<td>多个会话实际讨论同一笔购买</td>
+</tr>
+<tr>
+<td>用户确认</td>
+<td>是否确认具体范围与长期使用</td>
+<td>沉默或“随便”被当成同意</td>
+</tr>
+</tbody>
+</table></div>
+<p>如果需要评分，可将各项映射到同一尺度后加权，但权重必须用实际样本校准。作为纯教学示例，次数项可以采用 <code>C(n) = 1 - exp(-n / τ)</code>，<code>n</code> 是去重后的独立证据数，<code>τ</code> 控制增长速度。它只表达新增重复证据的边际价值递减，不证明用户真实喜欢的概率。</p>
+<p>跨场景应记录领域、任务和使用对象，不能仅用会话 ID 近似。确认项则保存用户确认的原话与范围，不应只记“已确认=true”。当用户明确说“以后都先给简要结论”时，可以直接记录该默认值，不必为了凑够次数再多问几次。</p>
+<p>对影响较大的推断，确认比增加复杂打分更有效。提示应具体说明系统观察到的现象及将改变的行为，例如：“之后推荐移动设备时，是否默认优先考虑便携？”用户不回答时，不应视为确认。</p>
+<h2 id="冲突处理与生命周期">冲突处理与生命周期</h2>
+<p>同一范围内，当前明确要求通常优先于历史推断；用户纠正优先于系统猜测；领域偏好优先于泛化默认值。这个顺序用于用户偏好仲裁，不用于突破权限或取代客观事实核验。</p>
+<p>例如，长期画像是“回答简洁”，当前输入为“解释完整推导”，本次使用详细解释，长期记录保留。用户进一步说“你之前理解错了，我不是总要简洁”，则应撤销旧泛化，而非仅添加一个与它冲突的新标签。</p>
+<p>可使用“候选、活跃、待复核、过期、已撤销”状态，但状态变化不能只靠机械时间衰减。近期兴趣可以设置较短复核周期；明确的长期表达应保留较久；当前任务预算在任务结束后停止默认使用。<strong>长期没有再次提及，只说明缺少新证据，不等于偏好已经消失。</strong></p>
+<p>出现反证时，先判断是否换了对象或场景。如果只是本次代购，就补充作用域；如果用户明确更改长期习惯，则生成新版本并关闭旧版本效力；证据无法区分时，将推断降为待复核，不要在后台替用户作强结论。</p>
+<h2 id="两类业务建模示例">两类业务建模示例</h2>
+<h3 id="商品选择品类使用者与需求规格分开">商品选择：品类、使用者与需求规格分开</h3>
+<p>全局偏好用于默认表达或通用限制；品类偏好记录具体权衡；当前购物需求写清使用者、预算、必要功能、排除项和可妥协项。生成候选前，先将相关画像转为本次需求规格，这样才能解释为什么某个商品被排除。</p>
+<p>价格偏好可以参考同品类、相近时间和可比商品集合中的购买价格百分位。它比“高消费”更具体，但促销、商品代际和样本稀疏都会影响结果。没有该品类记录时，相似品类只能给出低置信度参考，不能覆盖用户明确预算。商业推荐也必须遵守硬约束，不能因为存在推广目标就自动放宽预算或禁止项。</p>
+<h3 id="人物关系主体方向和证据分开">人物关系：主体、方向和证据分开</h3>
+<p>协作助手可用人物 ID、别名与角色解决重名和代词问题。关系需要记录方向：用户信任同事，并不证明同事同样信任用户。事件则分别保存发生时间、参与者、用户陈述、可验证证据、用户感受及尚未证实的解释。</p>
+<p>“用户认为同事故意否定方案”是用户视角，不应改写成同事客观上存有恶意。关系变化也应保留时间线：曾经信任、后来因某事件降低信任，与一直关系疏远不同。只有当前任务涉及的人和关系才需要加载；关系画像不能决定对方真实拥有的数据访问权限。</p>
+<h2 id="如何验证画像确实帮助了任务">如何验证画像确实帮助了任务</h2>
+<p>建立包含临时变化、跨品类差异、代购、用户纠正、重复事件和删除请求的测试集。先比较不使用画像、只使用明确偏好、加入候选推断三种策略，再决定复杂建模是否值得。</p>
+<p>可观察当前约束遵守率、错误长期升级率、纠正后仍重复使用旧画像的比例、无必要重复询问次数，以及用户主动修改默认值的原因。用户满意度只是结果信号，不能证明某条画像推断正确；还要抽样回看证据与作用域。</p>
+<p>运行时只加载会影响当前步骤的字段，并保留画像版本与使用理由。如何将它们组织进模型输入，可继续阅读<a href="Agent%20%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E6%8E%92%E4%B8%8E%E8%AE%B0%E5%BF%86%E5%8F%AC%E5%9B%9E.html">Agent 上下文编排与记忆召回</a>。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 检索优化：召回质量、预算与缓存</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 10 分钟</p>
+<h1 id="agent-检索优化召回质量预算与缓存">Agent 检索优化：召回质量、预算与缓存</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#多路与多源召回先统一结果结构">多路与多源召回先统一结果结构</a></li><li><a href="#先过滤与去重再比较相关性">先过滤与去重，再比较相关性</a></li><li><a href="#rrf-负责融合排名rerank-再看证据价值">RRF 负责融合排名，Rerank 再看证据价值</a></li><li><a href="#迭代检索由证据缺口驱动">迭代检索由证据缺口驱动</a></li><li><a href="#用动态预算约束完整链路">用动态预算约束完整链路</a></li><li><a href="#最小充分检索控制当前步骤不削掉用户目标">最小充分检索控制当前步骤，不削掉用户目标</a></li><li><a href="#缓存先守住语义权限和版本">缓存先守住语义、权限和版本</a></li><li><a href="#用分层指标与失败样本推动优化">用分层指标与失败样本推动优化</a></li></ol></details></nav>
+<p>检索质量不能只用“搜到了相似段落”衡量。Agent 最终需要的是能够支撑当前结论、满足权限与时效要求，并在可接受成本内获得的证据。优化时既要解决漏召回，也要避免重复、旧版本、错误上下文和无止境追加查询。</p>
+<p>数据源路由与分块是前提，见<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">Agent 检索设计：数据组织与分块</a>。本文从候选结果进入系统开始，讨论融合、验证、动态检索和缓存如何协作。</p>
+<h2 id="多路与多源召回先统一结果结构">多路与多源召回先统一结果结构</h2>
+<p>关键词检索适合错误码、接口名、产品型号等精确表达；向量检索帮助跨越不同措辞；图查询适合明确的实体关系和依赖路径；业务 Action 用于获取实时或结构化事实。没有一种通道能替代所有其他通道，也不必在每个请求里全部启用。</p>
+<p>多路召回强调方法不同，多源召回强调数据来源不同。两者都需要融合，但多源还涉及时间覆盖、字段语义和权威来源的差异，不能仅把列表拼接起来。</p>
+<p>建议统一保留以下字段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">content_ref / doc_id / chunk_id
+source_id / retrieval_method
+original_rank / original_score
+document_version / observed_at / valid_until
+tenant_scope / permission_scope
+evidence_type / matched_requirement
+</code></pre>
+<p><code>matched_requirement</code> 说明它补的是哪个信息缺口；<code>evidence_type</code> 区分实时观测、正式规则、历史案例和派生摘要。这样，历史故障案例就不会因语义最相似，被当作当前环境已经发生的事实。</p>
+<h2 id="先过滤与去重再比较相关性">先过滤与去重，再比较相关性</h2>
+<p>权限、租户、对象、时间和明确版本要求决定内容能否使用。尽量在数据源查询阶段施加这些过滤，返回后再复核。无权访问的内容不能只降权，也不能传给重排模型后再删除；当用户问某个历史版本时，则应使用相应版本，不能机械地将所有旧文档排除。</p>
+<p>去重至少分三个层次：同一 Chunk 被不同通道召回，合并身份并保留各路排名；相邻 Chunk 因 Overlap 重复，合并相交原文区间；同一事实有多个副本，保留来源关系并减少重复注入。</p>
+<p>内容相似不一定代表等价。两个片段可能只在“不允许”和“允许”、版本号或适用范围上不同，这正是重要冲突，不能用相似度去重抹掉。去重后也应保留多路命中信号，否则后续融合会丢失候选曾出现在哪些列表的信息。</p>
+<h2 id="rrf-负责融合排名rerank-再看证据价值">RRF 负责融合排名，Rerank 再看证据价值</h2>
+<p>向量相似度与 BM25 分数尺度不同，直接加权相加通常缺乏可比性。即便都归一到零至一，相同数值也不一定表示相同相关程度。</p>
+<p>RRF 按每一路的排名融合。令 <code>R</code> 为检索列表集合，<code>rank_r(d)</code> 为文档在列表中的位置，排名从一开始：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">RRF(d) = Σ 1 / (k + rank_r(d))
+         r ∈ R，且 d 出现在 r 中
+</code></pre>
+<p>没有出现在某一路的文档，该路贡献为零；<code>k</code> 为平滑常数。若需通道权重，可以尝试 <code>Σ w_r / (k + rank_r(d))</code>，但需明确这是加权扩展，并检查所用搜索引擎的实际接口支持。标准计算方式可参考 <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion">Elasticsearch RRF 文档</a>。</p>
+<p>RRF 不使用原始分数差距，因此也会丢失某些强弱信息；它无法发现召回阶段完全遗漏的证据，更不能证明排名靠前的文档事实正确。多路列表高度相关时，重复信号也可能被过度强化。</p>
+<p>融合后，可以让 Cross-Encoder 或其他重排方法重新判断问题与候选的相关性，再按明确业务规则组织证据。应关注直接支持程度、适用范围、版本、可信来源和新增信息量。权限等硬条件仍在排序之外，不是可被其他高分抵消的一项权重。</p>
+<p>最终选入工作集的结果，不必等于得分最高的前几段。如果问题需要“适用条件、操作方法、例外”三类证据，而前三段都在重复操作方法，就需要按证据覆盖选择互补结果。</p>
+<h2 id="迭代检索由证据缺口驱动">迭代检索由证据缺口驱动</h2>
+<p>一次检索适合边界清晰的事实问题。复杂排障、综合对比和多文档解释，可能只有看过首批结果后才知道下一步该找什么。这时可以建立“查询、观察、更新缺口”的有限循环。</p>
+<p>充分性判断应输出结构化结果，不只是一个模型自报的置信度：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;sufficient&quot;: false,
+  &quot;covered&quot;: [&quot;本次发布变更&quot;, &quot;新增耗时所在阶段&quot;],
+  &quot;missing&quot;: [&quot;相关配置是否一致&quot;, &quot;是否存在独立数据库异常&quot;],
+  &quot;conflicts&quot;: [],
+  &quot;next_query_reason&quot;: &quot;需要区分缓存回源与数据库独立故障&quot;,
+  &quot;stop_reason&quot;: null
+}
+</code></pre>
+<p>下一轮只针对缺口查找，使用新获得的实体、时间范围和假设生成 Query，同时查询可能推翻当前解释的证据。已经确认的部分保留在状态里，避免每轮从头开始。</p>
+<p>以一个教学排障场景为例：第一轮发现发布后某个业务 Span 耗时增加；第二轮发现缓存未命中与数据库回源同时增多；第三步查询配置和预热任务，验证是否存在前缀不一致。只有把配置变化、命中下降、回源及耗时连起来，并检查替代解释，才能支持更强的判断。并不是规定必须查三轮，也不能因历史复盘出现过同类问题就直接断定根因。</p>
+<p>每轮记录 Query、数据源、结果版本、新增证据、剩余缺口和停止理由。内容数量增加不等于证据增加：同一结论换个说法仍然是重复信息。新增证据应按预先定义的事实或条件槽位判断，同时允许发现新的必要缺口。</p>
+<p>停止条件应同时包含证据充分、没有实质新增、来源穷尽、需要用户补充，以及资源上限。资源耗尽与证据充分是两种不同状态：前者必须保留未决项，不能写成已经找到完整答案。Agentic Retrieval 通常还涉及查询与工具路由等自主决策；仅增加检索次数，并不会自动得到更可靠的 Agent。</p>
+<h2 id="用动态预算约束完整链路">用动态预算约束完整链路</h2>
+<p>用户感知的是获得可信结果的时间，不只是向量库的查询耗时。需要把 Query 改写、Embedding、多源访问、融合、重排、充分性判断和生成纳入端到端 Trace，并观察 P50、P95、P99 以及并发下的排队时间。</p>
+<p>以下仅是教学预算，实际值由业务响应要求和模型吞吐确定：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>预算项</th>
+<th>示例限制</th>
+<th>达到限制时的行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>检索轮次</td>
+<td>最多 3 轮</td>
+<td>返回当前证据与未决问题</td>
+</tr>
+<tr>
+<td>总 Query 数</td>
+<td>最多 6 条</td>
+<td>合并重复查询，优先关键缺口</td>
+</tr>
+<tr>
+<td>重排候选</td>
+<td>最多 24 个</td>
+<td>先过滤与去重，再选择候选</td>
+</tr>
+<tr>
+<td>证据工作集</td>
+<td>最多 8,000 token</td>
+<td>保留直接证据，按需加载背景</td>
+</tr>
+<tr>
+<td>时间</td>
+<td>请求级截止时间</td>
+<td>取消非必要慢请求，保留超时状态</td>
+</tr>
+</tbody>
+</table></div>
+<p>独立的日志、指标和 Trace 查询可以并行；依赖前一轮实体的查询必须等到结果明确。每个来源需要超时、取消和并发上限，不能让一个辅助源拖住整条链。超时表示没有得到结果，不能改写为“该来源没有发现异常”。</p>
+<p>优化顺序先从明显浪费开始：复用同任务内重复 Query 的 Embedding，合并重复检索，在入库时计算文档摘要和标签，检查结构化过滤与索引是否有效，再决定是否增加复杂控制器。简单问题走轻量路径，必要证据不足时逐步扩展通道或候选数量。</p>
+<p>降级也有边界。可以先去掉装饰性背景，跳过收益不高的重排，或给出证据限定的局部结论；不能丢掉权限校验、关键限制和决定结论的证据。评价速度变化时，应在相同任务质量要求下比较单位成功任务的成本，不能只报告总调用减少。</p>
+<h2 id="最小充分检索控制当前步骤不削掉用户目标">最小充分检索控制当前步骤，不削掉用户目标</h2>
+<p>用户说“先确认设备能运行这套软件，能运行再比较购买渠道”，可以先核验兼容性；若不兼容，后续价格查询自然没有必要。这是在利用任务依赖减少浪费。</p>
+<p>但“统计订单后计算退款率”中，拿到订单只是中间步骤，退款率才是目标。用户已要求完整报告时，系统可以按子目标逐段检索、逐段输出进展，却应继续完成全部已授权范围，不能每完成一段就停下来反复询问。</p>
+<p>因此，“最小”指当前步骤所需的最少证据集合，“充分”指它足以支持这一步的有效产出。它不等于少查几条，也不意味着把复杂结论中的必要部分删掉。依赖强、遗漏会改变结论的问题，应保留完整证据要求；到达截止时间时如实说明缺口。</p>
+<h2 id="缓存先守住语义权限和版本">缓存先守住语义、权限和版本</h2>
+<p>可以分别缓存 Query 的 Embedding、候选文档 ID、融合结果、原文片段，或最终答案。层级越接近最终答案，依赖通常越多，错误复用的影响也越直接。</p>
+<p>精确缓存是合适的起点。缓存键不应只有 Query 文本，还应包含会影响结果的条件，例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">cache_key = hash(
+  normalized_query,
+  tenant_and_authorized_scope,
+  filters_and_time_range,
+  index_or_document_version,
+  embedding_and_retrieval_strategy_version
+)
+</code></pre>
+<p>查询规范化可以统一同义表达，却不能消掉不同订单号、否定词、时间范围和版本。权限范围可用稳定标识及权限版本表示；返回缓存结果时仍要确认当前用户具有访问权。权限撤销、文档删除、策略升级或索引版本变化，都可能要求失效，TTL 只提供额外兜底。</p>
+<p>语义缓存用向量相似性发现可能等价的问题，它是可选优化，不是必须用向量库替代普通缓存。高相似度不能证明等价：“允许修改接口吗”和“不允许修改接口怎么办”词语接近，需求却不同。语义命中之后还需校验实体、约束、作用域、时间及答案所依赖的条件，无法确认就回源。</p>
+<p>稳定的公共 FAQ 可能适合答案缓存；依赖个人画像、实时库存或当前状态的答案通常更适合缓存可复用材料，再重新获取易变部分。即便只缓存文档 ID，也要处理文档已删除、版本被替换、父节点权限变化等情况。</p>
+<p>缓存上线除了看命中率，还要检查错误复用率、陈旧证据率、权限撤销后的失效时延和回源成本。高命中但频繁给错答案，没有业务价值。</p>
+<h2 id="用分层指标与失败样本推动优化">用分层指标与失败样本推动优化</h2>
+<p>离线样本应包含问题、授权范围、时间版本、标准证据集合、可接受替代证据及相关性等级。没有答案的问题也应纳入，防止系统总能找到相似文本却无法承认缺证据。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>主要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recall@K</td>
+<td>已标注相关证据中，前 K 个覆盖了多少</td>
+</tr>
+<tr>
+<td>Precision@K</td>
+<td>前 K 个结果中，相关证据占多少</td>
+</tr>
+<tr>
+<td>Hit Rate@K</td>
+<td>是否至少找到一条相关证据</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>第一条相关结果是否足够靠前</td>
+</tr>
+<tr>
+<td>NDCG</td>
+<td>不同相关等级的排序质量如何</td>
+</tr>
+<tr>
+<td>必需证据覆盖率</td>
+<td>完成当前判断的必要证据是否齐全</td>
+</tr>
+<tr>
+<td>重复率与 token</td>
+<td>是否用大量空间重复相同信息</td>
+</tr>
+<tr>
+<td>充分性误判率</td>
+<td>是否在缺证据时过早停止或反复追加</td>
+</tr>
+</tbody>
+</table></div>
+<p>例如一个纯教学样本需要 A、B、C 三份互补证据，前五个结果为 A、B 和三段无关内容。若相关证据集合恰为这三份，Recall@5 为 2/3、Precision@5 为 2/5，Hit Rate@5 已经命中，但完成结论所需的 C 仍然缺失。这个差异说明单一命中指标不适合替代复杂任务的证据充分性判断。相同测试还应包含 C 根本不存在或当前无权读取的变体，以检查系统是否能说明限制而不是补造证据。</p>
+<p>分块策略变化时，Chunk ID 与数量也变化。为公平比较，应将标注关联到原始事实或证据区间，再映射到各版 Chunk，不能直接用旧 Chunk ID 评估新切法。</p>
+<p>也可以定义“修正候选列表所需成本”，分别惩罚漏证据、噪声、错序和重复，但这属于自定义诊断指标。加入移动、合并及不同权重后，就不再是标准字符串编辑距离；应写明规则和可接受的等价顺序，不替代成熟指标。</p>
+<p>线上重问、纠错、追加检索和引用使用情况适合收集失败样本，不能直接当作答案正确的标签。回归时逐段定位 Query、路由、分块、召回、过滤、融合、重排、上下文和生成的变化。召回率提高而答案变差，可能是新加入的噪声或冲突证据影响了生成，继续扩大 Top-K 未必有效。</p>
+<p>保留固定基线与分类型测试集，每次只围绕明确问题调整策略，记录质量、延迟和成本的共同变化。最终应证明的是用户任务得到更可靠的完成，而不是链路里增加了更多检索组件。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

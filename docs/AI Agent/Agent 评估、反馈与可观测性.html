@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 评估、反馈与可观测性</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 8 分钟</p>
+<h1 id="agent-评估反馈与可观测性">Agent 评估、反馈与可观测性</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#从任务目标定义成功">从任务目标定义成功</a></li><li><a href="#离线评估建立可以反复运行的样本">离线评估：建立可以反复运行的样本</a></li><li><a href="#判断器分工规则模型和人工">判断器分工：规则、模型和人工</a></li><li><a href="#线上验证反馈与实验回答不同问题">线上验证：反馈与实验回答不同问题</a></li><li><a href="#可观测性让一次任务可以被重建">可观测性：让一次任务可以被重建</a></li><li><a href="#从检查点到根因验证">从检查点到根因验证</a></li><li><a href="#反馈回流与变更验证">反馈回流与变更验证</a></li></ol></details></nav>
+<p>一次工具调用返回成功，只能说明某个操作完成；任务是否完成，还取决于结果能否满足用户的目标与约束。评估负责判断结果，可观测性负责还原过程，反馈把发现的问题带回下一轮改进。三者需要使用同一套任务、状态和版本标识，才能形成可复查的闭环。</p>
+<h2 id="从任务目标定义成功">从任务目标定义成功</h2>
+<p>先写验收条件，再选择指标。例如，下面是一个<strong>教学场景</strong>：用户希望得到预算范围内、符合用途的电脑候选，并明确排除某类产品。验收至少要检查预算、排除条件、用途匹配和推荐理由的依据。商品接口返回 HTTP 200，不足以通过这些检查。</p>
+<p>把指标分成四组，可以减少单一分数掩盖问题的情况。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>指标组</th>
+<th>要回答的问题</th>
+<th>示例</th>
+<th>解释边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标指标</td>
+<td>用户得到可行动的结果了吗？</td>
+<td>合格候选完成率、任务完成率</td>
+<td>先明确成功标准和统计分母</td>
+</tr>
+<tr>
+<td>过程指标</td>
+<td>系统或用户是否向目标推进？</td>
+<td>查看候选、进入比较、补充条件</td>
+<td>点击或对话变长不自动等于满意</td>
+</tr>
+<tr>
+<td>护栏指标</td>
+<td>是否牺牲了其他重要条件？</td>
+<td>硬约束违反、错误操作、用户纠正</td>
+<td>可以拥有发布否决权，不能被平均分抵消</td>
+</tr>
+<tr>
+<td>工程指标</td>
+<td>完成任务的资源代价如何？</td>
+<td>P95 延迟、单任务成本、重试次数</td>
+<td>链路稳定不代表业务判断正确</td>
+</tr>
+</tbody>
+</table></div>
+<p>对话轮数必须结合任务解释：同样的追加交流，可能是需求逐渐清楚，也可能是用户反复纠错。类似地，较低的人工接管率也可能来自系统拒绝转人工。评价要同时看最终结果和用户是否仍能获得必要帮助。</p>
+<p>每个指标还需要一张口径卡：统计单位是任务、会话还是工具调用；分母是否包括取消和超时；观察窗口多久；按哪些场景分组。将“用户未反馈”标为未知，不应默认计入满意样本。</p>
+<h2 id="离线评估建立可以反复运行的样本">离线评估：建立可以反复运行的样本</h2>
+<p>样本可来自人工编写、模型辅助扩充和经过治理的线上案例。模型生成的样本需要检查标签与代表性；大量改写同一句话，不等于覆盖了更多失败机制。</p>
+<p>建议按问题类型分层：正常任务、模糊指代、缺失参数、多轮修改、互相冲突的约束、无答案、工具超时、数据过期和权限拒绝。除了典型成功路径，还应保留历史失败及其相邻边界条件。</p>
+<p>一条样本可以保存如下信息。字段和值仅用于说明结构，示例没有运行结果。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;case_id&quot;: &quot;budget-and-exclusion&quot;,
+  &quot;input&quot;: &quot;预算不能超过 8000，不要游戏本，主要剪视频&quot;,
+  &quot;fixtures&quot;: &quot;catalog-snapshot-v1&quot;,
+  &quot;expected_constraints&quot;: {
+    &quot;budget_max&quot;: 8000,
+    &quot;excluded_categories&quot;: [&quot;gaming_laptop&quot;]
+  },
+  &quot;must_not&quot;: [&quot;invent_price&quot;, &quot;ignore_exclusion&quot;],
+  &quot;review_axes&quot;: [&quot;constraint_satisfaction&quot;, &quot;evidence_support&quot;]
+}
+</code></pre>
+<p>版本对比要记录模型标识、提示词版本、检索索引与数据快照、工具行为和运行设置。依赖实时服务时，应说明可变因素；条件不一致的两次结果，只能算观察，不能直接归因于某个参数改动。</p>
+<p>将用于调试的样本与保留评估集分开。同一任务的多种改写尽量放在同一划分中，避免近重复样本让成绩显得过于乐观。随机性较强的任务可以重复运行并报告波动，不能只挑成功的一次。</p>
+<h2 id="判断器分工规则模型和人工">判断器分工：规则、模型和人工</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>适合检查</th>
+<th>需要防范的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>确定性规则</td>
+<td>JSON 格式、必填字段、数值上限、工具权限、已知业务不变量</td>
+<td>规则覆盖不完整，或上游数据本身不可信</td>
+</tr>
+<tr>
+<td>人工标注与专家审核</td>
+<td>业务适配、复杂边界、争议样本</td>
+<td>标准不一致，需要共同评分规范与复核</td>
+</tr>
+<tr>
+<td>LLM as Judge</td>
+<td>开放式回答的相关性、完整性和证据支撑</td>
+<td>位置、长度、措辞等偏差，以及错误自信</td>
+</tr>
+<tr>
+<td>Pairwise 比较</td>
+<td>在同一任务下比较两个候选结果</td>
+<td>结果先后顺序、评审偏好和任务分布影响</td>
+</tr>
+</tbody>
+</table></div>
+<p>能直接验证的事实不必全部交给模型。例如，价格上限应由字段和规则检查，而不是让 Judge 猜测是否超预算。开放式质量评价可以给 Judge 一份明确的评分规范，要求定位支持判断的证据，再用人工样本检查一致性与分歧。</p>
+<p>模型输出的分数不是天然校准的概率。评审结果与规则冲突时，应检查输入、标签和判断器；不能凭平均分把硬约束失败判成通过。对 A/B 两个答案做 Pairwise 评审时，可以随机交换展示顺序，并统计平局和分歧。</p>
+<p>用户隐式行为也不一定需要模型解释：重复条件、超时和业务状态变化可以先用规则识别，再对语义模糊部分抽样评审。任何解释都应保留替代原因，避免把推测直接写成用户意图。</p>
+<h2 id="线上验证反馈与实验回答不同问题">线上验证：反馈与实验回答不同问题</h2>
+<p>显式反馈包括评价、投诉和直接纠正；隐式信号包括改写问题、重新生成、中断和人工接管。它们适合发现异常，但受反馈人群和使用场景影响。只分析主动评价的人，会漏掉沉默离开的用户。</p>
+<p>A/B 实验比较不同分流策略下的结果，需要说明随机化单位、实验时段、样本覆盖和同一用户跨组污染的处理。提前确定目标及护栏，避免看到哪个指标上涨就改用哪个指标宣布成功。样本不足或变化不稳定时，应记录不确定性。</p>
+<p>多臂老虎机不只是同时运行更多版本，而是根据反馈在探索和利用之间调整分配。自适应分流会改变数据分布，需要相应的分析方法；早期项目先把固定分流、口径与回滚做清楚，通常更便于解释。</p>
+<h2 id="可观测性让一次任务可以被重建">可观测性：让一次任务可以被重建</h2>
+<p><a href="https://opentelemetry.io/docs/concepts/observability-primer/">OpenTelemetry 的可观测性说明</a>区分了指标、链路和日志的作用。用于 Agent 时，可在这套结构中增加计划、证据和业务状态记录。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>记录</th>
+<th>主要用途</th>
+<th>建议关联字段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metrics</td>
+<td>看整体趋势和场景差异</td>
+<td>场景、模型版本、工具类型、结果分类</td>
+</tr>
+<tr>
+<td>Trace / Span</td>
+<td>看一次任务及其操作关系</td>
+<td>task_id、trace_id、step_id、父子或因果关联</td>
+</tr>
+<tr>
+<td>Log / Event</td>
+<td>看关键变化和错误详情</td>
+<td>时间、状态版本、错误类别、证据引用</td>
+</tr>
+</tbody>
+</table></div>
+<p>一次模型调用或工具执行可以各有 Span。记录请求、计划版本、实际装载的上下文引用、候选动作、最终动作、参数校验、工具结果、证据与状态变更，才能追踪关键条件怎样传播。</p>
+<p>这里的“决策记录”指可观察的输入、动作、证据及简短决策摘要，<strong>不等于模型内部思维过程的忠实记录</strong>。用模型事后生成一段解释，不能证明它当时确实依据那段解释行动。</p>
+<p>敏感内容应脱敏，完整输入和工具结果采用必要的抽样、保留期与访问限制；日常指标可以只保存结构化分类和引用。日志中的错误文本也不能默认安全，要避免将凭据和私人材料写入长期日志。</p>
+<p>诊断日志的抽样不应删去任务恢复必需的状态、事件和外部操作回执。这些记录属于运行时的持久化契约，应按恢复和审计需求完整保存所需字段，再分别设置访问权限与保留规则。</p>
+<h3 id="一条错误传播链">一条错误传播链</h3>
+<p>以下为教学模拟，用来说明排查方法，不是已发生的生产事故。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">S1 用户输入：不能超过 8000；不要游戏本
+S2 结构化约束：budget_max=8000；excluded=gaming_laptop
+S3 摘要压缩：预算约 8000；偏好高性能（硬约束被弱化）
+S4 工具参数：price_max 缺失；排除品类缺失
+S5 工具返回：成功，但候选商品超预算
+S6 最终回答：推荐违规商品
+</code></pre>
+<p>先检查 S2 的原始证据和校验，再检查 S3 的状态变化。S4 是下游错误，工具成功只是运行状态。修复重点是独立保存结构化硬约束、在参数构建和输出阶段校验，并验证这些改动是否阻断了错误传播。</p>
+<h2 id="从检查点到根因验证">从检查点到根因验证</h2>
+<p>检查点应记录产物版本、证据、校验规则与结果。沿着依赖关系找到最后可信与最先不可信的状态，可以缩小排查范围；但检查点本身可能漏检，不能把一个 <code>success=true</code> 当成绝对可信的证明。</p>
+<p>“二分排查”只是有条件的排查策略。并行分支、状态覆盖和多处错误可能破坏简单的先后关系；此时应沿数据依赖追踪，并优先检查压缩、重规划、外部工具和关键状态重写节点，不能保证总能以对数次数找到根因。</p>
+<p>确认原因还需要对照：固定其他主要因素，只修复怀疑的状态传播点，在可复现样本上运行；如果错误仍在，就保留新的证据并检查其他原因。修复最后的表面错误，往往不够。</p>
+<h2 id="反馈回流与变更验证">反馈回流与变更验证</h2>
+<p>可以将闭环整理成一条操作流程：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">异常信号 → 脱敏快照 → 复核与去重 → 归因和修复候选
+      → 新增回归样本 → 离线对照 → 受控验证 → 放量或回滚
+</code></pre>
+<p>Evaluation Agent 可以聚合样本、提出原因和生成候选改动。它的输出仍是待验证材料，不能因为同一个 Judge 给出高分就自动替换线上策略。权限、外部副作用和关键规则的改变，应走对应系统的授权及发布流程。</p>
+<p>最小验证包应包含：明确的成功口径、一组可重复样本、一条完整执行记录、一个真实失败或注明模拟的反例，以及同条件的版本对照。没有真实运行数据时，写清“验证方案”，不填入想象的提升百分比。</p>
+<p>继续阅读：<a href="Agent%20%E5%8A%A8%E6%80%81%E9%87%8D%E8%A7%84%E5%88%92%E4%B8%8E%E9%95%BF%E4%BB%BB%E5%8A%A1%E6%81%A2%E5%A4%8D.html">动态重规划与长任务恢复</a>、<a href="Agent%20%E9%A1%B9%E7%9B%AE%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E8%B7%B5%E8%AE%B0%E5%BD%95.html">项目设计与实践记录</a>。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

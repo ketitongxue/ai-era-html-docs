@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 系统设计面试题与项目表达</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 17 分钟</p>
+<h1 id="agent-系统设计面试题与项目表达">Agent 系统设计面试题与项目表达</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#一意图识别与输入理解">一、意图识别与输入理解</a></li><li><a href="#二规划执行与恢复">二、规划、执行与恢复</a></li><li><a href="#三上下文画像与长任务">三、上下文、画像与长任务</a></li><li><a href="#四检索与证据组织">四、检索与证据组织</a></li><li><a href="#五评估反馈与可观测性">五、评估、反馈与可观测性</a></li><li><a href="#六综合项目设计">六、综合项目设计</a></li><li><a href="#七简历与项目表达">七、简历与项目表达</a></li><li><a href="#对应技术详解">对应技术详解</a></li></ol></details></nav>
+<p>这组问题按设计主题合并，适合自检和模拟追问。回答时先说明业务目标，再解释机制、取舍和失败边界，最后拿出可核验材料。下文提供回答骨架，不代表任何项目已经实现；教学场景不能写成本人经历，未经测量的效果只能作为待验证假设。</p>
+<h2 id="一意图识别与输入理解">一、意图识别与输入理解</h2>
+<h3 id="01意图识别应输出什么为什么不直接进入-react">01｜意图识别应输出什么，为什么不直接进入 ReAct？</h3>
+<p><strong>要点</strong>：意图用于选择处理路径，还需输出槽位、约束、缺失信息和证据。前置识别有利于选择规则、工具和上下文；运行中仍应允许纠正，并非所有系统都要独立分类器。意图判断不代替授权。</p>
+<p><strong>证据</strong>：一条输入到路由的记录及输出 Schema。<strong>追问</strong>：前置识别错了，后续怎样纠偏？</p>
+<h3 id="02第二条不错但有点贵怎样规范化">02｜“第二条不错，但有点贵”怎样规范化？</h3>
+<p><strong>要点</strong>：用上一轮列表确认指代，保留原句与实体来源；“贵”是相对偏好，不能擅自推成预算上限。术语、缺省和模糊形容词可以归一，但推断必须与确认事实分开。</p>
+<p><strong>证据</strong>：原句、规范化结果、证据与待确认项。<strong>追问</strong>：跨几天的指代或多个候选对象怎样处理？</p>
+<h3 id="03识别出-intent为什么还不能执行">03｜识别出 intent，为什么还不能执行？</h3>
+<p><strong>要点</strong>：Slot Filling 补齐该流程必需参数，区分必填、可选、默认值与缺失项。硬约束决定能否执行，软偏好影响排序。历史画像可提供候选值，不自动成为本次事实。</p>
+<p><strong>证据</strong>：槽位定义、参数校验与缺参分支。<strong>追问</strong>：何时追问，何时可披露假设后继续？</p>
+<h3 id="04意图很多边界重叠时怎样设计">04｜意图很多、边界重叠时怎样设计？</h3>
+<p><strong>要点</strong>：先明确业务流程边界，再使用层次分类或候选召回缩小范围。每类提供适用条件、排除项和正反例；新增需求可能只是槽位或子任务，不必都变成新意图。</p>
+<p><strong>证据</strong>：标签版本、混淆矩阵及新增类别后的回归结果。<strong>追问</strong>：召回阶段漏掉正确意图怎么办？</p>
+<h3 id="05规则小模型大模型如何分工">05｜规则、小模型、大模型如何分工？</h3>
+<p><strong>要点</strong>：确定规则由代码处理，常见表达可用轻量模型，复杂歧义按需升级。分层是一种成本与质量取舍。模型自报 confidence 不是已校准概率，路由还要考虑候选差距、槽位、证据和错误代价。</p>
+<p><strong>证据</strong>：分层覆盖率、错误率、时延与阈值验证。<strong>追问</strong>：多层结果冲突时谁仲裁？</p>
+<h3 id="06拒识与澄清有什么区别">06｜拒识与澄清有什么区别？</h3>
+<p><strong>要点</strong>：不支持的需求进入拒识或转交；支持但含糊的需求进入澄清。询问应针对会改变处理路径的信息，避免重复追问。误拒会损失可服务请求，漏拒可能触发错误动作。</p>
+<p><strong>证据</strong>：拒识样本、澄清前后状态与收敛口径。<strong>追问</strong>：用户不愿补充，如何降级或停止？</p>
+<h3 id="07多意图和用户中途改口如何处理">07｜多意图和用户中途改口如何处理？</h3>
+<p><strong>要点</strong>：能独立触发流程的目标才拆为独立意图；流程内比较、筛选通常是子任务。维护目标与约束版本，识别延续、修改、切换和取消，再让执行层处理依赖和失效结果。</p>
+<p><strong>证据</strong>：多轮状态转换与旧状态失效记录。<strong>追问</strong>：新目标怎样中止尚在执行的旧动作？</p>
+<h3 id="08准确率下降怎样定位和验证优化">08｜准确率下降，怎样定位和验证优化？</h3>
+<p><strong>要点</strong>：按候选漏召回、标签混淆、口语表达、槽位缺失、状态污染分组排查，再选择标签修订、动态示例或微调。同时检查 Top1、候选覆盖、槽位精确与完整程度、拒识和澄清，不能只看总体均值。</p>
+<p><strong>证据</strong>：固定测试集、分类别结果与失败回流记录。<strong>追问</strong>：动态 few-shot 是否泄漏测试答案？</p>
+<h2 id="二规划执行与恢复">二、规划、执行与恢复</h2>
+<h3 id="09plan-为什么不只是步骤列表">09｜Plan 为什么不只是步骤列表？</h3>
+<p><strong>要点</strong>：计划需携带成功标准、事实与缺口、候选路径、检查点和纠偏策略。G4C 是组织这五类信息的一种方案清单，不是行业统一协议；简单任务可以无需显式计划。</p>
+<p><strong>证据</strong>：计划对象及执行前校验结果。<strong>追问</strong>：步骤全部结束，怎样确认用户目标也完成？</p>
+<h3 id="10checkpoint-放在哪里才有价值">10｜Checkpoint 放在哪里才有价值？</h3>
+<p><strong>要点</strong>：优先检查关键中间产物、状态重写和高代价动作边界。保存待检条件、使用证据及结果；“调用成功”不足以证明业务正确，也不必每一步都调用模型检查。</p>
+<p><strong>证据</strong>：漏检、误报与检查成本的对照。<strong>追问</strong>：后来证据推翻已通过的检查，如何处理？</p>
+<h3 id="11dag-plan-如何调度与传播失败">11｜DAG Plan 如何调度与传播失败？</h3>
+<p><strong>要点</strong>：节点记录输入输出、依赖、状态和验收条件；建图时检查循环依赖，依赖满足后才调度。失败影响沿依赖边传播，独立且仍可信的结果可以复用。只有存在分支依赖时才值得增加图调度复杂度。</p>
+<p><strong>证据</strong>：依赖图、环检测与后代失效案例。<strong>追问</strong>：某个节点重跑会不会重复产生副作用？</p>
+<h3 id="12retryclarifyreplan-怎样区分">12｜Retry、Clarify、Replan 怎样区分？</h3>
+<p><strong>要点</strong>：瞬时故障且路径仍成立时限次重试；缺关键信息时澄清；假设或路径失效时重规划。先判断是否重规划，再生成替代方案，并控制局部、阶段或全局范围。</p>
+<p><strong>证据</strong>：触发条件、恢复率与振荡记录。<strong>追问</strong>：怎样防止在相似计划之间反复切换？</p>
+<h3 id="13失败点根因点回滚点和重规划起点有什么区别">13｜失败点、根因点、回滚点和重规划起点有什么区别？</h3>
+<p><strong>要点</strong>：分别对应错误显现、最早失信来源、可恢复的可信状态、重新作决策的位置。例如错误类目画像导致推荐失配，应失效相关候选与排序，同时保留不依赖该偏好的事实。</p>
+<p><strong>证据</strong>：依赖记录、可信快照与局部重跑结果。<strong>追问</strong>：根因早于本轮对话怎么办？</p>
+<h3 id="14tcc-式-replan-是什么何时会过度设计">14｜TCC 式 Replan 是什么，何时会过度设计？</h3>
+<p><strong>要点</strong>：可借 Try、Confirm、Cancel 思路预检脆弱依赖、确认路径、清理临时状态；它不保证任意工具都能回滚。只读低风险任务常只需轻量预检，有副作用时才讨论预留、幂等与补偿。</p>
+<p><strong>证据</strong>：试探范围、取消语义与补偿测试。<strong>追问</strong>：Try 失败后扩大回溯还是停止？</p>
+<h3 id="15reacttao-怎样成为实际运行循环">15｜ReAct/TAO 怎样成为实际运行循环？</h3>
+<p><strong>要点</strong>：ReAct 交替推进推理与动作；TAO 用判断、动作、观察描述循环。维护目标、事实和预算，执行后更新状态，再决定继续、完成或恢复。工具空结果不等于没有事实。记录简短决策依据即可，不要求暴露模型内部思维链。</p>
+<p><strong>证据</strong>：状态转换、工具次数和停止记录。<strong>追问</strong>：没有新信息但仍循环时，谁负责终止？</p>
+<h3 id="16actiontoolskill-可以混用吗">16｜Action、Tool、Skill 可以混用吗？</h3>
+<p><strong>要点</strong>：应先约定术语。Action 可代表完整业务动作，内部可组合工具或子 Agent；Tool 是调用能力，Skill 常承载知识与操作流程。注册表按稳定名称定位实现，接口说明用途、参数、前置条件、结果和副作用，粒度取决于可验证边界。</p>
+<p><strong>证据</strong>：接口契约与正常、异常返回。<strong>追问</strong>：动作太粗或太细分别增加什么成本？</p>
+<h3 id="17几百个工具怎样筛选并证明选得对">17｜几百个工具怎样筛选，并证明选得对？</h3>
+<p><strong>要点</strong>：先按意图、步骤、权限和前置条件过滤，再用标签或检索形成候选，模型在候选内选择；执行前代码复验。多个动作可能同样合理，评测宜标注可接受集合，兼看任务推进与最终成功。</p>
+<p><strong>证据</strong>：候选漏召回、可接受集命中与越权拦截记录。<strong>追问</strong>：先补信息的动作为何可能优于直接执行？</p>
+<h3 id="18任务中断后怎样安全恢复">18｜任务中断后怎样安全恢复？</h3>
+<p><strong>要点</strong>：持久化目标版本、步骤状态、工具调用标识、结果与检查点。恢复前核查证据时效及权限；外部调用结果未知时先查状态，避免盲目重试。敏感操作需要明确授权、审计和幂等边界。</p>
+<p><strong>证据</strong>：故障注入、重启回放与重复执行检查。<strong>追问</strong>：外部成功但本地未记账如何协调？</p>
+<h2 id="三上下文画像与长任务">三、上下文、画像与长任务</h2>
+<h3 id="19contextprompt窗口与-memory-怎么区分">19｜Context、Prompt、窗口与 Memory 怎么区分？</h3>
+<p><strong>要点</strong>：项目可把可用信息集合称为 Context，把模型本轮实际接收的信息视为工作集；窗口还受模型容量限制。Prompt 中有指令也有材料，Memory 强调跨轮或跨任务保留。数据库有记录不等于模型已经看见。</p>
+<p><strong>证据</strong>：存储记录到一次实际请求的映射。<strong>追问</strong>：扩大窗口为什么仍不能代替筛选？</p>
+<h3 id="20统一-context-item-应记录哪些信息">20｜统一 Context Item 应记录哪些信息？</h3>
+<p><strong>要点</strong>：记录来源、作用域、版本、有效期、证据、优先级和 Token 成本。authority 表示来源在该领域的效力，confidence 表示判断可信程度；二者不等价。按生命周期选择存储，不要求所有内容进入同一数据库。</p>
+<p><strong>证据</strong>：一条信息的创建、更新、引用与过期轨迹。<strong>追问</strong>：怎样避免跨任务污染和缓存旧版本？</p>
+<h3 id="21动态组窗怎样落地">21｜动态组窗怎样落地？</h3>
+<p><strong>要点</strong>：由当前意图与步骤生成信息需求，依次召回候选、选择、压缩、排序和注入。先预留输出、工具交互与缓冲空间，再分配历史和示例预算；召回相关不等于值得进入窗口。</p>
+<p><strong>证据</strong>：不同步骤的装载差异、预算与遗漏检查。<strong>追问</strong>：风险、可恢复性怎样改变信息优先级？</p>
+<h3 id="22压缩与排序怎样兼顾质量和成本">22｜压缩与排序怎样兼顾质量和成本？</h3>
+<p><strong>要点</strong>：当前目标、硬约束、确认与否定事实单独维护；普通历史可摘要，大结果可提字段或留索引。稳定前缀有利于缓存，但具体顺序仍需实验；不能为了缓存命中改坏业务约束。</p>
+<p><strong>证据</strong>：压缩前后约束保留、成功率、Token 与时延。<strong>追问</strong>：成本下降而任务失败增加，如何定位？</p>
+<h3 id="23摘要丢了细节怎样找回来">23｜摘要丢了细节怎样找回来？</h3>
+<p><strong>要点</strong>：原始记录与索引独立保留，摘要标明实体、时间、版本和来源。按当前证据缺口组合精确查询、关键词和向量召回；只补影响决策的内容，并设置迭代与成本上限。</p>
+<p><strong>证据</strong>：只有摘要时失败、召回后恢复的用例。<strong>追问</strong>：怎样区分文本相似与真正有效的细节？</p>
+<h3 id="24新输入旧画像摘要和原文冲突怎么办">24｜新输入、旧画像、摘要和原文冲突怎么办？</h3>
+<p><strong>要点</strong>：先检查是否属于相同实体、任务和时间范围，再比较来源与证据。用户当前偏好可覆盖旧偏好，但不能改写权威业务记录或系统权限；裁决保留历史版本，不能机械采用“最新优先”。</p>
+<p><strong>证据</strong>：冲突样本、裁决理由与状态变化。<strong>追问</strong>：尚无法确定真伪时如何澄清或并列保留？</p>
+<h3 id="25怎样判断偏好稳定并让画像参与决策">25｜怎样判断偏好稳定，并让画像参与决策？</h3>
+<p><strong>要点</strong>：当前要求即时生效，长期画像依据重复、持续、跨场景或明确确认等证据判断；不要求四项同时满足。4C 是这四方面的一种自定义清单。实时更新可配合离线归纳；画像按业务域加载，可影响理解、排序和表达，并支持衰减、纠正与过期。</p>
+<p><strong>证据</strong>：候选到长期画像的证据与用户纠错记录。<strong>追问</strong>：画像命中更多但纠错也更多说明什么？</p>
+<h3 id="26长任务漂移怎么发现和恢复">26｜长任务漂移怎么发现和恢复？</h3>
+<p><strong>要点</strong>：区分目标、约束、状态、证据和细节漂移。关键节点留快照，由校验器依据独立规则或证据检查不变量。发现污染后沿依赖失效结果，只恢复受影响部分；运行事件有助于重建状态。</p>
+<p><strong>证据</strong>：污染注入、发现时延、误报漏报及恢复结果。<strong>追问</strong>：校验器为何不会重复主 Agent 的错误？</p>
+<h2 id="四检索与证据组织">四、检索与证据组织</h2>
+<h3 id="27agent-检索为什么不限于向量-rag">27｜Agent 检索为什么不限于向量 RAG？</h3>
+<p><strong>要点</strong>：先从需要作出的判断反推证据缺口，再选择知识库、业务 API、日志、历史对话等来源。稳定文档和实时状态的权威来源不同；简单任务的一次检索足够时，无需自主循环。</p>
+<p><strong>证据</strong>：已知事实、缺失证据和来源对应表。<strong>追问</strong>：历史相似故障能否证明当前根因？</p>
+<h3 id="28数据源太多怎样路由">28｜数据源太多怎样路由？</h3>
+<p><strong>要点</strong>：为来源记录用途、字段、权限、时效和不适用场景，形成索引目录；目录太大时先检索目录再检索数据。信息有明确权威接口时直接绑定，存在多种路径时才动态选择。</p>
+<p><strong>证据</strong>：路由结果与真正取得证据的记录。<strong>追问</strong>：检索不到与没有查询权限如何区分？</p>
+<h3 id="29查询改写拆解与-hyde-如何使用">29｜查询改写、拆解与 HyDE 如何使用？</h3>
+<p><strong>要点</strong>：补全有证据的实体和指代，保留时间、版本与硬约束。只为真实缺口拆分问题；HyDE 生成假设性文本辅助召回，其内容不能作为事实。改写不得偷偷增加结论或范围。</p>
+<p><strong>证据</strong>：原问题、改写查询与证据覆盖对照。<strong>追问</strong>：错误假设是否让召回偏向单一解释？</p>
+<h3 id="30chunk-大小怎么确定特殊文档怎么办">30｜Chunk 大小怎么确定，特殊文档怎么办？</h3>
+<p><strong>要点</strong>：从最小完整知识单元出发，结构切分、语义切分与长度兜底结合。表格保留表头，列表保留层级，代码保留符号边界；图片留描述与原图，扫描件做识别，双栏材料校验阅读顺序。</p>
+<p><strong>证据</strong>：解析样本与不同大小、重叠和 TopK 的对照。<strong>追问</strong>：召回变准但答案缺上下文怎么办？</p>
+<h3 id="31父子文档是否解决了粒度问题">31｜父子文档是否解决了粒度问题？</h3>
+<p><strong>要点</strong>：子块用于定位，父块补充完整语境，但父子大小仍须验证。按问题粒度逐步扩层；同父命中要去重。可聚合子块排名形成父级排序，同时检查长父文档因子块更多而获得不公平优势。</p>
+<p><strong>证据</strong>：扩层前后完整性、重复率与成本。<strong>追问</strong>：事实题与总结题是否使用相同层级？</p>
+<h3 id="32多路召回如何过滤融合与重排">32｜多路召回如何过滤、融合与重排？</h3>
+<p><strong>要点</strong>：统一结果标识与来源，权限、租户等条件做硬过滤，再去重融合。原始分数不可比时可用 RRF 排名融合；重排补充相关性、直接性、时效和新增信息。各通道候选数、权重不必相同。</p>
+<p><strong>证据</strong>：过滤、融合、重排各阶段的候选变化。<strong>追问</strong>：如何避免多路结果只是重复同一证据？</p>
+<h3 id="33迭代检索怎样继续又怎样停止">33｜迭代检索怎样继续，又怎样停止？</h3>
+<p><strong>要点</strong>：每轮检查必需证据、冲突和限制，下一轮只补缺口，可改查询或数据源。证据充分则停止；持续无新增、来源穷尽或预算耗尽则澄清、降级或返回未决项。最小范围必须以足够支撑判断为前提。</p>
+<p><strong>证据</strong>：逐轮新增证据与停止原因。<strong>追问</strong>：相关结果很多，为什么仍可能证据不足？</p>
+<h3 id="34复杂检索如何控制长尾和成本">34｜复杂检索如何控制长尾和成本？</h3>
+<p><strong>要点</strong>：设置端到端时间、轮次、查询、候选、重排与 Token 预算；独立来源并行，慢源限时。缓存键考虑权限、租户和数据版本；答案缓存比结果缓存更需谨慎。超时只能说明证据缺失。</p>
+<p><strong>证据</strong>：P95/P99、单位成功任务成本与降级记录。<strong>追问</strong>：向量库快了一倍，为何总延迟没明显改善？</p>
+<h3 id="35检索优化应看什么指标">35｜检索优化应看什么指标？</h3>
+<p><strong>要点</strong>：检查 Recall@K、Precision@K、MRR、NDCG，也检查必需证据覆盖、重复率和最终答案正确性。复杂判断可能需要一组证据；自定义指标要说明规则，不能代替人工校准和标准指标。</p>
+<p><strong>证据</strong>：相关性标注、固定基线及按环节归因的失败样本。<strong>追问</strong>：如何区分查询、切块、召回和生成的问题？</p>
+<h2 id="五评估反馈与可观测性">五、评估、反馈与可观测性</h2>
+<h3 id="36怎样定义优化有效">36｜怎样定义“优化有效”？</h3>
+<p><strong>要点</strong>：从用户目标定义成功，再拆目标、过程和护栏指标。点击、轮数和接口成功只是部分信号；陪伴场景与客服场景对轮数的解释可能相反。目标改善不能掩盖约束违规、成本或风险恶化。</p>
+<p><strong>证据</strong>：指标口径、基线、统计窗口与护栏判定。<strong>追问</strong>：系统会不会通过拖长对话刷指标？</p>
+<h3 id="37显式与隐式反馈能说明什么">37｜显式与隐式反馈能说明什么？</h3>
+<p><strong>要点</strong>：点赞、点踩和纠正较直接但有选择偏差；重生成、改写、中断可能有多种解释。结合任务状态与多个信号形成待分析样本，不能把没有点踩当满意，或把行为信号直接当真值。</p>
+<p><strong>证据</strong>：信号定义、抽检与替代解释。<strong>追问</strong>：用户重复条件是强调偏好还是指出系统遗漏？</p>
+<h3 id="38离线测评ab-与多臂老虎机怎样选择">38｜离线测评、A/B 与多臂老虎机怎样选择？</h3>
+<p><strong>要点</strong>：固定样本做回归，专家校准语义规则，线上随机对照检验实际变化。Pairwise 适合相对比较。多臂老虎机关注探索与收益分配，不是仅增加几个实验组；动态分流需要相应统计设计。</p>
+<p><strong>证据</strong>：分流单位、样本量、时间与干扰控制。<strong>追问</strong>：低流量或延迟反馈下，实验是否足以得出结论？</p>
+<h3 id="39测评集怎样持续演进">39｜测评集怎样持续演进？</h3>
+<p><strong>要点</strong>：从人工核心样本起步，补充经审核的生成样本和线上失败案例，覆盖正常、边界、歧义、拒识与组合约束。区分开发集和保留集，管理标签及版本，避免只适配已知句式。</p>
+<p><strong>证据</strong>：样本来源、标注分歧、去重与版本记录。<strong>追问</strong>：新增意图后如何迁移旧样本，而不丢回归能力？</p>
+<h3 id="40llm-as-judge-为什么不能当真值">40｜LLM as Judge 为什么不能当真值？</h3>
+<p><strong>要点</strong>：评价模型可能偏好风格、位置或同源答案。明确评分规程，用人工样本校准，必要时交换答案位置检查一致性。能由代码验证的硬条件独立检查，语义高分不能覆盖违规事实。</p>
+<p><strong>证据</strong>：人工一致率、分歧案例与稳定性。<strong>追问</strong>：Judge 分数上升但任务成功不变怎样解释？</p>
+<h3 id="41一条可诊断的-agent-trace-应记录什么">41｜一条可诊断的 Agent Trace 应记录什么？</h3>
+<p><strong>要点</strong>：除调用状态、耗时和 Token，还需输入理解、实际上下文版本、约束、选动作依据、参数、结果证据及状态变化。步骤、工具和模型调用可各建 span；区分首 Token 与总耗时，敏感记录按需脱敏、限权和留存。</p>
+<p><strong>证据</strong>：可还原决策条件的脱敏轨迹。<strong>追问</strong>：为什么 HTTP 200 不能证明推荐正确？</p>
+<h3 id="42怎样从失败结果找到真正根因">42｜怎样从失败结果找到真正根因？</h3>
+<p><strong>要点</strong>：先确定最后可信与首个不可信检查点，优先查看压缩、重规划和状态重写等高价值节点，再反向追踪依赖；不是机械按步骤编号二分。通过仅修改可疑因素的重放检验解释。</p>
+<p><strong>证据</strong>：首错位置、污染范围与反事实对照。<strong>追问</strong>：硬预算被摘要改成约数后，应修最终措辞还是状态链？</p>
+<h3 id="43evaluation-agent-能自动改进到什么程度">43｜Evaluation Agent 能自动改进到什么程度？</h3>
+<p><strong>要点</strong>：可自动聚合异常、提出归因与候选变更；变更仍需固定回归、校准、灰度、护栏和回滚。工具权限与高风险操作等重大策略保留相应审批。错误评价目标会让自动优化放大问题。</p>
+<p><strong>证据</strong>：变更版本、验收记录和回滚演练。<strong>追问</strong>：局部指标变好而整体能力退步如何阻断发布？</p>
+<h2 id="六综合项目设计">六、综合项目设计</h2>
+<h3 id="44怎样解释-workflow单-agent-和多-agent-的选择">44｜怎样解释 Workflow、单 Agent 和多 Agent 的选择？</h3>
+<p><strong>要点</strong>：稳定、可枚举的步骤优先代码编排；运行时语义决策才需要模型参与。多 Agent 要对应职责、上下文隔离或独立协作需求，并承担通信、状态和评估成本。复杂名称不构成选型理由。</p>
+<p><strong>证据</strong>：替代方案与最小可用版本对照。<strong>追问</strong>：去掉一个 Agent，能力究竟损失在哪里？</p>
+<h3 id="45怎样用一个业务主线串起整套设计">45｜怎样用一个业务主线串起整套设计？</h3>
+<p><strong>要点</strong>：选本人真实做过的输入，讲正常路径、多轮变化与一次失败恢复，贯穿信息缺口、工具选择和证据。练习时可用“推荐商品后用户改预算”的假想场景，但必须标清模拟，不能虚构工具规模。</p>
+<p><strong>证据</strong>：一条可回放案例和关键分支。<strong>追问</strong>：第二轮复用了什么，又让什么结果失效？</p>
+<h2 id="七简历与项目表达">七、简历与项目表达</h2>
+<h3 id="46项目介绍怎样简洁且有信息量">46｜项目介绍怎样简洁且有信息量？</h3>
+<p><strong>要点</strong>：按业务对象、目标、难点、方案和结果组织；名称写清场景与核心能力。主答案只选真正解决问题的少量机制。技术栈按职责归类，写出的关键词应能解释选择理由和实现边界。</p>
+<p><strong>证据</strong>：项目简介与对应模块材料。<strong>追问</strong>：不用某个框架时，这个工程问题是否仍然存在？</p>
+<h3 id="47没有可信提升数字怎样写贡献">47｜没有可信提升数字，怎样写贡献？</h3>
+<p><strong>要点</strong>：按“问题—机制—验证结论”描述；可以说明已通过的边界案例、覆盖范围和尚未验证部分，不填想象的百分比。有数字时交代样本、分母、周期、基线，以及相对提升和百分点的区别。</p>
+<p><strong>证据</strong>：实验记录或明确标注的验证计划。<strong>追问</strong>：结果可否复现，是否同时比较质量、延迟和成本？</p>
+<h3 id="48怎样讲方案演进和个人职责">48｜怎样讲方案演进和个人职责？</h3>
+<p><strong>要点</strong>：说明旧版问题、本次修改、真实结果与后续计划，区分已实现和拟开展。只认领参与的模块；管理贡献落到任务拆解、接口契约、评审、里程碑和验收，不把团队成果全部归于个人。</p>
+<p><strong>证据</strong>：设计记录、变更、评审与交付材料。<strong>追问</strong>：哪项判断由你作出，替代方案为什么没有采用？</p>
+<h2 id="对应技术详解">对应技术详解</h2>
+<p>需要展开某个答案时，可以阅读<a href="Agent%20%E8%BE%93%E5%85%A5%E7%90%86%E8%A7%A3%E4%B8%8E%E6%84%8F%E5%9B%BE%E8%AF%86%E5%88%AB.html">意图识别</a>、<a href="Agent%20%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.html">任务规划</a>、<a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行与工具</a>、<a href="Agent%20%E5%8A%A8%E6%80%81%E9%87%8D%E8%A7%84%E5%88%92%E4%B8%8E%E9%95%BF%E4%BB%BB%E5%8A%A1%E6%81%A2%E5%A4%8D.html">重规划与恢复</a>、<a href="Agent%20%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E6%8E%92%E4%B8%8E%E8%AE%B0%E5%BF%86%E5%8F%AC%E5%9B%9E.html">上下文</a>、<a href="Agent%20%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E5%BB%BA%E6%A8%A1%E4%B8%8E%E6%9B%B4%E6%96%B0.html">画像更新</a>、<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计</a>、<a href="Agent%20%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%EF%BC%9A%E5%8F%AC%E5%9B%9E%E8%B4%A8%E9%87%8F%E3%80%81%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BC%93%E5%AD%98.html">检索优化</a>、<a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">评估与可观测性</a>和<a href="Agent%20%E9%A1%B9%E7%9B%AE%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E8%B7%B5%E8%AE%B0%E5%BD%95.html">项目实践记录</a>。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

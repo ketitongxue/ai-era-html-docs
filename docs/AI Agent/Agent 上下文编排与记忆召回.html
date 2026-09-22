@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 上下文编排与记忆召回</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 10 分钟</p>
+<h1 id="agent-上下文编排与记忆召回">Agent 上下文编排与记忆召回</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#先区分信息空间工作集和窗口容量">先区分信息空间、工作集和窗口容量</a></li><li><a href="#用统一元数据治理信息而非统一存储所有数据">用统一元数据治理信息，而非统一存储所有数据</a></li><li><a href="#每次调用前先写清楚这一步需要什么">每次调用前，先写清楚“这一步需要什么”</a></li><li><a href="#预算不足时降粒度要有顺序">预算不足时，降粒度要有顺序</a></li><li><a href="#近期原文关键事实和摘要分别承担什么">近期原文、关键事实和摘要分别承担什么</a></li><li><a href="#细节召回围绕缺口运行">细节召回围绕缺口运行</a></li><li><a href="#一个完整的运行示例与验证方法">一个完整的运行示例与验证方法</a></li></ol></details></nav>
+<p>Agent 在长对话中出错，经常并非因为某一句回答难度很高，而是因为模型没有看到当前有效的信息：把旧方案当成最新版、忘记用户否定过的内容，或把工具结果里的临时状态当成长期事实。上下文管理要解决的，就是让每次模型调用获得足以完成当前判断、又不会被无关内容淹没的输入。</p>
+<p>这需要把信息的保存、选择、压缩和召回连成一条链。单纯增加聊天记录的保留轮数，只能缓解近期遗忘，不能解释哪些内容必须一直有效。</p>
+<h2 id="先区分信息空间工作集和窗口容量">先区分信息空间、工作集和窗口容量</h2>
+<p>为了讨论工程设计，可以把 Agent 按当前权限可访问、可按需获取的用户输入、任务状态、历史记录、知识和工具结果统称为信息空间。<strong>本次输入工作集</strong>是从中选出、经过组织后真正交给模型的内容；<strong>上下文窗口容量</strong>则是模型支持的 token 容量限制。不同 API 对输入、输出及推理 token 的计量方式可能不同，编排器必须遵守实际接口约束。</p>
+<p>因此，比“窗口等于上下文的函数”更准确的工程表达是：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">本次输入工作集 = 编排(可访问的信息, 当前步骤, 任务状态, 可用预算)
+输入工作集 + 按接口要求预留的输出等开销 ≤ 模型容量限制
+</code></pre>
+<p>Memory 通常强调信息如何跨调用、跨会话保留并影响后续行为，例如会话状态、经历记录或稳定偏好。它是上下文工程的一部分，却不能简单等同于全部 Context，也不必绑定向量数据库。数据库保存了完整历史，不代表模型已经看见；把摘要放进输入，也不代表它就是正确的长期记忆。</p>
+<h2 id="用统一元数据治理信息而非统一存储所有数据">用统一元数据治理信息，而非统一存储所有数据</h2>
+<p>上下文可以按生命周期分为当前调用、会话、跨会话和归档；按形态分为原文、结构化事实、摘要和索引；按使用频率区分冷热。这些是可叠加的组织维度。例如，“用户禁止修改公开接口”可以同时是任务级、结构化、高优先级信息。</p>
+<p>统一的 Context Item 应描述信息是什么、从哪来、在哪里有效，以及怎样回到证据。下面是教学结构，字段可以按业务裁剪：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;id&quot;: &quot;constraint-api-01&quot;,
+  &quot;kind&quot;: &quot;constraint&quot;,
+  &quot;content&quot;: &quot;本次优化不得改变公开接口签名&quot;,
+  &quot;source_type&quot;: &quot;user_explicit&quot;,
+  &quot;source_ref&quot;: &quot;conversation-7/message-18&quot;,
+  &quot;scope&quot;: {&quot;task_id&quot;: &quot;task-9&quot;, &quot;project_id&quot;: &quot;project-a&quot;},
+  &quot;status&quot;: &quot;confirmed&quot;,
+  &quot;version&quot;: 2,
+  &quot;supersedes&quot;: &quot;constraint-api-01:v1&quot;,
+  &quot;valid_until&quot;: &quot;task_end&quot;,
+  &quot;representation&quot;: &quot;structured&quot;,
+  &quot;token_estimate&quot;: 30
+}
+</code></pre>
+<p><code>token_estimate</code> 中的数字仅演示预算字段，不是实际 tokenizer 的计算结果。<code>source_ref</code>、版本和效力状态比一个笼统的“重要性分数”更有用：它们让纠错和重放有据可查。</p>
+<p>指令优先级与事实可信度也要分开。用户可以改变自己的预算，但不能用一句话覆盖系统权限规则；用户描述“服务已经恢复”是待核验事实，不能因为来自用户就自动胜过实时监控。一个 <code>confidence</code> 数字无法替代这两类判断。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>内容</th>
+<th>保存方式的选择依据</th>
+<th>进入工作集的方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标、约束、当前步骤</td>
+<td>需要事务、版本和恢复能力</td>
+<td>直接读取当前有效状态</td>
+</tr>
+<tr>
+<td>用户画像、确认事实</td>
+<td>需要跨会话管理及证据追溯</td>
+<td>按用户、领域和作用域筛选</td>
+</tr>
+<tr>
+<td>完整对话、大型工具输出</td>
+<td>需要保留原文并控制体积</td>
+<td>近期片段、摘要或按引用取回</td>
+</tr>
+<tr>
+<td>历史知识与经历</td>
+<td>需要按问题定位相关材料</td>
+<td>关键词、向量或结构化查询</td>
+</tr>
+</tbody>
+</table></div>
+<p>运行时缓存可以加速读取，但缓存失效不应让已确认的任务约束消失。反过来，原始日志也不需要全部常驻内存。</p>
+<h2 id="每次调用前先写清楚这一步需要什么">每次调用前，先写清楚“这一步需要什么”</h2>
+<p>同一个任务中的不同步骤需要不同输入。生成候选方案时可能需要领域知识，选工具时需要能力边界和参数，校验结果时需要原始约束与验收标准。直接把整份用户画像、全部历史和所有工具说明发送给每次调用，会把筛选工作转嫁给模型。</p>
+<p>可以让意图识别或流程节点输出一份上下文需求：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">当前步骤：继续修改已接受方案
+必须读取：最新版目标、禁止项、已接受方案版本、确认事实
+可选读取：相关用户偏好、修改理由、同类设计参考
+排除：被撤销草稿、与本任务无关的对话、未经证实的效果数字
+缺失处理：找不到已接受版本时，查询确认事件；仍不明确则澄清
+</code></pre>
+<p>确定性强的需求由代码或模板读取；开放问题再使用检索。只有候选种类很多、规则不足以表达时，才值得增加一次模型筛选调用。筛选器输出的是所需信息 ID 或类型，数据访问层仍独立检查权限，不能让模型自由生成任意数据库查询。</p>
+<p>完整编排过程可以拆成五步：召回候选、筛选当前所需、选择压缩粒度、排列分区、注入模型。每一步都记录输入 ID、选中理由与丢弃理由，出现遗漏时才能定位问题发生在哪里。</p>
+<h2 id="预算不足时降粒度要有顺序">预算不足时，降粒度要有顺序</h2>
+<p>先为固定指令、工具协议、预计输出和运行时余量预留空间，剩余部分才是业务上下文预算。下面的全部数值仅为教学参数：假设总容量按 32,000 token 计算，固定内容占 5,000，输出预留 6,000，余量 1,000，则业务工作集上限为 20,000 token。实际应用须用对应模型的 tokenizer 和接口限制重新计算。</p>
+<p>不要等超限后才截掉最早的消息。更稳妥的是维护多个表示层，并根据当前用途选择：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>信息</th>
+<th>优先表示</th>
+<th>空间紧张时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>当前目标、硬约束、否定记录</td>
+<td>明确、完整、可验证的结构</td>
+<td>精简格式，不削弱语义</td>
+</tr>
+<tr>
+<td>当前节点与依赖状态</td>
+<td>结构化状态</td>
+<td>只保留当前路径及必要依赖</td>
+</tr>
+<tr>
+<td>决策直接依赖的证据</td>
+<td>原始片段、来源和版本</td>
+<td>删除无关段落，保留适用条件</td>
+</tr>
+<tr>
+<td>历史讨论</td>
+<td>章节摘要及原文引用</td>
+<td>总体摘要加检索索引</td>
+</tr>
+<tr>
+<td>大型工具返回</td>
+<td>必要字段及结果引用</td>
+<td>按字段或分页延迟加载</td>
+</tr>
+<tr>
+<td>示例与补充背景</td>
+<td>少量相关示例</td>
+<td>优先撤下低价值示例</td>
+</tr>
+</tbody>
+</table></div>
+<p>“只放索引”成立的前提是索引能解析为可访问、仍有效的内容。如果工具返回未持久化、链接会立即失效，就不能丢掉唯一原文。同样，关键约束本身过大而无法容纳时，应拆分任务、切换适当模型或明确报告限制，不能静默删减。</p>
+<p>排列时用清楚的分区区别指令、当前状态、事实证据和待验证材料。检索文本中的指令仍是材料内容，不应提升为系统规则。重要信息放置的位置需要通过模型和任务测试确认，不能把“越靠前越好”当作普遍规律。</p>
+<p>稳定提示内容的复用可能节省处理成本，但提示缓存依赖提供商、模型、请求结构及保留策略；不能仅凭前缀相同就假定一定命中。上线时应读具体服务文档并检查实际缓存指标，不为缓存命中保留过期事实。相关约束可参照 <a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI 提示缓存文档</a>与 <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Claude 提示缓存文档</a>。</p>
+<h2 id="近期原文关键事实和摘要分别承担什么">近期原文、关键事实和摘要分别承担什么</h2>
+<p>滑动窗口适合保留近期对话，但轮数只是粗略单位。一轮可能包含一整份报告，因此应同时限制 token，并尽量保留工具调用与结果的配对关系。较早内容可以使用摘要，关键事实则独立保存，不随普通聊天一起滑出。</p>
+<p>摘要至少应区分三类：总体摘要说明目标与进度；章节摘要保留某一阶段的决策和变化；输出摘要删去长回答中不再需要的铺垫。目标、硬约束、用户确认与否定、实体引用、决策理由、未完成事项都要有明确位置。不同任务的摘要字段不同，没有一种通用短文模板能覆盖所有情况。</p>
+<p>压缩不能把“建议使用方案 B”写成“已经执行方案 B”，不能把“暂未验证”写成“成立”，也不能删掉“不超过”“仅本次”“可能”等限定词。结构化短句通常更节省空间，但是否保留了决策信息仍须验证。</p>
+<h3 id="摘要更新要有一致性边界">摘要更新要有一致性边界</h3>
+<p>同步摘要容易保证使用时可见，但会增加当前响应延迟。异步摘要可以在消息完成或阶段结束后生成，却可能落后于最新事实。给摘要记录 <code>covers_until_message_id</code>、原始数据版本和生成策略版本，比假设“用户打字期间肯定能同步完”可靠。</p>
+<p>使用摘要时，将覆盖边界之后的原始消息一并加载。如果落后部分超过预算，可以短暂等待、同步补摘要，或使用更保守的片段选择；不要把尚未生成的摘要当成空历史。写入时还需检查版本，防止较慢的旧摘要覆盖更新的结果。</p>
+<p>检索索引也可能落后于主存储。保留近期原文能缩短这个缺口，但不能保证任意同步延迟都被覆盖。读取时可检查索引的同步水位；需要的记录比水位更新，就从主存储按 ID 读取，或把尚未索引的消息与检索结果合并。重试仍不可见时，报告当前证据缺失，不能凭摘要补写原文。</p>
+<p>摘要质量还有累积误差：反复对旧摘要再摘要，可能逐步丢失限定条件。阶段结束时可以从原始片段与独立事实重新生成摘要，并比较禁止项、状态和版本是否一致，避免只在越来越短的文本上继续压缩。</p>
+<h2 id="细节召回围绕缺口运行">细节召回围绕缺口运行</h2>
+<p>召回的目标是补齐会改变当前决策的信息。用户说“按刚才那个继续”，需要的是被接受版本及其确认记录；出现约束冲突，需要的是修改发生的时间和作用范围。所有历史都拿回来既昂贵，也可能重新引入已否定内容。</p>
+<p>一个有限循环可以是：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">读取当前状态、摘要及相关目录
+→ 检查缺少哪个证据或版本
+→ 按引用或查询取回原始片段
+→ 核验权限、有效期、来源及冲突
+→ 更新工作集与缺口清单
+→ 证据充分则继续任务；无新增或预算耗尽则停止召回
+</code></pre>
+<p>精确 ID 可定位时先直接取回，不必先做向量相似搜索。主题不明确时才用关键词、向量或混合召回，具体方式见<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">Agent 检索设计：数据组织与分块</a>。</p>
+<p>“最新优先”只适用于同一对象、同一作用域、可被后续事件覆盖的信息。今天对另一项目的预算，不能覆盖昨天本项目的预算。冲突无法消解时，保留分歧和证据，避免模型自行拼出折中事实。历史归档也不等于数据丢失，只要原文及索引仍可恢复；但摘要本身是有损表示，不能承诺仅凭摘要恢复全部原意。</p>
+<h2 id="一个完整的运行示例与验证方法">一个完整的运行示例与验证方法</h2>
+<p>假设用户正在编写系统改造方案，最新要求是：“沿用我确认过的第二版，不要加入支付重构，刚才说的性能数字还没测。”编排器应读取第二版的确认事件，固化“不得增加支付重构”和“性能数字未验证”，加载当前修改段落，再查相关设计证据。早期出现过的支付改造方案即使语义高度相关，也不能作为候选方案自动复活。</p>
+<p>如果摘要只写“继续完善系统方案”，缺少版本信息，就通过确认事件取回原文；若摘要把“尚未测试”误写成“已提升”，应修正摘要并让依赖该断言的输出重新校验。画像只加载与本次写作有关的表达偏好，更多更新规则见<a href="Agent%20%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E5%BB%BA%E6%A8%A1%E4%B8%8E%E6%9B%B4%E6%96%B0.html">Agent 用户画像建模与更新</a>。</p>
+<p>验证时准备包含早期硬约束、否定、版本切换、长工具输出和异步延迟的多轮样本。与“近期原文加单段摘要”的基线比较以下指标：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>可核验的口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>信息正确</td>
+<td>必需事实是否保留；禁止项是否被遗漏或弱化</td>
+</tr>
+<tr>
+<td>版本正确</td>
+<td>是否取到最近一次有效确认的方案</td>
+</tr>
+<tr>
+<td>召回有效</td>
+<td>召回片段是否补齐指定缺口，而非只有文字相似</td>
+</tr>
+<tr>
+<td>一致性</td>
+<td>延迟摘要、重复事件和旧版本是否污染当前状态</td>
+</tr>
+<tr>
+<td>成本与延迟</td>
+<td>工作集 token、摘要调用、召回轮数及端到端分位数</td>
+</tr>
+</tbody>
+</table></div>
+<p>压缩率更高只是成本现象。只有约束遵守、事实正确和任务完成没有因此退化，减少的 token 才是有意义的工程收益。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

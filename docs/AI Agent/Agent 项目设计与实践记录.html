@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 项目设计与实践记录</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 6 分钟</p>
+<h1 id="agent-项目设计与实践记录">Agent 项目设计与实践记录</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#先写任务边界">先写任务边界</a></li><li><a href="#架构从需求复杂度出发">架构从需求复杂度出发</a></li><li><a href="#走通一条完整输入链">走通一条完整输入链</a></li><li><a href="#让状态与工具有可检查的契约">让状态与工具有可检查的契约</a></li><li><a href="#用失败路径检验设计是否完整">用失败路径检验设计是否完整</a></li><li><a href="#将评估与交付一起设计">将评估与交付一起设计</a></li><li><a href="#用设计记录沉淀个人贡献">用设计记录沉淀个人贡献</a></li></ol></details></nav>
+<p>设计一个领域 Agent，可以从一个完整任务开始：谁发起请求，输入有哪些不确定性，系统能读取什么、执行什么，哪些条件必须满足，以及用什么证据验收。本文把这些问题组织成一份可用于立项、实现和复盘的设计记录。</p>
+<p>下面统一使用<strong>假想的企业知识与工单助手</strong>。所有流程、字段和失败情形都是教学设计，没有对应的生产运行成绩。</p>
+<h2 id="先写任务边界">先写任务边界</h2>
+<p>用户希望找到适用的制度；若仍需处理，则形成一份可审阅的工单草稿。第一版可以只读取授权文档和保存草稿，实际提交由明确的交互触发。把权限与任务边界先写下来，后续才能判断增加工具是否有必要。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>设计项</th>
+<th>示例定义</th>
+<th>需要明确的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务对象</td>
+<td>内部员工</td>
+<td>身份、部门和地区从哪里取得</td>
+</tr>
+<tr>
+<td>任务结果</td>
+<td>有依据的制度答复或工单草稿</td>
+<td>什么条件算完成</td>
+</tr>
+<tr>
+<td>信息范围</td>
+<td>当前用户可访问的有效制度</td>
+<td>权限变化和文档版本怎样生效</td>
+</tr>
+<tr>
+<td>操作范围</td>
+<td>查询、澄清、生成与保存草稿</td>
+<td>谁能提交，重复点击如何处理</td>
+</tr>
+<tr>
+<td>不支持情形</td>
+<td>缺少依据、身份无法确认、请求超出权限</td>
+<td>如何说明原因或移交人工</td>
+</tr>
+</tbody>
+</table></div>
+<p>需求应包含成功、失败和不确定三类结局。“没有适用文档，明确告知并停止猜测”可能是正确结果；强行生成一个流畅答案反而违反验收条件。</p>
+<h2 id="架构从需求复杂度出发">架构从需求复杂度出发</h2>
+<p><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic 的架构经验</a>建议先尝试简单方案，再根据实际需求增加复杂度。这里将其作为选型起点，具体组合仍需用项目样本比较。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>形态</th>
+<th>适合的任务特征</th>
+<th>需要承担的额外代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单次模型调用与工具</td>
+<td>目标清楚、调用少、状态简单</td>
+<td>严格校验输入输出和权限</td>
+</tr>
+<tr>
+<td>确定工作流</td>
+<td>阶段、依赖、分支能够明确编码</td>
+<td>分支维护，异常路径覆盖</td>
+</tr>
+<tr>
+<td>单 Agent 动态决策</td>
+<td>信息不完整，需要根据结果决定下一步</td>
+<td>停止条件、预算、状态与错误累积</td>
+</tr>
+<tr>
+<td>主代理与专职子代理</td>
+<td>确有上下文、权限或并行任务隔离需求</td>
+<td>调度、交接契约、重复工作和协调成本</td>
+</tr>
+</tbody>
+</table></div>
+<p>工作流也可以具有分支、循环和人工节点。采用多个 Agent 不能自动证明架构更强；应解释隔离解决了什么问题，为什么一个 Agent 配合工具无法合理承担，以及收益是否抵得过额外调用。</p>
+<h2 id="走通一条完整输入链">走通一条完整输入链</h2>
+<p>教学输入：“上次说的差旅补助，这次去上海适用吗？如果不符合，先帮我写个咨询单。”</p>
+<p>第一步是理解“上次说的”指什么，并检查出差日期、地区和人员类别是否已知。缺少影响制度适用性的条件时，先澄清；历史画像只能提供候选线索，不能覆盖用户本轮明确说明。</p>
+<p>第二步是输出结构化任务：查询适用制度，必要时生成咨询草稿。查询意图和写入动作应分开，不能把一句“帮我看看”扩大为自动提交。</p>
+<p>第三步是查询授权数据源，获取制度正文、版本、生效范围与定位信息。无结果、多个版本冲突或数据权限不足，应成为显式状态，不能伪装成“没有限制”。</p>
+<p>第四步是组织上下文，保留本轮条件和可信证据；模型生成答复或草稿，由规则检查必填字段、引用和操作边界。最后向用户呈现可读结果，并说明哪些内容仍待确认。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">输入与授权上下文
+  → 指代消解 / 必要澄清
+  → 任务与约束状态
+  → 授权检索 / 版本检查
+  → 回答或草稿生成
+  → 条件与证据校验
+  → 展示结果 / 用户后续动作
+</code></pre>
+<p>这张流程图描述本案例的稳定主干。是否需要计划生成或多轮动态检索，要由任务的不确定性决定，不能为了凑齐概念而强制加入所有机制。</p>
+<h2 id="让状态与工具有可检查的契约">让状态与工具有可检查的契约</h2>
+<p>状态中区分用户目标、硬约束、事实、推断和执行结果。工具结果带来源和版本，推断保留待确认状态；任务事实更新后，使依赖旧事实的计划和结果失效。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;task_id&quot;: &quot;demo-travel-query&quot;,
+  &quot;task_version&quot;: 1,
+  &quot;goal&quot;: &quot;answer_policy_or_prepare_draft&quot;,
+  &quot;constraints&quot;: {&quot;submit_ticket&quot;: false},
+  &quot;facts&quot;: {&quot;destination&quot;: &quot;上海&quot;},
+  &quot;pending_fields&quot;: [&quot;travel_date&quot;, &quot;employee_category&quot;],
+  &quot;evidence_refs&quot;: [],
+  &quot;status&quot;: &quot;needs_clarification&quot;
+}
+</code></pre>
+<p>示例只展示字段结构。权限身份必须来自可信会话和业务系统，不能把模型输出中的 <code>role</code> 当成授权依据。工具契约则说明：做什么、何时可调用、参数格式、返回值、错误分类、副作用、幂等能力，以及超时后的状态查询方式。</p>
+<p>如果保存草稿成功但响应丢失，应先查询操作状态或依赖幂等键判断结果。直接重试可能重复写入。外部操作已经发生时，回退内部任务状态也不代表撤销了外部结果。</p>
+<h2 id="用失败路径检验设计是否完整">用失败路径检验设计是否完整</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>情形</th>
+<th>设计动作</th>
+<th>应保留的证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户更改出差日期</td>
+<td>更新任务版本，重查适用制度</td>
+<td>新旧约束与失效的证据</td>
+</tr>
+<tr>
+<td>检索结果只有旧制度</td>
+<td>检查有效期，补充检索或说明未知</td>
+<td>版本、日期、停止原因</td>
+</tr>
+<tr>
+<td>工具超时但可能已写入</td>
+<td>查询状态，确认后再恢复</td>
+<td>操作标识、幂等键、外部状态</td>
+</tr>
+<tr>
+<td>上下文压缩丢失地区</td>
+<td>从结构化事实恢复并重新校验</td>
+<td>压缩前后状态差异</td>
+</tr>
+<tr>
+<td>候选文档含越权信息</td>
+<td>在数据访问边界拒绝并审计</td>
+<td>授权规则版本、拒绝原因</td>
+</tr>
+<tr>
+<td>任务长期没有进展</td>
+<td>比较已完成条件与证据增量，收束或移交</td>
+<td>步数、剩余预算、阻塞点</td>
+</tr>
+</tbody>
+</table></div>
+<p>每次恢复只重做受影响部分，但前提是先校验剩余结果的依赖和有效性。来自旧权限、旧版本或旧用户约束的“成功产物”，不能因为生成成本高就强行复用。</p>
+<h2 id="将评估与交付一起设计">将评估与交付一起设计</h2>
+<p>在开发前准备代表性样本，包括正常查询、跨轮指代、无答案、版本冲突、越权和重复提交。为不同阶段准备可验证产物：输入理解看结构化条件，检索看证据覆盖，操作看系统状态，结果看用户目标是否满足。</p>
+<p>可以按三个阶段推进：</p>
+<ol>
+<li><strong>基线验证</strong>：用最小流程验证数据是否可用、规则是否清楚、任务能否完成。</li>
+<li><strong>针对性改进</strong>：根据真实失败增加必要机制，例如只为跨轮指代补充状态，不一次引入所有高级组件。</li>
+<li><strong>受控运行</strong>：观察目标、约束、时延与成本，保存版本和回滚路径；无法确认收益时保留不确定结论。</li>
+</ol>
+<p>评价方法详见<a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">Agent 评估、反馈与可观测性</a>。这里关注的是每个里程碑交付什么，而不是预设一个漂亮的指标目标。</p>
+<h2 id="用设计记录沉淀个人贡献">用设计记录沉淀个人贡献</h2>
+<p>一份可复查的项目记录可以包含以下内容：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>记录项</th>
+<th>填写内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题与基线</td>
+<td>原流程如何工作，具体哪里失败</td>
+</tr>
+<tr>
+<td>个人职责</td>
+<td>自己实现、参与或仅调研的范围</td>
+</tr>
+<tr>
+<td>方案比较</td>
+<td>候选方案、取舍原因和约束</td>
+</tr>
+<tr>
+<td>关键机制</td>
+<td>状态、工具、上下文、检索如何协作</td>
+</tr>
+<tr>
+<td>失败与修复</td>
+<td>一个具体反例、定位依据和改动</td>
+</tr>
+<tr>
+<td>验证结果</td>
+<td>样本、版本、运行条件、指标与局限</td>
+</tr>
+<tr>
+<td>后续工作</td>
+<td>未解决问题、验证办法和优先级</td>
+</tr>
+</tbody>
+</table></div>
+<p>写“优化检索”时，应能说明改了哪一部分、对比了什么、样本是否相同，以及哪些场景变好或变差。写“负责架构”时，应能指出本人决策与团队职责边界。未实现的方案可以写成设计提案，教学案例若实际运行过，可以写成注明环境的实验记录；尚未运行的模拟方案应写成设计案例，都不需要包装成线上成绩。</p>
+<p>这一记录也能支持简历和面试表达，但技术笔记应保留失败条件与边界。具体提问和表达练习集中在<a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE.html">Agent 系统设计面试题与项目表达</a>。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 检索设计：数据组织与分块</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 10 分钟</p>
+<h1 id="agent-检索设计数据组织与分块">Agent 检索设计：数据组织与分块</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#从待做判断反推信息缺口">从待做判断反推信息缺口</a></li><li><a href="#用数据源目录完成路由">用数据源目录完成路由</a></li><li><a href="#查询改写保留边界拆解补齐缺口">查询改写保留边界，拆解补齐缺口</a></li><li><a href="#入库先保留结构再考虑切片大小">入库先保留结构，再考虑切片大小</a></li><li><a href="#图片表格列表与代码分别组织">图片、表格、列表与代码分别组织</a></li><li><a href="#父子与层次结构让召回粒度不同于阅读粒度">父子与层次结构：让召回粒度不同于阅读粒度</a></li><li><a href="#把失败定位到入库路由或上下文">把失败定位到入库、路由或上下文</a></li></ol></details></nav>
+<p>Agent 的检索范围比知识库问答更广。历史对话里的被接受方案、业务系统的实时状态、工具返回的中间产物，以及长期保存的技术文档，都可能是下一步需要的证据。设计检索机制，首先要明确要做什么判断、缺少什么信息、由哪个来源提供，再决定是否使用向量检索。</p>
+<p>本文讨论查询规划与数据组织。多路融合、迭代预算和缓存放在<a href="Agent%20%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%EF%BC%9A%E5%8F%AC%E5%9B%9E%E8%B4%A8%E9%87%8F%E3%80%81%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BC%93%E5%AD%98.html">Agent 检索优化：召回质量、预算与缓存</a>中展开，避免把入库与在线优化混成一条过长的流程。</p>
+<h2 id="从待做判断反推信息缺口">从待做判断反推信息缺口</h2>
+<p>“系统为什么变慢”并不是一个可以直接执行的查询。至少需要明确对象、环境和时间，再把宽泛问题转换为待验证判断，例如“本次发布是否引入了导致接口长尾延迟增加的变更”。接着列出完成判断所需证据，扣除已经可靠获得的部分。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">用户目标：定位订单创建接口变慢的原因
+已知：生产环境；异常出现在本次发布之后
+待验证：耗时发生在哪一段；哪些配置改变；依赖是否同步异常
+禁止推断：时间接近不等于已经证明发布导致故障
+查询输出：带时间、对象、版本和来源的证据
+</code></pre>
+<p>这是教学场景，不代表实际线上故障。发布记录用于确认“改了什么”，Trace 和指标用于确认“慢在哪里”，历史复盘用于生成排查假设。相似案例可以提供方向，但不能证明当前故障原因。</p>
+<p>没有影响当前判断的信息，可以暂缓查询；缺少会改变结论的必要证据，则不能因为已有答案看起来合理就跳过。每条查询最好绑定一个 <code>missing_evidence</code> 条目，方便解释查询为何发生、结果是否补齐缺口。</p>
+<h2 id="用数据源目录完成路由">用数据源目录完成路由</h2>
+<p>只有一个权威来源的信息，优先通过固定业务 Action 获取。例如订单状态由订单服务查询，没必要让模型在几十个工具中猜。证据分散在日志、配置和文档中时，再使用可调整的路由策略。</p>
+<p>数据源目录可记录用途、支持字段、查询方式、时间覆盖、更新延迟、权限与不适用场景。下面是教学结构：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;source_id&quot;: &quot;deployment_records&quot;,
+  &quot;purpose&quot;: &quot;查询某服务已发生的发布及版本变化&quot;,
+  &quot;not_for&quot;: [&quot;判断发布是否导致性能下降&quot;],
+  &quot;required_filters&quot;: [&quot;service&quot;, &quot;environment&quot;, &quot;time_range&quot;],
+  &quot;query_modes&quot;: [&quot;structured&quot;],
+  &quot;freshness&quot;: &quot;以发布平台记录的更新时间为准&quot;,
+  &quot;permission&quot;: &quot;deployment:read&quot;,
+  &quot;result_fields&quot;: [&quot;release_id&quot;, &quot;version&quot;, &quot;changes&quot;, &quot;released_at&quot;]
+}
+</code></pre>
+<p>目录规模小，可以直接加载候选说明；规模大，再按业务域和权限筛选目录，必要时先检索目录再查数据。目录路由失败时，尝试不同候选源，而不是重复同一路径。新的 Observation 可以引出新的查询空间，但只能在已授权范围内扩展。</p>
+<p>权限检查必须由服务端执行，不能依靠模型记住租户限制。源目录、数据查询、父节点展开及原文读取都需要一致的权限边界；未经授权的数据不应先进入模型再让模型“忽略”。</p>
+<h2 id="查询改写保留边界拆解补齐缺口">查询改写保留边界，拆解补齐缺口</h2>
+<p>查询改写需要补全指代、统一术语、抽取实体，并把环境、时间和版本转为可执行过滤条件。它不是替用户增加事实。例如“刚才那个错误”可以从当前状态定位到已出现的错误码；无法确认错误码时，则应保留歧义，不能生成一个听起来合理的代号。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>改写动作</th>
+<th>合格结果</th>
+<th>应避免的变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指代与实体消解</td>
+<td>绑定到已确认的服务或文档 ID</td>
+<td>根据相似名称猜对象</td>
+</tr>
+<tr>
+<td>保留约束</td>
+<td>生产环境、指定时间、当前租户独立成字段</td>
+<td>在自然语言改写中丢掉限制</td>
+</tr>
+<tr>
+<td>术语统一</td>
+<td>使用数据源实际字段和领域别名</td>
+<td>造出不存在的索引字段</td>
+</tr>
+<tr>
+<td>删除噪声</td>
+<td>去掉寒暄、重复背景</td>
+<td>删除否定、单位和例外条件</td>
+</tr>
+<tr>
+<td>可执行性检查</td>
+<td>检查参数类型、权限及来源支持范围</td>
+<td>把不可执行 Query 直接交给底层</td>
+</tr>
+</tbody>
+</table></div>
+<p>复杂查询可以用 5W1H、时间线或因果链拆解。5W1H 中的对象、参与者、时间、位置、原因和过程是候选维度，不必每次凑齐六个子问题。查询当前状态可能只需对象与身份；排障才可能需要发布前后的过程与相反证据。</p>
+<p>当问题表达很短、文档却以解释性语言写作时，可以试验 HyDE：先生成假想文档，再用其向量召回真实材料。<strong>假想文档只作为查询中间产物，不能进入事实证据集合。</strong> 它可能带入错误实体或前提，因此需要与原查询保留的硬条件一起使用，并对比直接查询基线。<a href="https://aclanthology.org/2023.acl-long.99/">HyDE 原始论文</a>描述的是这种从假想文档定位真实文档的检索方式；多段假想答案、后续追问等属于可以实验的扩展，不保证更优。</p>
+<h2 id="入库先保留结构再考虑切片大小">入库先保留结构，再考虑切片大小</h2>
+<p>基础入库链路应包括采集、解析、清洗、分块、元数据补全、索引写入和校验。解析要保留标题、段落、表格、图片、代码和原始定位信息。页眉被混进正文、表头与数据错位后，单纯更换 Embedding 模型难以修复这些损失。</p>
+<p>一个可追溯的 Chunk 至少需要文档 ID、Chunk ID、内容版本、标题路径、原文位置、父节点及访问范围。更新文档时，应成批生成新版本并切换可用版本，避免在线查询混到新正文与旧向量。旧节点删除、父子关系和缓存失效也属于入库流程。</p>
+<p>分块可采用三类方法：固定长度提供可控成本；语义边界帮助聚合同一主题；文档结构保留作者的逻辑层级。实用起点是先按结构划定大边界，过长小节再按段落或语义细分，最后用 token 上限兜底。不要把“语义分块”默认理解为必须调用大模型，规则与相邻段落表示也可以参与。</p>
+<h3 id="怎样确定-chunk-size">怎样确定 Chunk Size</h3>
+<p>先定义最小完整知识单元：制度常是“条件、规则、例外”；API 常是“方法、参数、返回与错误”；故障手册常是“前提、操作、预期结果与停止条件”。一个只有结论、没有适用范围的片段，即使容易命中，也可能误导回答。</p>
+<p>再按真实问题类型选择候选粒度。精确参数问题偏向细粒度，总结问题需要高层摘要或更完整片段。可以用几组大小做对照，例如 300、600、1,000 token；这些仅是教学参数，不是推荐默认值。</p>
+<p>比较时保持测试问题与标注不变，记录版本、分块策略、Overlap、候选数量和最终上下文预算。既检查相关片段有没有召回，也检查必需条件是否完整、重复 token 多少、答案是否正确。不同粒度在相同 Top-K 下占用的 token 并不相同，因此还应在相同上下文成本下比较，避免“大块带得多”形成不公平优势。</p>
+<p>Overlap 可以缓解切断边界，却不会自动修复所有语义缺失；重叠过多还会使候选集中于同一段。它应与检索数量和去重策略一起调节。</p>
+<h2 id="图片表格列表与代码分别组织">图片、表格、列表与代码分别组织</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>内容类型</th>
+<th>用于检索的表示</th>
+<th>回答时应保留的证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>架构图、流程图</td>
+<td>标题、图注、节点关系及结构化描述</td>
+<td>原图、箭头方向和所在章节</td>
+</tr>
+<tr>
+<td>小表格</td>
+<td>表名、表头、单位与整表内容</td>
+<td>行列对应关系及备注</td>
+</tr>
+<tr>
+<td>大表格</td>
+<td>表头绑定的行组、实体或字段索引</td>
+<td>原始行、单位；聚合走结构化查询</td>
+</tr>
+<tr>
+<td>长列表</td>
+<td>标题加完整列表项，必要时分组</td>
+<td>序号、步骤依赖与共同前提</td>
+</tr>
+<tr>
+<td>代码与 API</td>
+<td>符号、函数说明、输入输出及模块路径</td>
+<td>版本、完整相关代码和错误处理</td>
+</tr>
+<tr>
+<td>FAQ</td>
+<td>完整的问题与答案配对</td>
+<td>适用范围、更新版本及例外</td>
+</tr>
+</tbody>
+</table></div>
+<p>图片中的文字可以由 OCR 提取，箭头、流程分支和趋势则需要额外解析。视觉模型生成的描述属于派生表示，应保留原图引用并抽样检查，尤其是方向、数量和单位。生成摘要帮助查找，不应替代对图中原始事实的核对。</p>
+<p>长表若切成行组，每组都带表头和单位。跨行合并单元格需要补回实体名称，否则一行脱离原表就失去含义。求和、筛选和排序等问题，通常更适合用受控 SQL 或表格工具计算，而不是让模型从召回的若干行猜总量。</p>
+<p>步骤列表不能为语义聚类而任意重排，代码也不能把异常处理和它保护的操作割裂。文档里“看起来相邻”的内容不一定属于同一个知识单元，反之同一条规则的前提可能位于前一节；分块后的样本审核需要包含这些边界。</p>
+<h2 id="父子与层次结构让召回粒度不同于阅读粒度">父子与层次结构：让召回粒度不同于阅读粒度</h2>
+<p>父子文档把较小片段作为检索入口，再通过 <code>parent_id</code> 获取更完整的阅读上下文。它适用于子片段能够定位具体规则、父小节包含必要条件的情况。例如底层片段是“该操作仅限维护时段”，父节点同时给出维护时段定义、例外审批和回滚要求。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">文档
+  └─ 章节：维护作业
+      └─ 小节：执行条件与回滚
+          ├─ 条件片段
+          ├─ 操作片段
+          └─ 异常与回滚片段
+
+查询命中条件片段 → 核验版本和权限 → 按需加载完整小节
+</code></pre>
+<p>这不是“小块一定更准、大块一定更全”的保证。小片段也可能缺少语义，父节点也可能包含噪声。父节点去重、长度约束和权限复核不可省；多个子节点命中同一父节点时，不能重复注入整段。</p>
+<p>父节点排序可从最佳子节点得分开始，再尝试多个子节点信号的聚合。一个借鉴倒数排名的教学启发式为：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">parent_score(P) = Σ 1 / (k + rank(c))
+                 c 属于 P 且出现在候选集内
+</code></pre>
+<p>它与跨多个检索列表的标准 RRF 是不同用途的聚合规则，不是父子检索的通用定理。简单求和会偏向拥有更多子节点的大父节点，也可能把多个重复片段当成多份证据。可以限制参与聚合的独立子片段数，或加上长度、重复度控制，再用覆盖率和成本检验是否优于最佳子节点基线。</p>
+<p>层次结构还可以包含章节摘要、主题索引和事实节点。概览问题先找高层摘要，参数问题先找底层事实，解释性问题再向上补范围和理由。物理目录与逻辑主题可并存：原文按部门组织，检索可以按安装、配置、故障等主题建立另一组链接，但两者都要保留原始定位。</p>
+<p>逐级展开时，每次明确缺的是条件、解释还是更多实体，并记录新增证据。如果父层仍没有所需信息，应切换关联材料；无止境扩大到整篇文档只会耗尽预算。多层并行召回也可以试验，但会增加索引维护、重排和去重成本，不宜默认启用。</p>
+<h2 id="把失败定位到入库路由或上下文">把失败定位到入库、路由或上下文</h2>
+<p>“检索没有答对”并不是足够精确的问题描述。排查时可按如下路径检查：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+<th>验证方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标证据根本没进入库</td>
+<td>解析、更新、权限标签</td>
+<td>由文档 ID 检查原文与各层节点</td>
+</tr>
+<tr>
+<td>文档在库，但查了错误来源</td>
+<td>目录与 Query 路由</td>
+<td>对比缺口与所选数据源能力</td>
+</tr>
+<tr>
+<td>召回结论，遗漏条件</td>
+<td>分块边界、父节点关系</td>
+<td>检查最小知识单元是否完整</td>
+</tr>
+<tr>
+<td>召回更多后答案反而变差</td>
+<td>重复、旧版本和父层噪声</td>
+<td>固定证据内容，比较注入差异</td>
+</tr>
+<tr>
+<td>总结只有几个局部事实</td>
+<td>问题粒度与层级选择</td>
+<td>加入高层摘要并追溯原文覆盖</td>
+</tr>
+</tbody>
+</table></div>
+<p>验收时可以给同一条规则设计一组互补问题：询问规则本身、询问它的适用前提、询问例外，再要求概览所在章节。前三类检查细粒度片段和必要上下文是否能配套返回，后一类检查高层摘要是否覆盖主要内容。若只有关键词直接命中题表现良好，就不能据此认定层次检索已经有效。</p>
+<p>还应保留一条规则更新后的对照样本：新文档上线后，旧版本问题仍能在指定历史范围查询，新版本问题不会混入旧规则，被撤销的访问权也不会因父节点展开而恢复。这样才能把索引完整性与权限、版本的一致性一起验证。</p>
+<p>在入库验收集中保留扫描文档、跨页表格、代码、例外条款和权限不同的相邻内容；在检索测试集中覆盖精确查找、概览、解释、对比和无答案问题。只有原始内容能正确落库、被路由到合适来源，并以完整证据进入上下文，后续的召回与排序优化才有可靠基础。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

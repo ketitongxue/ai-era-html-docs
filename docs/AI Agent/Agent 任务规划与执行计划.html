@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 任务规划与执行计划</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 7 分钟</p>
+<h1 id="agent-任务规划与执行计划">Agent 任务规划与执行计划</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#1-先判断是否需要动态规划">1. 先判断是否需要动态规划</a></li><li><a href="#2-用-g4c-检查计划是否完整">2. 用 G4C 检查计划是否完整</a></li><li><a href="#3-把业务约束写进可检查的计划">3. 把业务约束写进可检查的计划</a></li><li><a href="#4-检查点要拦住错误扩散">4. 检查点要拦住错误扩散</a></li><li><a href="#5-线性步骤何时升级为-dag">5. 线性步骤何时升级为 DAG</a></li><li><a href="#6-审查计划并限制修订循环">6. 审查计划，并限制修订循环</a></li><li><a href="#7-如何证明计划有帮助">7. 如何证明计划有帮助</a></li></ol></details></nav>
+<p>一个能执行的计划，需要比“先分析、再检索、最后总结”更具体。系统必须知道成功是什么、每一步依赖什么、哪些结果值得复用，以及偏离目标之后怎样处理。计划因此可以实现成一份有版本、可校验的运行时对象；展示给用户的步骤列表只是它的一种视图。</p>
+<p>本文用导购任务说明这些机制。示例中的商品、日期和字段用于设计演示，不代表真实业务数据。</p>
+<h2 id="1-先判断是否需要动态规划">1. 先判断是否需要动态规划</h2>
+<p>多步骤并不自动意味着要使用 Agent。只要步骤和分支能够稳定枚举，工作流、状态机和普通代码就可以实现，通常也更容易检查。</p>
+<p>动态规划更适合运行中才知道的信息会改变路径的任务：缺失条件是否必须追问、哪类证据需要补充、候选工具是否能替代、用户的新要求影响哪些中间结果。即使存在这些问题，稳定的主干仍可保留为工作流，只把无法预先确定的语义判断交给模型。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>任务特点</th>
+<th>起步选择</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一次查询或简单生成</td>
+<td>单次调用及必要校验</td>
+</tr>
+<tr>
+<td>步骤固定、接口和条件明确</td>
+<td>工作流或状态机</td>
+</tr>
+<tr>
+<td>目标明确，但路径依赖运行时证据</td>
+<td>工作流结合局部执行循环</td>
+</tr>
+<tr>
+<td>长任务且有多个阶段和依赖</td>
+<td>显式计划、检查点及恢复机制</td>
+</tr>
+</tbody>
+</table></div>
+<p>计划增加了生成、审查和维护成本。应当通过任务成功率和恢复能力证明它的价值，而不是以步骤多、图复杂作为成熟度指标。</p>
+<h2 id="2-用-g4c-检查计划是否完整">2. 用 G4C 检查计划是否完整</h2>
+<p>G4C 是一种方便组织设计问题的助记框架，并非行业统一标准。它把计划拆成目标、上下文、选择、检查点和纠偏五部分。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>要素</th>
+<th>应保存的信息</th>
+<th>常见缺陷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Goal</td>
+<td>用户目标、交付物、成功判据</td>
+<td>“效果好”“更专业”等无法检验的要求</td>
+</tr>
+<tr>
+<td>Context</td>
+<td>已知事实、缺口、假设、硬约束和偏好</td>
+<td>把推测当成规划前提</td>
+</tr>
+<tr>
+<td>Choice</td>
+<td>路径、步骤依赖、简要决策依据</td>
+<td>只列动作，不说明为何需要</td>
+</tr>
+<tr>
+<td>Checkpoint</td>
+<td>检查位置、规则和证据要求</td>
+<td>最后才发现上游数据有误</td>
+</tr>
+<tr>
+<td>Correction</td>
+<td>重试、澄清、局部重规划或停止条件</td>
+<td>每次失败都从头再来</td>
+</tr>
+</tbody>
+</table></div>
+<p>例如“推荐更划算的裤子”仍然不够明确。可以将目标细化为：返回至多三款同类商品，满足用户确认的尺码、预算和配送日期，并解释与参考商品的差异。若没有足够候选，则返回实际数量和缺失原因，不能为凑数放松硬约束。</p>
+<p>模型可以提出成功标准，但不能擅自把它提升为用户要求。若用户没有说明价格上限，系统可以按参考价格排序并披露假设；涉及采购、支付等正式操作前，再确认所需条件。</p>
+<h2 id="3-把业务约束写进可检查的计划">3. 把业务约束写进可检查的计划</h2>
+<p>下面给出一个简化结构。目标和约束引用稳定 ID，步骤引用前置产物，便于后续定位影响范围。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;plan_id&quot;: &quot;recommendation_12&quot;,
+  &quot;version&quot;: 1,
+  &quot;goal&quot;: &quot;给出满足已确认条件的裤装候选&quot;,
+  &quot;constraint_version&quot;: 3,
+  &quot;success_checks&quot;: [
+    &quot;所有候选通过硬约束校验&quot;,
+    &quot;每款商品有价格与履约证据&quot;,
+    &quot;未确认信息明确披露&quot;
+  ],
+  &quot;steps&quot;: [
+    {
+      &quot;id&quot;: &quot;resolve_requirements&quot;,
+      &quot;depends_on&quot;: [],
+      &quot;output&quot;: &quot;requirements&quot;,
+      &quot;on_failure&quot;: &quot;clarify&quot;
+    },
+    {
+      &quot;id&quot;: &quot;search_products&quot;,
+      &quot;depends_on&quot;: [&quot;resolve_requirements&quot;],
+      &quot;output&quot;: &quot;candidates&quot;,
+      &quot;on_failure&quot;: &quot;retry_or_alternative&quot;
+    },
+    {
+      &quot;id&quot;: &quot;verify_fulfillment&quot;,
+      &quot;depends_on&quot;: [&quot;search_products&quot;],
+      &quot;output&quot;: &quot;eligible_candidates&quot;,
+      &quot;checkpoint&quot;: &quot;size_stock_delivery&quot;
+    },
+    {
+      &quot;id&quot;: &quot;rank_and_explain&quot;,
+      &quot;depends_on&quot;: [&quot;verify_fulfillment&quot;],
+      &quot;checkpoint&quot;: &quot;final_constraints_and_evidence&quot;
+    }
+  ]
+}
+</code></pre>
+<p>规划器负责提出这个结构，运行时负责验证和执行。<code>on_failure</code> 是受控的恢复策略名称，不应允许模型输出任意代码。目标、约束和授权也应分别管理：目标没有改变，不代表当前授权仍然有效；生成了“下单”步骤，更不代表用户同意下单。</p>
+<p>已知事实和假设需要分栏保存，例如“用户当前选择 M 码”和“历史通常购买 M 码”。约束进入每次相关决策的上下文，同时还要在查询参数、候选过滤和执行网关中校验。仅在提示词中反复强调，无法替代系统约束。</p>
+<h2 id="4-检查点要拦住错误扩散">4. 检查点要拦住错误扩散</h2>
+<p>检查点的作用是检查一个产物是否足以支持后续步骤。它应放在高影响的边界：关键事实确认后、候选集形成后、对外写入前，以及一个阶段即将交接时。数量由风险和依赖决定，没有统一的“每三步检查一次”规则。</p>
+<p>检查也需要分层。字段是否存在、金额是否超限、文件是否在允许范围内，可以用代码验证；推荐解释是否得到证据支持，可能需要语义评估与抽样人工复核。让生成计划的模型再看一遍，不能视为独立证明。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;checkpoint_id&quot;: &quot;size_stock_delivery&quot;,
+  &quot;plan_version&quot;: 1,
+  &quot;result&quot;: &quot;failed&quot;,
+  &quot;issues&quot;: [
+    {
+      &quot;candidate_id&quot;: &quot;product_B&quot;,
+      &quot;rule&quot;: &quot;delivery_before_deadline&quot;,
+      &quot;evidence_id&quot;: &quot;delivery_quote_42&quot;,
+      &quot;observed&quot;: &quot;到货日期超过用户要求&quot;
+    }
+  ],
+  &quot;suggested_action&quot;: &quot;replace_candidate&quot;
+}
+</code></pre>
+<p>这个失败不必让整个任务重来：参考商品、用户尺码和城市仍然可用，重新寻找受影响的候选即可。检查结果要包含时间、数据版本和证据引用，因为库存、政策或用户约束变化后，过去通过的检查也可能失效。</p>
+<h2 id="5-线性步骤何时升级为-dag">5. 线性步骤何时升级为 DAG</h2>
+<p>线性计划简单，适合串行依赖明显、执行量较小的任务。只有确实存在独立工作、并行收益或复杂依赖时，再使用有向无环图（DAG）。</p>
+<p>例如候选商品已确定后，价格信息与配送信息可以分别查询，汇合后再过滤。但“没有数据依赖”还不够：两个节点若写同一份状态、争用配额，或有业务顺序要求，仍然需要串行、隔离或冲突解决机制。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">确认条件 → 检索商品 ┬→ 查询价格 ─┐
+                   └→ 查询配送 ─┴→ 过滤并排序 → 输出校验
+</code></pre>
+<p>模型生成依赖关系后，代码至少应检查节点 ID 唯一、引用存在、无循环、目标可达，以及输入输出是否匹配。调度器还需定义汇合规则：依赖全部成功才能继续，还是允许部分结果？节点失败后取消哪些后继？已经运行中的后继怎样停止？</p>
+<p>不宜把循环恢复直接画成普通 DAG 的回边。可以保持每个计划版本是 DAG，将重试和重规划放入外层状态机；新计划使用新版本，并明确旧节点的终止和复用状态。</p>
+<p>节点至少区分等待依赖、就绪、执行中、成功、失败和取消。失败节点的后代不能只因为“等待时间足够长”就继续执行；调度器应检查它们需要的产物是否仍然有效。一个节点有多个前置步骤时，必须明确是全部完成才能就绪，还是特定分支成功即可推进。</p>
+<p>可运行的节点记录还应包含输入引用、输出格式、工具资格、超时、重试策略和幂等要求。状态改为成功时，需同时关联可读取的产物与执行回执；只有内存里的布尔标记而没有产物落盘，会导致重启后出现“步骤已完成，但结果找不到”。对于并发产生的输出，应预先规定写入命名空间、合并规则和版本冲突处理，而不是让后完成者任意覆盖前一个结果。</p>
+<h2 id="6-审查计划并限制修订循环">6. 审查计划，并限制修订循环</h2>
+<p>较复杂任务可以在执行前增加“生成—校验—修订”。校验器先做结构和确定性规则检查，再对目标遗漏、证据不足、步骤缺失等语义问题给出具体意见。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">生成候选计划
+→ 校验结构、约束、工具资格和依赖
+→ 存在可修复问题：按问题清单修订
+→ 存在关键缺口：澄清或返回阶段性方案
+→ 校验通过：保存版本并进入执行
+</code></pre>
+<p>每轮修订都应指向一个可解释的问题。总轮数、时间和 token 预算由调度器限制，不能只写在提示词里。反复修订而没有减少问题时，应停止并暴露缺口。对于信息简单、风险低的任务，不需要额外搭建多模型评审流程。</p>
+<p>计划执行期间，用户可能新增条件。此时先更新约束版本，阻止不再满足条件的待执行节点，再分析已有产物是否需要失效。更多恢复细节见<a href="Agent%20%E5%8A%A8%E6%80%81%E9%87%8D%E8%A7%84%E5%88%92%E4%B8%8E%E9%95%BF%E4%BB%BB%E5%8A%A1%E6%81%A2%E5%A4%8D.html">动态重规划与长任务恢复</a>。</p>
+<h2 id="7-如何证明计划有帮助">7. 如何证明计划有帮助</h2>
+<p>离线测试应覆盖“正常完成”和“前提变化”。例如工具超时、返回空数据、候选不足、用户中途排除某品牌、实时状态过期。对每个案例检查目标是否保留、关键约束是否可执行、依赖是否合理、错误能否在扩散前被发现。</p>
+<p>线上指标应区分计划完成与任务成功。所有步骤都显示完成，仍可能没有满足用户要求。可同时记录计划结构通过率、硬约束违规率、检查点漏检、步骤成功率、恢复成功率、最终任务成功率，以及延迟和成本。</p>
+<p>重规划次数也需要结合原因解释：次数下降可能说明初始计划更好，也可能说明系统不再发现问题。评价应回到具体产物和用户目标，而不是追求某个中间数字越低越好。</p>
+<p>计划定义整体路径，<a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行循环与工具选择</a>决定下一步如何行动。两者共享同一份目标、约束和证据，才能在运行中保持一致。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

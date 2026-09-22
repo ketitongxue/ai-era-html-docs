@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="从业务目标出发，梳理 Agent 的意图识别、计划与执行、上下文管理、检索和评估反馈，并用六个问题检查项目的设计与证据。">
 <title>Agent 系统设计：核心环节与项目自检</title>
 <style>
 :root {
@@ -116,119 +115,133 @@ th { background: #eaf0f7; }
   th, td { min-width: 0; }
 }
 
-/* 阅读笔记：沿用仓库的暖色纸张与正文排版。 */
-.article-meta { margin: 4px 0 12px; color: #536276; font-size: 14px; letter-spacing: .04em; }
-header h1 { margin-top: 0; margin-bottom: 18px; }
-.lead { font-size: 18px; color: #39475a; margin-bottom: 26px; }
-.reading-guide { margin: 28px 0 34px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
-.reading-guide p { margin: 0 0 10px; font-weight: 650; }
-.reading-guide ol { margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
-.reading-guide li { margin: 3px 0; }
-.article-note, .example { padding: 14px 20px; margin: 22px 0; border-left: 3px solid #7ea2cd; background: #f0f4f8; }
-.article-note p, .example p { margin: 6px 0; }
-section { scroll-margin-top: 24px; }
-dt { margin-top: 20px; font-weight: 650; font-size: 18px; }
-dd { margin: 6px 0 18px; }
-caption { padding: 12px 14px; background: #eaf0f7; font-weight: 650; text-align: left; }
-footer { margin-top: 38px; padding-top: 18px; border-top: 1px solid var(--line); color: #536276; font-size: 14px; }
-@media (max-width: 600px) {
-  .reading-guide { padding: 16px 20px; }
-  .reading-guide ol { grid-template-columns: 1fr; }
-  .lead { font-size: 17px; }
-  .article-note, .example { padding: 12px 16px; }
-}
-@media print {
-  .reading-guide { display: none; }
-  h2, h3, dt { break-after: avoid; }
-  tr { break-inside: avoid; }
-}
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
 </style>
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<article aria-labelledby="article-title">
-<header>
-<p class="article-meta">AI Agent · 学习笔记</p>
-<h1 id="article-title">Agent 系统设计：<br>核心环节与项目自检</h1>
-<p class="lead">围绕一个具体任务，说明系统怎样理解目标、采取行动、使用信息，以及如何判断结果。把这些问题串起来，才能看清一个 Agent 项目的设计是否完整。</p>
-</header>
-<nav class="reading-guide" aria-label="本文目录">
-<p>本文目录</p>
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 3 分钟</p>
+<h1 id="agent-系统设计核心环节与项目自检">Agent 系统设计：核心环节与项目自检</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#用五个问题观察系统">用五个问题观察系统</a></li><li><a href="#按任务过程阅读">按任务过程阅读</a></li><li><a href="#六个项目自检问题">六个项目自检问题</a></li><li><a href="#和现有工具笔记的关系">和现有工具笔记的关系</a></li></ol></details></nav>
+<p>一个 Agent 项目需要把用户目标、模型决策、工具执行和结果验证连起来。学习时可以沿着任务推进的过程逐步展开，也可以从某个失败现象反向找到需要补齐的机制。这篇导读提供主题地图和项目自检入口。</p>
+<h2 id="用五个问题观察系统">用五个问题观察系统</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>设计关注点</th>
+<th>核心问题</th>
+<th>需要查看的产物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入理解与意图</td>
+<td>用户要完成什么，哪些信息仍不明确？</td>
+<td>结构化目标、参数、约束、澄清记录</td>
+</tr>
+<tr>
+<td>计划与执行</td>
+<td>下一步做什么，依据是什么，何时停止？</td>
+<td>计划、动作、工具契约、检查点与恢复记录</td>
+</tr>
+<tr>
+<td>上下文与记忆</td>
+<td>本轮决策需要哪些信息，旧信息是否仍有效？</td>
+<td>信息来源、状态版本、摘要与召回证据</td>
+</tr>
+<tr>
+<td>检索</td>
+<td>去哪里找依据，何时证据已经足够？</td>
+<td>授权数据源、分块索引、查询与检索结果</td>
+</tr>
+<tr>
+<td>评估与反馈</td>
+<td>怎样判断任务完成，如何定位并修复失败？</td>
+<td>验收标准、样本集、执行轨迹与版本对照</td>
+</tr>
+</tbody>
+</table></div>
+<p>这五项是设计维度，不是每次请求必须经过的固定流水线。一次简单查询可能不需要单独生成计划；长任务中的上下文、检索与评估则会反复参与决策。工具权限和外部操作边界应贯穿执行过程。</p>
+<h2 id="按任务过程阅读">按任务过程阅读</h2>
+<p>先读<a href="Agent%20%E8%BE%93%E5%85%A5%E7%90%86%E8%A7%A3%E4%B8%8E%E6%84%8F%E5%9B%BE%E8%AF%86%E5%88%AB.html">输入理解与意图识别</a>，把含糊请求变成可检查的目标与约束。再读<a href="Agent%20%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.html">任务规划与执行计划</a>，讨论步骤、依赖与检查点。</p>
+<p>执行过程中需要根据新信息改变动作时，继续阅读<a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行循环与工具选择</a>；当假设失效、用户改需求或任务中断时，转到<a href="Agent%20%E5%8A%A8%E6%80%81%E9%87%8D%E8%A7%84%E5%88%92%E4%B8%8E%E9%95%BF%E4%BB%BB%E5%8A%A1%E6%81%A2%E5%A4%8D.html">动态重规划与长任务恢复</a>。</p>
+<p>信息组织分成两层：<a href="Agent%20%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E6%8E%92%E4%B8%8E%E8%AE%B0%E5%BF%86%E5%8F%AC%E5%9B%9E.html">上下文编排与记忆召回</a>管理一次决策的工作集，<a href="Agent%20%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E5%BB%BA%E6%A8%A1%E4%B8%8E%E6%9B%B4%E6%96%B0.html">用户画像建模与更新</a>讨论长期偏好及其证据、时效与使用范围。历史偏好不能自动替代本轮用户要求。</p>
+<p>检索也拆成两个相邻主题：<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">数据组织与分块</a>负责查询目标、数据源和知识结构；<a href="Agent%20%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%EF%BC%9A%E5%8F%AC%E5%9B%9E%E8%B4%A8%E9%87%8F%E3%80%81%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BC%93%E5%AD%98.html">召回质量、预算与缓存</a>负责候选融合、迭代检索及成本控制。先理解数据如何组织，再讨论调参，通常更容易解释方案取舍。</p>
+<p>最后，用<a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">评估、反馈与可观测性</a>判断效果，再用<a href="Agent%20%E9%A1%B9%E7%9B%AE%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E8%B7%B5%E8%AE%B0%E5%BD%95.html">项目设计与实践记录</a>把这些机制落到一个完整场景。需要做问答练习时，单独查看<a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE.html">面试题与项目表达</a>。</p>
+<h2 id="六个项目自检问题">六个项目自检问题</h2>
 <ol>
-<li><a href="#business-goal">先说明业务目标</a></li>
-<li><a href="#design-dimensions">五个设计关注点</a></li>
-<li><a href="#project-checklist">六个项目自检问题</a></li>
-<li><a href="#engineering-tradeoffs">从项目经历中看工程取舍</a></li>
-<li><a href="#related-reading">关联阅读</a></li>
+<li><strong>为什么做？</strong> 明确用户、任务边界、现有流程和成功条件。没有业务目标，组件数量无法解释价值。</li>
+<li><strong>怎样完成？</strong> 沿一个输入说明状态、信息、动作和结果，提供实际执行记录或注明模拟的过程。</li>
+<li><strong>为什么这样设计？</strong> 记录替代方案、选型依据，以及新增机制带来的成本和维护负担。</li>
+<li><strong>失败后怎么办？</strong> 准备理解错误、信息不足、工具异常和中断恢复的路径，区分可重试与需要确认的操作。</li>
+<li><strong>怎样验证？</strong> 说明样本、规则、版本和运行条件，区分完成调用与完成任务，保留失败案例。</li>
+<li><strong>下一步改什么？</strong> 从已观察问题中选择优先项，给出验证办法，确认改进没有损害已有能力。</li>
 </ol>
-</nav>
-<section aria-labelledby="business-goal">
-  <h2 id="business-goal">一、先说明业务目标</h2>
-  <p>讨论 Agent 之前，先说清楚谁遇到了什么问题、现在如何处理、希望改善什么。否则，工具调用、记忆和多 Agent 都可能只是组件清单，无法解释为什么需要这套系统。</p>
-  <p><strong>假想示例：</strong>为团队做一个内部知识问答助手。用户问“出差怎么报销”，系统需要结合适用地区和最新制度，回答办理步骤并给出出处。这里的目标不是“让模型会聊天”，而是让用户找到适用于自己的可靠信息；缺少地区信息时需要澄清，没有依据时需要说明。</p>
-  <p>由此可以写下一句项目定义：为谁，在什么输入和约束下，完成什么任务，以什么结果判断完成。再决定检索、工具和执行方式，避免先选框架再寻找需求。</p>
-</section>
-
-<section aria-labelledby="design-dimensions">
-  <h2 id="design-dimensions">二、五个设计关注点</h2>
-  <p>原文以五个主题组织 Agent 学习。它们适合作为检查系统是否考虑周全的设计维度，<strong>不是每次请求都必须依次经过的固定流水线</strong>。简单问题可能直接回答，复杂任务才需要规划和多次执行；检索结果也可能促使系统重新澄清目标。</p>
-  <dl>
-    <dt>1. 意图识别：到底要完成什么</dt>
-    <dd><p>区分用户说出的句子与实际目标，识别缺失条件、指代和含糊表达。知识问答示例中的“怎么报销”可能需要补充地区和费用类型。关键问题是：哪些信息可以合理推断，哪些信息必须询问，什么时候应该拒绝继续猜测？</p></dd>
-    <dt>2. 计划与执行：如何推进，以及何时停止</dt>
-    <dd><p>把目标转为可执行的步骤，并在得到新结果后决定下一步。工具是执行手段，需要明确输入、输出和权限边界。设计时应考虑工具失败、结果不符合预期、重复操作和停止条件；步骤固定且足够可靠时，也应比较确定流程是否已经能够满足需求。</p></dd>
-    <dt>3. 上下文管理：此刻需要知道什么</dt>
-    <dd><p>决定哪些规则、历史消息、检索内容和工具结果进入当前模型输入，哪些可以摘要或暂不加载。长期保存信息与本轮使用信息是两件事。需要追问：压缩后是否丢失关键条件，过期记忆会不会影响判断，怎样避免无关细节挤占有效信息？</p></dd>
-    <dt>4. 检索：去哪里找依据</dt>
-    <dd><p>外部信息不只有文档，还可能包含业务数据和历史状态。设计应先明确需要什么证据，再选择查找方式。对知识问答而言，找到相关段落还不够，还要判断来源、版本和适用范围；检索不到或来源冲突时，也需要预先定义处理方式。</p></dd>
-    <dt>5. 评估与反馈：怎样知道做得更好</dt>
-    <dd><p>回答流畅不等于任务完成。应围绕业务目标检查结果、依据和执行过程，并把失败样本整理为后续验证材料。用户反馈可以帮助发现问题，但还需要分析失败发生在哪一环，确认修改后是否改善目标能力、是否损害其他表现。</p></dd>
-  </dl>
-  <p>原文提供的是问题框架，并没有在开篇词中展开各环节的实现方案。上面的追问用于引导学习，不能替代具体项目中的设计、测试与取舍。</p>
-</section>
-
-<section aria-labelledby="project-checklist">
-  <h2 id="project-checklist">三、六个项目自检问题</h2>
-  <p>可以用下面的问题检查项目，也可以据此组织面试表达。每个回答都尽量落到可查看的材料上：做过的说明结果，尚未验证的写成假设，计划中的能力说明验证方法。</p>
-  <dl>
-    <dt>1. 它解决什么问题，边界在哪里？</dt>
-    <dd><p>说明目标用户、典型任务、输入条件与不支持的情形。<strong>准备证据：</strong>需求说明、代表性输入、验收条件，以及现有人工流程或已有方案。用这些材料解释为什么值得做。</p></dd>
-    <dt>2. 一次任务实际怎样完成？</dt>
-    <dd><p>沿着一个真实输入，说明目标判断、所用信息、执行动作和最终结果。<strong>准备证据：</strong>流程图、一条经过必要脱敏的执行记录、工具输入输出与结果出处。只画组件之间的箭头，还不足以证明链路跑通。</p></dd>
-    <dt>3. 为什么选择这套方案？</dt>
-    <dd><p>解释模型、工具、检索和编排方式各自解决的约束，并说明考虑过什么替代方案。<strong>准备证据：</strong>方案对照、选择理由和已有试验记录；没有比较实验时，把判断依据和待验证项分开写。</p></dd>
-    <dt>4. 哪里会失败，失败后怎么办？</dt>
-    <dd><p>分别考虑理解偏差、信息缺失、工具异常和结果错误，明确重试、澄清、停止或人工接手的条件。<strong>准备证据：</strong>失败样本、异常处理规则和恢复记录。不能只描述成功路径，也不能把无限重试当作兜底。</p></dd>
-    <dt>5. 如何证明效果，而非只看演示？</dt>
-    <dd><p>将“好用”拆成与目标相关的检查项，例如任务是否完成、答案是否有依据、等待时间和资源消耗。<strong>准备证据：</strong>测试样本、评分规则、运行条件与实际结果。说明样本覆盖范围，不把一次成功扩展为整体可靠性结论。</p></dd>
-    <dt>6. 下一步改什么，如何确认改进？</dt>
-    <dd><p>从失败记录中选择优先问题，说明预期收益、可能代价及验证办法。<strong>准备证据：</strong>问题分类、修改记录和同条件下的前后对照。模型、提示词或数据变更后，用保留的样本检查旧能力是否退步。</p></dd>
-  </dl>
-</section>
-
-<section aria-labelledby="engineering-tradeoffs">
-  <h2 id="engineering-tradeoffs">四、从项目经历中看工程取舍</h2>
-  <p>原文作者提到的项目经历是个人案例，适合用来发现值得追问的约束，不能直接视为通用商业结论或经过验证的架构方案。</p>
-  <ul>
-    <li><strong>生成内容：交付质量与成本。</strong>原文作者提到，商家关心可使用的图片或视频，视频生成还受模型成本、效果稳定性和素材质量影响。整理出的设计问题是：最终交付物如何验收，失败后如何返工，人工修订和等待时间是否计入成本？</li>
-    <li><strong>持续对话：连贯性与信息维护。</strong>原文作者提到，用户画像和前后对话一致性是项目关注点。由此可以追问：哪些用户信息值得保存，如何更新与纠正，旧信息如何避免干扰新需求？</li>
-    <li><strong>数据采集与分析：来源质量与运行稳定性。</strong>原文作者提到，数据来源不稳定会限制项目落地。相应的设计问题是：来源变化能否被发现，缺失或过期数据如何标记，采集失败是否会被误当成有效结果？</li>
-  </ul>
-  <p>这些取舍提醒我们，评估 Agent 应覆盖完整交付过程。模型能力只是其中一部分，输入质量、失败处理、人工投入和结果可用性同样需要说明。</p>
-</section>
-
-<section aria-labelledby="related-reading">
-  <h2 id="related-reading">五、关联阅读</h2>
-  <p>仓库内已有文章可以补充部分设计细节：</p>
-  <ul>
-    <li><a href="../Claude%20Code/Claude%20Code%20Skills.html">Claude Code Skills</a>：结合按需加载与渐进式披露，继续理解上下文组织。</li>
-    <li><a href="../Claude%20Code/Claude%20Code%20Sub-Agents%20的核心概念与应用价值.html">Claude Code Sub-Agents 的核心概念与应用价值</a>：阅读上下文隔离、架构选择、任务交接与失败处理。</li>
-    <li><a href="../Claude%20Code/SDD%20工作流.html">SDD 工作流</a>：参考规范、执行、验证和迭代的组织方式。</li>
-  </ul>
-</section>
-
+<p>自检的产物应是一份可复查记录：事实写事实，假设写假设，教学参数不冒充业务成绩。新机制是否值得引入，要由任务约束与比较结果决定。</p>
+<h2 id="和现有工具笔记的关系">和现有工具笔记的关系</h2>
+<p>通用设计思路可以结合具体工具继续学习。<a href="../Claude%20Code/Claude%20Code%20Skills.html">Claude Code Skills</a>展示知识按需加载，<a href="../Claude%20Code/Claude%20Code%20Sub-Agents%20%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%BA%94%E7%94%A8%E4%BB%B7%E5%80%BC.html">Sub-Agents</a>讨论角色与上下文隔离，<a href="../Claude%20Code/SDD%20%E5%B7%A5%E4%BD%9C%E6%B5%81.html">SDD 工作流</a>整理规范、执行、验证和迭代。工具功能会变化，使用时仍应核对对应版本；这些实现示例不应被当成所有 Agent 必须采用的架构。</p>
 </article>
 </main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
 </body>
 </html>

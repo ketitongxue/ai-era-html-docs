@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 动态重规划与长任务恢复</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 10 分钟</p>
+<h1 id="agent-动态重规划与长任务恢复">Agent 动态重规划与长任务恢复</h1>
+<nav class="toc" aria-label="本文目录"><details><summary>本文目录</summary><ol><li><a href="#1-不同问题需要不同恢复动作">1. 不同问题需要不同恢复动作</a></li><li><a href="#2-分清失败点根因点回滚点和重规划起点">2. 分清失败点、根因点、回滚点和重规划起点</a></li><li><a href="#3-记录依赖才能做局部恢复">3. 记录依赖，才能做局部恢复</a></li><li><a href="#4-从证据出发缩小恢复范围">4. 从证据出发缩小恢复范围</a></li><li><a href="#5-借用-tryconfirmcancel-做计划预检">5. 借用 Try／Confirm／Cancel 做计划预检</a></li><li><a href="#6-长任务要分开保存状态和上下文">6. 长任务要分开保存状态和上下文</a></li><li><a href="#7-用事件与快照支持中断恢复">7. 用事件与快照支持中断恢复</a></li><li><a href="#8-分阶段交接保留可回查的细节">8. 分阶段交接，保留可回查的细节</a></li><li><a href="#9-用故障注入验证恢复能力">9. 用故障注入验证恢复能力</a></li></ol></details></nav>
+<p>一个任务运行很久后失败，最容易想到的补救是“再试一次”或“重新生成计划”。但重复执行可能再次依赖错误事实，全量重做又会浪费已经验证的结果，甚至重复触发外部操作。可靠的恢复机制首先要回答：哪里出错、哪些状态受到影响、从哪里继续才可信。</p>
+<p>长任务的难点包括上下文取舍，也包括工具可靠性、数据时效、持久化、并发和副作用。上下文窗口变大不会自动解决这些问题；恢复能力必须成为运行时的一部分。</p>
+<h2 id="1-不同问题需要不同恢复动作">1. 不同问题需要不同恢复动作</h2>
+<p>Replan 指在已有目标和执行状态的基础上修订路径。它只是纠偏的一种方式，适用于原路径、关键假设或业务条件已经失效的情况。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>情况</th>
+<th>优先动作</th>
+<th>需要注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只读接口偶发超时</td>
+<td>限次重试 Retry</td>
+<td>保留超时和退避预算，避免内外层重复重试</td>
+</tr>
+<tr>
+<td>写接口超时，结果未知</td>
+<td>查询外部状态并对账</td>
+<td>超时不等于未执行，不能直接重发</td>
+</tr>
+<tr>
+<td>缺少决定性条件</td>
+<td>澄清 Clarify</td>
+<td>先检查已有证据能否补齐</td>
+</tr>
+<tr>
+<td>某数据源持续不可用但有替代</td>
+<td>局部 Replan</td>
+<td>替代来源也要符合权限、时效与质量要求</td>
+</tr>
+<tr>
+<td>上游事实错误，污染后继结果</td>
+<td>失效传播及回滚/补偿</td>
+<td>不能只改最终答案</td>
+</tr>
+<tr>
+<td>没有授权、没有可行路径或预算耗尽</td>
+<td>中断或返回部分结果</td>
+<td>说明已完成、未完成及当前外部状态</td>
+</tr>
+</tbody>
+</table></div>
+<p>是否需要重规划与如何生成新计划，最好分成可观测的两个决策。异常码、权限失败、重试次数、工具熔断状态等先由代码处理；业务前提是否被新证据推翻，再交给语义判断。</p>
+<h2 id="2-分清失败点根因点回滚点和重规划起点">2. 分清失败点、根因点、回滚点和重规划起点</h2>
+<p>考虑一个假想导购案例：最终推荐都太贵，原因是系统把电子产品的历史价格偏好错误用于服装。四个位置并不相同。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>在例子中的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>失败点</td>
+<td>用户看到推荐结果并表示价格不合适</td>
+</tr>
+<tr>
+<td>根因点</td>
+<td>提取服装预算时错误复用了其他类目的偏好</td>
+</tr>
+<tr>
+<td>回滚点</td>
+<td>回到基础资料已确认、服装预算尚未确定的状态</td>
+</tr>
+<tr>
+<td>重规划起点</td>
+<td>重新确认服装预算，再决定检索范围</td>
+</tr>
+</tbody>
+</table></div>
+<p>参考商品、已确认城市等可能仍能复用；错误预算、由它生成的候选集及排序应当失效。尺码或颜色偏好能否复用，也要检查其证据是否适用于本次任务，不能因为“以前存在”就默认可信。</p>
+<p>回滚点是状态恢复边界，重规划起点是重新做决策的位置。二者可以重合，也可能需要额外回到更早节点刷新证据。最近一次通过的检查点只是候选：它可能校验不完整，也可能依赖已经过期的数据。</p>
+<h2 id="3-记录依赖才能做局部恢复">3. 记录依赖，才能做局部恢复</h2>
+<p>仅保存聊天记录，难以可靠定位污染范围。关键中间结果应有稳定 ID，并记录来源、时间、依赖和校验状态。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;artifact_id&quot;: &quot;clothing_budget_v2&quot;,
+  &quot;value&quot;: {&quot;max&quot;: 300, &quot;currency&quot;: &quot;CNY&quot;},
+  &quot;status&quot;: &quot;verified&quot;,
+  &quot;evidence_refs&quot;: [&quot;message_18&quot;],
+  &quot;depends_on&quot;: [&quot;requirements_v4&quot;],
+  &quot;constraint_version&quot;: 4,
+  &quot;checked_at&quot;: &quot;2026-09-22T10:00:00+08:00&quot;,
+  &quot;scope&quot;: {&quot;category&quot;: &quot;服装&quot;, &quot;task_id&quot;: &quot;task_12&quot;}
+}
+</code></pre>
+<p>状态可以从简单版本开始：<code>available</code> 表示可参考但未充分验证，<code>verified</code> 表示在指定条件下通过检查，<code>invalid</code> 表示已被否定。需要更精细恢复时增加 <code>suspicious</code>（待复核）与 <code>dirty</code>（自身未必错，但依赖失效）。这些名称是实现约定，不是统一协议。</p>
+<p>当事实被否定时，代码沿依赖图标记受影响的后继，并阻止它们被继续消费。失效传播只覆盖实际依赖者；没有依赖的分支可保留。但任务取消、权限撤销等全局条件可能影响整个运行，应采用更高优先级的控制规则。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">invalidate(fact_id, evidence):
+    append_event(&quot;fact_invalidated&quot;, fact_id, evidence)
+    set_status(fact_id, &quot;invalid&quot;)
+    for item in descendants_of(fact_id):
+        set_status(item, &quot;dirty&quot;)
+        suspend_pending_consumers(item)
+</code></pre>
+<p>已经在执行中的后继也要处理。可取消的请求发送取消信号；无法取消的请求完成后先进入隔离区，再核对版本，不能继续写入当前有效状态。</p>
+<h2 id="4-从证据出发缩小恢复范围">4. 从证据出发缩小恢复范围</h2>
+<p>恢复过程可以按四层展开：先重试当前动作，再替换当前步骤的路径，再回到阶段入口，最后才考虑全局重规划。层级扩大应当由失败证据驱动，而不是机械地每失败一次就多退一步。</p>
+<p>回溯时依次检查当前动作是否执行正确、输入是否完整、上游产物是否有效、支撑事实是否过期、原假设是否成立，以及用户目标是否发生变化。某类错误已反复出现时，可以建立“错误签名—候选恢复位置”的规则，但命中规则后仍需核对当前上下文。</p>
+<p>新计划应明确列出保留、修改、删除和新增内容。例如：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;base_plan_version&quot;: 3,
+  &quot;new_plan_version&quot;: 4,
+  &quot;trigger_evidence&quot;: [&quot;budget_correction_18&quot;],
+  &quot;preserve&quot;: [&quot;reference_product&quot;, &quot;confirmed_city&quot;],
+  &quot;invalidate&quot;: [&quot;old_budget&quot;, &quot;candidates_v3&quot;, &quot;ranking_v3&quot;],
+  &quot;restart_from&quot;: &quot;confirm_clothing_budget&quot;,
+  &quot;changes&quot;: [&quot;询问预算后重新检索&quot;],
+  &quot;remaining_replan_budget&quot;: 1
+}
+</code></pre>
+<p>这个差异是一份待校验提案。运行时检查版本是否仍然匹配，用户约束是否被擅自修改，是否加入了未经允许的工具或副作用，再原子地更新有效计划。模型提供的简要理由有助于审计，但并不能证明它展示了真实完整的内部推理过程。</p>
+<p>系统还要保存尝试过的路径与失败原因，避免 A、B 两个方案来回切换。失败路径可以重新启用，但需要状态变化证据，例如依赖服务已恢复，而不是模型忘记了上一次失败。</p>
+<h2 id="5-借用-tryconfirmcancel-做计划预检">5. 借用 Try／Confirm／Cancel 做计划预检</h2>
+<p>高成本或关键外部依赖的任务，可以在正式执行前先验证最脆弱的前提。这借用了 TCC 的阶段划分，但<strong>普通计划预检并不具备分布式事务的原子性和一致性保证</strong>。</p>
+<ul>
+<li><strong>Try</strong>：以低成本验证工具、数据和关键假设，例如读取少量库存、检查目标记录、生成变更预览。试探应避免不可逆副作用。</li>
+<li><strong>Confirm</strong>：通过后将有效证据纳入当前版本，再进行正式动作；正式写入时仍需检查权限、版本及前置条件。</li>
+<li><strong>Cancel</strong>：清理试探阶段的临时资源，标记失败假设，并转向替代路径或停止。</li>
+</ul>
+<p>预检成功不等于稍后执行必然成功：库存、权限、价格都可能变化。涉及资源预留、确认和释放时，需要底层服务提供对应协议、幂等键和补偿语义，不能仅靠三个同名提示词实现。</p>
+<p>对于只读推荐，轻量探测通常已经足够。不要为了统一概念引入完整事务编排。资金或跨系统写入失败后的补偿也可能不完全可逆，系统必须记录实际完成的部分，而不是一概显示“已回滚”。</p>
+<h2 id="6-长任务要分开保存状态和上下文">6. 长任务要分开保存状态和上下文</h2>
+<p>模型窗口只是当前决策所需信息的视图，不能成为任务状态的唯一存储。至少应持久化目标和约束版本、计划及节点状态、证据索引、产物位置、工具调用账本、失败历史和预算。</p>
+<p>长期运行中常见的漂移包括：目标变成了另一个任务，硬约束被摘要弱化，失败动作被标为成功，旧证据继续支持新结论，或一个字段误读污染多个后续产物。检测这些问题需要对照原始事件、外部真实状态和当前计划。</p>
+<p>可以在阶段结束、压缩上下文后、重规划前后或重要异常出现时触发上下文校验。异步校验器应记录自己读取的状态版本，返回问题和修复建议；若主任务已推进到新版本，先重新核对影响范围，不能用过期结论直接覆盖当前状态。</p>
+<p>多加一个校验器也会增加成本和误报。确定性检查可持续运行，昂贵语义检查优先放在高影响节点。不同模块发现同一问题时应合并，避免多个修复动作并发修改同一任务。</p>
+<h2 id="7-用事件与快照支持中断恢复">7. 用事件与快照支持中断恢复</h2>
+<p>事件日志保存“发生了什么”，快照保存“某一时点状态是什么”。例如约束更新、工具执行完成、事实失效、检查通过和计划换版都可以成为事件。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;event_id&quot;: &quot;event_204&quot;,
+  &quot;task_id&quot;: &quot;task_12&quot;,
+  &quot;sequence&quot;: 204,
+  &quot;type&quot;: &quot;constraint_updated&quot;,
+  &quot;expected_state_version&quot;: 18,
+  &quot;payload&quot;: {&quot;field&quot;: &quot;budget_max&quot;, &quot;old&quot;: 500, &quot;new&quot;: 300},
+  &quot;evidence_ref&quot;: &quot;message_18&quot;
+}
+</code></pre>
+<p>通过最近可信快照加后续事件，可以重建内部状态。快照需要同时关联事件序号、数据结构版本和产物校验信息；关键变更持久化失败时，不应向用户宣称完成。日志中发现错误，也应追加纠正事件，保留历史用于审计，而不是抹去发生过的事实。</p>
+<p>中断恢复至少有两种情况。等待用户补充时，保存待回答的问题与恢复位置；进程崩溃重启时，先获取任务执行权、加载持久化状态、检查进行中的调用，再恢复可执行节点。并行工作者需要租约、锁或版本比较，防止两个进程同时继续同一任务。</p>
+<p><strong>重放内部状态不等于重新执行外部动作。</strong> 若“创建工单”已在外部成功，但进程在记录成功前崩溃，恢复后再次调用就可能产生重复工单。执行账本应保存稳定操作 ID 和幂等键，先查询或对账未知结果；已完成动作重用回执，需要重做的动作才重新调度。具体框架的重放边界仍需核对，例如 LangGraph 的 Graph API 文档明确说明，受影响节点恢复时可能从函数起点重跑，副作用需考虑幂等。<a href="https://github.com/langchain-ai/docs/blob/main/src/oss/langgraph/graph-api.mdx">LangGraph Graph API 文档</a></p>
+<p>可以用一个恢复检查表控制重启过程：先确认任务仍获准继续，再校验当前计划和约束版本；随后清点外部动作账本，核对未知结果；再验证仍要复用的产物及证据；最后重新计算就绪节点。加载快照成功只完成了其中一步，不能直接当成“任务已恢复”。</p>
+<p>例如进程停止前已经拿到一份配送报价，重启时它可能已经过期。正确处理是保留该调用的历史记录，并把报价标记为需刷新；不应为了与旧快照一致而继续承诺旧到货时间。相反，已经成功创建的工单，即使当前窗口中没有相关消息，也应通过账本和外部回执被识别为已执行。</p>
+<p>用户取消需要优先于普通恢复。运行时应停止派发新动作，尝试取消进行中的动作，并核对已经发生的外部影响。取消之后的晚到结果只能用于记录和对账，不应重新激活任务。若清理或补偿失败，应保存待处理项及恢复入口，使下一次处理有明确起点。</p>
+<h2 id="8-分阶段交接保留可回查的细节">8. 分阶段交接，保留可回查的细节</h2>
+<p>长任务可以划分为需求确认、证据收集、生成、执行和验证等阶段。分阶段不必等同于多 Agent；同一个运行时也可以切换局部上下文。</p>
+<p>交接包需要保留总目标、已完成事项、当前计划版本、仍然有效的约束、已确认事实、证据和产物索引、未解决问题及下一阶段输入。原始工具响应和失败尝试可以留在外部存储，需要时按 ID 召回。</p>
+<p>交接后应检查接收方是否知道哪些结果已经过期、哪些动作已经执行、哪些问题仍待确认。压缩历史时尤其不能把“禁止修改接口”改成“尽量少修改”，也不能把“已提出执行方案”改成“已完成执行”。</p>
+<h2 id="9-用故障注入验证恢复能力">9. 用故障注入验证恢复能力</h2>
+<p>恢复测试不能只模拟网络超时。还应覆盖：上游事实被纠正、证据过期、外部写入成功但本地记录失败、等待用户时进程重启、旧计划的并发任务晚到、补偿本身失败。</p>
+<p>每个案例都应明确标准根因、允许保留的产物、必须失效的后继、实际外部状态和预期恢复终点。观察根因定位是否正确、恢复范围是否过大或过小、是否错误复用脏结果、是否重复副作用，以及恢复后是否真正满足目标。</p>
+<p>恢复成功率的分母应说明是全部触发恢复的任务，还是预先标注为可恢复的故障。已有结果复用率也应只统计仍可信的结果；提高复用率不能以继续使用错误数据为代价。</p>
+<p>对于失败路径振荡、无进展重试、重复外部操作和约束违规，应有独立计数与停止条件。可靠性体现在遇到这些情况时，系统能够保留证据、终止扩大影响，并从明确的状态继续工作。</p>
+<p>关联阅读：<a href="Agent%20%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.html">任务规划与执行计划</a> · <a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行循环与工具选择</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 输入理解与意图识别</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.article-meta { color:#536276;font-size:14px;margin:12px 0; }
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.toc { margin:24px 0 32px;padding:16px 22px;border:1px solid var(--line);border-radius:10px;background:var(--paper); }
+.toc summary { cursor:pointer;font-weight:650; }
+.toc ol { display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-bottom:0; }
+.toc li { margin:4px 0; }
+.review-mark { display:inline-block;padding:5px 12px;background:#eaf0f7;border-radius:6px;color:#395777;font-size:14px;font-weight:600; }
+.summary { max-width:800px;font-size:18px;color:#39475a; }
+.statline { display:flex;flex-wrap:wrap;gap:10px 24px;color:#536276;font-size:14px;margin:22px 0; }
+.search-label { display:block;font-weight:600;margin-bottom:8px; }
+input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid #879bb2;border-radius:8px;background:var(--paper);color:var(--ink); }
+.cards { list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.card { margin:0;padding:20px 22px;border:1px solid var(--line);background:var(--paper);border-radius:10px; }
+.card h3 { font-size:20px;margin:8px 0 10px; }
+.card p { font-size:15px;margin:10px 0; }
+.card .meta { color:#536276;font-size:13px; }
+.card .number { font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#536276; }
+.card[hidden],section[hidden] { display:none; }
+.review-links { border-top:1px solid var(--line);margin-top:40px;padding-top:18px; }
+.empty { padding:18px 0;color:#536276; }
+@media(max-width:600px) { .cards,.toc ol { grid-template-columns:1fr; }.card{padding:18px;}.summary{font-size:17px;} }
+@media print { .breadcrumb,.toc,.search-panel {display:none;} .cards{display:block;}.card{break-inside:avoid;} }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 学习笔记 · 约 9 分钟</p>
+<h1 id="agent-输入理解与意图识别">Agent 输入理解与意图识别</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#1-先区分表达意图和执行参数">1. 先区分表达、意图和执行参数</a></li><li><a href="#2-输入规范化需要两次机会">2. 输入规范化需要两次机会</a></li><li><a href="#3-让结构化输出保留不确定性">3. 让结构化输出保留不确定性</a></li><li><a href="#4-意图分类要服务于业务路由">4. 意图分类要服务于业务路由</a></li><li><a href="#5-分层识别是可选架构">5. 分层识别是可选架构</a></li><li><a href="#6-意图多时先解决候选质量">6. 意图多时，先解决候选质量</a></li><li><a href="#7-多轮对话应更新任务而非重新猜一遍">7. 多轮对话应更新任务，而非重新猜一遍</a></li><li><a href="#8-用错误类型组织验证">8. 用错误类型组织验证</a></li></ol></details></nav>
+<p>用户说“第二条不错，但有点贵，有没有更划算、明天能到的”，系统要完成的远不只是选一个意图标签。它需要找到“第二条”对应的商品，区分预算与偏好，识别配送要求，再把这些信息交给正确的业务流程。任何一个环节猜错，后续检索、推荐和执行都可能围绕错误目标展开。</p>
+<p>输入理解的交付物应当是一份<strong>可核验、可更新的任务描述</strong>：用户要什么、哪些条件已经确定、哪些信息仍然缺失，以及每项判断来自哪里。</p>
+<h2 id="1-先区分表达意图和执行参数">1. 先区分表达、意图和执行参数</h2>
+<p>这三个概念相关，但承担不同职责。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>核心问题</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入规范化</td>
+<td>这句话具体指什么？</td>
+<td>“第二条”对应上一轮列表中的商品 A</td>
+</tr>
+<tr>
+<td>意图识别</td>
+<td>应进入哪个业务流程？</td>
+<td>商品推荐，而非售后退款</td>
+</tr>
+<tr>
+<td>槽位与约束抽取</td>
+<td>执行这个流程需要哪些条件？</td>
+<td>参考商品、配送城市、到货日期、预算、尺码</td>
+</tr>
+</tbody>
+</table></div>
+<p>规范化可以修正语序、补全省略、解释术语，却不能随意补充业务事实。“更划算”不天然等于“最低价”，“最近”也必须结合任务日期确定。历史画像中的尺码和颜色偏好只能作为候选依据，不能自动变成本次购买的确定条件。</p>
+<p>对于少量、边界清楚的业务，可以在一次模型调用中同时完成三项工作；输入复杂、需要分别评估错误时，再拆成独立步骤。拆分的价值在于职责和诊断清楚，代价是增加延迟以及步骤之间传递错误的机会。</p>
+<h2 id="2-输入规范化需要两次机会">2. 输入规范化需要两次机会</h2>
+<p><strong>前置处理</strong>解决当前上下文能够确定的内容：根据上一轮列表消解指代，用领域词汇表解释缩写，将明确日期、金额和单位转成统一格式。保留原始输入，同时保存规范化结果；发生争议时能够回查，避免一次错误改写覆盖用户原话。</p>
+<p><strong>执行中的补充处理</strong>解决依赖外部信息的问题。例如“上次推荐的看樱花的地方”需要先检索历史对话，再根据地点、活动、时间等属性消歧；“同价位里最耐用”需要先获得候选产品及可比较指标，才有条件完成判断。</p>
+<p>对常见输入问题，可以采用下面的处理顺序：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>优先依据</th>
+<th>信息不足时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“这个、第二个、刚才那个”</td>
+<td>当前界面对象 ID、上一轮输出及顺序</td>
+<td>返回候选对象，确认具体指代</td>
+</tr>
+<tr>
+<td>缺少主语或动作对象</td>
+<td>当前任务、最近有效话题</td>
+<td>保留歧义，不自动切换业务对象</td>
+</tr>
+<tr>
+<td>行业缩写、内部代号</td>
+<td>当前业务域、带权限的词汇表</td>
+<td>保留多个解释并澄清</td>
+</tr>
+<tr>
+<td>“便宜、专业、划算”</td>
+<td>用户给出的比较对象和评价维度</td>
+<td>提出可执行解释，注明假设</td>
+</tr>
+<tr>
+<td>“最新、现在有货”</td>
+<td>有时间戳的实时工具结果</td>
+<td>标明无法核实，避免用旧知识补齐</td>
+</tr>
+</tbody>
+</table></div>
+<p>词汇表也需要治理。线上新词先作为待审核候选，记录出现范围和解释证据，再决定是否进入个人、团队或公共词汇表。出现频繁不代表含义正确；某团队的内部代号也不能因为多人提及就跨权限公开。</p>
+<h2 id="3-让结构化输出保留不确定性">3. 让结构化输出保留不确定性</h2>
+<p>下面是一个假想的导购请求。假设上一轮已经确认本次配送城市为杭州、颜色偏好为深色，商品 A 的价格来自工具结果；当前用户明确要求明天送达，但并未给出最高预算。历史画像里的 M 码仍然只是待确认线索。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;intent&quot;: &quot;product_recommendation&quot;,
+  &quot;task_operation&quot;: &quot;refine&quot;,
+  &quot;slots&quot;: {
+    &quot;reference_product_id&quot;: &quot;product_A&quot;,
+    &quot;category&quot;: &quot;裤装&quot;,
+    &quot;city&quot;: &quot;杭州&quot;,
+    &quot;size&quot;: null
+  },
+  &quot;sub_tasks&quot;: [&quot;compare_value&quot;, &quot;verify_delivery&quot;],
+  &quot;hard_constraints&quot;: [
+    {&quot;field&quot;: &quot;delivery_date&quot;, &quot;op&quot;: &quot;lte&quot;, &quot;value&quot;: &quot;2026-09-23&quot;, &quot;evidence&quot;: &quot;message_12&quot;}
+  ],
+  &quot;soft_preferences&quot;: [&quot;优先低于参考价格&quot;, &quot;深色优先&quot;],
+  &quot;missing_slots&quot;: [&quot;size&quot;, &quot;budget_max&quot;],
+  &quot;provisional_facts&quot;: [
+    {&quot;field&quot;: &quot;size&quot;, &quot;value&quot;: &quot;M&quot;, &quot;evidence&quot;: &quot;profile_7&quot;}
+  ],
+  &quot;constraint_version&quot;: 3
+}
+</code></pre>
+<p>日期是按该示例的请求日期及用户时区展开的；生产系统应保存解析依据。<code>missing_slots</code> 表示缺失项，并不等于每一项都必须立刻追问。预算缺失时可以先提供不同价位候选；尺码未确认时可以展示商品，但不能宣称“你的尺码有货”。</p>
+<p>硬约束需要有执行校验，例如价格上限、禁止修改的文件、明确排除的品牌。软偏好参与排序；无法满足时说明取舍。用户明确说“不超过 100 元”，条件应当是 <code>price &lt;= 100</code>，不能在转换时错误变成严格小于。</p>
+<h2 id="4-意图分类要服务于业务路由">4. 意图分类要服务于业务路由</h2>
+<p>候选意图至少需要名称、适用边界、反例、所需槽位，以及对应流程。模型只能从当前候选中选择，代码负责校验枚举和输出结构。建议保留两个独立出口：</p>
+<ul>
+<li><code>unclear</code>：现有信息不足以区分目标，适合补充证据或澄清。</li>
+<li><code>unsupported</code>：目标已经清楚，但超出系统能力范围，适合说明边界或转交。</li>
+</ul>
+<p>不要把每个要求都拆成一个意图。“查询上月数据并导出表格”可以是一个导出任务，查询是它的步骤。只有存在能够独立交付的目标时，才需要多个意图，并把依赖关系交给<a href="Agent%20%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.html">任务规划</a>处理。</p>
+<p>相近意图也不必追求语言意义上的绝对互斥。“比较商品”和“推荐商品”天然可能重叠。应先判断它们是否导致不同流程和权限；如果执行方式相同，可以合并流程，用 <code>comparison_targets</code> 等参数表达差异。若行为差异显著，则补充边界例子和路由优先级。</p>
+<h2 id="5-分层识别是可选架构">5. 分层识别是可选架构</h2>
+<p>一种常见实现是按复杂度逐级处理，而不是每次都调用最大模型。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>适合处理</th>
+<th>必须满足的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>确定性代码</td>
+<td>按钮操作、固定命令、格式合法性、明确状态转换</td>
+<td>规则必须结合会话状态，“继续”不能无条件复用旧任务</td>
+</tr>
+<tr>
+<td>轻量模型</td>
+<td>常见表达、槽位抽取、候选排序</td>
+<td>在真实样本上验证成本、延迟与错误率</td>
+</tr>
+<tr>
+<td>更强模型</td>
+<td>多轮指代、边界冲突、复杂语义关系</td>
+<td>仍允许拒识和澄清，升级不等于保证正确</td>
+</tr>
+</tbody>
+</table></div>
+<p>级联适合请求量大、简单输入占比较高的系统。小型领域应用中，一次模型调用加结构校验可能更简单；额外层级也可能因为前层误判而降低质量。</p>
+<p>不要把模型输出的 <code>confidence: 0.9</code> 当成真实的 90% 正确率。路由可以综合候选间距、槽位完整性、规则证据、业务后果和历史错误分布；在验证或校准集上确定阈值，再用保留测试集评估。涉及重要写操作时，意图识别正确也不能代替执行期授权。</p>
+<p>意图也可以放进执行循环中逐步识别。这适合需要先查历史资料才能确定目标的情况，但会使分类、工具选择和任务状态互相影响。折中做法是先完成粗路由，限制可用业务域；循环获得新证据后再细化意图。在触发不同权限或副作用之前，必须完成明确的路由与条件检查，不能以“还在理解用户”为由提前执行。</p>
+<h2 id="6-意图多时先解决候选质量">6. 意图多时，先解决候选质量</h2>
+<p>候选集合过大，可以按业务域分层，或先检索相关候选，再进行精细识别。层次路由减少单次分类负担，但上层走错会排除正确分支；检索过滤节省上下文，却会受到召回率限制。因此需要“无合适候选时扩大范围”的出口，分别记录候选召回与最终分类结果。</p>
+<p>动态 few-shot 适合放入当前容易混淆的正反例。固定部分保留拒识、澄清和输出协议，动态部分只加入相关案例。示例应来自经过标注的样本，避免把模型自己生成的错误答案循环强化。</p>
+<p>向量相似度只能表示表达接近，不能保证意图相同。例如“退款成功了吗”和“帮我退款”很相似，却可能分别对应只读查询和写操作。高风险路由应额外检查动作、否定、时态和权限条件，不能直接凭最近邻执行。</p>
+<p>多识别器投票和微调都是后续选项。多个模型可能犯相关错误，简单多数票不会自动提升准确率；微调也需要稳定标签、足够的高质量样本和独立评测。先修复标签重叠、上下文缺失和错误示例，通常更容易看清问题。</p>
+<h2 id="7-多轮对话应更新任务而非重新猜一遍">7. 多轮对话应更新任务，而非重新猜一遍</h2>
+<p>用户可能延续、补充、改约束、切换、取消或恢复任务。系统应同时判断业务意图与 <code>task_operation</code>，然后对状态做受控更新。</p>
+<p>例如第一轮预算是 5000 元，第二轮“可以加到 8000，但不要太重”，表示预算更新与偏好新增，而非全新推荐。更新需记录新旧值及对应消息，明确冲突时以当前有效指令为准。模型的推测、检索文本中的命令，都不能自行修改用户约束。</p>
+<p>复用上一轮意图可以降低调用量，但只适合任务状态明确的低风险路径。取消、否定和话题切换必须有独立检查；在发现方向不对之后再回滚，无法撤销已经发送、支付或删除的操作。</p>
+<h2 id="8-用错误类型组织验证">8. 用错误类型组织验证</h2>
+<p>一份有效测试集需要包含标准表达、口语、歧义指代、缺参、相近标签、域外请求，以及跨轮修改和取消。测试样本应包含识别时实际可见的上下文，不能只测试孤立句子。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>检查维度</th>
+<th>需要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分类</td>
+<td>Top1 是否正确？各意图的精确率、召回率和混淆情况如何？</td>
+</tr>
+<tr>
+<td>候选召回</td>
+<td>正确意图是否进入候选集合？</td>
+</tr>
+<tr>
+<td>槽位</td>
+<td>值、单位、时间范围是否正确？用户提供的条件是否漏掉？</td>
+</tr>
+<tr>
+<td>拒识与澄清</td>
+<td>是否误拒、漏拒，追问能否让任务继续？</td>
+</tr>
+<tr>
+<td>多轮状态</td>
+<td>修改是否覆盖正确字段？取消是否及时阻止执行？</td>
+</tr>
+<tr>
+<td>业务效果</td>
+<td>是否减少约束违规，同时控制延迟、成本和无效追问？</td>
+</tr>
+</tbody>
+</table></div>
+<p>用户说“不是这个意思”是失败线索，但不一定证明意图分类错了，也可能是检索、排序或表达问题。应回看完整链路，标注具体错误，再把样本加入回归集。</p>
+<p>验证还需要隔离数据泄漏：同一段对话的改写句不宜分别放入训练集和测试集，线上反馈进入示例库后，也应保留未被用于调参的新样本。对“推荐还是比较”这类确实允许多种路由的表达，先标注可接受的处理结果，再决定采用单标签还是多标签口径，避免把标签争议误报成模型错误。</p>
+<p>没有适用于所有 Agent 的统一准确率门槛。可比较的结果需要交代标签空间、样本分布、测试时间、标注规则和评估口径。只有在同样测试条件下比较改动前后，才能判断复杂机制是否值得保留。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
