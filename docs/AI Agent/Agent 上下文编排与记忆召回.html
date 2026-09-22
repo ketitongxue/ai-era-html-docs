@@ -145,11 +145,22 @@ input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid 
 <main id="main-content" tabindex="-1">
 <article>
 <a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
-<p class="article-meta">AI Agent · 学习笔记 · 约 10 分钟</p>
+<p class="article-meta">AI Agent · 学习笔记 · 约 18 分钟</p>
 <h1 id="agent-上下文编排与记忆召回">Agent 上下文编排与记忆召回</h1>
-<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#先区分信息空间工作集和窗口容量">先区分信息空间、工作集和窗口容量</a></li><li><a href="#用统一元数据治理信息而非统一存储所有数据">用统一元数据治理信息，而非统一存储所有数据</a></li><li><a href="#每次调用前先写清楚这一步需要什么">每次调用前，先写清楚“这一步需要什么”</a></li><li><a href="#预算不足时降粒度要有顺序">预算不足时，降粒度要有顺序</a></li><li><a href="#近期原文关键事实和摘要分别承担什么">近期原文、关键事实和摘要分别承担什么</a></li><li><a href="#细节召回围绕缺口运行">细节召回围绕缺口运行</a></li><li><a href="#一个完整的运行示例与验证方法">一个完整的运行示例与验证方法</a></li></ol></details></nav>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#消息会话状态与隔离边界">消息、会话状态与隔离边界</a></li><li><a href="#先区分信息空间工作集和窗口容量">先区分信息空间、工作集和窗口容量</a></li><li><a href="#用统一元数据治理信息而非统一存储所有数据">用统一元数据治理信息，而非统一存储所有数据</a></li><li><a href="#每次调用前先写清楚这一步需要什么">每次调用前，先写清楚“这一步需要什么”</a></li><li><a href="#预算不足时降粒度要有顺序">预算不足时，降粒度要有顺序</a></li><li><a href="#近期原文关键事实和摘要分别承担什么">近期原文、关键事实和摘要分别承担什么</a></li><li><a href="#细节召回围绕缺口运行">细节召回围绕缺口运行</a></li><li><a href="#rag-引用从编号走到可核验的证据">RAG 引用从编号走到可核验的证据</a></li><li><a href="#将记忆策略接到框架">将记忆策略接到框架</a></li><li><a href="#一个完整的运行示例与验证方法">一个完整的运行示例与验证方法</a></li></ol></details></nav>
 <p>Agent 在长对话中出错，经常并非因为某一句回答难度很高，而是因为模型没有看到当前有效的信息：把旧方案当成最新版、忘记用户否定过的内容，或把工具结果里的临时状态当成长期事实。上下文管理要解决的，就是让每次模型调用获得足以完成当前判断、又不会被无关内容淹没的输入。</p>
 <p>这需要把信息的保存、选择、压缩和召回连成一条链。单纯增加聊天记录的保留轮数，只能缓解近期遗忘，不能解释哪些内容必须一直有效。</p>
+<h2 id="消息会话状态与隔离边界">消息、会话状态与隔离边界</h2>
+<p>整合来源：<a href="https://www.codecrush.cn/lesson/355869806471151616">第 06 课：消息角色与多轮对话</a>。以下区分模型输入与 API 提供的状态能力，修正“所有 API 都不保存状态”的绝对说法。</p>
+<p>普通消息调用需要显式提供本轮所需历史；连续对话来自应用或 API 管理的状态，不是模型参数在聊天中自动记住了用户。部分服务支持对话对象或通过上一轮响应 ID 延续上下文，例如 <a href="https://developers.openai.com/api/docs/guides/conversation-state">OpenAI 的会话状态接口</a>。采用托管状态后，仍需管理权限、保留期、上下文预算和费用。</p>
+<p>角色承载消息来源与用途，不能只把它看成人设标签。常见协议包含用户、助手、应用指令，以及工具调用/结果等类型；角色名、内容块和指令层级以具体 API 为准。不能用“所有后文都覆盖前文”概括优先级，也不能把检索摘要标成高权限指令就认为内容更可信。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">调用 1：固定应用指令 + 用户“项目使用 Java 17”
+保存：用户消息 + 助手回复 + 消息 ID + 会话版本
+调用 2：固定应用指令 + 相关历史 + 用户“那框架怎么选”
+</code></pre>
+<p>如果每轮新增约 t 个 token，连续 n 轮都发送全部历史，累计输入量中的历史部分约为 t × n × (n + 1) / 2。这个估算假设每轮长度接近、不裁剪且每轮重读；不是所有产品账单都按平方增长，缓存、摘要和各服务计费方式会改变实际费用。</p>
+<p>会话隔离需要身份校验与数据键共同落实。可由服务端把已认证用户映射到会话，或校验客户端传入的会话 ID 是否归该用户所有；仅有一个难猜的 ID 不等于授权。完整消息档案、当前记忆窗口、实际发给模型的工作集应分开管理：裁剪模型输入不能顺手删掉仍需审计的原文。</p>
+<p>并发请求还可能读到同一旧版本，再各自覆盖历史。可使用会话级串行队列或版本条件写入；失败/取消的调用记录状态，不把不存在的助手回复追加成成功结果。跨实例共享缓存解决访问位置，持久存储解决重启恢复，两者都不能替代会话归属检查。</p>
 <h2 id="先区分信息空间工作集和窗口容量">先区分信息空间、工作集和窗口容量</h2>
 <p>为了讨论工程设计，可以把 Agent 按当前权限可访问、可按需获取的用户输入、任务状态、历史记录、知识和工具结果统称为信息空间。<strong>本次输入工作集</strong>是从中选出、经过组织后真正交给模型的内容；<strong>上下文窗口容量</strong>则是模型支持的 token 容量限制。不同 API 对输入、输出及推理 token 的计量方式可能不同，编排器必须遵守实际接口约束。</p>
 <p>因此，比“窗口等于上下文的函数”更准确的工程表达是：</p>
@@ -288,6 +299,79 @@ input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid 
 </code></pre>
 <p>精确 ID 可定位时先直接取回，不必先做向量相似搜索。主题不明确时才用关键词、向量或混合召回，具体方式见<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">Agent 检索设计：数据组织与分块</a>。</p>
 <p>“最新优先”只适用于同一对象、同一作用域、可被后续事件覆盖的信息。今天对另一项目的预算，不能覆盖昨天本项目的预算。冲突无法消解时，保留分歧和证据，避免模型自行拼出折中事实。历史归档也不等于数据丢失，只要原文及索引仍可恢复；但摘要本身是有损表示，不能承诺仅凭摘要恢复全部原意。</p>
+<h2 id="rag-引用从编号走到可核验的证据">RAG 引用从编号走到可核验的证据</h2>
+<p>检索资料的去重、预算和分区仍遵循本文前面的编排规则。进入生成之前，再为本次最终工作集分配短编号，并保留请求级的“编号 → 文档版本、片段 ID、原文位置”映射。映射绑定本次读到的证据快照，不能在生成后重新查询最新版正文，否则引用可能指向另一版资料。</p>
+<p>下面是差旅制度的教学示例，金额不代表真实政策。资料是数据，不能改变系统指令；标签和提示声明只是防护的一部分，权限过滤、工具边界及输出检查仍由程序落实。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">资料 [1]：差旅制度 v3.2 / 住宿标准 / 2026-01-01 生效
+一线城市住宿每晚不超过 800 元。
+
+资料 [2]：差旅制度 v3.2 / 交通标准 / 2026-01-01 生效
+市内交通单次超过 200 元需附说明。
+
+回答要求：按资料回答；每条事实声明列出支持它的编号；
+依据不足就说明缺口；资料冲突则指出版本和适用范围，不能自行拼接规则。
+</code></pre>
+<p>比“正文里写若干 [1]，另附一个总编号数组”更容易校验的结构，是让每条断言直接关联引用：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;status&quot;: &quot;answered&quot;,
+  &quot;claims&quot;: [
+    {&quot;text&quot;: &quot;一线城市住宿每晚不超过 800 元。&quot;, &quot;citations&quot;: [1]}
+  ]
+}
+</code></pre>
+<p>程序依次检查结构、状态、引用编号是否属于本次工作集、每条事实是否有证据。再检查断言与被引片段是否匹配；编号真实并不意味着引用正确。前端展示的标题、版本、原文预览和链接都从程序保留的映射生成，不让模型自由生成 URL。原文阅读接口也须再次检查当前权限，不能让引用链接绕过授权。</p>
+<p>例如“住宿上限 800 元，超额需总经理审批”可能拼接了住宿条款和另一段交通费审批条款。两段编号都合法，整句仍然没有完整依据。核验应保留主语、对象、时间、数值、条件和例外，把事实拆成可以独立理解的断言，再分别判定 <code>SUPPORTED</code>、<code>CONTRADICTED</code> 或 <code>NOT_ENOUGH</code>。模型核验属于有误差的判断器，需要用人工样本校准；它不能证明所有幻觉已被消除。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">核验输入：一条含完整对象和条件的事实断言 + 它引用的原文
+SUPPORTED：原文支持全部必要条件
+CONTRADICTED：原文与断言冲突
+NOT_ENOUGH：原文未提供足够依据
+</code></pre>
+<p>没有召回到资料、引用结构非法、证据彼此冲突、生成服务失败，应记录成不同内部状态。可以向用户提供简短的未完成说明，但不能把解析失败或权限拒绝全部伪装成“知识库没有答案”。是否进行一次纠错重试，取决于剩余预算和错误是否可修复。</p>
+<p>RAG 仍可能产生无依据补写、与原文矛盾、跨片段错误合并三类错误。低温度和结构化输出主要控制表达与格式，不能作为事实正确保证；“相关性高的放首尾”也应作为待评测策略，不能据此规定所有模型的固定排列顺序。</p>
+<p>本节整理自 CodeCrush <a href="https://www.codecrush.cn/lesson/355875767231447040">《19-从上下文组装到幻觉应对》</a>；逐断言结构、证据快照与错误状态区分为结合现有编排设计的整理补充。双框架落地示例见 <a href="Spring%20AI%20%E4%B8%8E%20LangChain%EF%BC%9ARAG%20%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0.html">Spring AI 与 LangChain：RAG 工程实现</a>。</p>
+<h2 id="将记忆策略接到框架">将记忆策略接到框架</h2>
+<p>整合来源：<a href="https://www.codecrush.cn/lesson/355877279257067520">第 23 课：对话历史与 ChatMemory</a>。以下保留框架接入方式，裁剪、摘要和一致性原则沿用前文。示例是接入片段，未在本文中运行真实模型服务；接口于 2026-09-22 对照官方文档核验。</p>
+<p>在 Spring AI 中，<code>ChatMemory</code> 决定保留什么，<code>ChatMemoryRepository</code> 承担存取，Memory Advisor 将它们接入请求与回复。以下假设项目已提供 <code>ChatClient.Builder</code> 和选定的 repository：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-java">ChatMemory memory = MessageWindowChatMemory.builder()
+    .chatMemoryRepository(repository)
+    .maxMessages(20)
+    .build();
+
+ChatClient client = builder
+    .defaultSystem(&quot;依据已授权的制度资料回答，证据不足时说明缺口。&quot;)
+    .defaultAdvisors(MessageChatMemoryAdvisor.builder(memory).build())
+    .build();
+
+// authorizedConversationId 来自服务端完成归属校验后的会话。
+String answer = client.prompt()
+    .user(userText)
+    .advisors(a -&gt; a.param(ChatMemory.CONVERSATION_ID, authorizedConversationId))
+    .call()
+    .content();
+</code></pre>
+<p>Spring AI 2.0.1 的消息窗口按完整轮次淘汰并保留系统消息；条数上限不保证容得下一轮很长的工具交互，也不是 token 上限。聊天记忆不适合充当完整历史档案。当前官方文档还注明 JDBC repository 不保存工具调用消息和工具结果，因此接入数据库不能直接等同于可恢复完整 Agent 轨迹。<a href="https://docs.spring.io/spring-ai/reference/api/chat-memory.html">Spring AI Chat Memory 文档</a></p>
+<p>自定义摘要实现还应处理旧摘要版本、原文引用、并发更新和摘要失败。课程中只含 <code>add/get/clear</code> 的示例能说明接口，却不包含这些生产条件；不宜照搬成生产存储。摘要模型读取的是待整理资料，其中的命令不应因此获得更高权限。</p>
+<p>LangChain 的 Agent 短期状态可以交给 LangGraph checkpointer；压缩策略可由 middleware 提供。以下 <code>chat_model</code>、<code>summary_model</code> 是应用已配置的模型实例，不绑定型号：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware
+from langgraph.checkpoint.memory import InMemorySaver
+
+agent = create_agent(
+    model=chat_model,
+    tools=[],
+    checkpointer=InMemorySaver(),  # 仅演示进程内保存
+    middleware=[SummarizationMiddleware(
+        model=summary_model,
+        trigger=(&quot;tokens&quot;, 4000),
+        keep=(&quot;messages&quot;, 20),
+    )],
+)
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: authorized_conversation_id}}
+agent.invoke({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;项目使用 Java 17&quot;}]}, config)
+agent.invoke({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;那框架怎么选？&quot;}]}, config)
+</code></pre>
+<p>数值仅为教学参数；checkpointer 的作用与模型前的裁剪/摘要不同。直接调用模型不会因为安装了框架就自动拼接历史，内存 saver 也不能跨进程重启恢复。生产存储应按当前框架版本选择并验证恢复能力。<a href="https://docs.langchain.com/oss/python/langchain/short-term-memory">LangChain 短期记忆文档</a></p>
+<p>至少验证四个边界：两个用户不会读到彼此消息；长轮次不会留下孤立的工具结果；重启后仍能取得所需状态与证据；并发摘要不会覆盖较新的用户条件。框架名称不能替代这些验证。</p>
 <h2 id="一个完整的运行示例与验证方法">一个完整的运行示例与验证方法</h2>
 <p>假设用户正在编写系统改造方案，最新要求是：“沿用我确认过的第二版，不要加入支付重构，刚才说的性能数字还没测。”编排器应读取第二版的确认事件，固化“不得增加支付重构”和“性能数字未验证”，加载当前修改段落，再查相关设计证据。早期出现过的支付改造方案即使语义高度相关，也不能作为候选方案自动复活。</p>
 <p>如果摘要只写“继续完善系统方案”，缺少版本信息，就通过确认事件取回原文；若摘要把“尚未测试”误写成“已提升”，应修正摘要并让依赖该断言的输出重新校验。画像只加载与本次写作有关的表达偏好，更多更新规则见<a href="Agent%20%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E5%BB%BA%E6%A8%A1%E4%B8%8E%E6%9B%B4%E6%96%B0.html">Agent 用户画像建模与更新</a>。</p>
