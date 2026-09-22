@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitLabCI</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#kubernetes">返回知识库 · Kubernetes</a> · <a href="../Kubernetes.html">Kubernetes 总览</a></nav>
+<article>
+<h1 id="gitlabci">GitLabCI</h1>
+<h1 id="gitlab-ci-简介">GitLab CI 简介</h1>
+<h2 id="pipeline">Pipeline</h2>
+<p>Pipeline 指的是流水线，在 GitLab 中，当有新提交推送到仓库中时，会自动触发流水线。流水线包含一组 Stage 和 Job 的定义，它们负责执行具体的逻辑。</p>
+<p>在 GitLab 中，Pipeline 是通过仓库根目录下的 .gitlab-ci.yml 文件来定义的。</p>
+<p>此外，Pipeline 在全局也可以配置运行镜像、全局变量和额外服务镜像。</p>
+<h2 id="stage">Stage</h2>
+<p>Stage 字面上的意思是“阶段”。在 GitLab CI 中，至少需要包含一个 Stage，上面这张图中有三个 Stage，分别是 Stage1、Stage2 和 Stage3，不同的 Stage 是按照定义的顺序依次执行的。如果其中一个 Stage 失败，则整个 Pipeline 都将失败，后续的 Stage 也都不会再继续执行。</p>
+<h2 id="job">Job</h2>
+<p>Job 字面上的意思是“任务”。实际上，Job 的作用是定义具体需要执行的 Shell 脚本，同时，Job 可以被关联到一个 Stage 上。当 Stage 执行时，它所关联的 Job 也会并行执行。</p>
+<p>以自动构建镜像为例，我们可能需要在 1 个 Job 中定义 2 个 Shell 脚本步骤，它们分别是：</p>
+<ul>
+<li>运行 docker build 构建镜像</li>
+<li>运行 docker push 来推送镜像</li>
+</ul>
+<h2 id="费用">费用</h2>
+<p>和 GitHub Action 一样，GitLab 也不能无限免费使用。对于 GitLab 免费账户，每个月有 400 分钟的 GitLab CI/CD 时长可供使用，超出时长则需要按量付费，你可以在 <a href="https://about.gitlab.com/pricing/" target="_blank" rel="noopener noreferrer">这里</a> 查看详细的计费策略。</p>
+<h1 id="为示例应用创建-gitlab-ci-pipeline">为示例应用创建 GitLab CI Pipeline</h1>
+<h2 id="创建-gitlab-ciyml-文件">创建 .gitlab-ci.yml 文件</h2>
+<p>首先，将下面的内容保存到 .gitlab-ci.yml 文件内。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">stages:
+  - build
+
+image: docker:20.10.16
+
+variables:
+  DOCKER_TLS_CERTDIR: &quot;/certs&quot;
+  DOCKERHUB_USERNAME: &quot;ketitongxue&quot;
+
+services:
+  - docker:20.10.16-dind
+
+before_script:
+  - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_TOKEN
+
+build_and_push:
+  stage: build
+  script:
+    - docker build -t $DOCKERHUB_USERNAME/frontend:$CI_COMMIT_SHORT_SHA ./frontend
+    - docker push $DOCKERHUB_USERNAME/frontend:$CI_COMMIT_SHORT_SHA
+    - docker build -t $DOCKERHUB_USERNAME/backend:$CI_COMMIT_SHORT_SHA ./backend
+    - docker push $DOCKERHUB_USERNAME/backend:$CI_COMMIT_SHORT_SHA
+</code></pre>
+<p>请注意， 需要将上面的 variables.DOCKERHUB_USERNAME 环境变量替换为你的 Docker Hub 用户名。</p>
+<p>接下来，结合上面提到的概念，我简单介绍一下这个 Pipeline。</p>
+<p>stages 字段定义了阶段，在这个 Pipeline 中，我们定义了一个 build 阶段。</p>
+<p>image 字段定义了运行镜像，也就是说，GitLab CI 将会使用 docker:20.10.16 镜像来启动一个容器，并在容器内运行 Pipeline。</p>
+<p>variables 字段定义了全局变量，其中， DOCKER_TLS_CERTDIR 变量是用来共享 Docker 证书的。DOCKERHUB\_USERNAME 变量是 Docker Hub 的用户名。</p>
+<p>services 字段定义了一个额外的镜像，你可以把它理解成一个额外的容器，它将和 image 字段定义的容器相互协作，这两个容器可以相互访问。</p>
+<p>before_script 定义了 Pipeline 最开始的 Shell 脚本， 它将会在 Job 运行之前执行。在这里，我们运行了 docker login 命令来登录到 Docker Hub，以便获得推送镜像的权限。请注意， <code>$DOCKERHUB_USERNAME</code> 变量的值来源于我们在 variables 定义的值， <code>$DOCKERHUB_TOKEN</code> 是一个在 GitLab UI 界面定义的变量，我们稍后会在 GitLab 平台添加。</p>
+<p>build_and_push 字段定义了一个 Job，“build_and_push” 实际上是 Job 的名称，你也可以更改这个名称。build_and_push.stage 字段定义了 Job 所属的 Stage，也就是 build 阶段。build\_and\_push.script 字段定义了执行的具体的 Shell 脚本，它们是按顺序执行的。在这里，我们分别构建了 frontend 和 backend 的镜像，并将它们推送到 Docker Hub 仓库。其中， <code>$CI_COMMIT_SHORT_SHA</code> 是一个内置变量，它可以获取到当前的 short commit id。</p>
+<h2 id="创建-gitlab-仓库并推送">创建 GitLab 仓库并推送</h2>
+<p>创建完 .gitlab-ci.yml 文件后，接下来我们将示例应用推送到 GitLab 上。首先，你需要通过 <a href="https://gitlab.com/projects/new" target="_blank" rel="noopener noreferrer">这个页面</a> 来为你自己创建新的代码仓库，仓库名设置为 kubernetes-example。</p>
+<p>创建完成后，将刚才克隆的 kubernetes-example 仓库的 remote url 配置为你刚才创建仓库的 Git 地址。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ git remote set-url origin YOUR_GITLAB_REPO_URL
+</code></pre>
+<p>然后，将 kubernetes-example 推送到你的 GitLab 仓库中。在这之前，需要配置 SSH Key，可以参考 <a href="https://gitlab.com/-/profile/keys" target="_blank" rel="noopener noreferrer">这个链接</a> 来配置。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ git add .
+$ git commit -a -m 'first commit'
+$ git branch -M main
+$ git push -u origin main
+</code></pre>
+<h2 id="创建-docker-hub-secret">创建 Docker Hub Secret</h2>
+<p>参考 GitHubAction 文档中的该部分内容</p>
+<h2 id="创建-gitlab-ci-variables">创建 GitLab CI Variables</h2>
+<p>创建完 Docker Hub Token 之后，我们就可以创建 GitLab CI Variables 了，也就是要为 Pipeline 提供 DOCKERHUB\_TOKEN 变量值。</p>
+<p>进入 kubernetes-example 仓库的 Settings 页面，点击左侧的“CI/CD”，然后点击右侧的“Variables”展开菜单，接着点击“Add variable”来创建新的 Variables。</p>
+<p>在弹出的输入框中，将 Key 填写为 DOCKERHUB\_TOKEN。</p>
+<p>将 Value 填写为刚才我们复制的 Docker Hub Token，其他选项保持默认，点击“Add variable”创建变量值，如下图所示。</p>
+<h2 id="触发-gitlab-ci-pipeline">触发 GitLab CI Pipeline</h2>
+<p>到这里，准备工作已经全部完成了。请注意，如果你使用的是 GitLab SaaS 版， <strong>那么你需要先绑定信用卡才能使用 CI/CD 的免费额度。</strong></p>
+<p>接下来我们尝试触发 GitLab CI Pipeline。</p>
+<p>首先，向仓库提交一个空 commit。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-YAML">$ git commit --allow-empty -m &quot;Trigger Build&quot;
+</code></pre>
+<p>然后，使用 git push 来推送到仓库， **这将触发 Pipeline**。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ git push origin main
+</code></pre>
+<p>接下来，进入 kubernetes-example 仓库的“CI/CD”页面，你会看到我们刚才触发的流水线。</p>
+<p>你可以点击流水线的状态（running）进入流水线详情页面。</p>
+<p>在流水线的详情页面，我们能看到流水线的每一个 Job 的状态还有运行时输出的日志。</p>
+<p>当工作流运行完成后，进入到 Docker Hub frontend 或者 backend 镜像的详情页，你将看到刚才 GitLab CI 自动构建并推送的新版本镜像。</p>
+<p>到这里，我们便完成了使用 GitLab CI 自动构建镜像。最终实现的效果是，当我们向仓库推送新的提交时，GitLab 流水线将自动构建 frontend 和 backend 镜像， <strong>并且每一个 commit id 都会对应一个镜像版本。</strong></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
