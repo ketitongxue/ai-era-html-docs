@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11 | Addons 部署（2）：部署 Prometheus</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="11--addons-部署2部署-prometheus">11 | Addons 部署（2）：部署 Prometheus</h1>
+<p>kube-prometheus 是一整套监控解决方案，它使用 Prometheus 采集集群指标，Grafana 做展示，包含如下组件：</p>
+<ul>
+<li>The Prometheus Operator</li>
+<li>Highly available Prometheus</li>
+<li>Highly available Alertmanager</li>
+<li>Prometheus node-exporter</li>
+<li>Prometheus Adapter for Kubernetes Metrics APIs （k8s-prometheus-adapter）</li>
+<li>kube-state-metrics</li>
+<li>Grafana</li>
+</ul>
+<p>其中 k8s-prometheus-adapter 使用 Prometheus 实现了 metrics.k8s.io 和 custom.metrics.k8s.io API，所以<strong>不需要再部署</strong> metrics-server。如果要单独部署 metrics-server，请参考：<a href="%E9%99%84%E5%BD%95D%EF%BC%9A%E9%83%A8%E7%BD%B2%20metrics-server%20%E6%8F%92%E4%BB%B6.md">附录D：部署 metrics-server 插件</a></p>
+<p>如果没有特殊指明，本节课的所有操作<strong>均在 k8s-01 节点上执行</strong>。</p>
+<p>在没有安装 Metrics  组件之前，使用 kubectl top pods命令，查看不了监控数据.</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl top pods
+error: Metrics API not available
+</code></pre>
+<p>安装之后，便可以使用 kubectl top pods查看 Pod 的性能指标。</p>
+<h2 id="下载和安装-prometheus">下载和安装 Prometheus</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+git clone -b v0.14.0 https://github.com/coreos/kube-prometheus.git
+cd kube-prometheus/
+kubectl apply --server-side -f manifests/setup
+kubectl wait \
+        --for condition=Established \
+        --all CustomResourceDefinition \
+        --namespace=monitoring
+kubectl apply -f manifests/
+</code></pre>
+<h2 id="查看运行状态">查看运行状态</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ kubectl -n monitoring get pods
+NAME                                   READY   STATUS    RESTARTS   AGE
+alertmanager-main-0                    2/2     Running   0          61m
+alertmanager-main-1                    2/2     Running   0          61m
+alertmanager-main-2                    2/2     Running   0          61m
+blackbox-exporter-86745676c9-8npl7     3/3     Running   0          61m
+grafana-599bb4cc9d-9gsnl               1/1     Running   0          61m
+kube-state-metrics-6f46974967-brcl8    3/3     Running   0          61m
+node-exporter-5ng76                    2/2     Running   0          61m
+node-exporter-n9x5x                    2/2     Running   0          61m
+prometheus-adapter-784f566c54-mzdfw    1/1     Running   0          61m
+prometheus-adapter-784f566c54-n9psh    1/1     Running   0          61m
+prometheus-k8s-0                       2/2     Running   0          61m
+prometheus-k8s-1                       2/2     Running   0          61m
+prometheus-operator-57b579d5b9-r25xf   2/2     Running   0          61m
+</code></pre>
+<p>测试 kubectl top命令是否能够获取 Pod 的运行指标：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">kubectl top pods -n monitoring
+NAME                                   CPU(cores)   MEMORY(bytes)   
+alertmanager-main-0                    2m           40Mi            
+alertmanager-main-1                    10m          24Mi            
+alertmanager-main-2                    1m           37Mi            
+blackbox-exporter-86745676c9-lpksm     0m           37Mi            
+grafana-599bb4cc9d-6xnlb               5m           101Mi           
+kube-state-metrics-6f46974967-29278    5m           67Mi            
+node-exporter-bcg9n                    2m           30Mi            
+node-exporter-lmr58                    18m          32Mi            
+prometheus-adapter-784f566c54-ht2fh    3m           40Mi            
+prometheus-adapter-784f566c54-wq787    30m          19Mi            
+prometheus-k8s-0                       15m          400Mi           
+prometheus-operator-57b579d5b9-tkvmk   2m           46Mi
+</code></pre>
+<h2 id="访问-prometheus-ui">访问 Prometheus UI</h2>
+<p>启动服务代理：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl port-forward --address 0.0.0.0 pod/prometheus-k8s-0 -n monitoring 9090:9090
+Forwarding from 0.0.0.0:9090 -&gt; 9090
+</code></pre>
+<ul>
+<li>port-forward 依赖 socat。</li>
+</ul>
+<p>浏览器访问：http://公网IP:9090。访问界面如下：</p>
+<p><img src="../../../assets/kubernetes-binary-deploy/C32kbyKOHoHeBxxEoH2c4Dw8nje.png" alt=""></p>
+<h2 id="访问-grafana-ui">访问 Grafana UI</h2>
+<p>启动代理：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl port-forward --address 0.0.0.0 svc/grafana -n monitoring 3000:3000 
+Forwarding from 0.0.0.0:3000 -&gt; 3000
+</code></pre>
+<p>浏览器访问：http://公网IP:3000。访问界面如下：</p>
+<p><img src="../../../assets/kubernetes-binary-deploy/C5SabxFBVoktqXxInEtcnXyVn9c.png" alt=""></p>
+<p>用 admin/admin 登录。然后，就可以看到各种预定义的 dashboard 了，界面如下：</p>
+<p><img src="../../../assets/kubernetes-binary-deploy/Z2CDbvfNMods35xOUQWchKuAnfE.png" alt=""></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

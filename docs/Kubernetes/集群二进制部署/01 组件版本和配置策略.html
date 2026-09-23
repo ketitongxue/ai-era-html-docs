@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 | 组件版本和配置策略</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="01--组件版本和配置策略">01 | 组件版本和配置策略</h1>
+<h1 id="主要组件版本">主要组件版本</h1>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>v1.31.1</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>3.5.16</td>
+</tr>
+<tr>
+<td>containerd</td>
+<td>1.7.22</td>
+</tr>
+<tr>
+<td>runc</td>
+<td>1.1.15</td>
+</tr>
+<tr>
+<td>cilium</td>
+<td>v1.16.2</td>
+</tr>
+<tr>
+<td>coredns</td>
+<td>1.9.4</td>
+</tr>
+<tr>
+<td>dashboard</td>
+<td>1.5.0</td>
+</tr>
+<tr>
+<td>k8s-prometheus-adapter</td>
+<td>v0.12.0</td>
+</tr>
+<tr>
+<td>prometheus-operator</td>
+<td>v0.76.2</td>
+</tr>
+<tr>
+<td>prometheus</td>
+<td>v2.54.1</td>
+</tr>
+<tr>
+<td>grafana</td>
+<td>11.2.0</td>
+</tr>
+<tr>
+<td>nginx</td>
+<td>1.27.2</td>
+</tr>
+<tr>
+<td>nerdctl</td>
+<td>v1.7.7</td>
+</tr>
+<tr>
+<td>elasticsearch</td>
+<td>8.5.1</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="重要提示">重要提示</h1>
+<p>为了减少部署过程因为环境导致的操作失败，这里建议最好使用 Debian 12 操作系统进行安装。Debian 系统也是企业首选的操作系统。</p>
+<p>另外，需要确保所有节点可正常访问公网。如果访问公网，尤其是国外网站的网速快就更好了，否则下载速度可能很慢，而且容易出现下载超时。</p>
+<h1 id="kubernetes-节点配置">Kubernetes 节点配置</h1>
+<p>学习用的生产级别的 Kubernetes 集群部署配置要求如下：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>节点类型</th>
+<th>最低配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Master 节点</td>
+<td>2C4G，50G硬盘</td>
+</tr>
+<tr>
+<td>Worker 节点</td>
+<td>1C2G，50G硬盘</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="主要配置策略">主要配置策略</h1>
+<p><strong>kube-apiserver：</strong></p>
+<ul>
+<li>使用节点本地 nginx 4 层透明代理实现高可用；</li>
+<li>关闭非安全端口 8080 和匿名访问；</li>
+<li>在安全端口 6443 接收 https 请求；</li>
+<li>严格的认证和授权策略 (x509、Token、RBAC)；</li>
+<li>开启 bootstrap token 认证，支持 kubelet TLS bootstrapping；</li>
+<li>使用 https 访问 kubelet、etcd，加密通信；</li>
+</ul>
+<p><strong>kube-controller-manager：</strong></p>
+<ul>
+<li>2 节点高可用；</li>
+<li>关闭非安全端口，在安全端口 10252 接收 https 请求；</li>
+<li>使用 kubeconfig 访问 apiserver 的安全端口；</li>
+<li>自动 approve kubelet 证书签名请求 (CSR)，证书过期后自动轮转；</li>
+<li>各 controller 使用自己的 ServiceAccount 访问 apiserver；</li>
+</ul>
+<p><strong>kube-scheduler：</strong></p>
+<ul>
+<li>2 节点高可用；</li>
+<li>使用 kubeconfig 访问 apiserver 的安全端口；</li>
+</ul>
+<p><strong>提示：kube-controller-manager、kube-scheduler 组件生产环境建议 3 节点高可用。有些企业为了节省资源，配置的 2 节点高可用。</strong></p>
+<p><strong>kubelet：</strong></p>
+<ul>
+<li>使用 kubeadm 动态创建 bootstrap token，而不是在 apiserver 中静态配置；</li>
+<li>使用 TLS bootstrap 机制自动生成 client 和 server 证书，过期后自动轮转；</li>
+<li>在 KubeletConfiguration 类型的 JSON 文件配置主要参数；</li>
+<li>关闭只读端口，在安全端口 10250 接收 https 请求，对请求进行认证和授权，拒绝匿名访问和非授权访问；</li>
+<li>使用 kubeconfig 访问 apiserver 的安全端口；</li>
+</ul>
+<p><strong>kube-proxy：</strong></p>
+<ul>
+<li>使用 kubeconfig 访问 apiserver 的安全端口；</li>
+<li>在 KubeProxyConfiguration  类型的 JSON 文件配置主要参数；</li>
+<li>使用 ipvs 代理模式；</li>
+</ul>
+<p><strong>集群插件（Addons）：</strong></p>
+<ul>
+<li>DNS：使用功能、性能更好的 coredns；</li>
+<li>Dashboard：支持登录认证；</li>
+<li>Metric：metrics-server，使用 https 访问 kubelet 安全端口；</li>
+<li>Log：Elasticsearch、Fluend、Kibana；</li>
+<li>Registry 镜像库：docker-registry、harbor；</li>
+</ul>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
