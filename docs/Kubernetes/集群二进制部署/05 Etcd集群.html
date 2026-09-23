@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 | Etcd集群</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="05--etcd集群">05 | Etcd集群</h1>
+<p>Etcd 是基于 Raft 的分布式 KV 存储系统，由 CoreOS 开发，常用于服务发现、共享配置以及并发控制（如 leader 选举、分布式锁等）。Kubernetes 使用 Etcd 集群持久化存储所有 API 对象、运行数据。</p>
+<p>本节课介绍部署一个 2  节点高可用 Etcd 集群的步骤：</p>
+<ul>
+<li>下载和分发 Etcd 二进制文件；</li>
+<li>创建 Etcd 集群各节点的 x509 证书，用于加密客户端(如 etcdctl) 与 Etcd 集群、Etcd 集群之间的通信；</li>
+<li>创建 Etcd 的 Ssystemd Unit 文件，配置服务参数；</li>
+<li>检查集群工作状态；</li>
+</ul>
+<p>Etcd 集群节点名称和 IP 如下：</p>
+<ul>
+<li><strong>k8s-01：172.16.0.4</strong></li>
+<li><strong>k8s-02：172.16.0.8</strong></li>
+</ul>
+<p>注意：</p>
+<p>如果没有特殊指明，本文档的所有操作<strong>均在 k8s-01 节点上执行</strong>；</p>
+<p>Flanneld 与本文档安装的 Etcd v3.4.x 不兼容，如果要安装 Flanneld（本课程使用 Cilium），则需要将 Etcd <strong>降级到 v3.3.x 版本</strong>；</p>
+<h2 id="下载和分发-etcd-二进制文件">下载和分发 Etcd 二进制文件</h2>
+<p>到 Etcd 的 <a href="https://github.com/coreos/etcd/releases">release 页面</a> 下载最新版本的发布包：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cd /opt/k8s/work
+wget https://github.com/etcd-io/etcd/releases/download/v3.5.16/etcd-v3.5.16-linux-amd64.tar.gz
+tar -xvf etcd-v3.5.16-linux-amd64.tar.gz
+</code></pre>
+<p>分发二进制文件到集群所有节点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    scp etcd-v3.5.16-linux-amd64/etcd* root@${node_ip}:/opt/k8s/bin
+    ssh root@${node_ip} &quot;chmod +x /opt/k8s/bin/*&quot;
+  done
+</code></pre>
+<h2 id="创建-etcd-证书和私钥">创建 Etcd 证书和私钥</h2>
+<p>创建证书签名请求：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">cd /opt/k8s/work
+cat &gt; etcd-csr.json &lt;&lt;EOF
+{
+  &quot;CN&quot;: &quot;etcd&quot;,
+  &quot;hosts&quot;: [
+    &quot;127.0.0.1&quot;,
+    &quot;172.16.0.4&quot;,
+    &quot;172.16.0.8&quot;
+  ],
+  &quot;key&quot;: {
+    &quot;algo&quot;: &quot;rsa&quot;,
+    &quot;size&quot;: 2048
+  },
+  &quot;names&quot;: [
+    {
+      &quot;C&quot;: &quot;CN&quot;,
+      &quot;ST&quot;: &quot;BeiJing&quot;,
+      &quot;L&quot;: &quot;BeiJing&quot;,
+      &quot;O&quot;: &quot;k8s&quot;,
+      &quot;OU&quot;: &quot;superproj&quot;
+    }
+  ]
+}
+EOF
+</code></pre>
+<ul>
+<li>hosts：指定授权使用该证书的 Etcd 节点 IP 列表，<strong>需要将 Etcd 集群所有节点 IP 都列在其中</strong>。</li>
+</ul>
+<p>生成证书和私钥：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+cfssl gencert -ca=/opt/k8s/work/ca.pem \
+    -ca-key=/opt/k8s/work/ca-key.pem \
+    -config=/opt/k8s/work/ca-config.json \
+    -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+ls etcd*pem
+</code></pre>
+<p>分发生成的证书和私钥到各 Etcd 节点：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    ssh root@${node_ip} &quot;mkdir -p /etc/etcd/cert&quot;
+    scp etcd*.pem root@${node_ip}:/etc/etcd/cert/
+  done
+</code></pre>
+<h2 id="创建-etcd-的-systemd-unit-模板文件">创建 Etcd 的 Systemd Unit 模板文件</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-xml">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+cat &gt; etcd.service.template &lt;&lt;EOF
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+
+[Service]
+Type=notify
+WorkingDirectory=${ETCD_DATA_DIR}
+ExecStart=/opt/k8s/bin/etcd \\
+  --data-dir=${ETCD_DATA_DIR} \\
+  --wal-dir=${ETCD_WAL_DIR} \\
+  --name=##NODE_NAME## \\
+  --cert-file=/etc/etcd/cert/etcd.pem \\
+  --key-file=/etc/etcd/cert/etcd-key.pem \\
+  --trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-cert-file=/etc/etcd/cert/etcd.pem \\
+  --peer-key-file=/etc/etcd/cert/etcd-key.pem \\
+  --peer-trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-client-cert-auth \\
+  --client-cert-auth \\
+  --listen-peer-urls=https://##NODE_IP##:2380 \\
+  --initial-advertise-peer-urls=https://##NODE_IP##:2380 \\
+  --listen-client-urls=https://##NODE_IP##:2379,http://127.0.0.1:2379 \\
+  --advertise-client-urls=https://##NODE_IP##:2379 \\
+  --initial-cluster-token=etcd-cluster-0 \\
+  --initial-cluster=${ETCD_NODES} \\
+  --initial-cluster-state=new \\
+  --auto-compaction-mode=periodic \\
+  --auto-compaction-retention=1 \\
+  --max-request-bytes=33554432 \\
+  --quota-backend-bytes=6442450944 \\
+  --heartbeat-interval=250 \\
+  --election-timeout=2000
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+</code></pre>
+<ul>
+<li>WorkingDirectory、--data-dir：指定工作目录和数据目录为 ${ETCD_DATA_DIR}，需在启动服务前创建这个目录；</li>
+<li>--wal-dir：指定 wal 目录，为了提高性能，一般使用 SSD 或者和 --data-dir 不同的磁盘；</li>
+<li>--name：指定节点名称，当 --initial-cluster-state 值为 new 时，--name 的参数值必须位于 --initial-cluster 列表中；</li>
+<li>--cert-file、--key-file：etcd server 与 client 通信时使用的证书和私钥；</li>
+<li>--trusted-ca-file：签名 client 证书的 CA 证书，用于验证 client 证书；</li>
+<li>--peer-cert-file、--peer-key-file：etcd 与 peer 通信使用的证书和私钥；</li>
+<li>--peer-trusted-ca-file：签名 peer 证书的 CA 证书，用于验证 peer 证书；</li>
+</ul>
+<h2 id="为各节点创建和分发-etcd-systemd-unit-文件">为各节点创建和分发 Etcd Systemd Unit 文件</h2>
+<p>替换模板文件中的变量，为各节点创建 Ssystemd Unit 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for (( i=0; i &lt; 2; i++ ))
+  do
+    sed -e &quot;s/##NODE_NAME##/${NODE_NAMES[i]}/&quot; -e &quot;s/##NODE_IP##/${NODE_IPS[i]}/&quot; etcd.service.template &gt; etcd-${NODE_IPS[i]}.service 
+  done
+ls *.service
+</code></pre>
+<ul>
+<li>NODE_NAMES 和 NODE_IPS 为相同长度的 bash 数组，分别为节点名称和对应的 IP；</li>
+<li>因为是将 Etcd 部署在 2 个节点上，所以上面的 for 循环中的次数为 2；</li>
+</ul>
+<p>分发生成的 Ssystemd Unit 文件：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    scp etcd-${node_ip}.service root@${node_ip}:/etc/systemd/system/etcd.service
+  done
+</code></pre>
+<h2 id="启动-etcd-服务">启动 Etcd 服务</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    ssh root@${node_ip} &quot;mkdir -p ${ETCD_DATA_DIR} ${ETCD_WAL_DIR}&quot;
+    ssh root@${node_ip} &quot;systemctl daemon-reload &amp;&amp; systemctl enable etcd &amp;&amp; systemctl restart etcd &quot; &amp;
+  done
+</code></pre>
+<p>必须先创建 Etcd 数据目录和工作目录;</p>
+<p>如果使用云主机，需要先放通 防火墙中的2380 安全组配置；</p>
+<p>Etcd 进程首次启动时会等待其它节点的 Etcd 加入集群，命令 systemctl start etcd 会卡住一段时间，为正常现象；</p>
+<h2 id="检查-etcd-启动结果">检查 Etcd 启动结果</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    ssh root@${node_ip} &quot;systemctl status etcd|grep Active&quot;
+  done
+</code></pre>
+<p>确保状态为 active (running)，否则查看日志，确认原因：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">journalctl -u etcd
+</code></pre>
+<h2 id="验证服务状态">验证服务状态</h2>
+<p>部署完 Etcd 集群后，在任一 Etcd 节点上执行如下命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+  do
+    echo &quot;&gt;&gt;&gt; ${node_ip}&quot;
+    /opt/k8s/bin/etcdctl \
+    --endpoints=https://${node_ip}:2379 \
+    --cacert=/etc/kubernetes/cert/ca.pem \
+    --cert=/etc/etcd/cert/etcd.pem \
+    --key=/etc/etcd/cert/etcd-key.pem endpoint health
+  done
+</code></pre>
+<p>v3.5.16 版本的 etcd/etcdctl 默认启用了 V3 API，所以执行 etcdctl 命令时不需要再指定环境变量 ETCDCTL_API=3；</p>
+<p>从 Kubernetes 1.13 开始，不再支持 v2 版本的 Etcd；</p>
+<p>如果使用云主机，需要先放通 防火墙中的 2380 安全组配置；</p>
+<p>预期输出：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">&gt;&gt;&gt; 172.16.0.4
+https://172.16.0.4:2379 is healthy: successfully committed proposal: took = 7.099484ms
+&gt;&gt;&gt; 172.16.0.8
+https://172.16.0.8:2379 is healthy: successfully committed proposal: took = 8.96513ms
+</code></pre>
+<p>输出均为 healthy 时表示集群服务正常。</p>
+<h2 id="查看当前的-leader">查看当前的 leader</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">source /opt/k8s/bin/environment.sh
+/opt/k8s/bin/etcdctl \
+  -w table --cacert=/etc/kubernetes/cert/ca.pem \
+  --cert=/etc/etcd/cert/etcd.pem \
+  --key=/etc/etcd/cert/etcd-key.pem \
+  --endpoints=${ETCD_ENDPOINTS} endpoint status
+</code></pre>
+<p>输出：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">+-------------------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
+|        ENDPOINT         |        ID        | VERSION | DB SIZE | IS LEADER | IS LEARNER | RAFT TERM | RAFT INDEX | RAFT APPLIED INDEX | ERRORS |
++-------------------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
+| https://172.16.0.4:2379 | 15c676551f0e949c |  3.5.16 |   20 kB |      true |      false |         4 |         17 |                 17 |        |
+| https://172.16.0.8:2379 | c78c804b1d75c42e |  3.5.16 |   20 kB |     false |      false |         4 |         17 |                 17 |        |
++-------------------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
+</code></pre>
+<p>可见，当前的 leader 为 172.16.0.4。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
