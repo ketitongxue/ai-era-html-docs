@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>附录D：部署 metrics-server 插件</title>
+<title>10 | Addons 部署（1）：部署 Kubernetes Dashboard</title>
 <style>
 :root {
   color-scheme: light;
@@ -120,83 +120,95 @@ th { background: #eaf0f7; }
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
 <article>
-<h1 id="附录d部署-metrics-server-插件">附录D：部署 metrics-server 插件</h1>
-<p>metrics-server 通过 kube-apiserver 发现所有节点，然后调用 kubelet APIs（通过 https 接口）获得各节点（Node）和 Pod 的 CPU、Memory 等资源使用情况。</p>
-<p>从 Kubernetes 1.12 开始，kubernetes 的安装脚本移除了 Heapster，从 1.13 开始完全移除了对 Heapster 的支持，Heapster 不再被维护。</p>
-<p>替代方案如下：</p>
-<ol>
-<li>用于支持自动扩缩容的 CPU/memory HPA metrics：metrics-server；</li>
-<li>通用的监控方案：使用第三方可以获取 Prometheus 格式监控指标的监控系统，如 Prometheus Operator；</li>
-<li>事件传输：使用第三方工具来传输、归档 kubernetes events；</li>
-</ol>
-<h2 id="监控架构">监控架构</h2>
-<p><img src="../../../assets/kubernetes-binary-deploy/D1ZabGDoio5gVOxwxNuc7JtCnpc.png" alt=""></p>
-<p>没有安装 metrics-server 或 heapster 时，kubeclt top 命令将不能使用：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl top  node
-Error from server (NotFound): the server could not find the requested resource (get services http:heapster:)
-</code></pre>
-<h2 id="安装-metrics-server">安装 metrics-server</h2>
-<p>从 github clone 源码：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-shell">$ cd /opt/k8s/work/
-$ git clone https://github.com/kubernetes-incubator/metrics-server.git
-$ cd metrics-server/deploy/1.8+/
-</code></pre>
-<p>修改 metrics-server-deployment.yaml 文件，为 metrics-server 添加三个命令行参数：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">$ cp metrics-server-deployment.yaml metrics-server-deployment.yaml.orig
-$ diff metrics-server-deployment.yaml.orig metrics-server-deployment.yaml
-32c32
-&lt;         image: k8s.gcr.io/metrics-server-amd64:v0.3.6
----
-&gt;         image: gcr.azk8s.cn/google_containers/metrics-server-amd64:v0.3.6
-35a36,37
-&gt;           - --metric-resolution=30s
-&gt;           - --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
-</code></pre>
-<ul>
-<li>使用微软的 grc 镜像；</li>
-<li>--metric-resolution=30s：从 kubelet 采集数据的周期；</li>
-<li>--kubelet-preferred-address-types：优先使用 InternalIP 来访问 kubelet，这样可以避免节点名称<strong>没有 DNS 解析</strong>记录时，通过节点名称调用节点 kubelet API 失败的情况（未配置时默认的情况）；</li>
-</ul>
-<p>部署 metrics-server：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ cd /opt/k8s/work/metrics-server/deploy/1.8+/
-$ kubectl create -f .
-</code></pre>
-<h2 id="查看运行情况">查看运行情况</h2>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl -n kube-system get all -l k8s-app=metrics-server
-NAME                                  READY   STATUS    RESTARTS   AGE
-pod/metrics-server-77df59848f-sjjbd   1/1     Running   0          18s
+<h1 id="10--addons-部署1部署-kubernetes-dashboard">10 | Addons 部署（1）：部署 Kubernetes Dashboard</h1>
+<p>在操作 Kubernetes 集群的过程中，我们可以通过 kube-apiserver 提供的 REST API 接口来操作。也可以通过 kubectl 命令行工具来操作。还有一种更便捷、更简单的操作方式便是通过前端来操作。</p>
+<p>Kubernetes 提供了官方的 dashboard 组件，用来提供界面化访问 Kubernetes 集群的方式。本小节，我们就来部署下 Kubernetes dashboard 组件。</p>
+<h2 id="使用-helm-安装--dashboard">使用 Helm 安装  dashboard</h2>
+<p>安装 dashboard 最便捷的方式便是通过 Helm 来安装。执行以下命令，来通过 Helm 安装 dashboard：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># 1. 添加 kubernetes-dashboard Helm 仓库
+$ helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+&quot;kubernetes-dashboard&quot; has been added to your repositories
 
-NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/metrics-server   1/1     1            1           19s
+# 2. 安装 dashboard
+$ helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+Release &quot;kubernetes-dashboard&quot; does not exist. Installing it now.
+NAME: kubernetes-dashboard
+LAST DEPLOYED: Tue May 13 17:16:07 2025
+NAMESPACE: kubernetes-dashboard
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+*************************************************************************************************
+*** PLEASE BE PATIENT: Kubernetes Dashboard may need a few minutes to get up and become ready ***
+*************************************************************************************************
 
-NAME                                        DESIRED   CURRENT   READY   AGE
-replicaset.apps/metrics-server-77df59848f   1         1         1       19s
+Congratulations! You have just installed Kubernetes Dashboard in your cluster.
+
+To access Dashboard run:
+  kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+NOTE: In case port-forward command does not work, make sure that kong service name is correct.
+      Check the services in Kubernetes Dashboard namespace using:
+        kubectl -n kubernetes-dashboard get svc
+
+Dashboard will be available at:
+  https://localhost:8443
+
+
+
+# 3. 转发流量到 dashboard 控制面
+$ kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 9443:443 --address 0.0.0.0
+
 </code></pre>
-<h2 id="查看-metrics-server-输出的-metrics">查看 metrics-server 输出的 metrics</h2>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">kubectl get --raw https://172.27.138.251:6443/apis/metrics.k8s.io/v1beta1/nodes | jq .
-kubectl get --raw https://172.27.138.251:6443/apis/metrics.k8s.io/v1beta1/pods | jq .
-kubectl get --raw https://172.27.138.251:6443/apis/metrics.k8s.io/v1beta1/nodes/&lt;node-name&gt; | jq .
-kubectl get --raw https://172.27.138.251:6443/apis/metrics.k8s.io/v1beta1/namespace/&lt;namespace-name&gt;/pods/&lt;pod-name&gt; | jq .
+<p>所有 Pod 都 Running后，打开浏览器访问：https://公网 IP:9443，界面如下：</p>
+<p><img src="../../assets/kubernetes-binary-deploy/Vq52biN8coiqW5xhuyCc4s8GnKs.png" alt=""></p>
+<p>出现登录界面，需要通过 Bearer token 来登录。所以，我们需要先生成一个 Bearer token。</p>
+<h2 id="创建登录-dashboard-的-token-和-kubeconfig-配置文件">创建登录 Dashboard 的 token 和 kubeconfig 配置文件</h2>
+<p>dashboard 默认只支持 token 认证（不支持 client 证书认证），所以如果使用 Kubeconfig 文件，需要将 token 写入到该文件。</p>
+<p>你可以参考官方文档来创建：<a href="https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md">Creating sample user</a>。也可以，跟随教程来创建。</p>
+<h3 id="创建登录-bearer-token">创建登录 Bearer token</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl -n kubernetes-dashboard create sa dashboard-admin # 1. 创建 ServiceAccount
+serviceaccount/dashboard-admin created
+
+$ kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:dashboard-admin # 创建 ClusterRoleBinding
+clusterrolebinding.rbac.authorization.k8s.io/dashboard-admin created
+
+$ DASHBOARD_LOGIN_TOKEN=$(kubectl -n kubernetes-dashboard create token dashboard-admin)
+$ echo ${DASHBOARD_LOGIN_TOKEN}
 </code></pre>
-<ul>
-<li>替换  为实际内容；</li>
-<li>/apis/metrics.k8s.io/v1beta1/nodes 和 /apis/metrics.k8s.io/v1beta1/pods 返回的 usage 包含 CPU 和 Memory；</li>
-</ul>
-<h2 id="使用-kubectl-top-命令查看集群节点资源使用情况">使用 kubectl top 命令查看集群节点资源使用情况</h2>
-<p>kubectl top 命令从 metrics-server 获取集群节点基本的指标信息：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">NAME              CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
-k8s-01   177m         2%     9267Mi          58%       
-k8s-02   364m         4%     10338Mi         65%       
-k8s-03   185m         2%     5950Mi          37%  
+<p>使用输出的 token 登录 Dashboard。这里，也需要把 token 保存起来，方便下次登录 dashbaord。登录之后，界面如下：</p>
+<h3 id="创建使用-token-的-kubeconfig-文件">创建使用 token 的 KubeConfig 文件</h3>
+<p>创建命令如下：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">source /opt/k8s/bin/environment.sh
+# 设置集群参数
+kubectl config set-cluster kubernetes \
+  --certificate-authority=/etc/kubernetes/cert/ca.pem \
+  --embed-certs=true \
+  --server=${KUBE_APISERVER} \
+  --kubeconfig=dashboard.kubeconfig
+
+# 设置客户端认证参数，使用上面创建的 Token
+kubectl config set-credentials dashboard_user \
+  --token=${DASHBOARD_LOGIN_TOKEN} \
+  --kubeconfig=dashboard.kubeconfig
+
+# 设置上下文参数
+kubectl config set-context default \
+  --cluster=kubernetes \
+  --user=dashboard_user \
+  --kubeconfig=dashboard.kubeconfig
+
+# 设置默认上下文
+kubectl config use-context default --kubeconfig=dashboard.kubeconfig
 </code></pre>
+<p>用生成的 dashboard.kubeconfig 登录 Dashboard。</p>
 <h2 id="参考">参考</h2>
-<ol>
-<li><a href="https://kubernetes.feisky.xyz/zh/addons/metrics.html">https://kubernetes.feisky.xyz/zh/addons/metrics.html</a></li>
-<li>metrics-server RBAC：<a href="https://github.com/kubernetes-incubator/metrics-server/issues/40">https://github.com/kubernetes-incubator/metrics-server/issues/40</a></li>
-<li>metrics-server 参数：<a href="https://github.com/kubernetes-incubator/metrics-server/issues/25">https://github.com/kubernetes-incubator/metrics-server/issues/25</a></li>
-<li><a href="https://kubernetes.io/docs/tasks/debug-application-cluster/core-metrics-pipeline/">https://kubernetes.io/docs/tasks/debug-application-cluster/core-metrics-pipeline/</a></li>
-<li>metrics-server 的 <a href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/instrumentation/resource-metrics-api.md">APIs 文档</a>。</li>
-</ol>
+<p><a href="https://github.com/kubernetes/dashboard/wiki/Access-control">https://github.com/kubernetes/dashboard/wiki/Access-control</a></p>
+<p><a href="https://github.com/kubernetes/dashboard/issues/2558">https://github.com/kubernetes/dashboard/issues/2558</a></p>
+<p><a href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/">https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/</a></p>
+<p><a href="https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-above">https://github.com/kubernetes/dashboard/wiki/Accessing-Dashboard---1.7.X-and-above</a></p>
+<p><a href="https://github.com/kubernetes/dashboard/issues/2540">https://github.com/kubernetes/dashboard/issues/2540</a></p>
 </article>
 </main>
 <script>
