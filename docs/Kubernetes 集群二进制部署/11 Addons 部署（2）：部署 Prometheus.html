@@ -131,7 +131,7 @@ th { background: #eaf0f7; }
 <li>kube-state-metrics</li>
 <li>Grafana</li>
 </ul>
-<p>其中 k8s-prometheus-adapter 使用 Prometheus 实现了 metrics.k8s.io 和 custom.metrics.k8s.io API，所以<strong>不需要再部署</strong> metrics-server。如果要单独部署 metrics-server，请参考：<a href="%E9%99%84%E5%BD%95D%EF%BC%9A%E9%83%A8%E7%BD%B2%20metrics-server%20%E6%8F%92%E4%BB%B6.md">附录D：部署 metrics-server 插件</a></p>
+<p>其中 k8s-prometheus-adapter 使用 Prometheus 实现了 metrics.k8s.io 和 custom.metrics.k8s.io API，所以<strong>不需要再部署</strong> metrics-server。如果要单独部署 metrics-server，请参考：<a href="%E9%99%84%E5%BD%95D%20%E9%83%A8%E7%BD%B2%20metrics-server%20%E6%8F%92%E4%BB%B6.html">附录D：部署 metrics-server 插件</a></p>
 <p>如果没有特殊指明，本节课的所有操作<strong>均在 k8s-01 节点上执行</strong>。</p>
 <p>在没有安装 Metrics  组件之前，使用 kubectl top pods命令，查看不了监控数据.</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ kubectl top pods
