@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基础篇</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<p>和运维对应的岗位其实是我们熟知的 SRE（Site Reliability Engineer）。但我们知道SRE ≠ 运维， SRE 理念的核心是：用软件工程的方法重新设计和定义运维工作。也就是要改变之前靠人去做运维的方式，转而通过工具体系、团队协作、组织机制和文化氛围等方式去改变，同时将之前处于研发体系最末端的运维，拉回到与开发肩并肩的同一起跑线上。</p>
+<p>Owner 意识很重要，正确的做事方式需要引导，这就是优秀和极致的距离。</p>
+<h1 id="基础篇">基础篇</h1>
+<p><a href="../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/Linux%20%E5%9F%BA%E7%A1%80.html">Linux 基础</a></p>
+<p><a href="../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E7%BD%91%E7%BB%9C.html">网络</a></p>
+<p><a href="../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/Nginx.html">Nginx</a></p>
+<p><a href="../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL.html">MySQL</a></p>
+<h1 id="常用网站">常用网站</h1>
+<p>有问必答：https://stackoverflow.com/</p>
+<p><a href="https://coolshell.cn/">酷壳</a></p>
+<p><a href="https://yeasy.gitbook.io/docker_practice/introduction/what">Docker - 从入门到实践</a></p>
+<p><a href="https://circleci.com/docker/?utm_source=google&amp;utm_medium=sem&amp;utm_campaign=sem-google-dg--japac-en-nbAuth-maxConv-auth-nb&amp;utm_term=g_e-docker_c__rsa1_20210709&amp;utm_content=sem-google-dg--japac-en-nbAuth-maxConv-auth-nb_keyword-text_rsa-docker_exact-&amp;gclid=Cj0KCQjw1N2TBhCOARIsAGVHQc4tPDEzkRUIeOpdYqc7-9LPfl_c4CZ3TqlWHtTcLdZ9N4LgHJQFaTsaAuVrEALw_wcB">circleci</a></p>
+<p><a href="https://dockertips.readthedocs.io/en/latest/index.html">Docker Tips</a></p>
+<p><a href="https://blog.csdn.net/shida_csdn/article/details/104054041">修改 Docker Cgroup Driver 为 systemd</a></p>
+<p><a href="https://www.cnblogs.com/gaorong/p/Docker.html">为Go程序创建最小的Docker Image </a></p>
+<p><a href="https://developer.hashicorp.com/terraform/install?product_intent=terraform">Terraform</a></p>
+<p><a href="https://dora.dev/devops-capabilities/">dora</a></p>
+<p><a href="https://docs.qq.com/sheet/DSFpZUXl3Tmt0TVl6?tab=000002">资源分享宝库</a></p>
+<p><a href="https://mdnice.com/writing/a40f4bcd3b3e40d8931512186982b711">Gradio入门到进阶全网最详细教程</a></p>
+<p><a href="https://www.dochub.wiki/">DocHub 分享优质文档</a></p>
+<p><a href="https://www.notion.so/K8s-9d44e40530a843f5bbea617106dcfd06">notion</a></p>
+<p><a href="https://excalidraw.com/">excalidraw</a></p>
+<p><a href="https://mp.weixin.qq.com/s/br0anhSFN8qXlnbogk-sfg">国内如何注册香港Stripe个人账户（可全球收款，2024年最新教程）</a></p>
+<p><a href="https://portal.worldfirst.com.cn/login?goto=https%3A%2F%2Fportal.worldfirst.com.cn%2Fstore%2Fdetail%3FstoreId%3D2024031119134111000782800824288">万里汇</a></p>
+<p><a href="https://github.com/practical-tutorials/project-based-learning">project-based-learning</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

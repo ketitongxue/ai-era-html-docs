@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gitlab 安装</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<h1 id="gitlab-安装">Gitlab 安装</h1>
+<h2 id="gitlab-下载">Gitlab 下载：</h2>
+<p>先下载安装包</p>
+<p>下载地址：</p>
+<ul>
+<li><a href="https://docs.gitlab.com/ee/install/requirements.html">https://docs.gitlab.com/ee/install/requirements.html</a> #安装依赖</li>
+<li><a href="https://packages.gitlab.com/gitlab/gitlab-ce">https://packages.gitlab.com/gitlab/gitlab-ce</a> #官方下载地址</li>
+<li><a href="https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/">https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/</a> #清华大学镜像源</li>
+</ul>
+<p>查看系统版本</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 22.04.2 LTS
+Release:        22.04
+Codename:       jammy
+</code></pre>
+<h2 id="gitlab-安装-1">Gitlab 安装：</h2>
+<p>如果想要挂NAS或者NFS，可以提前挂到<code>/opt/gitlab/</code>目录下</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash"># dpkg -i gitlab-ce_15.4.3-ce.0_amd64.deb  # 需要自行替换为下载的版本
+# vim /etc/gitlab/gitlab.rb
+# grep -v &quot;#&quot; /etc/gitlab/gitlab.rb | grep -v &quot;^$&quot; #验证配置文件
+  external_url 'http://192.168.0.199'                         #一定要写'http'
+  gitlab_rails['smtp_enable'] = true
+  gitlab_rails['smtp_address'] = &quot;smtp.qq.com&quot;
+  gitlab_rails['smtp_port'] = 465
+  gitlab_rails['smtp_user_name'] = &quot;******@qq.com&quot;
+  gitlab_rails['smtp_password'] = &quot;********&quot;                         #SMTP授权码
+  gitlab_rails['smtp_domain'] = &quot;qq.com&quot;
+  gitlab_rails['smtp_authentication'] = :login
+  gitlab_rails['smtp_enable_starttls_auto'] = false
+  gitlab_rails['smtp_tls'] = true
+  gitlab_rails['gitlab_email_from'] = &quot;******@qq.com&quot;
+  user[&quot;git_user_email&quot;] = &quot;******@qq.com&quot;
+# gitlab-ctl reconfigure #重新配置服务，每次更新都要重新执行，第一次会比较慢
+
+完成会提示
+gitlab Reconfigured!
+</code></pre>
+<p>浏览器打开：192.168.0.199（端口默认80）</p>
+<p><img src="../../../../assets/devops-notes/HOmObAb4SolDzsxi16Bc75jUnfh.png" alt=""></p>
+<p>第一次打开会提示登录，账号 root，密码为安装过程随机生成</p>
+<p><img src="../../../../assets/devops-notes/WQKNbx59IovfbWxPVPHc2spunLh.png" alt=""></p>
+<p><img src="../../../../assets/devops-notes/Ji2wb7jpmoAvGSxsWCPcYfopnNg.png" alt=""></p>
+<h1 id="简单配置">简单配置</h1>
+<h2 id="汉化">汉化</h2>
+<p><img src="../../../../assets/devops-notes/TOZUbAInPovJfixFnGmcw5arnif.png" alt=""></p>
+<h2 id="修改密码">修改密码</h2>
+<p><img src="../../../../assets/devops-notes/DfO2bfnJoocpURxUsTScEDAunez.png" alt=""></p>
+<h2 id="配置root用户的电子邮箱">配置root用户的电子邮箱</h2>
+<p><img src="../../../../assets/devops-notes/SXEQb0FIioBctDxXZJRceKzlnRc.png" alt=""></p>
+<p>邮箱会收到一条提示邮件</p>
+<p><img src="../../../../assets/devops-notes/C85Rb7WZiobMofx1DCrcpKZfnEb.png" alt=""></p>
+<p>提示退信的原因为，需要确认</p>
+<p><img src="../../../../assets/devops-notes/KBIlbwCeLooSGnxXpUUcgRFInna.png" alt=""></p>
+<p><img src="../../../../assets/devops-notes/O51ObpjdzoUzJqxLNeWc1rwgnRN.png" alt=""></p>
+<p>选择接收通知的邮箱地址</p>
+<p><img src="../../../../assets/devops-notes/U8mjbc7UNojPD2xA6JAcCz6rnDc.png" alt=""></p>
+<h2 id="关闭注册功能">关闭注册功能</h2>
+<p><img src="../../../../assets/devops-notes/ROJtbBZYjodUAkxWo1acqy8Oncf.png" alt=""></p>
+<p><img src="../../../../assets/devops-notes/Jc6Ibzcvyo1vpVxYpEgcf0T5ncq.png" alt=""></p>
+<p>关闭之后注意要保存</p>
+<h1 id="gitlab-升级">Gitlab 升级</h1>
+<p>注意：每次要升级到当前大版本的最新版本，再跨大版本升级。</p>
+<ol>
+<li>备份数据</li>
+<li>下载deb包</li>
+<li>sudo dpkg -i gitlab**.deb 安装包</li>
+<li>sudo gitlab-ctl reconfigure</li>
+<li>sudo gitlab-ctl restart</li>
+<li>多次重复上面3-5点，升级到自己想要的高版本</li>
+</ol>
+<h1 id="gitlab-项目与账户权限">Gitlab 项目与账户权限:</h1>
+<ul>
+<li>
+<p>账户权限分类：</p>
+<ul>
+<li>Guest-访客，可以创建issue、发表评论，不能读写版本库</li>
+<li>Reporter-Git 项目测试人员，可以克隆代码，不能提交，QA、PM可以赋予这个权限</li>
+<li>Developer-Git 项目开发人员，可以克隆代码、开发、提交、push，RD(Research and Development engineer,研发工程师)可以赋予此权限</li>
+<li>Master-Git项目管理员，可以创建项目、添加tag、保护分支、添加项目成员、编辑项目，核心RD负责人可以赋予此权限</li>
+<li>Owner-Git系统管理员即Administrator，可以设置项目访问权限、删除项目、迁移项目、管理组成员，研发组leader可以赋予此权限（权限最高）</li>
+</ul>
+</li>
+<li>
+<p>项目权限分类：</p>
+<ul>
+<li>Private：私有项目、只有组内成员才能看到</li>
+<li>Internal：内部项目、只要 登录的用户就能看到</li>
+<li>Public：公开项目、所有人都能看到</li>
+</ul>
+</li>
+</ul>
+<h1 id="gitlab-基础管理">Gitlab 基础管理：</h1>
+<ul>
+<li>
+<p>安装目录：</p>
+<ul>
+<li>/etc/gitlab #配置文件目录</li>
+<li>/run/gitlab #运行pid目录</li>
+<li>/opt/gitlab #安装目录</li>
+<li>/var/opt/gitlab #数据目录</li>
+<li>/var/log/gitlab #日志目录</li>
+</ul>
+</li>
+<li>
+<p>关闭账户注册</p>
+</li>
+<li>
+<p>创建group，对应于公司的项目</p>
+</li>
+<li>
+<p>创建用户</p>
+</li>
+<li>
+<p>创建project</p>
+</li>
+<li>
+<p>对用户授权project权限</p>
+</li>
+<li>
+<p>测试用户clone与push权限</p>
+</li>
+</ul>
+<h1 id="创建-group">创建 group</h1>
+<h1 id="创建用户">创建用户</h1>
+<p>填写完后记得创建</p>
+<p>修改用户密码为 12345678</p>
+<h1 id="新建空白项目">新建空白项目</h1>
+<h1 id="gitlab-基础管理-1">Gitlab 基础管理：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">gitlab-rake #数据备份恢复等数据操作
+gitlab-ctl #客户端命令行操作行
+gitlab-ctl stop #停止gitlab
+gitlab-ctl start #启动gitlab
+gitlab-ctl restar #重启gitlab
+gitlab-ctl status #查看组件运行状态
+gitlab-ctl tail nginx #查看某个组件的日志
+</code></pre>
+<h1 id="gitlab-工作流程">Gitlab 工作流程：</h1>
+<ul>
+<li>工作区：clone到本地办公PC的代码或者开发自己编写的代码文件所在的目录，通常是编写的代码所在的目录名称。</li>
+<li>暂存区：用于存储在工作区中对代码进行修改后的文件所保存的地方，使用git add命令添加。</li>
+<li>本地仓库：用于提交存储在工作区和暂存区中改过的文件地方，使用git commit 命令提交。</li>
+<li>远程仓库：多个开发共同协作提交代码的仓库，即gitlab服务器。</li>
+</ul>
+<h1 id="gitlab-授权管理">Gitlab 授权管理</h1>
+<p>授权之后使用 git clone 提示</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@cadmin:~#  git clone http://192.168.0.199/ketitx/app1.git
+Cloning into 'app1'...
+Username for 'http://192.168.0.199': user2
+Password for 'http://user2@192.168.0.199':
+remote: HTTP Basic: Access denied. The provided password or token is incorrect or your account has 2FA enabled and you must use a personal access token instead of a password. See http://192.168.0.199/help/topics/git/troubleshooting_git#error-on-git-fetch-http-basic-access-denied
+fatal: Authentication failed for 'http://192.168.0.199/ketitx/app1.git/'
+root@cadmin:~#
+</code></pre>
+<p>原因：用户创建后，没有登陆过，也没有修改密码</p>
+<p>解决方法：登录该用户，第一次登录会提示更换密码，设置新密码即可（可以与原密码相同）</p>
+<p>对代码进行编辑</p>
+<p>分支：现在的 main == 之前的 master</p>
+<h1 id="gitlab-分支合并">Gitlab 分支合并:</h1>
+<p>创建用户user1</p>
+<p>创建用户user2</p>
+<p>使用user1创建develop分支并进行代码提交</p>
+<p>使用user1申请分支develop合并至main分支，并指派给user2</p>
+<p>使用user2批准代码合并</p>
+<p>验证代码合并</p>
+<h1 id="webhook">WebHook</h1>
+<p>系统钩子</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
