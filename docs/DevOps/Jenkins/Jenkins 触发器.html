@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DevOps</title>
+<title>Jenkins 触发器</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,76 +119,138 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="devops">DevOps</h1>
-<h1 id="devops-介绍">DevOps 介绍：</h1>
-<p>2009 年比利时工程师(Patrick Debois、 帕特里克·德布瓦)提出了 DevOps 的概念，后被广泛引用。</p>
-<p>DevOps 的秘密来源于它的名字所代表的两种角色——<strong>开发（Development）和运维（Operations）</strong>。那么这两种角色之间究竟有什么问题呢？我们从软件工程诞生以来所历经的三个重要发展阶段说起。</p>
-<p><a href="%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%89%E4%B8%AA%E9%87%8D%E8%A6%81%E5%8F%91%E5%B1%95%E9%98%B6%E6%AE%B5.html">软件工程三个重要发展阶段</a></p>
-<p>DevOps 是针对企业中的研发人员、运维人员和测试人员的工作理念，是指导他们在应用开发、代码部署和质量测试等业务落地的整条生命周期中的协作 和沟通的最佳实践理念，DevOps 强调整个组织的合作以及交付和基础设施变更的自动化、从而实现持续集成、持续部署和持续交付。</p>
+<h1 id="jenkins-触发器">Jenkins 触发器</h1>
+<h1 id="jenkins触发器简介及实现">Jenkins触发器简介及实现</h1>
 <ul>
 <li>
-<p>DEV 职责：</p>
+<p>Jenkins触发器分类：</p>
 <ul>
-<li>业务架构设计、开发语言及框架选型、中间件选型、数据库表结构设计及数据库初始化等。</li>
-<li>业务代码编写，使用java、python、go等语言，编写项目中的各服务。</li>
-<li>提高代码质量，基于监控工具试下链路性能分析，对响应慢的服务或页面进行优化、提高代码质量。</li>
-<li>APP客户端兼容性(安卓、IOS等)，兼容IE浏览器、手机浏览器、各型号手机等。</li>
-<li>bug修复及新功能开发，基于监控工具、APP探针、URL监控工具、日志收集工具等收集、统计并分析bug，并进行修 复，在618、双十一等节假日开发新的功能。</li>
+<li>
+<p>远程触发构建：</p>
+<ul>
+<li>基于API远程触发</li>
 </ul>
 </li>
 <li>
-<p>OPS 职责：</p>
+<p>其他工程构建后触发：</p>
 <ul>
-<li>通过监控、告警、人工值守等方式保证应用程序的 7 * 24 的可用性。</li>
-<li>系统选型、基础环境初始化、web服务高可用架构设计及落地、网络配置、监控系统部署、日志收集系 统部署、链路追踪系统部署、CICD系统部署、运维工具或自动化运维平台开发及维护等。</li>
-<li>监控及告警配置、故障处理、故障报告整理及汇报、 故障文档总结、故障复盘、优化方案及故障跟进等。</li>
-<li>数据库、ES、kafka、redis、zookeeper 等中间件的集群部署、监控配置、故障处理、性能优化及维护。</li>
-<li>对资源利用率进行统计、提交资源使用汇总清单、 提交下财年IT预算等。</li>
+<li>执行完成A工程再执行B工程</li>
+</ul>
+</li>
+<li>
+<p>定时构建：</p>
+<ul>
+<li>基于定时任务构建</li>
+</ul>
+</li>
+<li>
+<p>轮询SCM(source code management)：</p>
+<ul>
+<li>每间隔指定的时间去检查代码仓库是否变更，如果变更就执行构建</li>
 </ul>
 </li>
 </ul>
-<p><a href="DevOps%20%E5%85%A8%E6%B5%81%E7%A8%8B%E6%A1%88%E4%BE%8B.html">DevOps 全流程案例</a></p>
-<p><img src="../../assets/devops/WZxXbWVWvongMTxb5iScZpccnne.jpg" alt=""></p>
-<p>流程：Plan ➡️ Code ➡️ Build ➡️ Test ➡️ Release ➡️ Deploy ➡️ Operate ➡️ Monitor</p>
-<h1 id="devops-的核心阶段">DevOps 的核心阶段</h1>
-<ul>
-<li>版本控制：控制不同的代码版本</li>
-<li>持续集成：编译、构建、测试</li>
-<li>持续交付：部署到测试环境，QA 测试</li>
-<li>持续部署：部署到生产环境</li>
-<li>持续监控：监控生产环境指标</li>
+</li>
 </ul>
-<h1 id="devops-工具">DevOps 工具</h1>
-<p><strong>核心原则就是选择主流工具</strong>。主流工具就是业内大家用得比较多的，在各种分享文章里面高频出现的，使用经验一搜一大把的那种工具。</p>
-<p><img src="../../assets/devops/HpIgbLIM6osdQsx7D38cgzjPnuf.png" alt=""></p>
-<h2 id="需求管理-jira">需求管理 Jira</h2>
-<p><a href="%E9%9C%80%E6%B1%82%E7%AE%A1%E7%90%86%20-%20Jira.html">需求管理 - Jira</a></p>
-<h2 id="知识管理工具-confluence">知识管理工具 Confluence</h2>
-<h2 id="证书管理-cert-manager">证书管理 Cert-manager</h2>
-<p>Cert-manager，会为我们自动签发免费的 Let’s Encrypt HTTPS 证书，并在过期前自动续期。</p>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Cert-manager.html">Cert-manager</a></p>
-<h2 id="基础设施即代码">基础设施即代码</h2>
-<p><a href="%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81.html">基础设施即代码</a></p>
-<h2 id="持续集成工具-jenkins">持续集成工具 Jenkins</h2>
-<p><a href="Jenkins.html">Jenkins</a></p>
-<h2 id="代码质量工具-sonarqube">代码质量工具 SonarQube</h2>
-<p><a href="SonarQube.html">SonarQube</a></p>
-<h2 id="helm">Helm</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></p>
-<h2 id="crossplane">Crossplane</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Crossplane.html">Crossplane</a></p>
-<h2 id="devsecops">DevSecOps</h2>
-<p><a href="DevSecOps.html">DevSecOps</a></p>
-<h2 id="构建工具-mavengradle">构建工具 Maven/Gradle</h2>
-<h2 id="制品管理-artifactoryharbor">制品管理 Artifactory/Harbor</h2>
-<h2 id="配置管理工具-ansible">配置管理工具 Ansible</h2>
-<h2 id="配置中心-apollo">配置中心 Apollo</h2>
-<h2 id="测试工具-rfseleniumappiumjmetertestng">测试工具 RF/Selenium/Appium/Jmeter/TestNG</h2>
-<h2 id="安全合规工具-blackduckfortify">安全合规工具 BlackDuck/Fortify</h2>
-<h1 id="cicd">CICD</h1>
-<p><a href="CICD.html">CICD</a></p>
+<p><img src="../../../assets/devops/R34YbvXTzo2BrRxbb12cjvybngJ.jpg" alt=""></p>
+<ul>
+<li>
+<p>系统管理-管理插件-可选插件-Gitlab</p>
+</li>
+<li>
+<p>注意事项：</p>
+<ul>
+<li>
+<p>在 jenkins 系统管理--全局安全设置，认证改为登录用户可以做任何事情且匿名用户具有可读权限</p>
+</li>
+<li>
+<p>启用代理兼容、取消跨站请求伪造保护的勾选项(早期jenkins)</p>
+</li>
+<li>
+<p>Gitlab Hook Plugin以纯文本形式存储和显示GitLab API令牌</p>
+<ul>
+<li><a href="https://jenkins.io/security/advisory/2018-05-09/#SECURITY-263">https://jenkins.io/security/advisory/2018-05-09/#SECURITY-263</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>生成认证 token 并验证：</p>
+<ul>
+<li>
+<p>root@jenkins:~# openssl rand -hex 12</p>
+<ul>
+<li>5ca3642cf94eb64b6a0d6897</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Jenkins 配置远程触发</p>
+<ul>
+<li>Jenkins 全局安全配置需要勾选 “匿名用户具有可读权限”</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/devops/BF9Ub69VRoOfpBxj4UTc2jFWn3f.jpg" alt=""></p>
+<ul>
+<li>
+<p>curl测试</p>
+<ul>
+<li>
+<p>root@gitlab:~# curl --head <a href="http://172.31.5.102:8080/job/magedu-app1-deploy-test1/build?token=5ca3642cf94eb64b6a0d6897">http://172.31.5.102:8080/job/magedu-app1-deploy-test1/build?token=5ca3642cf94eb64b6a0d6897</a></p>
+<ul>
+<li>HTTP/1.1 201 Created</li>
+<li>Date: Mon, 24 Oct 2022 09:41:50 GMT</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>gitlab 自动触发：</p>
+</li>
+</ul>
+<p><img src="../../../assets/devops/FfPobODtmoWKHRx10eEc4jgKn8g.jpg" alt=""></p>
+<ul>
+<li>
+<p>python 测试远程触发：</p>
+<ul>
+<li>管理员--系统钩子(System Hooks)</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">pip3 install jenkinsapi
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">cat xxx.py
+#!/usr/bin/env python
+#coding:utf-8
+#Author:Zhang ShiJie
+from jenkinsapi.jenkins import Jenkins
+conn = Jenkins('http://172.31.5.102:8080', username='jenkinsadmin', password='zhang@123',useCrumb='9c88c3b473854c7c8bb28543')
+conn.build_job('magedu-app1-deploy-test1')
+#conn.build_job('magedu-web1-deploy')
+~# python3 xxx.py
+</code></pre>
+<h1 id="手动实现镜像更新">手动实现镜像更新:</h1>
+<p>基于代码 frontend.tar.gz 演示代码更新流程</p>
+<p>1.在开发机器(gitlab本机为例)编写代码：</p>
+<p>ubuntu-dockerfile-case中的frontend.tar.gz文件解压并上传至gitlab app1项目</p>
+<p>2.在镜像构建服务器(jenkins)clone app1项目并打包:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@jenkins:~# cd /data/magedu/
+root@jenkins:/data/magedu# git clone git@172.31.5.101:magedu/app1.git
+root@jenkins:/data/magedu# cd app1/
+root@jenkins:/data/magedu/app1# tar czvf frontend.tar.gz --exclude=.git --exclude=.gitignore --exclude=README.md ./
+root@jenkins:/data/magedu/app1# scp frontend.tar.gz 172.31.6.201:/opt/ubuntu-dockerfile/
+</code></pre>
+<p>3.在镜像构建服务器(docker-server1)构建镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">root@docker-server1:/opt/ubuntu-dockerfile# bash build-command.sh # 构建并上传镜像到harbor镜像仓库
+</code></pre>
+<p>4.在web服务器(docker-server2)基于docker-compsoe运行服务</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript">root@docker-server2:/data/magedu-app1# docker-compose pull
+root@docker-server2:/data/magedu-app1# docker-compose up -d
+</code></pre>
 </article>
 </main>
 <script>

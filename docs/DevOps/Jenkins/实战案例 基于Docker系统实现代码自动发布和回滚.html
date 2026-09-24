@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DevOps</title>
+<title>实战案例 基于Docker系统实现代码自动发布和回滚</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,76 +119,23 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="devops">DevOps</h1>
-<h1 id="devops-介绍">DevOps 介绍：</h1>
-<p>2009 年比利时工程师(Patrick Debois、 帕特里克·德布瓦)提出了 DevOps 的概念，后被广泛引用。</p>
-<p>DevOps 的秘密来源于它的名字所代表的两种角色——<strong>开发（Development）和运维（Operations）</strong>。那么这两种角色之间究竟有什么问题呢？我们从软件工程诞生以来所历经的三个重要发展阶段说起。</p>
-<p><a href="%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%89%E4%B8%AA%E9%87%8D%E8%A6%81%E5%8F%91%E5%B1%95%E9%98%B6%E6%AE%B5.html">软件工程三个重要发展阶段</a></p>
-<p>DevOps 是针对企业中的研发人员、运维人员和测试人员的工作理念，是指导他们在应用开发、代码部署和质量测试等业务落地的整条生命周期中的协作 和沟通的最佳实践理念，DevOps 强调整个组织的合作以及交付和基础设施变更的自动化、从而实现持续集成、持续部署和持续交付。</p>
-<ul>
-<li>
-<p>DEV 职责：</p>
-<ul>
-<li>业务架构设计、开发语言及框架选型、中间件选型、数据库表结构设计及数据库初始化等。</li>
-<li>业务代码编写，使用java、python、go等语言，编写项目中的各服务。</li>
-<li>提高代码质量，基于监控工具试下链路性能分析，对响应慢的服务或页面进行优化、提高代码质量。</li>
-<li>APP客户端兼容性(安卓、IOS等)，兼容IE浏览器、手机浏览器、各型号手机等。</li>
-<li>bug修复及新功能开发，基于监控工具、APP探针、URL监控工具、日志收集工具等收集、统计并分析bug，并进行修 复，在618、双十一等节假日开发新的功能。</li>
-</ul>
-</li>
-<li>
-<p>OPS 职责：</p>
-<ul>
-<li>通过监控、告警、人工值守等方式保证应用程序的 7 * 24 的可用性。</li>
-<li>系统选型、基础环境初始化、web服务高可用架构设计及落地、网络配置、监控系统部署、日志收集系 统部署、链路追踪系统部署、CICD系统部署、运维工具或自动化运维平台开发及维护等。</li>
-<li>监控及告警配置、故障处理、故障报告整理及汇报、 故障文档总结、故障复盘、优化方案及故障跟进等。</li>
-<li>数据库、ES、kafka、redis、zookeeper 等中间件的集群部署、监控配置、故障处理、性能优化及维护。</li>
-<li>对资源利用率进行统计、提交资源使用汇总清单、 提交下财年IT预算等。</li>
-</ul>
-</li>
-</ul>
-<p><a href="DevOps%20%E5%85%A8%E6%B5%81%E7%A8%8B%E6%A1%88%E4%BE%8B.html">DevOps 全流程案例</a></p>
-<p><img src="../../assets/devops/WZxXbWVWvongMTxb5iScZpccnne.jpg" alt=""></p>
-<p>流程：Plan ➡️ Code ➡️ Build ➡️ Test ➡️ Release ➡️ Deploy ➡️ Operate ➡️ Monitor</p>
-<h1 id="devops-的核心阶段">DevOps 的核心阶段</h1>
-<ul>
-<li>版本控制：控制不同的代码版本</li>
-<li>持续集成：编译、构建、测试</li>
-<li>持续交付：部署到测试环境，QA 测试</li>
-<li>持续部署：部署到生产环境</li>
-<li>持续监控：监控生产环境指标</li>
-</ul>
-<h1 id="devops-工具">DevOps 工具</h1>
-<p><strong>核心原则就是选择主流工具</strong>。主流工具就是业内大家用得比较多的，在各种分享文章里面高频出现的，使用经验一搜一大把的那种工具。</p>
-<p><img src="../../assets/devops/HpIgbLIM6osdQsx7D38cgzjPnuf.png" alt=""></p>
-<h2 id="需求管理-jira">需求管理 Jira</h2>
-<p><a href="%E9%9C%80%E6%B1%82%E7%AE%A1%E7%90%86%20-%20Jira.html">需求管理 - Jira</a></p>
-<h2 id="知识管理工具-confluence">知识管理工具 Confluence</h2>
-<h2 id="证书管理-cert-manager">证书管理 Cert-manager</h2>
-<p>Cert-manager，会为我们自动签发免费的 Let’s Encrypt HTTPS 证书，并在过期前自动续期。</p>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Cert-manager.html">Cert-manager</a></p>
-<h2 id="基础设施即代码">基础设施即代码</h2>
-<p><a href="%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81.html">基础设施即代码</a></p>
-<h2 id="持续集成工具-jenkins">持续集成工具 Jenkins</h2>
-<p><a href="Jenkins.html">Jenkins</a></p>
-<h2 id="代码质量工具-sonarqube">代码质量工具 SonarQube</h2>
-<p><a href="SonarQube.html">SonarQube</a></p>
-<h2 id="helm">Helm</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></p>
-<h2 id="crossplane">Crossplane</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Crossplane.html">Crossplane</a></p>
-<h2 id="devsecops">DevSecOps</h2>
-<p><a href="DevSecOps.html">DevSecOps</a></p>
-<h2 id="构建工具-mavengradle">构建工具 Maven/Gradle</h2>
-<h2 id="制品管理-artifactoryharbor">制品管理 Artifactory/Harbor</h2>
-<h2 id="配置管理工具-ansible">配置管理工具 Ansible</h2>
-<h2 id="配置中心-apollo">配置中心 Apollo</h2>
-<h2 id="测试工具-rfseleniumappiumjmetertestng">测试工具 RF/Selenium/Appium/Jmeter/TestNG</h2>
-<h2 id="安全合规工具-blackduckfortify">安全合规工具 BlackDuck/Fortify</h2>
-<h1 id="cicd">CICD</h1>
-<p><a href="CICD.html">CICD</a></p>
+<h1 id="实战案例-基于docker系统实现代码自动发布和回滚">实战案例 基于Docker系统实现代码自动发布和回滚</h1>
+<h1 id="实战案例基于docker系统实现代码自动发布和回滚">实战案例:基于Docker系统实现代码自动发布和回滚</h1>
+<h2 id="介绍">介绍</h2>
+<p><img src="../../../assets/devops/O1yub5R4zoHgpcxNByMccIHrnAe.jpg" alt=""></p>
+<p><img src="../../../assets/devops/LjlvbGJosophDGxKudvcciHonCe.jpg" alt=""></p>
+<p><img src="../../../assets/devops/ITIXbdN3To1C2bxOMuWcu2l9n9e.png" alt=""></p>
+<h1 id="jenkins-job-jenkinsfile配置">jenkins job-Jenkinsfile配置:</h1>
+<p>见--&gt; Jenkinsfile 文件</p>
+<p><img src="../../../assets/devops/Ort9bCZdjoE46bxJuJIcVecCnA3.jpg" alt=""></p>
+<p><img src="../../../assets/devops/U9U7bHIjCoaVvGxOWDycXMGsnOh.jpg" alt=""></p>
+<h1 id="jenkins-验证pipline部署结果">jenkins 验证pipline部署结果:</h1>
+<p><img src="../../../assets/devops/IpAJbfPQaouVqCxx0E2cuW4gnOe.jpg" alt=""></p>
+<p><img src="../../../assets/devops/BiJPb2tsuo1EIqxCPIkc047fnoe.jpg" alt=""></p>
+<p><img src="../../../assets/devops/LQZpbd5Dnol1alxMxWIc4WX9nCg.jpg" alt=""></p>
+<h1 id="jenkins-blue-ocean管理流水线">jenkins Blue Ocean管理流水线：</h1>
 </article>
 </main>
 <script>
