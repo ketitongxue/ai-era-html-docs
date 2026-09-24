@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DevOps</title>
+<title>需求管理 - Jira</title>
 <style>
 :root {
   color-scheme: light;
@@ -121,74 +121,30 @@ th { background: #eaf0f7; }
 <main id="main-content" tabindex="-1">
 <nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="devops">DevOps</h1>
-<h1 id="devops-介绍">DevOps 介绍：</h1>
-<p>2009 年比利时工程师(Patrick Debois、 帕特里克·德布瓦)提出了 DevOps 的概念，后被广泛引用。</p>
-<p>DevOps 的秘密来源于它的名字所代表的两种角色——<strong>开发（Development）和运维（Operations）</strong>。那么这两种角色之间究竟有什么问题呢？我们从软件工程诞生以来所历经的三个重要发展阶段说起。</p>
-<p><a href="%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%89%E4%B8%AA%E9%87%8D%E8%A6%81%E5%8F%91%E5%B1%95%E9%98%B6%E6%AE%B5.html">软件工程三个重要发展阶段</a></p>
-<p>DevOps 是针对企业中的研发人员、运维人员和测试人员的工作理念，是指导他们在应用开发、代码部署和质量测试等业务落地的整条生命周期中的协作 和沟通的最佳实践理念，DevOps 强调整个组织的合作以及交付和基础设施变更的自动化、从而实现持续集成、持续部署和持续交付。</p>
+<h1 id="需求管理---jira">需求管理 - Jira</h1>
+<p>在 Jira 官网上的醒目位置，写着一句话：敏捷开发工具的第一选择。在我看来，Atlassian 公司的确有这个底气，因为 Jira 确实足够优秀，跟 Confluence 的组合几乎已经成为了很多企业的标配。</p>
+<p>当然，近些年来，各大厂商也在积极地对外输出研发工具能力，以腾讯的 TAPD 为代表的敏捷协同开发工具，就使用得非常广泛。但是，其实产品的思路都大同小异，搞定了 Jira，其他工具基本也就不在话下了。</p>
+<p>作为敏捷协同工具，Jira 新建工程可以选择团队的研发模式是基于 Scrum，还是看板方法，你可以按需选择。</p>
+<p>看板的配置过程并不复杂，我把它整理成了文档，你可以点击网盘<a href="https://pan.baidu.com/share/init?surl=SAmWYv7WeYgM6yZSRs5nag">链接</a>获取，提取码是 mrtd。需要提醒你的一点是：别忘了添加 WIP 在制品约束，别让你的精益看板变成了可视化看板。</p>
+<p>需求作为一切开发工作的起点，是贯穿整个研发工作的重要抓手。对于 Jira 来说，重点是要实现跟版本控制系统和开发者工具的打通。接下来，我们分别来看下应该如何实现。</p>
+<p>如果你也在使用特性分支开发模式，你应该知道，一个特性就对应到一个 Jira 中的任务。通过任务来创建特性分支，并且将所有分支上的提交绑定到具体任务上，从而建立清晰的特性代码关联。我给你推荐两种实现方式。</p>
+<p>第一种方式是基于 Jira 提供的原生插件，比如 <a href="https://marketplace.atlassian.com/apps/4984/git-integration-for-jira">Git Integration for Jira</a>。这个插件配置起来非常简单，你只需要添加版本控制系统的地址和认证方式即可。然后，你就可以在 Jira 上进行查看提交信息、对比差异、创建分支和 MR 等操作。但是这个插件属于收费版本，你可以免费使用 30 天，到期更新即可。</p>
+<p><img src="../../assets/devops/GGcnbu8zpo3YidxKZ0Tc43d3nub.png" alt=""></p>
+<p>第二种方式，就是**使用 Jira 和 GitLab 的 Webhook 进行打通**。</p>
+<p>首先，你要在 GitLab 项目的“设置 - 集成”中找到 Jira 选项，按下图添加相应配置即可。配置完成之后，你只需要在提交注释中添加一个 Jira 的任务 ID，就可以实现 Jira 任务和代码提交的关联，这些关联体现在 Jira 任务的 Issue links 部分。</p>
+<p>另外，你也可以实现 Jira 任务的状态自动流转操作，无需手动移动任务卡片。我给你提供一份 <a href="http://confluence.gjingao.com/login.action?os_destination=%2Fpages%2Fviewpage.action%3FpageId%3D6520911&amp;permissionViolation=true">配置说明</a> ，你可以参考一下。</p>
+<p><img src="../../assets/devops/ApTybxxe9okXCmxarIYcL87OnCf.png" alt=""></p>
+<p>不过，如果只是这样的话，还不能实现根据 Jira 任务来自动创建分支，所以接下来，还要进行 Jira 的 Webhook 配置。在 Jira 的系统管理界面中，你可以找到“高级设置 - Webhook”选项，添加 Webhook 后，可以绑定各种系统提供的事件，比如创建任务、更新任务等，这基本可以满足绝大多数场景的需求。</p>
+<p>假设我们的系统在创建 Jira 任务的时候，要自动在 GitLab 中基于主线创建一条分支，那么你可以将 GitLab 提供的创建分支 API 写在 Jira 触发的 Webhook 地址中。参考样例如下：</p>
+<p>https : // 这里替换成你的 GitLab 服务地址 /repository/branches?branch=${issue.key}&amp;ref=master&amp;private_token=[这里替换成你的账号 Token]</p>
+<p><img src="../../assets/devops/Vvy7b506fo9QqKxiOQSc4nZ6nth.png" alt=""></p>
+<p>到这里，Jira 和 GitLab 的打通就完成了。我们来总结下已经实现的功能：</p>
 <ul>
-<li>
-<p>DEV 职责：</p>
-<ul>
-<li>业务架构设计、开发语言及框架选型、中间件选型、数据库表结构设计及数据库初始化等。</li>
-<li>业务代码编写，使用java、python、go等语言，编写项目中的各服务。</li>
-<li>提高代码质量，基于监控工具试下链路性能分析，对响应慢的服务或页面进行优化、提高代码质量。</li>
-<li>APP客户端兼容性(安卓、IOS等)，兼容IE浏览器、手机浏览器、各型号手机等。</li>
-<li>bug修复及新功能开发，基于监控工具、APP探针、URL监控工具、日志收集工具等收集、统计并分析bug，并进行修 复，在618、双十一等节假日开发新的功能。</li>
+<li>GitLab 每次代码变更状态都会同步到 Jira 任务中，并且实现了 Jira 任务和代码的自动关联（Issue links）；</li>
+<li>可以在 MR 中增加关键字 Fixes/Resolves/Closes Jira 任务号，实现 Jira 的自动状态流转；</li>
+<li>每次在 Jira 中创建任务时，都会自动创建特性分支。</li>
 </ul>
-</li>
-<li>
-<p>OPS 职责：</p>
-<ul>
-<li>通过监控、告警、人工值守等方式保证应用程序的 7 * 24 的可用性。</li>
-<li>系统选型、基础环境初始化、web服务高可用架构设计及落地、网络配置、监控系统部署、日志收集系 统部署、链路追踪系统部署、CICD系统部署、运维工具或自动化运维平台开发及维护等。</li>
-<li>监控及告警配置、故障处理、故障报告整理及汇报、 故障文档总结、故障复盘、优化方案及故障跟进等。</li>
-<li>数据库、ES、kafka、redis、zookeeper 等中间件的集群部署、监控配置、故障处理、性能优化及维护。</li>
-<li>对资源利用率进行统计、提交资源使用汇总清单、 提交下财年IT预算等。</li>
-</ul>
-</li>
-</ul>
-<p><a href="DevOps%20%E5%85%A8%E6%B5%81%E7%A8%8B%E6%A1%88%E4%BE%8B.html">DevOps 全流程案例</a></p>
-<p><img src="../../assets/devops/WZxXbWVWvongMTxb5iScZpccnne.jpg" alt=""></p>
-<p>流程：Plan ➡️ Code ➡️ Build ➡️ Test ➡️ Release ➡️ Deploy ➡️ Operate ➡️ Monitor</p>
-<h1 id="devops-的核心阶段">DevOps 的核心阶段</h1>
-<ul>
-<li>版本控制：控制不同的代码版本</li>
-<li>持续集成：编译、构建、测试</li>
-<li>持续交付：部署到测试环境，QA 测试</li>
-<li>持续部署：部署到生产环境</li>
-<li>持续监控：监控生产环境指标</li>
-</ul>
-<h1 id="devops-工具">DevOps 工具</h1>
-<p><strong>核心原则就是选择主流工具</strong>。主流工具就是业内大家用得比较多的，在各种分享文章里面高频出现的，使用经验一搜一大把的那种工具。</p>
-<p><img src="../../assets/devops/HpIgbLIM6osdQsx7D38cgzjPnuf.png" alt=""></p>
-<h2 id="需求管理-jira">需求管理 Jira</h2>
-<p><a href="%E9%9C%80%E6%B1%82%E7%AE%A1%E7%90%86%20-%20Jira.html">需求管理 - Jira</a></p>
-<h2 id="知识管理工具-confluence">知识管理工具 Confluence</h2>
-<h2 id="证书管理-cert-manager">证书管理 Cert-manager</h2>
-<p>Cert-manager，会为我们自动签发免费的 Let’s Encrypt HTTPS 证书，并在过期前自动续期。</p>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Cert-manager.html">Cert-manager</a></p>
-<h2 id="基础设施即代码">基础设施即代码</h2>
-<p><a href="%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%8D%B3%E4%BB%A3%E7%A0%81.html">基础设施即代码</a></p>
-<h2 id="持续集成工具-jenkins">持续集成工具 Jenkins</h2>
-<p><a href="Jenkins.html">Jenkins</a></p>
-<h2 id="代码质量工具-sonarqube">代码质量工具 SonarQube</h2>
-<p><a href="SonarQube.html">SonarQube</a></p>
-<h2 id="helm">Helm</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Helm.html">Helm</a></p>
-<h2 id="crossplane">Crossplane</h2>
-<p><a href="../%E7%94%9F%E6%80%81%E5%B7%A5%E5%85%B7/Crossplane.html">Crossplane</a></p>
-<h2 id="devsecops">DevSecOps</h2>
-<p><a href="DevSecOps.html">DevSecOps</a></p>
-<h2 id="构建工具-mavengradle">构建工具 Maven/Gradle</h2>
-<h2 id="制品管理-artifactoryharbor">制品管理 Artifactory/Harbor</h2>
-<h2 id="配置管理工具-ansible">配置管理工具 Ansible</h2>
-<h2 id="配置中心-apollo">配置中心 Apollo</h2>
-<h2 id="测试工具-rfseleniumappiumjmetertestng">测试工具 RF/Selenium/Appium/Jmeter/TestNG</h2>
-<h2 id="安全合规工具-blackduckfortify">安全合规工具 BlackDuck/Fortify</h2>
-<h1 id="cicd">CICD</h1>
-<p><a href="CICD.html">CICD</a></p>
+<p>关于 Jira 和开发者工具的打通，我把操作步骤也分享给你。你可以点击<a href="https://pan.baidu.com/share/init?surl=ByoVZRTzG48yt8Nmgf2cJg">网盘链接</a>获取，提取码是 kf3t。现在很多工具平台的建设都是以服务开发者为导向的，所以距离开发者最近的 IDE 工具就成了新的效率提升阵地，包括云 IDE、IDE 插件等，都是为了方便开发者可以在 IDE 里面完成所有的日常任务，对于管理分支和 Jira 任务，自然也不在话下。</p>
 </article>
 </main>
 <script>
