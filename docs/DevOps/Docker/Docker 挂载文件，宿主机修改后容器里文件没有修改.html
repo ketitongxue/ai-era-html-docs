@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker 挂载文件，宿主机修改后容器里文件没有修改</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="docker-挂载文件宿主机修改后容器里文件没有修改">Docker 挂载文件，宿主机修改后容器里文件没有修改</h1>
+<h3 id="问题"><strong>问题</strong></h3>
+<p>使用 <code>Docker Volumes</code> 时，有时需要挂载一个宿主机目录或者文件，提供数据可持续或者<a href="https://cloud.tencent.com/product/tke?from_column=20065&amp;from=20065">容器</a>内部服务配置文件。</p>
+<p>使用命令 <code>docker run -it --rm -v /root/test.txt:/root/test.txt debian:10 bash</code> 挂载文件（test.txt 默认权限 644）时，通过 <code>vim</code> 修改宿主 <code>test.txt</code> 文件，但是容器中 <code>test.txt</code> 没有修改。这是为什么？</p>
+<h3 id="问题分析"><strong>问题分析</strong></h3>
+<p>Docker 中，mount volume 的原理是借用了 <code>Linux Namespace</code> 中的 <code>Mount NameSpace</code>，隔离系统中不同进程的挂载点视图，实际文件是没有变化。比如上面的例子，在container中，bash 实际就是一个运行在宿主机上的进程，被Docker用Linux分别隔离了 <code>Mount Namespace</code>、<code>UTS Namespace</code>、<code>IPC Namespace</code>、<code>PID Namespace</code>、<code>Network Namespace</code>和<code>User Namespace</code>，使得它看上去好像运行在了一个<code>独立的</code>、<code>相对隔离的</code>系统上，但实际它的一切资源都是宿主机在不同Namespace中的一个投影，文件也不例外。</p>
+<p>为什么宿主机上修改 <code>test.txt</code> 文件，而容器中 <code>test.txt</code> 文件没有变化？</p>
+<p>Linux中，<code>证明文件是否相同的根本途径是</code>，判断其 <code>inode</code>，如果两个文件的inode相同，两个文件必定为同一文件，从而两个文件的内容也必然相同。</p>
+<h3 id="验证问题"><strong>验证问题</strong></h3>
+<p>1、在宿主机上创建一个 <code>/root/test.txt</code> 文件，使用命令 <code>stat</code> 查看 <code>inode</code> 值，如下图：</p>
+<p><img src="../../../assets/docker/T1ZKbU9P0oc0BmxfGFdcCSFLntV.png" alt=""></p>
+<p>2、使用命令 <code>docker run -it --rm -v /root/test.txt:/root/test.txt debian:10 bash</code> 临时启动一个容器，把宿主机文件 <code>/root/test.txt</code> 挂载到容器中。</p>
+<p>3、另开一个终端，使用 <code>vi</code> 命令修改 /root/test.txt 文件，编辑完后保存，再次使用 stat 命令查看 /root/test.txt 文件 inode 值。从下图已经发现，inode 值已经改变。</p>
+<p><img src="../../../assets/docker/Ak2ObQY9KoV74kxZq2fc4qc8ngb.png" alt=""></p>
+<p>4、登陆容器查看 /root/test.txt 文件  inode 值。如下图，inode 值还是 vi 修改前的值。而不是修改后的值。这也就解释为什么宿主机上修改了文件而容器中文件没有更新的原因。因为容器与宿主机使用的不是同一个文件。</p>
+<p><img src="../../../assets/docker/MJVibAjeAofVvexByBKcqrpEnJc.png" alt=""></p>
+<h3 id="简述-vi-或者-vim-修改文件过程"><strong>简述 vi 或者 vim 修改文件过程</strong></h3>
+<p>Linux 默认情况下，vim为了防止在你修改文件的过程中，由于磁盘或者系统出现问题而导致当前被修改的文件的损坏，它做了类似如下逻辑：</p>
+<ul>
+<li>1、复制出一个需要修改文件的副本，命名为在原来文件的基础上增加 <code>&quot;.swp&quot;</code> 后缀以及 <code>&quot;.&quot;</code> 前缀。</li>
+<li>2、修改内容保存到有 <code>.swp</code> 后缀的文件，并 <code>flush</code> 到磁盘</li>
+<li>3、执行 <code>:wq</code> 就会交换原文件和 <code>swp</code> 文件的名称</li>
+<li>4、删除临时 <code>swp</code> 文件</li>
+</ul>
+<p>从上面可以看出，原来的文件已经被删除，但是容器还是会一直记录以前的文件，只有当 <code>restart</code> 容器时，容器才会重新读取新的文件。宿主机上修改的内容才会更新。</p>
+<h3 id="解决方法"><strong>解决方法</strong></h3>
+<h3 id="方法一"><strong>方法一</strong></h3>
+<p>使用 <code>echo</code> 修改文件，而不是使用 <code>vim</code> 或者 <code>vi</code>。</p>
+<h3 id="方法二"><strong>方法二</strong></h3>
+<p>修改 vim 配置。执行 vim 命令，输入 <code>:scriptnames</code> 查看 vim 配置文件路径，这边配置文件路径是 <code>/etc/vimrc</code> ，在配置文件最后添加如下两行。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">set backup
+set backupcopy=yes
+</code></pre>
+<p>这样可以解决问题，不过也有一个很大的副作用，那就是每次用vim编辑文件保存之后，vim会生成一个类似该被修改文件，但末尾增加了一个&quot;~&quot;后缀，用以保存修改之前的文件内容。此方法不推荐。</p>
+<h3 id="方法三"><strong>方法三</strong></h3>
+<p>修改文件权限，文件默认权限是 <code>644</code>，把权限修改为 <code>666</code>。修改完权限后，再次通过 vim 修改并保存后，原文件的 inode 不会发生变化。(<code>推荐此方法</code>)</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">$ chmod 666 /root/test.txt
+</code></pre>
+<h3 id="方法四"><strong>方法四</strong></h3>
+<p>挂载<code>目录</code>，不要挂载<code>文件</code>。挂载目录不会出现宿主机文件更新，而容器中文件没有更新。(<code>推荐此方法</code>)</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

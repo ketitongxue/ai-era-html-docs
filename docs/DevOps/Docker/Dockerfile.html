@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dockerfile</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<h1 id="dockerfile">Dockerfile</h1>
+<h1 id="镜像简介">镜像简介：</h1>
+<p>Docker can build images automatically by reading the instructions from a <code>Dockerfile</code>. A Dockerfile is a <code>text</code> document that contains all the commands a user could call on the command line to assemble an image. Using docker build users can create an automated build that executes several command-line instructions in succession.</p>
+<p><a href="https://docs.docker.com/engine/reference/builder/">https://docs.docker.com/engine/reference/builder/</a></p>
+<h2 id="镜像的内部机制">镜像的内部机制</h2>
+<p>镜像就是一个打包文件，里面包含了应用程序还有它运行所依赖的环境，例如文件系统、环境变量、配置参数等等。</p>
+<p>环境变量、配置参数这些东西还是比较简单的，随便用一个manifest清单就可以管理，真正麻烦的是文件系统。为了保证容器运行环境的一致性，镜像必须把应用程序所在操作系统的根目录，也就是rootfs，都包含进来。</p>
+<p>虽然这些文件里不包含系统内核（因为容器共享了宿主机的内核），但如果每个镜像都重复做这样的打包操作，仍然会导致大量的冗余。可以想象，如果有一千个镜像，都基于Ubuntu系统打包，那么这些镜像里就会重复一千次Ubuntu根目录，对磁盘存储、网络传输都是很大的浪费。</p>
+<p>很自然的，我们就会想到，应该把重复的部分抽取出来，只存放一份Ubuntu根目录文件，然后让这一千个镜像以某种方式共享这部分数据。</p>
+<p>这个思路，也正是容器镜像的一个重大创新点：分层，术语叫“ <strong>Layer</strong>”。</p>
+<p>容器镜像内部并不是一个平坦的结构，而是由许多的镜像层组成的，每层都是只读不可修改的一组文件，相同的层可以在镜像之间共享，然后多个层像搭积木一样堆叠起来，再使用一种叫“ <strong>Union FS联合文件系统</strong>”的技术把它们合并在一起，就形成了容器最终看到的文件系统（ <a href="https://linoxide.com/wp-content/uploads/2015/03/docker-filesystems-busyboxrw.png">图片来源</a>）。</p>
+<p><img src="../../../assets/docker/ErxJbBKSLo1YL2xfOkscp3IBn4q.png" alt=""></p>
+<p>可以用命令 <code>docker inspect</code> 来查看镜像的分层信息，比如nginx:alpine镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">docker inspect nginx:alpine
+</code></pre>
+<p>它的分层信息在“RootFS”部分：</p>
+<p><img src="../../../assets/docker/Eg0FbkrzCo6A1FxlOmmc0OCSnxc.png" alt=""></p>
+<p>通过这张截图就可以看到，nginx:alpine镜像里一共有6个Layer。</p>
+<h1 id="dockerfile-是什么">Dockerfile 是什么</h1>
+<ul>
+<li>
+<p>Dockerfile 是用于构建docker镜像的文件</p>
+</li>
+<li>
+<p>docker 镜像基于union file system将多个目录合并挂载至一个目录给容器使用。</p>
+</li>
+<li>
+<p>docker 镜像只有rootfs而没有内核，运行使用的是宿主机的 bootfs</p>
+<ul>
+<li>rootfs(root file system)，文件系统</li>
+<li>bootfs(boot file system)，主要包含 bootloader 和 Kernel</li>
+</ul>
+</li>
+<li>
+<p>一个镜像是有一层或者多层合并而成，每一层称为是一个layer。</p>
+</li>
+<li>
+<p>镜像可以基于其它镜像进行重新构建，被引用的镜像称为父镜像。</p>
+</li>
+<li>
+<p>一个镜像可以同时被创建为多个容器。</p>
+</li>
+<li>
+<p>镜像是只读的，任何的更改都不会直接修改镜像。</p>
+</li>
+</ul>
+<p><img src="../../../assets/docker/SRjHb6UZJoSD7exbPMfcwCMnnAc.png" alt=""></p>
+<h2 id="深入镜像本质">深入镜像本质</h2>
+<ul>
+<li>联合文件系统是镜像的基础</li>
+<li>镜像是多层 Layer 的堆叠</li>
+<li>构建时通过叠加新的 Layer 来实现更改</li>
+<li>Layer 在构建时会被缓存</li>
+<li>Layer 以 hash 命名</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql"># 这个dockerfile构建后的镜像有 2 层！
+# 第一层是基础镜像，第二层是安装 nginx 带来的变更,CMD不算
+# CMD、LABEL、EXPOSE、ARGS　都不会创建新层
+FROM deain:latest
+RUN apt-get update &amp;&amp; apt-get install nginx -y
+CMD [&quot;nginx&quot;, &quot;-g&quot;, &quot;daemon off;&quot;]
+</code></pre>
+<h1 id="dockerfile-与镜像的关系">Dockerfile 与镜像的关系：</h1>
+<p><img src="../../../assets/docker/H3FQbb8mZoLa2YxnpcOc9Jo3nWh.png" alt=""></p>
+<h1 id="dockerfile-构建镜像">Dockerfile 构建镜像：</h1>
+<p><a href="https://docs.docker.com/engine/reference/builder/">https://docs.docker.com/engine/reference/builder/</a></p>
+<p>DockerFile 是一个可以被 Docker 程序解释的文本文件，其中由指定的命令组成，在构建镜像的过程中，Docker 程序会读取 DockerFile 文件内容并生成一个临时容器、然后在临时容器中从上向下顺序执行 DockerFile 的指令，当执行完所有的指令后再把临时容器提交为一个 Docker 镜像，这样就完成的一个镜像的构建，基于 DockerFile 构建镜像便于后期对镜像的内容进行调整，因此在企业中有了提前编写好的各种各样DockerFile文件就可以快速构建出不同的业务镜像，而当后期某个镜像有额外的需求时，只要在之前的 DockerFile 添加或者修改相应的内容、即可重新生成新的 Docker 镜像然后部署在业务容器环境中(docker、docker-compsoe、swarm、kubernetes、openshift等)。</p>
+<h2 id="dockerfile-指令">Dockerfile 指令：</h2>
+<h3 id="from">FROM</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">FROM centos:7.9.2009
+</code></pre>
+<p>在整个dockfile文件中除了注释之外的第一行，要是FROM ，FROM 指令当前镜像的用于指定父镜像(base image)</p>
+<p>如何选择基础镜像：</p>
+<ol>
+<li>官方镜像优于非官方的镜像，如果没有官方镜像，则尽量选择Dockerfile开源的；</li>
+<li>固定版本tag而不是每次都使用latest；</li>
+<li>尽量选择体积小的镜像</li>
+</ol>
+<h2 id="maintainer">MAINTAINER</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">MAINTAINER #（镜像的维护者信息，目前已经不推荐使用）
+</code></pre>
+<h3 id="label">LABEL</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">LABEL &quot;key&quot; = &quot;value&quot; # 设置镜像的属性标签
+LABEL author=&quot;keti ketitx@qq.com&quot; #有空格要加引号
+LABEL version=&quot;1.0&quot;
+</code></pre>
+<h3 id="add--copy">ADD &amp; COPY</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;
+#用于添加宿主机本地的文件、目录、压缩等资源到镜像里面去，会自动解压 tar.gz 格式的压缩包，但不会自动解压 zip 包（因为内核中是有tar命令的，但是没有zip命令）
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">COPY COPY [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;
+#用于添加宿主机本地的文件、目录、压缩等资源到镜像里面去，不会解压任何压缩包
+</code></pre>
+<h3 id="add-和-copy-的区别">ADD 和 COPY 的区别</h3>
+<p>复制普通文件</p>
+<p><code>COPY</code> 和 <code>ADD</code> 都可以把local的一个文件复制到镜像里，如果目标目录不存在，则会自动创建</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM python:3.9.5-alpine3.13
+COPY hello.py /app/hello.py
+</code></pre>
+<p>比如把本地的 <a href="http://hello.py/">hello.py</a> 复制到 /app 目录下。 /app 这个folder不存在，则会自动创建</p>
+<p>复制压缩文件</p>
+<p><code>ADD</code> 比 COPY高级一点的地方就是，如果复制的是一个gzip等压缩文件时，ADD会帮助我们自动去解压缩文件。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM python:3.9.5-alpine3.13
+ADD hello.tar.gz /app/
+</code></pre>
+<p>如何选择</p>
+<p>因此在 COPY 和 ADD 指令中选择的时候，可以遵循这样的原则，所有的文件复制均使用 COPY 指令，仅在需要自动解压缩的场合使用 ADD。</p>
+<h3 id="env">ENV</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">ENV MY_NAME=&quot;John Doe&quot; #设置容器环境变量
+</code></pre>
+<h3 id="arg-和-env-的区别">ARG 和 ENV 的区别</h3>
+<p>ARG 可以在镜像 build 的时候动态修改 value, 通过 <code>--build-arg</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">$ docker image build -f .\\\\Dockerfile-arg -t ipinfo-arg-2.0.0 --build-arg VERSION=2.0.0 .
+$ docker image ls
+REPOSITORY         TAG       IMAGE ID       CREATED          SIZE
+ipinfo-arg-2.0.0   latest    0d9c964947e2   6 seconds ago    124MB
+$ docker container run -it ipinfo-arg-2.0.0
+root@b64285579756:/#
+root@b64285579756:/# ipinfo version
+2.0.0
+root@b64285579756:/#
+</code></pre>
+<p>ENV 设置的变量可以在 Image 中保持，并在容器中的环境变量里。</p>
+<h3 id="user">USER</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">USER &lt;user&gt;[:&lt;group&gt;] or USER &lt;UID&gt;[:&lt;GID&gt;] #指定运行操作的用户
+</code></pre>
+<h3 id="通过-run-执行指令">通过 RUN 执行指令</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">RUN yum install vim unzip -y &amp;&amp; cd /etc/nginx #执行shell命令，但是一定要以非交互式的方式执行
+</code></pre>
+<p>每一行的RUN命令都会产生一层image layer, 导致镜像的臃肿。</p>
+<p>一种推荐的写法:</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">FROM ubuntu:20.04
+RUN apt-get update &amp;&amp; \\\\
+    apt-get install -y wget &amp;&amp; \\\\
+    wget &lt;https://github.com/ipinfo/cli/releases/download/ipinfo-2.0.1/ipinfo_2.0.1_linux_amd64.tar.gz&gt; &amp;&amp; \\\\
+    tar zxf ipinfo_2.0.1_linux_amd64.tar.gz &amp;&amp; \\\\
+    mv ipinfo_2.0.1_linux_amd64 /usr/bin/ipinfo &amp;&amp; \\\\
+    rm -rf ipinfo_2.0.1_linux_amd64.tar.gz
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">RUN apt-get update \\\\
+    &amp;&amp; apt-get install -y \\\\
+        build-essential \\\\
+        curl \\\\
+        make \\\\
+        unzip \\\\
+    &amp;&amp; cd /tmp \\\\
+    &amp;&amp; curl -fSL xxx.tar.gz -o xxx.tar.gz\\\\
+    &amp;&amp; tar xzf xxx.tar.gz \\\\
+    &amp;&amp; cd xxx \\\\
+    &amp;&amp; ./config \\\\
+    &amp;&amp; make \\\\
+    &amp;&amp; make clean
+</code></pre>
+<p>有的时候在Dockerfile里写这种超长的 <code>RUN</code> 指令很不美观，而且一旦写错了，每次调试都要重新构建也很麻烦，所以你可以采用一种变通的技巧： <strong>把这些Shell命令集中到一个脚本文件里，用 <code>COPY</code> 命令拷贝进去再用 <code>RUN</code> 来执行</strong>：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">COPY setup.sh  /tmp/                # 拷贝脚本到/tmp目录
+RUN cd /tmp &amp;&amp; chmod +x setup.sh \\\\  # 添加执行权限
+    &amp;&amp; ./setup.sh &amp;&amp; rm setup.sh    # 运行脚本然后再删除
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">VOLUME [&quot;/data/data1&quot;,&quot;/data/data2&quot;] #定义volume
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">WORKDIR /data/data1 #用于定义当前工作目录
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Dockerfile">EXPOSE &lt;port&gt; [&lt;port&gt;/&lt;protocol&gt;...]
+#声明要把容器的某些端口映射到宿主机
+</code></pre>
+<h1 id="延伸阅读">延伸阅读</h1>
+<ul>
+<li><a href="https://pythonspeed.com/articles/base-image-python-docker-images/">https://pythonspeed.com/articles/base-image-python-docker-images/</a></li>
+<li><a href="https://pythonspeed.com/articles/alpine-docker-python/">Using Alpine can make Python Docker builds 50× slower</a></li>
+</ul>
+<h1 id="关于-cmd-与-entrypoint">关于 CMD 与 ENTRYPOINT：</h1>
+<ul>
+<li>
+<p>CMD有以上三种方式定义容器启动时所默认执行的命令或脚本</p>
+<ul>
+<li>
+<p>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;] (exec form, this is the preferred form) #推荐的可执行程序方式</p>
+</li>
+<li>
+<p>CMD [&quot;param1&quot;,&quot;param2&quot;] (as default parameters to ENTRYPOINT) #作为ENTRYPOINT默认参数</p>
+</li>
+<li>
+<p>CMD command param1 param2 (shell form) #基于shell命令的</p>
+</li>
+<li>
+<p>如：基于CMD #镜像启动为一个容器时候的默认命令或脚本，</p>
+<ul>
+<li>CMD [&quot;/bin/bash&quot;]</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>ENTRYPOINT #也可以用于定义容器在启动时候默认执行的命令或者脚本，如果是和 CMD 命令混合使用的时候，会将 CMD 的命令当做参数传递给 ENTRYPOINT 后面的脚本，可以在脚本中对参数做判断并相应的容器初始化操作。</p>
+</li>
+<li>
+<p><code>CMD</code> 设置的命令，可以在docker container run 时传入其它命令，覆盖掉 <code>CMD</code> 的命令，但是 <code>ENTRYPOINT</code> 所设置的命令是一定会被执行的。</p>
+</li>
+<li>
+<p>案例1：</p>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">ENTRYPOINT [&quot;top&quot;, &quot;-b&quot;]
+CMD [&quot;-c&quot;]
+等于如下一行：
+ENTRYPOINT [&quot;top&quot;, &quot;-b&quot;, &quot;-c&quot;]
+</code></pre>
+<ul>
+<li>案例2：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">ENTRYPOINT [&quot;docker-entrypoint.sh&quot;] #定义一个入口点脚本，并传递mysqld 参数
+CMD [&quot;mysqld&quot;]
+等于如下一行：
+ENTRYPOINT [&quot;docker-entrypoint.sh&quot;,&quot;mysqld&quot;]
+</code></pre>
+<ul>
+<li>使用总结：</li>
+</ul>
+<p>ENTRYPOINT(脚本) + CMD(当做参数传递给ENTRYPOINT)</p>
+<h1 id="shell-格式和-exec-格式">Shell 格式和 Exec 格式</h1>
+<p>CMD 和 ENTRYPOINT 同时支持 shell 格式和 Exec 格式。</p>
+<h2 id="shell格式"><strong>Shell格式</strong></h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">CMD echo &quot;hello docker&quot;
+ENTRYPOINT echo &quot;hello docker&quot;
+</code></pre>
+<h2 id="exec格式"><strong>Exec格式</strong></h2>
+<p>以可执行命令的方式</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">CMD [&quot;echo&quot;, &quot;hello docker&quot;]
+ENTRYPOINT [&quot;echo&quot;, &quot;hello docker&quot;]
+</code></pre>
+<p>注意shell脚本的问题</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM ubuntu:20.04
+ENV NAME=docker
+CMD echo &quot;hello $NAME&quot;
+</code></pre>
+<p>假如我们要把上面的CMD改成Exec格式，下面这样改是不行的, 大家可以试试。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM ubuntu:20.04
+ENV NAME=docker
+CMD [&quot;echo&quot;, &quot;hello $NAME&quot;]
+</code></pre>
+<p>它会打印出 <code>hello $NAME</code> , 而不是 <code>hello docker</code> ,那么需要怎么写呢？ 我们需要以shell脚本的方式去执行</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM ubuntu:20.04
+ENV NAME=docker
+CMD [&quot;sh&quot;, &quot;-c&quot;, &quot;echo hello $NAME&quot;]
+</code></pre>
+<p>Shell 和 Exec 的区别：指定的命令是否是在 shell 中调用。</p>
+<h1 id="dockerfile-构建镜像-1">Dockerfile 构建镜像：</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM ubuntu:22.04
+MAINTAINER &quot;keti xxxxxxxxx@qq.com&quot;
+ADD sources.list /etc/apt/sources.list
+RUN apt update &amp;&amp; apt install -y iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3
+libpcre3-dev
+zlib1g-dev ntpdate tcpdump telnet traceroute gcc openssh-server lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev ntpdate tcpdump
+telnet tracerou
+te iotop unzip zip make
+ADD nginx-1.22.0.tar.gz /usr/local/src/
+RUN cd /usr/local/src/nginx-1.22.0 &amp;&amp; ./configure --prefix=/apps/nginx &amp;&amp; make &amp;&amp; make install &amp;&amp; ln -sv /apps/nginx/sbin/nginx /usr/bin
+RUN groupadd -g 2088 nginx &amp;&amp; useradd -g nginx -s /usr/sbin/nologin -u 2088 nginx &amp;&amp; chown -R nginx.nginx /apps/nginx
+ADD nginx.conf /apps/nginx/conf/
+ADD frontend.tar.gz /apps/nginx/html/
+EXPOSE 80 443
+#ENTRYPOINT [&quot;nginx&quot;]
+CMD [&quot;nginx&quot;,&quot;-g&quot;,&quot;daemon off;&quot;]
+</code></pre>
+<p>构建并验证镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@docker-server1:/opt/ubuntu# bash build-command.sh
+root@docker-server1:/opt/ubuntu# docker images
+        REPOSITORY TAG IMAGE ID CREATED SIZE
+        harbor.ketitx.com/myserver/nginx v1 4b6ec2cfda10 14 minutes ago 468MB
+</code></pre>
+<p>基于镜像创建容器：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">root@docker-server1:/opt/ubuntu# docker run -it -p 80:80 harbor.ketitx.com/myserver/nginx:v1
+</code></pre>
+<p>手动将容器提交为镜像：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">root@docker-server1:~# docker commit --help
+Usage: docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+Create a new image from a container's changes
+  -a, --author string #镜像作者信息
+  -c, --change list #Dockerfile中的指令
+  -m, --message string #镜像提交信息
+  -p, --pause #提交镜像过程中暂定容器，默认为true
+
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">root@docker-server1:~# docker commit -m &quot;nginx image v2&quot; -a &quot;keti xxxxxxxxx@qq.com&quot; -c &quot;EXPOSE 80 443&quot; 3ac3619d2b61
+harbor.ketitx.com/myserver/nginx:v2
+root@docker-server1:~# docker run -it -p 81:80 harbor.ketitx.com/myserver/nginx:v2
+</code></pre>
+<h1 id="构建缓存">构建缓存</h1>
+<p><img src="../../../assets/docker/Yt6NbIt6FoBFtUxzTnccCeainle.png" alt=""></p>
+<h2 id="从-layer-特性看-dockerfile-的优化">从 Layer 特性看 Dockerfile 的优化</h2>
+<p><img src="../../../assets/docker/BtHebnPpcoDR4VxaQPHcOcOTnhf.png" alt=""></p>
+<h1 id="dockerfile-最佳实践">Dockerfile 最佳实践</h1>
+<ul>
+<li>
+<p>减少层数</p>
+</li>
+<li>
+<p>注意语句顺序</p>
+</li>
+<li>
+<p>使用 .dockerignore</p>
+</li>
+<li>
+<p>减小镜像体积</p>
+<ul>
+<li>选择合适的基础镜像（Alpine、slim等）</li>
+<li>使用多阶段构建</li>
+</ul>
+</li>
+<li>
+<p>安全</p>
+<ul>
+<li>避免使用 root 用户</li>
+</ul>
+</li>
+<li>
+<p>其他</p>
+<ul>
+<li>固定基础镜像的 tag</li>
+<li>尽量使用官方镜像</li>
+<li>设置时区</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># Apline
+ENV TZ Asia/Shanghai
+
+RUN apk add tzdata %% cp /usr/share/zoneinfo/${TZ} /etc/localtime \
+  &amp;&amp; echo ${TZ} &gt; /etc/timezone \
+  &amp;&amp; apk del tzdata
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># Debian
+ENV TZ=Asia/Shanghai \
+  DEBIAN_FRONTEND=noninteractive
+  
+RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
+  &amp;&amp; echo ${TZ} &gt; /etc/timezone \
+  $$ dpkg-reconfigure --fronted noninteractive tzdata \
+  &amp;&amp; rm -rf /var/lib/apt/lists/*
+</code></pre>
+<h3 id="业务规划及镜像分层构建">业务规划及镜像分层构建：</h3>
+<ul>
+<li>系统base 镜像构建</li>
+<li>Nginx 基础镜像构建</li>
+<li>Nginx业务镜像构建</li>
+<li>在kubernetes业务测试环境运行nginx容器并测试</li>
+<li>在kubernetes业务生产环境运行nginx容器并测试</li>
+</ul>
+<p><img src="../../../assets/docker/UVWvbUlgiohVlixsvHscboGEnAg.png" alt=""></p>
+<p>构建系统基础镜像</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">FROM ubuntu:22.04
+LABEL author=&quot;keti ketitx@qq.com&quot; #有空格要加引号
+LABEL version=&quot;1.0&quot;
+
+# 安装基础环境
+RUN apt update &amp;&amp; apt install -y iproute2 ntpdate tcpdump telnet traceroute nfs-kernel-server nfs-common lrzsz tree openssl libssl-dev libpcre3 libpcre3-dev zlib1g-dev gcc openssh-server tree iotop unzip zip make
+</code></pre>
+<h2 id="多阶段构建">多阶段构建</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash"># 第一阶段：构建阶段
+# 使用官方的 Go 镜像作为构建环境
+FROM golang:1.21 AS builder
+
+# 设置工作目录
+WORKDIR /app
+
+# 将本地代码复制到工作目录
+COPY . .
+
+# 安装依赖（如果有 go.mod 和 go.sum 文件）
+RUN go mod download
+
+# 构建可执行文件
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o myapp
+
+# 第二阶段：运行阶段
+# 使用一个轻量级的镜像作为运行环境
+FROM ubuntu:latest
+
+# 安装必要的运行时依赖（如果需要）
+RUN apk add --no-cache ca-certificates
+
+# 创建一个非 root 用户
+RUN adduser -D -g '' -s /bin/sh appuser
+
+# 设置工作目录
+WORKDIR /app
+
+# 将构建阶段生成的可执行文件复制到运行环境
+COPY --from=builder /app/myapp /app/myapp
+
+# 切换到非 root 用户运行
+USER appuser
+
+# 指定容器启动时运行的命令
+CMD [&quot;./myapp&quot;]
+</code></pre>
+<h1 id="dockerignore待完善">.dockerignore（待完善）</h1>
+<h2 id="什么是docker-build-context"><strong>什么是Docker build context</strong></h2>
+<p>Docker是client-server架构，理论上Client和Server可以不在一台机器上。</p>
+<p>在构建docker镜像的时候，需要把所需要的文件由CLI（client）发给Server，这些文件实际上就是build context</p>
+<p>举例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">$ dockerfile-demo more Dockerfile
+FROM python:3.9.5-slim
+
+RUN pip install flask
+
+WORKDIR /src
+ENV FLASK_APP=app.py
+
+COPY app.py /src/app.py
+
+EXPOSE 5000
+
+CMD [&quot;flask&quot;, &quot;run&quot;, &quot;-h&quot;, &quot;0.0.0.0&quot;]
+$ dockerfile-demo more app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def hello_world():
+    return 'Hello, world!'
+
+</code></pre>
+<p>构建的时候，第一行输出就是发送build context。11.13MB （这里是Linux环境下的log）</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ docker image build -t demo .
+Sending build context to Docker daemon  11.13MB
+Step 1/7 : FROM python:3.9.5-slim
+ ---&gt; 609da079b03a
+Step 2/7 : RUN pip install flask
+ ---&gt; Using cache
+ ---&gt; 955ce495635e
+Step 3/7 : WORKDIR /src
+ ---&gt; Using cache
+ ---&gt; 1c2f968e9f9b
+Step 4/7 : ENV FLASK_APP=app.py
+ ---&gt; Using cache
+ ---&gt; dceb15b338cf
+Step 5/7 : COPY app.py /src/app.py
+ ---&gt; Using cache
+ ---&gt; 0d4dfef28b5f
+Step 6/7 : EXPOSE 5000
+ ---&gt; Using cache
+ ---&gt; 203e9865f0d9
+Step 7/7 : CMD [&quot;flask&quot;, &quot;run&quot;, &quot;-h&quot;, &quot;0.0.0.0&quot;]
+ ---&gt; Using cache
+ ---&gt; 35b5efae1293
+Successfully built 35b5efae1293
+Successfully tagged demo:latest
+
+</code></pre>
+<p><code>.</code> 这个参数就是代表了build context所指向的目录</p>
+<h2 id="dockerignore-文件"><strong>.dockerignore 文件</strong></h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">.vscode/
+env/
+</code></pre>
+<p>有了.dockerignore文件后，我们再build, build context就小了很多，4.096kB</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">$ docker image build -t demo .
+Sending build context to Docker daemon  4.096kB
+Step 1/7 : FROM python:3.9.5-slim
+---&gt; 609da079b03a
+Step 2/7 : RUN pip install flask
+---&gt; Using cache
+---&gt; 955ce495635e
+Step 3/7 : WORKDIR /src
+---&gt; Using cache
+---&gt; 1c2f968e9f9b
+Step 4/7 : ENV FLASK_APP=app.py
+---&gt; Using cache
+---&gt; dceb15b338cf
+Step 5/7 : COPY . /src/
+---&gt; a9a8f888fef3
+Step 6/7 : EXPOSE 5000
+---&gt; Running in c71f34d32009
+Removing intermediate container c71f34d32009
+---&gt; fed6995d5a83
+Step 7/7 : CMD [&quot;flask&quot;, &quot;run&quot;, &quot;-h&quot;, &quot;0.0.0.0&quot;]
+---&gt; Running in 7ea669f59d5e
+Removing intermediate container 7ea669f59d5e
+---&gt; 079bae887a47
+Successfully built 079bae887a47
+Successfully tagged demo:latest
+</code></pre>
+<h1 id="关于-scratch-镜像">关于 scratch 镜像</h1>
+<p>Scratch是一个空的Docker镜像。</p>
+<p>通过scratch来构建一个基础镜像。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-c++">hello.c
+#include &lt;stdio.h&gt;
+int main()
+{
+    printf(&quot;hello docker\\n&quot;);
+}
+</code></pre>
+<p>编译成一个二进制文件</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-c++">$ gcc --static -o hello hello.c
+$ ./hello
+hello docker
+</code></pre>
+<p>Dockerfile</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-c++">FROM scratch
+ADD hello /
+CMD [&quot;/hello&quot;]
+</code></pre>
+<p>构建</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-c++">$ docker build -t hello .
+$ docker image ls
+REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+hello        latest    2936e77a9daa   40 minutes ago   872kB
+</code></pre>
+<p>运行</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-c++">$ docker run -it hello
+hello docker
+</code></pre>
+<h1 id="buildkit">Buildkit</h1>
+<p>Buildkit这个feature能够提高build的效率。</p>
+<p><a href="https://docs.docker.com/develop/develop-images/build_enhancements/">Overview of Docker Build</a></p>
+<h2 id="linux">Linux</h2>
+<p>在 <code>/etc/docker/daemon.json</code> 里添加（如果没有这个文件，则新建）, 然后重启docker</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">{ &quot;features&quot;: { &quot;buildkit&quot;: true } }
+</code></pre>
+<p>或者在执行docker build命令时设置</p>
+<h1 id="docker_buildkit1时为启用buildkit">DOCKER_BUILDKIT=1时为启用buildkit</h1>
+<p>$ DOCKER_BUILDKIT=1 docker build .</p>
+<h1 id="dockerfile-技巧尽量使用非root用户">Dockerfile 技巧——尽量使用非root用户</h1>
+<h2 id="root的危险性"><strong>Root的危险性</strong></h2>
+<p>docker的root权限一直是其遭受诟病的地方，docker的root权限有那么危险么？我们举个例子。</p>
+<p>假如我们有一个用户，叫demo，它本身不具有sudo的权限，所以就有很多文件无法进行读写操作，比如/root目录它是无法查看的。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host ~]$ sudo ls /root
+[sudo] password for demo:
+demo is not in the sudoers file.  This incident will be reported.
+[demo@docker-host ~]$
+</code></pre>
+<p>但是这个用户有执行docker的权限，也就是它在docker这个group里。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host ~]$ groups
+demo docker
+[demo@docker-host ~]$ docker image ls
+REPOSITORY   TAG       IMAGE ID       CREATED      SIZE
+busybox      latest    a9d583973f65   2 days ago   1.23MB
+[demo@docker-host ~]$
+</code></pre>
+<p>这时，我们就可以通过Docker做很多越权的事情了，比如，我们可以把这个无法查看的/root目录映射到docker container里，你就可以自由进行查看了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host vagrant]$ docker run -it -v /root/:/root/tmp busybox sh
+/ # cd /root/tmp
+~/tmp # ls
+anaconda-ks.cfg  original-ks.cfg
+~/tmp # ls -l
+total 16
+-rw-------    1 root     root          5570 Apr 30  2020 anaconda-ks.cfg
+-rw-------    1 root     root          5300 Apr 30  2020 original-ks.cfg
+~/tmp #
+</code></pre>
+<p>更甚至我们可以给我们自己加sudo权限。我们现在没有sudo权限</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host ~]$ sudo vim /etc/sudoers
+[sudo] password for demo:
+demo is not in the sudoers file.  This incident will be reported.
+[demo@docker-host ~]$
+</code></pre>
+<p>但是我可以给自己添加。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host ~]$ docker run -it -v /etc/sudoers:/root/sudoers busybox sh
+/ # echo &quot;demo    ALL=(ALL)       ALL&quot; &gt;&gt; /root/sudoers
+/ # more /root/sudoers | grep demo
+demo    ALL=(ALL)       ALL
+</code></pre>
+<p>然后退出container，bingo，我们有sudo权限了。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[demo@docker-host ~]$ sudo more /etc/sudoers | grep demo
+demo    ALL=(ALL)       ALL
+[demo@docker-host ~]$
+</code></pre>
+<h2 id="如何使用非root用户"><strong>如何使用非root用户</strong></h2>
+<p>我们准备两个Dockerfile，第一个Dockerfile如下，其中app.py文件源码请参考 <a href="https://lurvjdkusw.feishu.cn/wiki/wikcnZ3kt4yQnukV9zhHukjScOd">一起构建一个 Python Flask 镜像</a>  ：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM python:3.9.5-slim
+RUN pip install flask
+COPY app.py /src/app.py
+WORKDIR /src
+ENV FLASK_APP=app.py
+EXPOSE 5000
+CMD [&quot;flask&quot;, &quot;run&quot;, &quot;-h&quot;, &quot;0.0.0.0&quot;]
+</code></pre>
+<p>假设构建的镜像名字为 <code>flask-demo</code></p>
+<p>第二个Dockerfile，使用非root用户来构建这个镜像，名字叫 <code>flask-no-root</code> Dockerfile如下：</p>
+<ul>
+<li>通过groupadd和useradd创建一个flask的组和用户</li>
+<li>通过USER指定后面的命令要以flask这个用户的身份运行</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">FROM python:3.9.5-slim
+RUN pip install flask &amp;&amp; \\\\
+    groupadd -r flask &amp;&amp; useradd -r -g flask flask &amp;&amp; \\\\
+    mkdir /src &amp;&amp; \\\\
+    chown -R flask:flask /src
+USER flask
+COPY app.py /src/app.py
+WORKDIR /src
+ENV FLASK_APP=app.py
+EXPOSE 5000
+CMD [&quot;flask&quot;, &quot;run&quot;, &quot;-h&quot;, &quot;0.0.0.0&quot;]
+$ docker image ls
+REPOSITORY      TAG          IMAGE ID       CREATED          SIZE
+flask-no-root   latest       80996843356e   41 minutes ago   126MB
+flask-demo      latest       2696c68b51ce   49 minutes ago   125MB
+python          3.9.5-slim   609da079b03a   2 weeks ago      115MB
+</code></pre>
+<p>分别使用这两个镜像创建两个容器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ docker run -d --name flask-root flask-demo
+b31588bae216951e7981ce14290d74d377eef477f71e1506b17ee505d7994774
+$ docker run -d --name flask-no-root flask-no-root
+83aaa4a116608ec98afff2a142392119b7efe53617db213e8c7276ab0ae0aaa0
+$ docker container ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS      NAMES
+83aaa4a11660   flask-no-root   &quot;flask run -h 0.0.0.0&quot;   4 seconds ago    Up 3 seconds    5000/tcp   flask-no-root
+b31588bae216   flask-demo      &quot;flask run -h 0.0.0.0&quot;   16 seconds ago   Up 15 seconds   5000/tcp   flask-root
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
