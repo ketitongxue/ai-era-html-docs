@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kafka</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<h1 id="kafka">Kafka</h1>
+<p>MySQL 和 Redis 的监控，核心原理就是连到实例上执行特定语句命令拉取数据，类似的还有 MongoDB，这算是一类监控场景。Kafka 引出 JMX 监控场景，丰富你的数据采集工具箱。</p>
+<p>要做好 Kafka 的监控，首先要了解 Kafka 的 <a href="https://time.geekbang.org/column/article/99318">基础概念</a>，比如 Topic（主题）、Partition（分区）、Replica（副本）、AR（Assigned Replicas）、ISR（In-Sync Replicas）、OSR（Out-of-Sync Replicas）、HW（High Watermark）、LEO（Log End Offset）等等。其次是要了解 Kafka 的架构，通过架构才能知道要重点监控哪些组件，下面我们就先来看一下 Kafka 的架构图。</p>
+<h2 id="kafka-架构">Kafka 架构</h2>
+<p><img src="../../../../assets/devops-notes/Aj1Ib5zqvoz4KNxEsdJcZ9bgnsd.png" alt=""></p>
+<p>上面绿色部分 PRODUCER（生产者）和下面紫色部分 CONSUMER（消费者）是业务程序，通常由研发人员埋点解决监控问题，如果是 Java 客户端也会暴露 JMX 指标。组件运维监控层面着重关注蓝色部分的 BROKER（Kafka 节点）和红色部分的 ZOOKEEPER。</p>
+<p>ZooKeeper 也是 Java 语言写的，监控相对简单，可以复用下面介绍的 JMX 监控方式，另外 ZooKeeper 支持 mntr 四字命令，可以获取 ZooKeeper 内部健康状况。新版 ZooKeeper 连四字命令都不需要了，直接内置暴露了 Prometheus 协议的 metrics 接口，直接抓取即可。</p>
+<p>我们重点关注 Broker 节点的监控，也就是 Kafka 自身的监控，通常从四个方面着手。</p>
+<ul>
+<li>Kafka 进程所在机器的监控，重点关注CPU、硬盘I/O、网络I/O。</li>
+<li>JVM 监控，Kafka 是个 Java 进程，所以需要常规的 JVM 监控，通过 JMX 方式暴露。</li>
+<li>Kafka 自身的指标、也是通过 JMX 方式暴露，比如消息数量、流量、分区、副本的数量等。</li>
+<li>各个 consumer 的 lag 监控，即消息堆积量，是各类MQ都应该监控的指标。</li>
+</ul>
+<p>JVM 和 Kafka 相关的指标，都通过 JMX 方式暴露，我们就先来看一下什么是 JMX，以及 Kafka 如何开启 JMX。</p>
+<h2 id="jmx-简介">JMX 简介</h2>
+<p>JMX（Java Management Extensions）是一个为应用程序植入管理功能的框架。Java 程序接入 JMX 框架之后，可以把一些类的属性和方法暴露出来，用户就可以使用 JMX 相关工具来读取或操作这些类。</p>
+<p>比如一个类是 Person，有 Name 和 Age 两个属性，如果把 Person 做成一个 MBean，我们就可以在 JConsole里直接查到 Person 属性的值，也可以修改这些属性。</p>
+<p>注：MBean被管理的Java对象，JConsole是JMX的一个管理工具。</p>
+<p>我们可以通过 JConsole 直接操作 JavaBean，那JConsole 对 JavaBean来说是什么？</p>
+<p>打个比方吧，其实就像是PHPMyAdmin 之于 MySQL，我们可以通过 PHPMyAdmin 直接操作数据库，这样说你大概能理解了吧。如果你没有理解也没关系，从监控的角度，我们只要知道如何通过 JMX 读取 Kafka 的指标即可。下面我们就来看一下 Kafka 如何开启 JMX 端口。</p>
+<h2 id="kafka-开启-jmx">Kafka 开启 JMX</h2>
+<p>Kafka 的配置文件在 config 目录，各种脚本在 bin 目录，要让 Kafka 开启 JMX，肯定是要修改某个配置项或者调整某个脚本的，具体调整哪里呢？我们在 Kafka 的部署目录搜索一下看看。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">grep -i jmx -r config
+grep -i jmx -r bin
+</code></pre>
+<p>在 config 目录搜索 jmx 发现什么都找不到，看来不是通过配置文件来处理的。在 bin 目录下搜索 jmx，可以看到有两个脚本出现了这个关键字，一个是 bin/kafka-run-class.sh，另一个是 bin/windows/kafka-run-class.bat。显然 bat 结尾的文件是 Windows 环境的批处理文件，sh 结尾的才是 Linux、Mac 下使用的脚本文件。我本地是 Mac 环境，打开 kafka-run-class.sh 看一下里边的关键配置。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># JMX settings
+if [ -z &quot;$KAFKA_JMX_OPTS&quot; ]; then
+  KAFKA_JMX_OPTS=&quot;-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false &quot;
+fi
+
+# JMX port to use
+if [  $JMX_PORT ]; then
+  KAFKA_JMX_OPTS=&quot;$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT &quot;
+fi
+
+...
+
+# Launch mode
+if [ &quot;x$DAEMON_MODE&quot; = &quot;xtrue&quot; ]; then
+  nohup &quot;$JAVA&quot; $KAFKA_HEAP_OPTS $KAFKA_JVM_PERFORMANCE_OPTS $KAFKA_GC_LOG_OPTS $KAFKA_JMX_OPTS $KAFKA_LOG4J_OPTS -cp &quot;$CLASSPATH&quot; $KAFKA_OPTS &quot;$@&quot; &gt; &quot;$CONSOLE_OUTPUT_FILE&quot; 2&gt;&amp;1 &lt; /dev/null &amp;
+else
+  exec &quot;$JAVA&quot; $KAFKA_HEAP_OPTS $KAFKA_JVM_PERFORMANCE_OPTS $KAFKA_GC_LOG_OPTS $KAFKA_JMX_OPTS $KAFKA_LOG4J_OPTS -cp &quot;$CLASSPATH&quot; $KAFKA_OPTS &quot;$@&quot;
+fi
+</code></pre>
+<p>如果 KAFKA_JMX_OPTS 变量为空，就给它赋值，赋值的那一行内容，实际就是开启 JMX 的关键参数。如果 JMX_PORT 变量不为空，就再加上 -Dcom.sun.management.jmxremote.port 这个参数，通过某个端口暴露 JMX 数据，最后把 KAFKA_JMX_OPTS 放到启动命令里。</p>
+<p>这就很清晰了，只要启动 Kafka 之前，在环境变量里嵌入 JMX_PORT 变量，Kafka 就会监听这个端口，暴露 JMX 数据，我们试试。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JSON">export JMX_PORT=3457; ./bin/kafka-server-start.sh config/server.properties
+</code></pre>
+<p>启动之后，检查 Kafka 的端口监听，就会发现除了原本监听的 9092 端口，现在也监听了 3457 端口，我们使用 JConsole 工具连上来看看。如果你之前安装过 JDK，直接在命令行里输入 jconsole 就能打开 JConsole 页面。</p>
+<p><img src="../../../../assets/devops-notes/EbZXbArGnoctB5xcxbTcLBZTnyd.png" alt=""></p>
+<p>我们选择远程进程，输入 localhost:3457，然后点击连接，选择不安全的连接，就进入了 JConsole 主页面。默认进来是概览页面，我们选择 MBean，左侧就看到了一个树形结构的多个对象。举个例子，依次点击 kafka.server、ReplicaManager、OfflineReplicaCount，右侧会展示 MBeanInfo，里边尤其要注意的是 ObjectName，后面我们获取 JMX 数据的时候，会频繁用到这个属性。</p>
+<p><img src="../../../../assets/devops-notes/LxyzbUstModPMSxGPJ4cO3RinXe.png" alt=""></p>
+<p>OfflineReplicaCount 是 Broker 的一个关键指标，点击下面的属性，就可以看到具体的值。</p>
+<p>通过 JConsole 的页面确实可以查到各个监控指标的数据，但真正和监控系统对接的话，还是需要使用编程的方式来获取。JMX 的端口走的是 RMI 协议，是Java独有的RPC协议，其他语言没法调用。好在有工具可以把它转为 HTTP 协议，常见的工具有两个，一个是 Prometheus 生态的 <a href="https://github.com/prometheus/jmx_exporter">jmx_exporter_javaagent</a>，一个是 <a href="https://jolokia.org/">Jolokia</a>。Jolokia 也是个 JavaAgent，jmx_exporter 可以把 JMX 指标导出为 Prometheus metrics 格式，Jolokia 可以把 JMX 指标导出为 JSON 格式，差别不大。</p>
+<p>不过 Kafka 暴露的 JMX 指标实在是太多了，如果不过滤全部导出，每个 Broker 轻轻松松就几万个JMX 指标，大型互联网公司的话，基本上都有几百个 Broker，这个量就有点儿大了。</p>
+<p>过滤方式主要有两种，一种是过滤 MBean，通过白名单的方式指定，这些 MBean 采集的数据如果有些还不想要，就做二次过滤，通过黑名单的方式指定，比如根据指标名字做过滤。jmx_exporter 指定 MBean 过滤规则是通过一个配置文件实现的，如果这个配置文件发生变化，就要重启 Java 进程，动作有点儿重。</p>
+<p>而 Jolokia 的过滤规则都可以在采集器 agent 侧实现，修改过滤规则只需要重启采集器即可，不需要重启要监控的 Java 进程，动作相对轻一些。所以我个人倾向使用 Jolokia。下面我们就来看一下如何为 Kafka 引入 Jolokia 支持。</p>
+<h2 id="kafka-开启-jolokia">Kafka 开启 Jolokia</h2>
+<p>首先下载 Jolokia 的 <a href="https://download.flashcat.cloud/jolokia-jvm-1.6.2-agent.jar.zip">javaagent jar 包</a>，解压到 /opt/jolokia 目录下。然后在 kafka-run-class.sh 找到 JMX 相关的配置，在 JMX_PORT 相关逻辑下面增加三行。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># JMX settings
+if [ -z &quot;$KAFKA_JMX_OPTS&quot; ]; then
+  KAFKA_JMX_OPTS=&quot;-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false &quot;
+fi
+
+# JMX port to use
+if [  $JMX_PORT ]; then
+  KAFKA_JMX_OPTS=&quot;$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT &quot;
+fi
+
+########## adding lines
+if [ &quot;x$JOLOKIA&quot; != &quot;x&quot; ]; then
+  KAFKA_JMX_OPTS=&quot;$KAFKA_JMX_OPTS -javaagent:/opt/jolokia/jolokia-jvm-1.6.2-agent.jar=host=0.0.0.0,port=3456&quot;
+fi
+</code></pre>
+<p>例子里的 3456 是 Jolokia 监听的端口，可以换成别的，只要别跟机器上的其他端口冲突就行。加了一个 JOLOKIA 变量的判断，如果这个变量不为空，就开启 Jolokia；如果变量为空就不开启，方便在外部控制。此时我们可以重新启动 Kafka。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">export JOLOKIA=true; export JMX_PORT=3457; nohup ./bin/kafka-server-start.sh config/server.properties &amp;&gt; stdout.log &amp;
+</code></pre>
+<p>验证 Jolokia 是否在正常工作，请求其 /jolokia/version 接口即可。下面是我的环境的请求示例，你可以看一下。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain"># curl -s 10.206.16.8:3456/jolokia/version | jq .
+{
+  &quot;request&quot;: {
+    &quot;type&quot;: &quot;version&quot;
+  },
+  &quot;value&quot;: {
+    &quot;agent&quot;: &quot;1.6.2&quot;,
+    &quot;protocol&quot;: &quot;7.2&quot;,
+    &quot;config&quot;: {
+      &quot;listenForHttpService&quot;: &quot;true&quot;,
+      &quot;maxCollectionSize&quot;: &quot;0&quot;,
+      &quot;authIgnoreCerts&quot;: &quot;false&quot;,
+      &quot;agentId&quot;: &quot;10.206.16.8-2012615-50134894-jvm&quot;,
+      &quot;debug&quot;: &quot;false&quot;,
+      &quot;agentType&quot;: &quot;jvm&quot;,
+      &quot;policyLocation&quot;: &quot;classpath:/jolokia-access.xml&quot;,
+      &quot;agentContext&quot;: &quot;/jolokia&quot;,
+      &quot;serializeException&quot;: &quot;false&quot;,
+      &quot;mimeType&quot;: &quot;text/plain&quot;,
+      &quot;maxDepth&quot;: &quot;15&quot;,
+      &quot;authMode&quot;: &quot;basic&quot;,
+      &quot;authMatch&quot;: &quot;any&quot;,
+      &quot;discoveryEnabled&quot;: &quot;true&quot;,
+      &quot;streaming&quot;: &quot;true&quot;,
+      &quot;canonicalNaming&quot;: &quot;true&quot;,
+      &quot;historyMaxEntries&quot;: &quot;10&quot;,
+      &quot;allowErrorDetails&quot;: &quot;true&quot;,
+      &quot;allowDnsReverseLookup&quot;: &quot;true&quot;,
+      &quot;realm&quot;: &quot;jolokia&quot;,
+      &quot;includeStackTrace&quot;: &quot;true&quot;,
+      &quot;maxObjects&quot;: &quot;0&quot;,
+      &quot;useRestrictorService&quot;: &quot;false&quot;,
+      &quot;debugMaxEntries&quot;: &quot;100&quot;
+    },
+    &quot;info&quot;: {
+      &quot;product&quot;: &quot;jetty&quot;,
+      &quot;vendor&quot;: &quot;Eclipse&quot;,
+      &quot;version&quot;: &quot;9.4.43.v20210629&quot;
+    }
+  },
+  &quot;timestamp&quot;: 1669277907,
+  &quot;status&quot;: 200
+}
+</code></pre>
+<p>上面返回的内容表示 Jolokia 在正常工作，下面我们就可以使用监控 agent 来采集 Jolokia 的数据了。JMX 数据分两类，一类是和 JVM 相关的，一类是和 Kafka 相关的，我们先来看一下 JVM 相关的采集规则。</p>
+<h2 id="jvm-指标">JVM 指标</h2>
+<p>Categraf 的配置目录 conf 下面，默认有一个 input.jolokia_agent_kafka 的目录，放置了 Kafka 的 Jolokia 拉取规则的样例。把 input.jolokia_agent_kafka 重命名为 input.jolokia_agent，然后修改此目录下面的 kafka.toml，重点关注 urls 和 labels 两个配置。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[[instances]]
+urls = [&quot;http://localhost:3456/jolokia&quot;]
+labels = { cluster = &quot;kafka-cluster-demo&quot; }
+</code></pre>
+<p>这里我建议你用 Categraf 采集本机的 Kafka，并为采集的数据附加一个名为 cluster 的标签。因为一个公司通常有多个 Kafka 集群，使用 cluster 标签可以做出区分。通过 test 参数测试一下采集的指标是否正常。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">./categraf --test --inputs jolokia_agent
+</code></pre>
+<p>如果输出大量的指标，就说明采集逻辑是正常的，稍等片刻，重启 Categraf，再去监控系统查询一下，看看数据是否正常上报了。</p>
+<p><img src="../../../../assets/devops-notes/LRzdbrWv1oXFLtxMX87cQpnCnNq.png" alt=""></p>
+<p>我们看下图中的指标，ThreadCount 表示 JVM 里的线程数，类似的还有 DaemonThreadCount，表示后台线程数，PeakThreadCount表示历史峰值线程数。JVM 要重点关注 GC 的情况和内存的情况，我们看下相关指标。</p>
+<p>GC 主要看次数和时间，分为 YongGC 和 FullGC，YongGC 很正常，频率也比较高，FullGC 正常情况下很少发生，如果经常发生，FullGC 程序的性能就会受影响。GC 次数的指标是kafka_java_garbage_collector_CollectionCount，是一个 Counter 类型单调递增的值。GC 时间的指标是 kafka_java_garbage_collector_CollectionTime，也是一个 Counter 类型单调递增的值。这类指标我们通常使用 increase 或 irate 函数计算增量或速率，不关心当前值是多少。</p>
+<p>内存的指标是 kafka_java_memory_pool_Usage_used，单位是 byte。有个 name 标签标识了具体是哪个区域的内存大小，比如 Eden 区、Survivor 区、Old 区。下面仪表盘的中间部分，就是这个内存指标，变化比较剧烈的是 Eden 区，每隔一段时间就会 GC 一次，Eden 区的内存使用量就会降下来，过段时间又会随着使用而上升，然后再次 GC，量又会降下来，循环往复。</p>
+<p><img src="../../../../assets/devops-notes/HTNvbWZXyo695BxcTkEcLRvcn7b.png" alt=""></p>
+<p>所有 Java 类程序，都需要关注这些 JVM 的指标，相关指标的采集方法在 kafka.toml 中有样例，就是这些 java.lang 打头的 MBean。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[[instances.metric]]
+  name  = &quot;java_runtime&quot;
+  mbean = &quot;java.lang:type=Runtime&quot;
+  paths = [&quot;Uptime&quot;]
+
+[[instances.metric]]
+  name  = &quot;java_memory&quot;
+  mbean = &quot;java.lang:type=Memory&quot;
+  paths = [&quot;HeapMemoryUsage&quot;, &quot;NonHeapMemoryUsage&quot;, &quot;ObjectPendingFinalizationCount&quot;]
+
+[[instances.metric]]
+  name     = &quot;java_garbage_collector&quot;
+  mbean    = &quot;java.lang:name=*,type=GarbageCollector&quot;
+  paths    = [&quot;CollectionTime&quot;, &quot;CollectionCount&quot;]
+  tag_keys = [&quot;name&quot;]
+
+[[instances.metric]]
+  name  = &quot;java_last_garbage_collection&quot;
+  mbean = &quot;java.lang:name=G1 Young Generation,type=GarbageCollector&quot;
+  paths = [&quot;LastGcInfo/duration&quot;]
+  # paths = [&quot;LastGcInfo/duration&quot;, &quot;LastGcInfo/GcThreadCount&quot;, &quot;LastGcInfo/memoryUsageAfterGc&quot;]
+
+[[instances.metric]]
+  name  = &quot;java_threading&quot;
+  mbean = &quot;java.lang:type=Threading&quot;
+  paths = [&quot;TotalStartedThreadCount&quot;, &quot;ThreadCount&quot;, &quot;DaemonThreadCount&quot;, &quot;PeakThreadCount&quot;]
+
+[[instances.metric]]
+  name  = &quot;java_class_loading&quot;
+  mbean = &quot;java.lang:type=ClassLoading&quot;
+  paths = [&quot;LoadedClassCount&quot;, &quot;UnloadedClassCount&quot;, &quot;TotalLoadedClassCount&quot;]
+
+[[instances.metric]]
+  name     = &quot;java_memory_pool&quot;
+  mbean    = &quot;java.lang:name=*,type=MemoryPool&quot;
+  paths    = [&quot;Usage&quot;, &quot;PeakUsage&quot;, &quot;CollectionUsage&quot;]
+  tag_keys = [&quot;name&quot;]
+</code></pre>
+<p>到这里，JVM 的常规指标我们就讲完了。如果你想采集其他指标，可以使用 JConsole 连到 JMX 端口，查看相关 MBean 的信息，在 Categraf 里新增 <code>[[instances.metric]]</code> 的配置即可。kafka.toml 中还有很多 Kafka Broker 的 JMX 指标，下面我们来一探究竟。</p>
+<h2 id="kafka-指标">Kafka 指标</h2>
+<p>Kafka 的指标实在是太多了，其中有些指标只是为了调试而设置的。哪些指标更为关键，应该配置告警，哪些应该放到仪表盘里，哪些压根就无需关注，比较难梳理，好在目前这方面的资料比较丰富，一定程度上是有共识的，下面我们就来讲一下这些共识性的关键指标。</p>
+<h3 id="活跃控制器数量">活跃控制器数量</h3>
+<p><strong>MBean：broker kafka.controller:type=KafkaController,name=ActiveControllerCount</strong></p>
+<p>一个 Kafka 集群有多个 Broker，正常来讲其中一个 Broker 会是活跃控制器，且只能有一个。从整个集群角度来看，SUM 所有 Broker 的这个指标，结果应该为1。如果SUM的结果为2，也就是说，有两个 Broker 都认为自己是活跃控制器。这可能是网络分区导致的，需要重启 Kafka Broker 进程。如果重启了不好使，可能是依赖的 ZooKeeper 出现了网络分区，需要先去解决 ZooKeeper 的问题，然后重启 Broker 进程。</p>
+<h3 id="非同步分区数量">非同步分区数量</h3>
+<p><strong>MBean：kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions</strong></p>
+<p>这个指标是对每个 Topic 的每个分区的统计，如果某个分区主从同步出现问题，对应的数值就会大于0。常见的原因比如某个 Broker 出问题了，一般是Kafka 进程问题或者所在机器的硬件问题，那么跟这个 Broker 相关的分区就全部都有问题，这个时候出问题的分区数量大致是恒定的。如果出问题的分区数量不恒定，可能是集群性能问题导致的，需要检查硬盘I/O、CPU之类的指标。</p>
+<h3 id="离线分区数量">离线分区数量</h3>
+<p><strong>MBean：kafka.controller:type=KafkaController,name=OfflinePartitionsCount</strong></p>
+<p>这个指标只有集群控制器才有，其他 Broker 这个指标的值是 0，表示集群里没有 leader 的分区数量。Kafka 主要靠 leader 副本提供读写能力，如果有些分区没有 leader 副本了，显然就无法读写了，是一个非常严重的问题。</p>
+<h3 id="离线日志目录数量">离线日志目录数量</h3>
+<p><strong>MBean：kafka.log:type=LogManager,name=OfflineLogDirectoryCount</strong></p>
+<p>Kafka 是把收到的消息存入 log 目录，如果 log 目录有问题，比如写满了，就会被置为 Offline，及时监控离线日志目录的数量显然非常有必要。如果这个值大于 0，我们想进一步知道具体是哪个目录出问题了，可以查询 MBean：kafka.log:type=LogManager,name=LogDirectoryOffline,logDirectory=*&quot;，LogDirectory 字段会标明具体是哪个目录。</p>
+<h3 id="流入流出字节和流入消息">流入流出字节和流入消息</h3>
+<p>这是典型的吞吐指标，既有 Broker 粒度的，也有 Topic 粒度的，名字都一样，Topic 粒度的指标数据 MBean ObjectName 会多一个 topic=xx 的后缀。</p>
+<h4 id="流入字节">流入字节</h4>
+<p><strong>MBean：kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec</strong></p>
+<p>这个指标 Kafka 在使用 Yammer Metrics 埋点的时候，设置为了 Meter 类型，所以 Yammer 会自动计算出 Count、OneMinuteRate、FiveMinuteRate、FifteenMinuteRate、MeanRate 等指标，也就是1分钟、5分钟、15分钟内的平均流入速率，以及整体平均流入速率。而 Count 表示总量，如果时序库支持 PromQL，我们就只采集 Count，其他的不用采集，后面使用 PromQL 对 Count 值做 irate 计算即可。</p>
+<h4 id="流出字节">流出字节</h4>
+<p><strong>MBean：kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec</strong></p>
+<p>和 BytesInPerSec 类似，表示出向流量。不过需要注意的是，流出字节除了普通消费者的消费流量，也包含了副本同步流量。</p>
+<h4 id="流入消息">流入消息</h4>
+<p><strong>MBean：kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec</strong></p>
+<p>BytesInPerSec 和 BytesOutPerSec 都是以 byte 为单位统计的，而MessagesInPerSec 是以消息个数为单位统计的，也是 Meter 类型，相关属性都一样。</p>
+<p>需要解释一下的是，Kafka 不提供 MessagesOutPerSec，你可能觉得有点儿奇怪，有入就得有出才正常嘛。这是因为消息被拉取的时候，Broker 会把整个“消息批次”发送给消费者，并不会展开“批次”，也就没法计算具体有多少条消息了。</p>
+<h3 id="分区数量">分区数量</h3>
+<p><strong>MBean：kafka.server:type=ReplicaManager,name=PartitionCount</strong></p>
+<p>这个指标表示某个 Broker 上面总共有多少个分区，包括 leader 分区和 follower 分区。如果多个 Broker 分区不均衡，可能会造成有些 Broker 消耗硬盘空间过快，这是需要注意的。</p>
+<h3 id="leader-分区数量">leader 分区数量</h3>
+<p><strong>MBean：kafka.server:type=ReplicaManager,name=LeaderCount</strong></p>
+<p>这个指标表示某个 Broker 上面总共有多少个 leader 分区，leader 分区负责数据读写，承接流量，所以 leader 分区如果不均衡，会导致某些 Broker 过分繁忙而另一些 Broker 过分空闲，这种情况也是需要我们注意的。</p>
+<p>针对以上关键指标我制作了一张 <a href="https://github.com/flashcatcloud/categraf/blob/main/inputs/kafka/dashboard-key-metrics.json">仪表盘</a>，供你参考，同时也欢迎你一起来完善。</p>
+<p><img src="../../../../assets/devops-notes/Sa5rbAoiCoQ57NxhJgkcEKYsnlg.png" alt=""></p>
+<p>Kafka JMX 关键指标，我们就讲解到这里。最后一个关键点是 consumer lag 监控，俗称消息队列堆积，我们一起来看一下。</p>
+<h2 id="lag-监控">Lag 监控</h2>
+<p>每个 Topic 会分成多个 Partition，每个 Partition 都有一个当前的 offset，表示生产的消息已经堆积到了什么位置。每个 Partition 可以被多个 consumergroup 消费，consumergroup 消费的时候，针对某个 Partition 也会有一个 offset 表示消费位置。生产者的 offset 减去 consumergroup 的 offset，就表示滞后量。</p>
+<p>这个滞后量如果过大，就表示消费者可能遇到了问题，没有及时干活，这是个很严重的问题。比如监控数据对即时性要求就很高，如果通过 Kafka 传输监控数据，但滞后量很大，最后呈现给用户的图表可能是几分钟之前的数据，那意义就不大了。</p>
+<p>监控 Lag 数据有两个办法，一个是从 consumer 的 JMX 中获取，不过只有 Java 的程序才能这么做；一个是通过网络上的一些 Exporter获取，因为 Lag 数据太重要了，所以有人专门写了 Exporter 来采集。很多 consumer 都是非 Java 语言实现的，所以这里我们重点介绍 Exporter 的方案。</p>
+<p>滞后性，表示消息差值数量，这个不太方便设置告警规则，因为一些消息量巨大的 Topic Lag 值看起来很大，但是很快就消费完了，有些消息量很小的 Topic，consumer 可能都挂了，但是 Lag 值仍然很小。要是能预估一下队列里的消费时长就好了，参考历史数据情况进行预估，如果这个预估的时长变大了，就表示有问题了。其实，还真有这样的 <a href="https://github.com/davidmparrott/kafka_exporter">Exporter</a>，Categraf 就直接集成的这个 Exporter 的代码，你可以直接使用。</p>
+<p>Categraf 中怎么配置 Kafka 的 Lag 监控呢？使用 kafka 采集插件，配置文件在 conf/input.kafka/kafka.toml，最核心的配置有两个，一个是 labels，一个是 kafka_uris，你可以看下配置样例。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">[[instances]]
+labels = { cluster=&quot;tencent-dev&quot; }
+log_level = &quot;error&quot;
+kafka_uris = [&quot;10.206.16.3:9092&quot;]
+</code></pre>
+<p>在 labels 中，我还是建议你加一个 cluster 标签。因为一个公司一般有多个 Kafka 集群，我们可以通过这个标签区分，其次就是 kafka_uris，一般写一两个就可以了，不用把所有 Broker 地址全部写上，Categraf 会作为一个 Kafka client 连上集群，读取 offset 数据。如果是老集群，offset 信息存在 ZooKeeper 上，这个时候就要设置 use_zookeeper_lag = true，并通过 zookeeper_uris 改写 ZooKeeper 的连接地址。</p>
+<p>Kafka 这个采集插件，采集的最核心的指标是 kafka_consumer_lag_millis，你可以看一下样例。</p>
+<p>指标单位是毫秒，就是一个预估消费时长，这个指标我也放到了 <a href="https://github.com/flashcatcloud/categraf/blob/main/inputs/kafka/dashboard-key-metrics.json">仪表盘</a> 中，你可以直接导入夜莺使用，或者参考里边的 PromQL 自己制作 Grafana 大盘。到这里，Kafka 监控的关键点就介绍完了。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

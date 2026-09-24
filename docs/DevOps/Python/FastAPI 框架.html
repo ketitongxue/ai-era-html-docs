@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FastAPI 框架</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<h1 id="fastapi-框架">FastAPI 框架</h1>
+<p><code>fastapi</code>一个用于构建 API 的现代、快速（高性能）的web框架。</p>
+<p><code>fastapi</code>是建立在 Starlette 和 Pydantic 基础上的，Pydantic是一个基于Python类型提示来定义数据验证、序列化和文档的库。Starlette是一种轻量级的ASGI框架/工具包，是构建高性能Asyncio服务的理性选择。</p>
+<blockquote>
+<ul>
+<li>快速：可与 NodeJS 和 Go 比肩的<code>极高性能</code>（归功于 <code>Starlette</code> 和 <code>Pydantic</code>），是最快的 Python web 框架之一。</li>
+<li>高效编码：提高功能开发速度约 200％ 至 300％。</li>
+<li>更少bug：减少约 40％ 的人为（开发者）导致错误。</li>
+<li>智能：极佳的编辑器支持。处处皆可自动补全，减少调试时间。</li>
+<li>简单：设计的<code>易于使用和学习</code>，阅读文档的时间更短。</li>
+<li>简短：使代码重复最小化。通过不同的参数声明实现丰富功能。</li>
+<li>健壮：生产可用级别的代码。还有<code>自动生成的交互式文档</code>。</li>
+</ul>
+</blockquote>
+<p>依赖：Python 3.6 及更高版本，FastAPI 站在以下巨人的肩膀之上</p>
+<blockquote>
+<p><a href="https://www.starlette.io/">Starlette</a> 负责 web 部分(Asyncio)</p>
+<p><a href="https://pydantic-docs.helpmanual.io/">Pydantic</a> 负责数据部分(类型提示)</p>
+</blockquote>
+<p>FastApi是站在前人肩膀上，集成了多种框架的优点的新秀框架。它出现的比较晚，2018年底才发布在github上。广泛应用于当前各种前后端分离的项目开发，测试运维自动化以及微服务的场景中。</p>
+<h2 id="quick-start">quick start</h2>
+<h3 id="简单案例">简单案例</h3>
+<p><strong>安装</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install fastapi
+</code></pre>
+<p>你还会需要一个 ASGI 服务器，生产环境可以使用 <a href="https://www.uvicorn.org/">Uvicorn</a></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install uvicorn
+</code></pre>
+<p><strong>代码</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI  # FastAPI 是一个为你的 API 提供了所有功能的 Python 类。
+
+app = FastAPI()  # 这个实例将是创建你所有 API 的主要交互对象。这个 app 同样在如下命令中被 uvicorn 所引用
+
+@app.get(&quot;/&quot;)
+async def root():
+    return {&quot;message&quot;: &quot;Hello World&quot;}
+</code></pre>
+<p>通过以下命令运行服务器：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">uvicorn main:app --reload
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">INFO:     Will watch for changes in these directories: ['/Users/keti/Documents/Demo/python_learning']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [12989] using StatReload
+INFO:     Started server process [12991]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+</code></pre>
+<p>也可以直接运行：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">if __name__ == '__main__':
+    import uvicorn
+
+    uvicorn.run(&quot;main:app&quot;, host=&quot;127.0.0.1&quot;, port=8080, debug=True, reload=True)
+</code></pre>
+<blockquote>
+<p>（1）导入 FastAPI。</p>
+<p>（2）创建一个 app 实例。</p>
+<p>（3）编写一个路径操作装饰器（如 @app.get(&quot;/&quot;)）。</p>
+<p>（4）编写一个路径操作函数（如上面的 def root(): ...）</p>
+<p>（5）定义返回值</p>
+<p>（6）运行开发服务器（如 uvicorn main:app --reload）</p>
+</blockquote>
+<p>此外，fastapi有着**非常棒的交互式 API 文档**，这一点很吸引人。</p>
+<p>跳转到 <a href="https://link.zhihu.com/?target=http%3A//127.0.0.1%3A8000/docs">http://127.0.0.1:8000/docs</a>。你将会看到自动生成的交互式 API 文档。</p>
+<p><img src="../../../assets/devops-notes/NcATb7YFKoYyAqxtOLWcYLSlnPf.png" alt=""></p>
+<h2 id="路径操作">路径操作</h2>
+<h3 id="路径操作装饰器">路径操作装饰器</h3>
+<p>fastapi支持各种请求方式：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.get()
+@app.post()
+@app.put()
+@app.patch()
+@app.delete()
+@app.options()
+@app.head()
+@app.trace()
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import Union
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get(&quot;/get&quot;)
+def get_test():
+    return {&quot;method&quot;: &quot;get方法&quot;}
+
+@app.post(&quot;/post&quot;)
+def post_test():
+    return {&quot;method&quot;: &quot;post方法&quot;}
+
+@app.put(&quot;/put&quot;)
+def put_test():
+    return {&quot;method&quot;: &quot;put方法&quot;}
+
+@app.delete(&quot;/delete&quot;)
+def delete_test():
+    return {&quot;method&quot;: &quot;delete方法&quot;}
+</code></pre>
+<p><img src="../../../assets/devops-notes/T4Qzb6pBDokBTwx7MxlcPxA0nUb.png" alt=""></p>
+<p>路径操作装饰器参数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.post(
+    &quot;/items/{item_id}&quot;,
+    response_model=Item,
+    status_code=status.HTTP_200_OK,
+    tags=[&quot;AAA&quot;],
+    summary=&quot;this is summary&quot;,
+    description=&quot;this is description&quot;,
+    response_description= &quot;this is response_description&quot;,
+    deprecated=False,
+)
+</code></pre>
+<h3 id="include_router">include_router</h3>
+<p>将不同字应用的路由做分发和解耦</p>
+<p>main.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import Union
+
+from fastapi import FastAPI
+import uvicorn
+
+from apps import app01, app02
+
+app = FastAPI()
+
+app.include_router(app01, prefix=&quot;/app01&quot;, tags=[&quot;第一章节：商城接口&quot;, ])
+app.include_router(app02, prefix=&quot;/app02&quot;, tags=[&quot;第二章节：用户中心接口&quot;, ])
+
+if __name__ == '__main__':
+    uvicorn.run(&quot;main:app&quot;, host=&quot;127.0.0.1&quot;, port=8080, debug=True, reload=True)
+</code></pre>
+<p>与 main.py 同级创建目录 apps，apps 下创建 __init__.py 、 app01.py、app02.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># __init__.py
+from .app01 import app01
+from .app02 import app02
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># app01.py
+from fastapi import APIRouter
+
+app01 = APIRouter()
+
+
+@app01.get(&quot;/shop/food&quot;)
+def shop_food():
+    return {&quot;shop&quot;: &quot;food&quot;}
+
+
+@app01.get(&quot;/shop/bed&quot;)
+def shop_food():
+    return {&quot;shop&quot;: &quot;bed&quot;}
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># app02.py
+from fastapi import APIRouter
+
+app02 = APIRouter()
+
+
+@app02.post(&quot;/user/login&quot;)
+def user_login():
+    return {&quot;user&quot;: &quot;login&quot;}
+
+
+@app02.post(&quot;/user/reg&quot;)
+def user_reg():
+    return {&quot;user&quot;: &quot;reg&quot;}
+</code></pre>
+<p><img src="../../../assets/devops-notes/U5P6bNnGjoBcHUxnxJTcwZ14nqe.png" alt=""></p>
+<h2 id="请求与响应">请求与响应</h2>
+<h3 id="路径参数">路径参数</h3>
+<h4 id="基本用法">基本用法</h4>
+<p>以使用与 Python 格式化字符串相同的语法来声明路径&quot;参数&quot;或&quot;变量&quot;：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.get(&quot;/user/{user_id}&quot;)
+def get_user(user_id):
+    print(user_id, type(user_id))
+    return {&quot;user_id&quot;: user_id}
+</code></pre>
+<p>路径参数 <code>user_id</code> 的值将作为参数 <code>user_id</code> 传递给你的函数。</p>
+<h4 id="有类型的路径参数">有类型的路径参数</h4>
+<p>你可以使用标准的 Python 类型标注为函数中的路径参数声明类型。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.get(&quot;/user/{user_id}&quot;)
+def get_user(user_id: int):
+    print(user_id, type(user_id))
+    return {&quot;user_id&quot;: user_id}
+</code></pre>
+<p>在这个例子中，<code>user_id</code> 被声明为 <code>int</code> 类型。</p>
+<blockquote>
+<p>这将为你的函数提供编辑器支持，包括错误检查、代码补全等等。</p>
+</blockquote>
+<h4 id="注意顺序">注意顺序</h4>
+<p>在创建*路径操作*时，你会发现有些情况下路径是固定的。</p>
+<p>比如 <code>/users/me</code>，我们假设它用来获取关于当前用户的数据.</p>
+<p>然后，你还可以使用路径 <code>/user/{username}</code> 来通过用户名 获取关于特定用户的数据。</p>
+<p>由于路径操作是按顺序依次运行的，你需要确保路径 <code>/user/me</code> 声明在路径 <code>/user/{username}</code>之前：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.get(&quot;/user/me&quot;)
+async def read_user_me():
+    return {&quot;username&quot;: &quot;the current user&quot;}
+
+@app.get(&quot;/user/{username}&quot;)
+async def read_user(username: str):
+    return {&quot;username&quot;: username}
+</code></pre>
+<p>否则，<code>/user/{username}</code> 的路径还将与 <code>/user/me</code> 相匹配，&quot;认为&quot;自己正在接收一个值为 <code>&quot;me&quot;</code> 的 <code>username</code> 参数。</p>
+<p>即，从上到下依次匹配。</p>
+<h3 id="查询参数请求参数">查询参数（请求参数）</h3>
+<p>路径函数中声明不属于路径参数的其他函数参数时，它们将被自动解释为&quot;查询字符串&quot;参数，就是 url? 之后用<code>&amp;</code>分割的 key-value 键值对。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.get(&quot;/jobs/{kd}&quot;)
+async def search_jobs(kd: str, city: Union[str, None] = None, xl: Union[str, None] = None):  # 有默认值即可选，否则必选
+    if city or xl:
+        return {&quot;kd&quot;: kd, &quot;city&quot;: city, &quot;xl&quot;: xl}
+    return {&quot;kd&quot;: kd}
+</code></pre>
+<p><img src="../../../assets/devops-notes/NpGkb0gc0oi0wvxhBKAcuO4XnBk.png" alt=""></p>
+<p>在这个例子中，函数参数 <code>city</code> 和 <code>xl</code> 是可选的，并且默认值为 <code>None</code>。</p>
+<p>自python3.5开始，PEP484为python引入了类型注解(type hints)，typing的主要作用有：</p>
+<blockquote>
+<ol>
+<li>类型检查，防止运行时出现参数、返回值类型不符。</li>
+<li>作为开发文档附加说明，方便使用者调用时传入和返回参数类型。</li>
+<li>模块加入不会影响程序的运行不会报正式的错误，pycharm支持typing检查错误时会出现黄色警告。</li>
+</ol>
+</blockquote>
+<p><code>type hints</code>主要是要指示函数的输入和输出的数据类型，数据类型在typing 包中，基本类型有str list dict等等，</p>
+<p>Union 是当有多种可能的数据类型时使用，比如函数有可能根据不同情况有时返回str或返回list，那么就可以写成Union[list, str]</p>
+<p>Optional 是Union的一个简化， 当 数据类型中有可能是None时，比如有可能是str也有可能是None，则Optional[str], 相当于Union[str, None]</p>
+<h3 id="请求体数据">请求体数据</h3>
+<p>当你需要将数据从客户端（例如浏览器）发送给 API 时，你将其作为「请求体」发送。请求体是客户端发送给 API 的数据。响应体是 API 发送给客户端的数据。</p>
+<p>FastAPI 基于 <code>Pydantic</code> ，<code>Pydantic</code> 主要用来做类型强制检查（校验数据）。不符合类型要求就会抛出异常。</p>
+<p>对于 API 服务，支持类型检查非常有用，会让服务更加健壮，也会加快开发速度，因为开发者再也不用自己写一行一行的做类型检查。</p>
+<p>安装上手 <code>pip install pydantic</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import Union, List, Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel, Field, ValidationError, validator
+import uvicorn
+from datetime import date
+
+class Addr(BaseModel):
+    province: str
+    city: str
+
+class User(BaseModel):
+    name: str = 'root'
+    age: int = Field(default=18, lt=100, gt=0)
+    birth: Optional[date] = None
+    addr: List[int] = []
+    description: Union[str, None] = None
+
+    # addr: Union[Addr, None] = None  # 类型嵌套
+
+    @validator('name')
+    def name_must_alpha(cls, v):
+        assert v.isalpha(), 'name must be alpha'
+        return v
+
+class Data(BaseModel):  # 类型嵌套
+    users: List[User]
+
+app = FastAPI()
+
+@app.post(&quot;/data/&quot;)
+async def create_data(data: Data):
+    # 添加数据库
+    return data
+
+if __name__ == '__main__':
+    try:
+        User(name=&quot;&quot;)
+    except ValidationError as e:
+        print(e.json())  
+    
+</code></pre>
+<p>测试：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JSON">{
+  &quot;users&quot;: [
+    {
+      &quot;name&quot;: &quot;root&quot;,
+      &quot;age&quot;: 18,
+      &quot;birth&quot;: &quot;2025-01-22&quot;,
+      &quot;addr&quot;: [],
+      &quot;description&quot;: &quot;string&quot;
+    }
+  ]
+}
+</code></pre>
+<p>和声明查询参数时一样，当一个模型属性具有默认值时，它不是必需的。否则它是一个必需属性。将默认值设为 <code>None</code> 可使其成为可选属性。</p>
+<p>FastAPI 会自动将定义的模型类转化为<code>JSON Schema</code>，Schema 成为 OpenAPI 生成模式的一部分，并显示在 API 交互文档中，查看 API 交互文档如下，该接口将接收<code>application/json</code>类型的参数。</p>
+<p>FastAPI 支持同时定义 Path 参数、Query 参数和请求体参数，FastAPI 将会正确识别并获取数据。</p>
+<blockquote>
+<p>参数在 url 中也声明了，它将被解释为 path 参数</p>
+<p>参数是单一类型（例如int、float、str、bool等），它将被解释为 query 参数</p>
+<p>参数类型为继承 Pydantic 模块的<code>BaseModel</code>类的数据模型类，则它将被解释为请求体参数</p>
+</blockquote>
+<h3 id="form表单数据">form表单数据</h3>
+<p>在 OAuth2 规范的一种使用方式（密码流）中，需要将用户名、密码作为表单字段发送，而不是 JSON。</p>
+<p>FastAPI 可以使用**Form**组件来接收表单数据，需要先使用<code>pip install python-multipart</code>命令进行安装。</p>
+<blockquote>
+<p>pip install python-multipart</p>
+</blockquote>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI, Form
+
+app = FastAPI()
+
+@app.post(&quot;/regin&quot;)
+def regin(username: str = Form(..., max_length=16, min_length=8, regex='[a-zA-Z]'),
+          password: str = Form(..., max_length=16, min_length=8, regex='[0-9]')):
+    print(f&quot;username:{username},password:{password}&quot;)
+    return {&quot;username&quot;: username}
+</code></pre>
+<p><img src="../../../assets/devops-notes/A0Y3bEcDIo6c5vxNfupcOOBNn1g.png" alt=""></p>
+<h3 id="文件上传">文件上传</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI, File, UploadFile
+from typing import List
+
+app = FastAPI()
+
+# file: bytes = File()：适合小文件上传
+@app.post(&quot;/files/&quot;)
+async def create_file(file: bytes = File()):
+    print(&quot;file:&quot;, file)
+    return {&quot;file_size&quot;: len(file)}
+
+
+@app.post(&quot;/multiFiles/&quot;)
+async def create_files(files: List[bytes] = File()):
+    return {&quot;file_sizes&quot;: [len(file) for file in files]}
+
+
+# file: UploadFile：适合大文件上传
+
+@app.post(&quot;/uploadFile/&quot;)
+async def create_upload_file(file: UploadFile):
+    with open(f&quot;{file.filename}&quot;, 'wb') as f:
+        for chunk in iter(lambda: file.file.read(1024), b''):
+            f.write(chunk)
+
+    return {&quot;filename&quot;: file.filename}
+
+
+@app.post(&quot;/multiUploadFiles/&quot;)
+async def create_upload_files(files: List[UploadFile]):
+    return {&quot;filenames&quot;: [file.filename for file in files]}
+</code></pre>
+<h3 id="reqeust对象">Reqeust对象</h3>
+<p>有些情况下我们希望能直接访问*Request*对象。例如我们在路径操作函数中想获取客户端的IP地址，需要在函数中声明**Request**类型的参数，FastAPI 就会自动传递 Request 对象给这个参数，我们就可以获取到 Request 对象及其属性信息，例如 header、url、cookie、session 等。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import Request
+
+@app.get(&quot;/items&quot;)
+async def items(request: Request):
+    return {
+        &quot;请求URL：&quot;: request.url,
+        &quot;请求ip：&quot;: request.client.host,
+        &quot;请求宿主：&quot;: request.headers.get(&quot;user-agent&quot;),
+        &quot;cookies&quot;: request.cookies,
+    }
+
+</code></pre>
+<h3 id="请求静态文件">请求静态文件</h3>
+<p>在 Web 开发中，需要请求很多静态资源文件（不是由服务器生成的文件），如 css/js 和图片文件等。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi.staticfiles import StaticFiles
+
+app = FastAPI()
+app.mount(&quot;/static&quot;,StaticFiles(directory=&quot;static&quot;))
+</code></pre>
+<h3 id="响应模型相关参数">响应模型相关参数</h3>
+<h4 id="response_model">response_model</h4>
+<p>前面写的这么多路径函数最终 return 的都是自定义结构的字典，FastAPI 提供了 response_model 参数，声明 return 响应体的模型</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JavaScript"># 路径操作
+@app.post(&quot;/items/&quot;, response_model=Item)
+# 路径函数
+async def create_item(item: Item):
+    ...
+</code></pre>
+<blockquote>
+<p>response_model 是路径操作的参数，并不是路径函数的参数哦</p>
+</blockquote>
+<p>FastAPI将使用<code>response_model</code>进行以下操作：</p>
+<ul>
+<li>将输出数据转换为response_model中声明的数据类型。</li>
+<li>验证数据结构和类型</li>
+<li>将输出数据限制为该model定义的</li>
+<li>添加到OpenAPI中</li>
+<li>在自动文档系统中使用。</li>
+</ul>
+<p>你可以在任意的路径操作中使用 <code>response_model</code> 参数来声明用于响应的模型</p>
+<p>案例：</p>
+<ul>
+<li>注册功能</li>
+<li>输入账号、密码、昵称、邮箱，注册成功后返回个人信息</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import Union
+
+from fastapi import FastAPI
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: Union[str, None] = None
+
+
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: Union[str, None] = None
+
+
+@app.post(&quot;/user/&quot;, response_model=UserOut)
+async def create_user(user: UserIn):
+    return user
+</code></pre>
+<p><img src="../../../assets/devops-notes/HS6NbVbNooVUcuxlGFycrw8Jnrc.png" alt=""></p>
+<h4 id="response_model_exclude_unset">response_model_exclude_unset</h4>
+<p>通过上面的例子，我们学到了如何用response_model控制响应体结构，但是如果它们实际上没有存储，则可能要从结果中忽略它们。例如，如果model在NoSQL数据库中具有很多可选属性，但是不想发送很长的JSON响应，其中包含默认值。</p>
+<p>案例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from typing import List, Union
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+class Item(BaseModel):
+    name: str
+    description: Union[str, None] = None
+    price: float
+    tax: float = 10.5
+    tags: List[str] = []
+
+
+items = {
+    &quot;foo&quot;: {&quot;name&quot;: &quot;Foo&quot;, &quot;price&quot;: 50.2},
+    &quot;bar&quot;: {&quot;name&quot;: &quot;Bar&quot;, &quot;description&quot;: &quot;The bartenders&quot;, &quot;price&quot;: 62, &quot;tax&quot;: 20.2},
+    &quot;baz&quot;: {&quot;name&quot;: &quot;Baz&quot;, &quot;description&quot;: None, &quot;price&quot;: 50.2, &quot;tax&quot;: 10.5, &quot;tags&quot;: []},
+}
+
+
+@app.get(&quot;/items/{item_id}&quot;, response_model=Item, response_model_exclude_unset=True)
+async def read_item(item_id: str):
+    return items[item_id]
+</code></pre>
+<p>请求：http://127.0.0.1:8080/items/foo</p>
+<p>不设置unset参数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JSON">{
+  &quot;name&quot;: &quot;Foo&quot;,
+  &quot;description&quot;: null,
+  &quot;price&quot;: 50.2,
+  &quot;tax&quot;: 10.5,
+  &quot;tags&quot;: []
+}
+</code></pre>
+<p>设置unset参数：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-JSON">{
+  &quot;name&quot;: &quot;Foo&quot;,
+  &quot;price&quot;: 50.2
+}
+</code></pre>
+<p>使用路径操作装饰器的 <code>response_model</code> 参数来定义响应模型，特别是确保私有数据被过滤掉。使用 <code>response_model_exclude_unset</code> 来仅返回显式设定的值。</p>
+<p>除了<code>response_model_exclude_unset</code>以外，还有<code>response_model_exclude_defaults</code>和<code>response_model_exclude_none</code>，我们可以很直观的了解到他们的意思，不返回是默认值的字段和不返回是None的字段。</p>
+<h4 id="include和exclude">INCLUDE和EXCLUDE</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># response_model_exclude
+@app.get(&quot;/items/{item_id}&quot;, response_model=Item, response_model_exclude={&quot;description&quot;}, )
+async def read_item(item_id: str):
+    return items[item_id]
+
+# response_model_include  
+@app.get(&quot;/items/{item_id}&quot;, response_model=Item, response_model_include={&quot;name&quot;, &quot;price&quot;}, )
+async def read_item(item_id: str):
+    return items[item_id]
+</code></pre>
+<h2 id="jinja2模板">jinja2模板</h2>
+<p>要了解jinja2，那么需要先理解模板的概念。模板在Python的web开发中⼴泛使⽤，它能够有效的将业务逻辑和页⾯逻辑分开，使代码可读性增强、并且更加容易理解和维护。</p>
+<p>模板简单来说就是⼀个其中包含占位变量表⽰动态的部分的⽂件，模板⽂件在经过动态赋值后，返回给⽤户。</p>
+<p>jinja2是Flask作者开发的⼀个模板系统，起初是仿django模板的⼀个模板引擎，为Flask提供模板⽀持，由于其灵活，快速和安全等优点被⼴泛使⽤。</p>
+<p>在jinja2中，存在三种语法：</p>
+<blockquote>
+<ol>
+<li>变量取值 {{ }}</li>
+<li>控制结构 {% %}</li>
+</ol>
+</blockquote>
+<h3 id="jinja2-的变量">jinja2 的变量</h3>
+<p><code>Main.py</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+import uvicorn
+
+app = FastAPI()  # 实例化 FastAPI对象
+templates = Jinja2Templates(directory=&quot;templates&quot;)  # 实例化Jinja2对象，并将文件夹路径设置为以templates命令的文件夹
+
+
+@app.get('/')
+def hello(request: Request):
+    return templates.TemplateResponse(
+        'index.html',
+        {
+            'request': request,  # 注意，返回模板响应时，必须有request键值对，且值为Request请求对象
+            'user': 'yuan',
+            &quot;books&quot;: [&quot;金瓶梅&quot;, &quot;聊斋&quot;, &quot;剪灯新话&quot;, &quot;国色天香&quot;],
+            &quot;booksDict&quot;: {
+                &quot;金瓶梅&quot;: {&quot;price&quot;: 100, &quot;publish&quot;: &quot;苹果出版社&quot;},
+                &quot;聊斋&quot;: {&quot;price&quot;: 200, &quot;publish&quot;: &quot;橘子出版社&quot;},
+            }
+        }
+    )
+if __name__ == '__main__':
+    uvicorn.run(&quot;main:app&quot;, port=8080, debug=True, reload=True)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;h1&gt;{{ user}}&lt;/h1&gt;
+
+&lt;p&gt;{{ books.0 }}&lt;/p&gt;
+&lt;p&gt;{{ books.1 }}&lt;/p&gt;
+&lt;p&gt;{{ books.2 }}&lt;/p&gt;
+&lt;p&gt;{{ books.3 }}&lt;/p&gt;
+
+&lt;p&gt;{{ booksDict.金瓶梅.price }}&lt;/p&gt;
+
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="52jinja2-的过滤器">5.2、jinja2 的过滤器</h3>
+<p>变量可以通过“过滤器”进⾏修改，过滤器可以理解为是jinja2⾥⾯的内置函数和字符串处理函数。常⽤的过滤器有：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>过滤器名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>capitialize</td>
+<td>把值的⾸字母转换成⼤写，其他⼦母转换为⼩写</td>
+</tr>
+<tr>
+<td>lower</td>
+<td>把值转换成⼩写形式</td>
+</tr>
+<tr>
+<td>title</td>
+<td>把值中每个单词的⾸字母都转换成⼤写</td>
+</tr>
+<tr>
+<td>trim</td>
+<td>把值的⾸尾空格去掉</td>
+</tr>
+<tr>
+<td>striptags</td>
+<td>渲染之前把值中所有的HTML标签都删掉</td>
+</tr>
+<tr>
+<td>join</td>
+<td>拼接多个值为字符串</td>
+</tr>
+<tr>
+<td>round</td>
+<td>默认对数字进⾏四舍五⼊，也可以⽤参数进⾏控制</td>
+</tr>
+<tr>
+<td>safe</td>
+<td>渲染时值不转义</td>
+</tr>
+</tbody>
+</table></div>
+<p>那么如何使⽤这些过滤器呢？只需要在变量后⾯使⽤管道(|)分割，多个过滤器可以链式调⽤，前⼀个过滤器的输出会作为后⼀个过滤</p>
+<p>器的输⼊。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">
+{{ 'abc'| captialize  }}  # Abc
+
+{{ 'abc'| upper  }} # ABC
+
+{{ 'hello world'| title  }} # Hello World
+
+{{ &quot;hello world&quot;| replace('world','yuan') | upper }} # HELLO YUAN
+
+{{ 18.18 | round | int }} # 18
+</code></pre>
+<h3 id="53jinja2-的控制结构">5.3、jinja2 的控制结构</h3>
+<h4 id="531分支控制">5.3.1、分支控制</h4>
+<p>jinja2中的if语句类似与Python的if语句，它也具有单分⽀，多分⽀等多种结构，不同的是，条件语句不需要使⽤冒号结尾，⽽结束控制语句，需要使⽤endif关键字</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">{% if age &gt; 18 %}
+
+    &lt;p&gt;成年区&lt;/p&gt;
+
+{% else %}
+    
+    &lt;p&gt;未成年区&lt;/p&gt;
+
+{% endif %}
+</code></pre>
+<h4 id="532循环控制">5.3.2、循环控制</h4>
+<p>jinja2中的for循环⽤于迭代Python的数据类型，包括列表，元组和字典。在jinja2中不存在while循环。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">{% for book in books %}
+    &lt;p&gt;{{ book }}&lt;/p&gt;
+{% endfor %}
+</code></pre>
+<h2 id="orm操作">ORM操作</h2>
+<p>在大型的web开发中，我们肯定会用到数据库操作，那么FastAPI也支持数据库的开发，你可以用 PostgreSQL、MySQL、 SQLite Oracle 等。本文用SQLite为例。我们看下在fastapi是如何操作设计数据库的。</p>
+<p>fastapi是一个很优秀的框架，但是缺少一个合适的orm，官方代码里面使用的是sqlalchemy，Tortoise ORM 是受 Django 启发的易于使用的异步 ORM （对象关系映射器）。</p>
+<p><a href="https://tortoise-orm.readthedocs.io/en/latest/index.html">Tortoise ORM文档</a></p>
+<blockquote>
+<p>Tortoise ORM 目前支持以下<a href="https://tortoise-orm.readthedocs.io/en/latest/databases.html#databases">数据库</a>：</p>
+<ul>
+<li>PostgreSQL &gt;= 9.4（使用<code>asyncpg</code>）</li>
+<li>SQLite（使用<code>aiosqlite</code>）</li>
+<li>MySQL/MariaDB（使用<code>aiomysql</code>或使用<a href="https://github.com/long2ice/asyncmy">asyncmy</a>）</li>
+</ul>
+</blockquote>
+<h3 id="创建模型">创建模型</h3>
+<p>以选课系统为例：</p>
+<p><code>apps/models.py</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from tortoise.models import Model
+from tortoise import fields
+
+
+class Clas(Model):
+    name = fields.CharField(max_length=255, description='班级名称')
+
+
+class Teacher(Model):
+    id = fields.IntField(pk=True)
+    name = fields.CharField(max_length=255, description='姓名')
+    tno = fields.IntField(description='账号')
+    pwd = fields.CharField(max_length=255, description='密码')
+
+
+class Student(Model):
+    id = fields.IntField(pk=True)
+    sno = fields.IntField(description='学号')
+    pwd = fields.CharField(max_length=255, description='密码')
+    name = fields.CharField(max_length=255, description='姓名')
+    # 一对多
+    clas = fields.ForeignKeyField('models.Clas', related_name='students')
+    # 多对多
+    courses = fields.ManyToManyField('models.Course', related_name='students',description='学生选课表')
+
+
+class Course(Model):
+    id = fields.IntField(pk=True)
+    name = fields.CharField(max_length=255, description='课程名')
+    teacher = fields.ForeignKeyField('models.Teacher', related_name='courses', description='课程讲师')
+</code></pre>
+<h3 id="aerich迁移工具">aerich迁移工具</h3>
+<p><code>main.py</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import uvicorn
+from fastapi import FastAPI
+from tortoise.contrib.fastapi import register_tortoise
+from settings import TORTOISE_ORM
+
+
+app = FastAPI()
+
+# 该方法会在fastapi启动时触发，内部通过传递进去的app对象，监听服务启动和终止事件
+# 当检测到启动事件时，会初始化Tortoise对象，如果generate_schemas为True则还会进行数据库迁移
+# 当检测到终止事件时，会关闭连接
+register_tortoise(
+    app,
+    config=TORTOISE_ORM,
+    # generate_schemas=True,  # 如果数据库为空，则自动生成对应表单，生产环境不要开
+    # add_exception_handlers=True,  # 生产环境不要开，会泄露调试信息
+)
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='127.0.0.1', port=8000, reload=True,
+                debug=True, workers=1)
+</code></pre>
+<p><code>settings.py</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">TORTOISE_ORM = {
+    'connections': {
+        'default': {
+            # 'engine': 'tortoise.backends.asyncpg',  PostgreSQL
+            'engine': 'tortoise.backends.mysql',  # MySQL or Mariadb
+            'credentials': {
+                'host': '127.0.0.1',
+                'port': '3306',
+                'user': 'root',
+                'password': 'yuan0316',
+                'database': 'fastapi',
+                'minsize': 1,
+                'maxsize': 5,
+                'charset': 'utf8mb4',
+                &quot;echo&quot;: True
+            }
+        },
+    },
+    'apps': {
+        'models': {
+            'models': ['apps.models', &quot;aerich.models&quot;],
+            'default_connection': 'default',
+
+        }
+    },
+    'use_tz': False,
+    'timezone': 'Asia/Shanghai'
+}
+</code></pre>
+<p><code>aerich</code>是一种<a href="https://so.csdn.net/so/search?q=ORM&amp;spm=1001.2101.3001.7020">ORM</a>迁移工具，需要结合<code>tortoise</code>异步orm框架使用。安装<code>aerich</code></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install aerich
+pip install tomlkit
+pip install aiomysql
+</code></pre>
+<h4 id="初始化配置只需要使用一次">初始化配置，只需要使用一次</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">% aerich init -t settings.TORTOISE_ORM # TORTOISE_ORM配置的位置)
+Success creating migrations folder ./migrations
+Success writing aerich config to pyproject.toml
+</code></pre>
+<blockquote>
+<p>初始化完会在当前目录生成一个文件：pyproject.toml和一个文件夹：migrations</p>
+<ul>
+<li><code>pyproject.toml</code>：保存配置文件路径，低版本可能是<code>aerich.ini</code></li>
+<li><code>migrations</code>：存放迁移文件</li>
+</ul>
+</blockquote>
+<h4 id="初始化数据库一般情况下只用一次">初始化数据库，一般情况下只用一次</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">aerich init-db
+</code></pre>
+<blockquote>
+<ol>
+<li>此时数据库中就有相应的表格</li>
+<li>如果<code>TORTOISE_ORM</code>配置文件中的<code>models</code>改了名，则执行这条命令时需要增加<code>--app</code>参数，来指定你修改的名字</li>
+</ol>
+</blockquote>
+<h4 id="更新模型并进行迁移">更新模型并进行迁移</h4>
+<p>修改model类，重新生成迁移文件,比如添加一个字段</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class Admin(Model):
+    ...
+    xxx = fields.CharField(max_length=255)
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">aerich migrate [--name] (标记修改操作) #  aerich migrate --name add_column
+</code></pre>
+<blockquote>
+<p>迁移文件名的格式为 {version_num}*{datetime}*{name|update}.json。</p>
+</blockquote>
+<p>注意，此时sql并没有执行，数据库中admin表中没有xxx字段</p>
+<p><img src="../../../assets/devops-notes/D4NlbrSbYoBxB7xfqGxczvHInef.png" alt=""></p>
+<h4 id="重新执行迁移写入数据库">重新执行迁移，写入数据库</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">aerich upgrade
+</code></pre>
+<h4 id="回到上一个版本">回到上一个版本</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">aerich downgrade
+</code></pre>
+<h4 id="查看历史迁移记录">查看历史迁移记录</h4>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">aerich history
+</code></pre>
+<h2 id="中间件与cors">中间件与CORS</h2>
+<h3 id="中间件">中间件</h3>
+<p>可以向 <strong>FastAPI</strong> 应用添加中间件。</p>
+<p>&quot;中间件&quot;是一个函数,它在每个请求被特定的路径操作处理之前,以及在每个响应之后工作.</p>
+<p><img src="../../../assets/devops-notes/BJgjbTPG3oqIeyxB8HZckkC1nYg.png" alt=""></p>
+<blockquote>
+<p>如果你使用了 <code>yield</code> 关键字依赖, 依赖中的退出代码将在执行中间件后执行。</p>
+<p>如果有任何后台任务(稍后记录), 它们将在执行中间件后运行。</p>
+</blockquote>
+<p>要创建中间件你可以在函数的顶部使用装饰器 <code>@app.middleware(&quot;http&quot;)</code>.</p>
+<p>中间件参数接收如下参数：</p>
+<blockquote>
+<ul>
+<li>
+<p><code>request</code>.</p>
+</li>
+<li>
+<p>一个函数<code>call_next</code>，它将接收request，作为参数.</p>
+<ul>
+<li>这个函数将 <code>request</code> 传递给相应的 *路径操作*.</li>
+<li>然后它将返回由相应的*路径操作*生成的 <code>response</code>.</li>
+</ul>
+</li>
+<li>
+<p>然后你可以在返回 <code>response</code> 前进一步修改它.</p>
+</li>
+</ul>
+</blockquote>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import uvicorn
+from fastapi import FastAPI
+
+from fastapi import Request
+from fastapi.responses import Response
+import time
+
+app = FastAPI()
+
+
+@app.middleware(&quot;http&quot;)
+async def m2(request: Request, call_next):
+    # 请求代码块
+    print(&quot;m2 request&quot;)
+    response = await call_next(request)
+    # 响应代码块
+    response.headers[&quot;author&quot;] = &quot;yuan&quot;
+    print(&quot;m2 response&quot;)
+    return response
+
+
+@app.middleware(&quot;http&quot;)
+async def m1(request: Request, call_next):
+    # 请求代码块
+    print(&quot;m1 request&quot;)
+    # if request.client.host in [&quot;127.0.0.1&quot;, ]:  # 黑名单
+    #     return Response(content=&quot;visit forbidden&quot;)
+
+    # if request.url.path in [&quot;/user&quot;]:
+    #     return Response(content=&quot;visit forbidden&quot;)
+
+    start = time.time()
+
+    response = await call_next(request)
+    # 响应代码块
+    print(&quot;m1 response&quot;)
+    end = time.time()
+    response.headers[&quot;ProcessTimer&quot;] = str(end - start)
+    return response
+
+
+@app.get(&quot;/user&quot;)
+def get_user():
+    time.sleep(3)
+    print(&quot;get_user函数执行&quot;)
+    return {
+        &quot;user&quot;: &quot;current user&quot;
+    }
+
+
+@app.get(&quot;/item/{item_id}&quot;)
+def get_item(item_id: int):
+    time.sleep(2)
+    print(&quot;get_item函数执行&quot;)
+    return {
+        &quot;item_id&quot;: item_id
+    }
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='127.0.0.1', port=8030, reload=True,
+                debug=True, workers=1)
+</code></pre>
+<h3 id="cors">CORS</h3>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;script src=&quot;https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;p&gt;click&lt;/p&gt;
+
+&lt;script&gt;
+  
+    $(&quot;p&quot;).click(function () {
+        $.ajax({
+            url: &quot;http://127.0.0.1:8080/&quot;,
+            success: function (res) {
+                $(&quot;p&quot;).html(res.message)
+            },
+        })
+    })
+
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">@app.middleware(&quot;http&quot;)
+async def CORSMiddleware(request: Request, call_next):
+    response = await call_next(request)
+    print(response.headers)
+    return response
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+origins = [
+    &quot;http://localhost:63342&quot;
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # *：代表所有客户端
+    allow_credentials=True,
+    allow_methods=[&quot;GET&quot;],
+    allow_headers=[&quot;*&quot;],
+)
+
+@app.get(&quot;/&quot;)
+def main():
+    return {&quot;message&quot;: &quot;Hello World&quot;}
+
+
+if __name__ == '__main__':
+    import uvicorn
+
+    uvicorn.run(&quot;main:app&quot;, host=&quot;127.0.0.1&quot;, port=8080, debug=True, reload=True)
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>
