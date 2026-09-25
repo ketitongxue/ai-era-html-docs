@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operator 入门与实战（未完成）</title>
+<title>Prompt Engineering 入门和实战</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,15 +119,64 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#kubernetes">返回知识库 · Kubernetes</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#aiops">返回知识库 · AIOps</a></nav>
 <article>
-<h1 id="operator-入门与实战未完成">Operator 入门与实战（未完成）</h1>
-<h1 id="operator-概述">Operator 概述</h1>
-<h1 id="kubebuilder-实战一实现类似-kubevela-application-定义">Kubebuilder 实战一：实现类似 KubeVela Application 定义</h1>
-<h1 id="kubebuilder-实战二实现阿里云定时弹性伸缩器">Kubebuilder 实战二：实现阿里云定时弹性伸缩器</h1>
-<h1 id="operator-sdk-实战一基于-helm-开发-operator">Operator SDK 实战一：基于 Helm 开发 Operator</h1>
-<h1 id="operator-sdk-olm">Operator SDK OLM</h1>
-<h1 id="最佳实践">最佳实践</h1>
+<h1 id="prompt-engineering-入门和实战">Prompt Engineering 入门和实战</h1>
+<h2 id="什么是-prompt">什么是 Prompt？</h2>
+<p>Prompt（提示语）：给人工智能模型输入文本或指令。这些指令引导模型生成特定的输出；
+Prompt engineering：指的是在使用生成式人工智能模型（如GPT-4）时，设计和优化输入文本（即 prompt）的过程，以便获得期望的输出。</p>
+<p>好的 Prompt engineering = 提好的问题 = 包含好答案的上下文（参考）= 好的答案。
+Prompt 决定模型输出质量。</p>
+<h2 id="token">Token</h2>
+<p>大语言模型通过 Token 来处理文本，模型理解了 Token之间的统计关系，并基于已输出的 Token 计算下一个Token 的概率分布，并选择概率最高的 Token 作为预测结果。</p>
+<p><strong>注意</strong>：空格也会占用 Token。</p>
+<p>Token 统计包：https://github.com/openai/tiktoken</p>
+<h2 id="模型的上下文长度">模型的上下文长度</h2>
+<p>Token 的输入（上下文窗口）和输出都是有限的，不同模型的限制不同。
+Token 越大，可输入的内容越多。
+模型回答效果并不会随着输入 Token 数量线性增长，可能会有相反作用。</p>
+<h2 id="prompt-engineering">Prompt Engineering</h2>
+<ol>
+<li>尽量给出具体的描述，避免说“不要做什么”，而是具体说明“要做什么”。</li>
+<li>对重要事项进行排序</li>
+<li>标准的格式，例如 markdown 语法</li>
+<li>拆解任务，给出思路</li>
+</ol>
+<h2 id="两种提示语编写模式zero-shot-vs-few-shot">两种提示语编写模式：Zero-shot VS few-shot</h2>
+<h3 id="zero-shot">Zero-shot</h3>
+<p>模型单纯通过自然语言描述任务来回答问题</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>通过输入识别用户的意图，用户的意图可能是查询日志、查询指标或者运维操作。
+
+用户输入：帮我检查一下系统是否有错误？
+</code></pre>
+<h3 id="few-shot">Few-shot</h3>
+<p>除了自然语言描述以外，再给模型一些例子参考</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>通过输入识别用户的意图，用户的意图可能是查询日志、查询指标或者运维操作。以下是一些例子：
+
+Example1：
+输入：日志里有多少包含 Error 关键字的日志？
+意图：查询日志
+
+用户输入：帮我检查一下系统是否有错误？
+</code></pre>
+<h2 id="思维链-prompt">思维链 Prompt</h2>
+<p>Chain of Thought（CoT）
+让模型做出一步一步的思考，生成更具备解释性的答案，一般来说可以提高问题的准确率，对于 Zero-shot 和 Few-shot 均有效。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>[你的问题]，让我们一步一步思考，并给每一步做出简单解释。
+</code></pre>
+<h2 id="通用知识-prompt">通用知识 Prompt</h2>
+<p>Generate Knowledge Prompting</p>
+<p>在上下文中提供额外的知识来改善推理结果，比如把运维专家知识库的部分内容放在 <code>system prompt</code> 中进行问答</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>你现在是一名运维专家，请根据以下运维专家知识库对故障作出解释和提出修复建议。
+专家知识库内容如下：
+</code></pre>
+<h2 id="prompt-分片token-长度限制">Prompt 分片（Token 长度限制）</h2>
+<p>例如，对于长文本的总结，先分片总结，然后再汇总进行总结.</p>
+<h2 id="程序辅助-prompt">程序辅助 Prompt</h2>
+<p>Program-aided Language
+对于复杂的任务，可以让 LLM 生成程序并运行得出结果，一般是 Python 代码</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>生成一段Python代码获取当前时间戳
+</code></pre>
 </article>
 </main>
 <script>

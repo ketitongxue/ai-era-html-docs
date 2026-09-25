@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI 大模型应用开发</title>
+<title>AIOps 模型训练和自动扩容</title>
 <style>
 :root {
   color-scheme: light;
@@ -121,26 +121,111 @@ th { background: #eaf0f7; }
 <main id="main-content" tabindex="-1">
 <nav aria-label="文章导航"><a href="../../index.html#aiops">返回知识库 · AIOps</a></nav>
 <article>
-<h1 id="ai-大模型应用开发">AI 大模型应用开发</h1>
-<p><a href="OpenAI%20Embedding.html">OpenAI Embedding</a></p>
-<p><a href="GPT%20%E6%A8%A1%E5%9E%8B%E5%AE%9E%E6%88%98.html">GPT 模型实战</a></p>
-<p><a href="Assistants%20API.html">Assistants API</a></p>
-<p><a href="langchain.html">langchain</a></p>
-<h1 id="aiops">AIOps</h1>
-<p>应用开发 ➡️ 微调 ➡️ agent</p>
-<p><a href="Prompt%20Engineering%20%E5%85%A5%E9%97%A8%E5%92%8C%E5%AE%9E%E6%88%98.html">Prompt Engineering 入门和实战</a></p>
-<p><a href="RAG%EF%BC%88%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%EF%BC%89.html">RAG（检索增强生成）</a></p>
-<p><a href="Graph%20RAG.html">Graph RAG</a></p>
-<p><a href="Chat%20Completions%E3%80%81Memory%20%E5%AE%9E%E6%88%98.html">Chat Completions、Memory 实战</a></p>
-<p><a href="Json%20Mode%20%E5%AE%9E%E6%88%98.html">Json Mode 实战</a></p>
-<p><a href="Function%20Calling.html">Function Calling</a></p>
-<p><a href="Fine-tuning%20%E5%AE%9E%E6%88%98.html">Fine-tuning 实战</a></p>
-<p><a href="%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E5%B8%B8%E8%A7%81%E5%BC%80%E6%BA%90%E6%A8%A1%E5%9E%8B%E5%B9%B6%E6%8E%A8%E7%90%86%EF%BC%88Llama3%E3%80%81Qwen%E3%80%81DeepSeek%EF%BC%89.html">本地部署常见开源模型并推理（Llama3、Qwen、DeepSeek）</a></p>
-<p><a href="Agent%20%E5%BC%80%E5%8F%91%E5%AE%9E%E6%88%98%EF%BC%88%E6%A0%B8%E5%BF%83%EF%BC%89.html">Agent 开发实战（核心）</a></p>
-<p><a href="../Kubernetes/API%20%E5%AE%A2%E6%88%B7%E7%AB%AF/Client-go.html">Client-go</a></p>
-<p><a href="../Kubernetes/API%20%E5%AE%A2%E6%88%B7%E7%AB%AF/Client-go%20AIOps%20%E5%AE%9E%E6%88%98.html">Client-go AIOps 实战</a></p>
-<p><a href="../Kubernetes/Operator%20%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98.html">Operator 入门与实战</a></p>
-<p><a href="AIOps%20%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%92%8C%E8%87%AA%E5%8A%A8%E6%89%A9%E5%AE%B9.html">AIOps 模型训练和自动扩容</a></p>
+<h1 id="aiops-模型训练和自动扩容">AIOps 模型训练和自动扩容</h1>
+<h1 id="概述">概述</h1>
+<h2 id="架构设计">架构设计</h2>
+<p><img src="../../assets/aiops/aiops-autoscaling-architecture.jpg" alt=""></p>
+<h2 id="operator">Operator</h2>
+<p>从预测服务中获取推荐的副本数
+通过修改 deployment.Spec.Replicas 字段达到控制业务 Pod 副本数的目的
+每隔一段时间（30s）再次从预测服务中获取推荐副本数</p>
+<h2 id="其他与副本数存在关系的特征">其他与副本数存在关系的特征</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>特征</th>
+<th>特征关系</th>
+<th>备注</th>
+<th>算法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时间</td>
+<td>季节性</td>
+<td>明显的波峰波谷</td>
+<td>季节性算法（statsmodels、Prophet）</td>
+</tr>
+<tr>
+<td>QPS</td>
+<td>线性</td>
+<td>QPS越高，副本数越多</td>
+<td>线性回归</td>
+</tr>
+<tr>
+<td>响应时间（延迟</td>
+<td>非线性关系</td>
+<td></td>
+<td>支持向量回归（SVR）</td>
+</tr>
+<tr>
+<td>内存使用率</td>
+<td>非线性</td>
+<td></td>
+<td>随机森林、MLP</td>
+</tr>
+<tr>
+<td>CPU使用率</td>
+<td>非线性</td>
+<td></td>
+<td>决策树、随机森林</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="训练数据模拟一天">训练数据（模拟一天）</h2>
+<h2 id="使用的核心库pandas">使用的核心库：Pandas</h2>
+<p>Pandas
+主要功能包括数据清洗、数据转换、数据聚合、处理缺失值、数据筛选等
+常见操作：
+read_csv(): 从 CSV 文件读取数据。
+dropna(): 删除缺失值。
+groupby(): 数据分组操作。
+merge(): 合并数据集。</p>
+<h2 id="使用的核心库sklearn">使用的核心库：Sklearn</h2>
+<p>Sklearn
+是一个用于机器学习的库，提供了大量的算法和工具，用于数据预处理、模型训练、模型评估和模型选择
+常见功能：
+数据预处理：StandardScaler（标准化数据）、LabelEncoder（标签编码）
+模型训练：如 LinearRegression（线性回归）、RandomForestClassifier（随机森林分类器）
+模型评估：cross_val_score()（交叉验证）、accuracy_score()（准确率评估）</p>
+<h1 id="数据处理的基本步骤">数据处理的基本步骤</h1>
+<h2 id="数据载入">数据载入</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df = pd.read_csv(&quot;data.csv)
+</code></pre>
+<p>常见操作
+读取 QPS 列：<code>qps_column = df['QPS']</code>
+读取第二行：<code>second_row = df.iloc[1]</code>
+读取第二行，QPS 列的数据：<code>second_row_qps = df.loc[1, 'QPS']</code>
+筛选 QPS &gt; 10 的行：<code>filtered_rows = df[df['QPS'] &gt; 10]</code></p>
+<h2 id="时间格式的转化">时间格式的转化</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df[&quot;minutes&quot;] = (
+	pd.to_datetime(df[&quot;timestamp&quot;], format=&quot;%H:%M:%S&quot;).dt.Hour * 60 + pd.to_datetime(df[&quot;timestamp&quot;], format=&quot;%H:%M:%S&quot;).dt.minute
+)
+</code></pre>
+<p>将 timestamp 列转为时间格式，然后转换为“从午夜开始的分钟数”
+例如，00:10:00 会被转换为 10 分钟</p>
+<h2 id="捕捉时间的周期性">捕捉时间的周期性</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df[&quot;sin_time&quot;] = np.sin(2 * np.pi * df[&quot;minutes&quot;] / 1440)
+df[&quot;cos_time&quot;] = np.cos(2 * np.pi * df[&quot;minutes&quot;] / 1440)
+</code></pre>
+<p>使用正弦和余弦函数，将时间转换为周期性特征
+1440 为一天的分钟数，通过周期函数让模型更好感知时间如何影响流量
+输出：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>
+</code></pre>
+<h2 id="为什么要转化为余弦正弦函数">为什么要转化为余弦、正弦函数？</h2>
+<p>将圆周等分成 4 个象限，分别对应 0 点、上午 6 点、中午 12 点、下午 6 点
+圆代表周期性时间循环，对于任意的时间都可以放在圆的某个点表示
+对于任何一个圆上的点，我们可以用 cos(t)、sin(t) 表示 X 和 Y 轴的坐标
+该坐标值就是该时间点的特征编码</p>
+<h2 id="其他特征的考虑">其他特征的考虑</h2>
+<p>为了提升准确性，可以给时间增加更多特征
+星期几
+节假日
+月份</p>
+<h1 id="模型训练与评估">模型训练与评估</h1>
+<h1 id="模型保存与托管">模型保存与托管</h1>
+<h1 id="operator-开发获取实时预测结果并扩容">Operator 开发：获取实时预测结果并扩容</h1>
 </article>
 </main>
 <script>
