@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>导出 Python 当前项目依赖清单requirements.txt</title>
+<title>Python __init__.py 文件详解</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,29 +119,50 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#python">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="导出-python-当前项目依赖清单requirementstxt">导出 Python 当前项目依赖清单requirements.txt</h1>
-<h2 id="方法一"><strong>方法一：</strong></h2>
-<p>如果每个项目有对应的虚拟虚拟环境，那么使用pycharm的终端里，在当前项目下，直接实现使用命令：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#pip命令生成依赖性清单
-pip freeze &gt; requirements.txt
+<h1 id="python-__init__py-文件详解">Python __init__.py 文件详解</h1>
+<p><code>__init__.py</code> 文件的作用是将文件夹变为一个Python模块,Python 中的每个模块的包中，都有<code>__init__.py</code> 文件。</p>
+<p>通常<code>__init__.py</code> 文件为空，但是我们还可以为它增加其他的功能。我们在导入一个包时，实际上是导入了它的<code>__init__.py</code>文件。这样我们可以在<code>__init__.py</code> 文件中批量导入我们所需要的模块，而不再需要一个一个的导入。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># package
+# __init__.py
+import re
+import urllib
+import sys
+import os
+
+# a.py
+import package 
+print(package.re, package.urllib, package.sys, package.os)
 </code></pre>
-<h2 id="方法二"><strong>方法二：</strong></h2>
-<p>注意：如果在python项目全局环境里直接使用 pip freeze &gt; requirements.txt 会导出大量与该项目无关的依赖，包括很多个包信息，其实这里是把你当前 python 环境的所有包的相关信息导出来了。如果我们只需导出当前项目所需的依赖包，还可以采用另外一种方式，使用工具：pipreqs</p>
-<p><strong>步骤一、安装pipreqs：</strong></p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install pipreqs
+<p>注意这里访问__init__.py文件中的引用文件，需要加上包名。</p>
+<p><strong>init</strong>.py中还有一个重要的变量，__all__, 它用来将模块全部导入。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python"># __init__.py
+__all__ = ['os', 'sys', 're', 'urllib']
+
+# a.py
+from package import *
 </code></pre>
-<p><strong>步骤二：进入当前项目目录下，导出依赖清单</strong></p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./
+<p>这时就会把注册在__init__.py文件中__all__列表中的模块和包导入到当前文件中来。</p>
+<p>例子：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">class Klass(object):
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    def information(self):
+        
+        print(self.name)
+        print(self.age)
+
+myself = Klass(&quot;Tom&quot;, 18)
+myself.information()
 </code></pre>
-<p>如果遇到编码错误UnicodeDecodeError，则将指定编码为utf8：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./ --encoding=utf8
-pipreqs ./ --encoding='iso-8859-1' 
+<p>import不同文件夹下的文件</p>
+<p>如果这文件不在一个路径下面，import就比较麻烦了.</p>
+<p>需要在被import的文件路径下面新建一个__init__.py文件，光创建就行，不需要往里面添加内容。</p>
+<p>比如被import的文件路径是…A/b.py下面，那么只要在文件夹A下面分别新建一个__init__.py文件，然后按照下面的语句引用即可：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">import A.b
 </code></pre>
-<p>(导包完成会在项目路径下生成一个requirements.txt文件)</p>
-<p>后续安装该项目的依赖时，即可直接使用：</p>
-<p>pip install -r requirements.txt</p>
 </article>
 </main>
 <script>

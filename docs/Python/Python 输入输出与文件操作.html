@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#python">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="python-输入输出与文件操作">Python 输入输出与文件操作</h1>
 <h1 id="输入输出与文件操作">输入输出与文件操作</h1>
@@ -149,7 +149,7 @@ print(b2.decode(&quot;GBK&quot;))
 print(type(b1)) # &lt;class 'bytes'&gt;
 print(type(b2)) # &lt;class 'bytes'&gt;
 </code></pre>
-<p><img src="../../../assets/devops-notes/Nt0bbTYuCoRQqvxsFCIcKx45nJg.png" alt=""></p>
+<p><img src="../../assets/devops-notes/Nt0bbTYuCoRQqvxsFCIcKx45nJg.png" alt=""></p>
 <p>Python 3 最重要的新特性大概要算是对文本和二进制数据作了更为清晰的区分，不再会对bytes字节串进行自动解码。文本总是Unicode，由str类型表示，二进制数据则由bytes类型表示。Python 3不会以任意隐式的方式混用str和bytes，正是这使得两者的区分特别清晰。</p>
 <h2 id="输入">输入</h2>
 <p>一个程序如果使用文件作为输入系统要考虑的三件事：<strong>文件是否存在，文件是否有可读权限，使用正确的文件编码。</strong></p>
@@ -280,7 +280,7 @@ with open(&quot;d:\\temp\\a.txt&quot;, &quot;rb&quot;) as f:
 </tbody>
 </table></div>
 <p>将以上几个容易混淆的文件打开模式的功能做了很好的对比：</p>
-<p><img src="../../../assets/devops-notes/O8SibKiRqosMdNxNngrc2YjanQe.png" alt=""></p>
+<p><img src="../../assets/devops-notes/O8SibKiRqosMdNxNngrc2YjanQe.png" alt=""></p>
 <p>open()返回的文件对象常用的属性：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">'''
 - file.name：返回文件的名称；

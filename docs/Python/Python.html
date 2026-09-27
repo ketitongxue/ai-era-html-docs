@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>变量和常量</title>
+<title>Python</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,30 +119,17 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#python">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="变量和常量">变量和常量</h1>
-<h1 id="python-变量">Python 变量</h1>
-<h2 id="变量的创建和赋值"><strong>变量的创建和赋值</strong></h2>
-<p>在 Python 程序中，变量是用一个变量名表示，可以是任意数据类型，变量名必须是大小写英文、数字和下划线（_）的组合，且不能用数字开头，比如：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">age = 18
-</code></pre>
-<p>这里的 <code>age</code> 就是一个变量，代表一个整数，注意 Python 是不用声明数据类型的。在 Python 中 <code>=</code> 是赋值语句，跟其他的编程语言也是一样的，因为 Python 定义变量时不需要声明数据类型，因此可以把任意的数据类型赋值给变量，且同一个变量可以反复赋值，而且可以是不同的数据类型。</p>
-<h2 id="变量的指向问题">变量的指向问题</h2>
-<p>先看一段代码</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">a = 'Hello Python'
-b = a
-a = 123
-print(b)
-</code></pre>
-<p>变量 <code>a</code> 一开始是指向了字符串 <code>Hello Python</code> ，<code>b = a</code> 创建了变量 b ,变量 b 也指向了 a 指向的字符串 <code>Hello Python</code>，最后 <code>a = 123</code>，把 变量 a 重新指向了 <code>123</code>，但是 <code>b</code> 此时还是指向原本的 <code>Hello Python</code> ，所以最后输出变量 b 是 <code>Hello Python</code>。</p>
-<h2 id="多个变量赋值">多个变量赋值</h2>
-<p>Python 允许同时为多个变量赋值。例如：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">a = b = c = 1
-</code></pre>
-<p>当然也可以为多个对象指定多个变量。例如：</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">a, b, c = 1, 2, &quot;Hello Python&quot;
-</code></pre>
+<h1 id="python">Python</h1>
+<p><a href="../../docs/Python/%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85.html">环境安装</a></p>
+<p><a href="../../docs/Python/Python%20%E5%9F%BA%E7%A1%80.html">Python 基础</a></p>
+<p><a href="../../docs/Python/Python%20%E8%AF%AD%E5%8F%A5.html">Python 语句</a></p>
+<p><a href="../../docs/Python/Python%20%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E4%B8%8E%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C.html">Python 输入输出与文件操作</a></p>
+<p><a href="../../docs/Python/Python%20%E5%87%BD%E6%95%B0.html">Python 函数</a></p>
+<p><a href="../../docs/Python/%E5%AF%BC%E5%87%BA%20Python%20%E5%BD%93%E5%89%8D%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96%E6%B8%85%E5%8D%95requirements.txt.html">导出 Python 当前项目依赖清单requirements.txt</a></p>
+<p><a href="../../docs/Python/FastAPI.html">FastAPI</a></p>
+<p><a href="../../docs/Python/Python%20%E5%9F%BA%E7%A1%80%EF%BC%88%E5%AE%8C%E6%95%B4%E7%AF%87%EF%BC%89.html">Python 基础（完整篇）</a></p>
 </article>
 </main>
 <script>
