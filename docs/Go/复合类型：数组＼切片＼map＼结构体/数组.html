@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="数组">数组</h1>
 <p>Go语言的数组是一个长度固定的、由同构类型元素组成的连续序列。通过这个定义，我们可以识别出Go的数组类型包含两个重要属性： <strong>元素的类型</strong> 和 <strong>数组长度</strong>（元素的个数）。这两个属性也直接构成了Go语言中数组类型变量的声明：</p>
@@ -168,13 +168,13 @@ fmt.Println(arr[-1])        // 错误：下标值不能为负数
 fmt.Println(arr[8])         // 错误：小标值超出了arr的长度范围
 </code></pre>
 <p>数组中的每个元素是通过索引来访问的，索引从0到数组长度减1。Go内置的函数len可以返回数组中的元素个数。</p>
-<p><img src="../../../../assets/devops-notes/RSxxbSzcWoIwrixSkzRc2qkMnKh.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/RSxxbSzcWoIwrixSkzRc2qkMnKh.png" alt=""></p>
 <h1 id="多维数组">多维数组</h1>
 <p>上面这些元素类型为非数组类型的数组的都是简单的一维数组，但Go语言中，其实还有更复杂的数组类型，多维数组。也就是说，数组类型自身也可以作为数组元素的类型，这样就会产生 <strong>多维数组</strong>，比如下面的变量mArr的类型就是一个多维数组[2] [3][4]int：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">var mArr [2][3][4]int
 </code></pre>
 <p>多维数组也不难理解，我们以上面示例中的多维数组类型为例，我们从左向右逐维地去看，这样我们就可以将一个多维数组分层拆解成这样：</p>
-<p><img src="../../../../assets/devops-notes/Yhw6blH4todv7pxXiSVcGvq2nwc.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/Yhw6blH4todv7pxXiSVcGvq2nwc.png" alt=""></p>
 <p>我们从上向下看，首先我们将mArr这个数组看成是一个拥有两个元素，且元素类型都为[3] [4]int的数组，就像图中最上层画的那样。这样，mArr的两个元素分别为mArr[0]和mArr [1]，它们的类型均为[3] [4]int，也就是说它们都是二维数组。</p>
 <p>而以mArr[0]为例，我们可以将其看成一个拥有3个元素且元素类型为[4]int的数组，也就是图中中间层画的那样。这样mArr[0]的三个元素分别为mArr[0][0]、mArr[0][1]以及mArr[0][2]，它们的类型均为[4]int，也就是说它们都是一维数组。</p>
 <p>图中的最后一层就是mArr[0]的三个元素，以及mArr[1]的三个元素的各自展开形式。以此类推，你会发现，无论多维数组究竟有多少维，我们都可以将它从左到右逐一展开，最终化为我们熟悉的一维数组。</p>

@@ -18,3 +18,5 @@
 /docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/* /docs/%E5%9F%BA%E7%A1%80%E7%AF%87/:splat 301
 /docs/DevOps/Python.html /docs/Python/Python.html 301
 /docs/DevOps/Python/* /docs/Python/:splat 301
+/docs/DevOps/Go.html /docs/Go/Go.html 301
+/docs/DevOps/Go/* /docs/Go/:splat 301

@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="字符串类型">字符串类型</h1>
 <p>字符串类型，是现代编程语言中最常用的数据类型之一，多数主流编程语言都提供了对这个类型的原生支持，少数没有提供原生字符串的类型的主流语言（比如C语言）也通过其他形式提供了对字符串的支持。</p>
@@ -405,7 +405,7 @@ fmt.Println(s2) // 中国人
 <p>这样的转型看似简单，但无论是string转切片，还是切片转string，这类转型背后也是有着一定开销的。这些开销的根源就在于string是不可变的，运行时要为转换后的类型分配新内存。</p>
 <h1 id="转义">转义</h1>
 <p>在带双引号的字符串字面量中，转义序列以反斜杠(\)开始，可以将任意值的字节插入字符串中。下面是一组转义符，表示ASCII控制码，如换行符、回车符和制表符。</p>
-<p><img src="../../../assets/devops-notes/BSi3bpXIbofkxvxS5NUcYZfGnWb.png" alt=""></p>
+<p><img src="../../assets/devops-notes/BSi3bpXIbofkxvxS5NUcYZfGnWb.png" alt=""></p>
 <p>源码中的字符串也可以包含十六进制或八进制的任意字节。十六进制的转义字符写成\xhh的形式，h是十六进制数字（大小写皆可）​，且必须是两位。八进制的转义字符写成\ooo的形式，必须使用三位八进制数字(0～7)，且不能超过\377。这两者都表示单个字节，内容是给定值。</p>
 <h1 id="字符串和字节slice">字符串和字节slice</h1>
 <p>4个标准包对字符串操作特别重要：bytes、strings、strconv和unicode。</p>
