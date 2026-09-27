@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Python</title>
+<title>导出 Python 当前项目依赖清单requirements.txt</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,17 +119,29 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#python">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="python">Python</h1>
-<p><a href="../../docs/DevOps/Python/%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85.html">环境安装</a></p>
-<p><a href="../../docs/DevOps/Python/Python%20%E5%9F%BA%E7%A1%80.html">Python 基础</a></p>
-<p><a href="../../docs/DevOps/Python/Python%20%E8%AF%AD%E5%8F%A5.html">Python 语句</a></p>
-<p><a href="../../docs/DevOps/Python/Python%20%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E4%B8%8E%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C.html">Python 输入输出与文件操作</a></p>
-<p><a href="../../docs/DevOps/Python/Python%20%E5%87%BD%E6%95%B0.html">Python 函数</a></p>
-<p><a href="../../docs/DevOps/Python/%E5%AF%BC%E5%87%BA%20Python%20%E5%BD%93%E5%89%8D%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96%E6%B8%85%E5%8D%95requirements.txt.html">导出 Python 当前项目依赖清单requirements.txt</a></p>
-<p><a href="../../docs/DevOps/Python/FastAPI.html">FastAPI</a></p>
-<p><a href="../../docs/DevOps/Python/Python%20%E5%9F%BA%E7%A1%80%EF%BC%88%E5%AE%8C%E6%95%B4%E7%AF%87%EF%BC%89.html">Python 基础（完整篇）</a></p>
+<h1 id="导出-python-当前项目依赖清单requirementstxt">导出 Python 当前项目依赖清单requirements.txt</h1>
+<h2 id="方法一"><strong>方法一：</strong></h2>
+<p>如果每个项目有对应的虚拟虚拟环境，那么使用pycharm的终端里，在当前项目下，直接实现使用命令：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">#pip命令生成依赖性清单
+pip freeze &gt; requirements.txt
+</code></pre>
+<h2 id="方法二"><strong>方法二：</strong></h2>
+<p>注意：如果在python项目全局环境里直接使用 pip freeze &gt; requirements.txt 会导出大量与该项目无关的依赖，包括很多个包信息，其实这里是把你当前 python 环境的所有包的相关信息导出来了。如果我们只需导出当前项目所需的依赖包，还可以采用另外一种方式，使用工具：pipreqs</p>
+<p><strong>步骤一、安装pipreqs：</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install pipreqs
+</code></pre>
+<p><strong>步骤二：进入当前项目目录下，导出依赖清单</strong></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./
+</code></pre>
+<p>如果遇到编码错误UnicodeDecodeError，则将指定编码为utf8：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pipreqs ./ --encoding=utf8
+pipreqs ./ --encoding='iso-8859-1' 
+</code></pre>
+<p>(导包完成会在项目路径下生成一个requirements.txt文件)</p>
+<p>后续安装该项目的依赖时，即可直接使用：</p>
+<p>pip install -r requirements.txt</p>
 </article>
 </main>
 <script>
