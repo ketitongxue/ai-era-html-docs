@@ -149,7 +149,7 @@ input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid 
 <h1 id="agent-执行循环与工具选择">Agent 执行循环与工具选择</h1>
 <nav class="toc" aria-label="本文目录"><details><summary>本文目录</summary><ol><li><a href="#1-plan-管整体循环推进当前任务">1. Plan 管整体，循环推进当前任务</a></li><li><a href="#2-用状态支撑每一轮决策">2. 用状态支撑每一轮决策</a></li><li><a href="#3-observation-要解释业务结果">3. Observation 要解释业务结果</a></li><li><a href="#4-action-按业务职责设计">4. Action 按业务职责设计</a></li><li><a href="#5-工具描述就是执行契约的一部分">5. 工具描述就是执行契约的一部分</a></li><li><a href="#6-工具很多时分两阶段选择">6. 工具很多时，分两阶段选择</a></li><li><a href="#7-执行前再次检查">7. 执行前再次检查</a></li><li><a href="#8-明确六类出口阻止无效循环">8. 明确六类出口，阻止无效循环</a></li><li><a href="#9-分开评估选择执行和解释">9. 分开评估选择、执行和解释</a></li></ol></details></nav>
 <p>Agent 的执行能力来自一个循环：读取当前状态，选择下一步，执行动作，解释结果，再决定继续还是结束。真正影响可靠性的，是每一轮如何更新状态、哪些动作允许执行，以及何时认定已经完成。</p>
-<p>ReAct 研究了推理轨迹与行动交替进行的方式，使模型能够结合环境返回的信息调整行动。工程实践中常用 Think／Action／Observation（TAO）描述类似循环，但 TAO 并非统一的学术标准，也不能与所有 ReAct 实现严格画等号。<a href="https://arxiv.org/abs/2210.03629">ReAct 论文</a></p>
+<p>ReAct 研究了推理轨迹与行动交替进行的方式，使模型能够结合环境返回的信息调整行动。工程实践中常用 Think／Action／Observation（TAO）描述类似循环，但 TAO 并非统一的学术标准，也不能与所有 ReAct 实现严格画等号。<a href="https://arxiv.org/abs/2210.03629" target="_blank" rel="noopener noreferrer">ReAct 论文</a></p>
 <p>这里的 Think 表示可观测的决策接口，例如下一步动作、缺失信息和简要依据。模型输出的解释有助于排查，但不是其真实内部思考过程的完整或必然忠实记录。</p>
 <h2 id="1-plan-管整体循环推进当前任务">1. Plan 管整体，循环推进当前任务</h2>
 <p><a href="Agent%20%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.html">任务计划</a>可以规定“收集商品信息—核验约束—比较并输出”，执行循环则判断当前缺少什么：需要检索商品、确认尺码、补查配送，还是已有足够证据直接结束。</p>
@@ -243,7 +243,7 @@ input[type=search] { width:100%;font:inherit;padding:12px 16px;border:1px solid 
 <p>职责重叠无法完全消除，但要明确行为差异。“提交退款申请”与“直接执行退款”即使对象相同，权限和副作用也不同，不应靠模糊描述区分。</p>
 <p>封装子 Agent 时，同样需要输入输出协议、时间和调用预算、取消方式及错误结构。只传与子任务有关且获准访问的上下文；子 Agent 的结论应携带证据和不确定性，不能仅凭“另一个 Agent 已确认”升级为事实。</p>
 <h2 id="5-工具描述就是执行契约的一部分">5. 工具描述就是执行契约的一部分</h2>
-<p>一个有效的工具定义需要说明能力、适用与不适用场景、参数、返回值和前置条件。描述帮助模型选择，执行器负责落实约束。清楚的工具边界和高相关返回值，也是官方工具设计指南强调的原则。<a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Anthropic 工具设计指南</a></p>
+<p>一个有效的工具定义需要说明能力、适用与不适用场景、参数、返回值和前置条件。描述帮助模型选择，执行器负责落实约束。清楚的工具边界和高相关返回值，也是官方工具设计指南强调的原则。<a href="https://www.anthropic.com/engineering/writing-tools-for-agents" target="_blank" rel="noopener noreferrer">Anthropic 工具设计指南</a></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
   &quot;name&quot;: &quot;query_delivery_quote&quot;,
   &quot;description&quot;: &quot;查询商品到指定地区的可用配送方案&quot;,

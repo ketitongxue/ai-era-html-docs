@@ -467,7 +467,7 @@ hooks:
 </blockquote>
 <p>这不是保守，而是工程智慧。每增加一个 Agent，你就增加了一层调试复杂度、一份 token 成本、和一个潜在的失败点。但当你的任务真的跨越了单 Agent 的能力边界时，正确的多 Agent 架构会带来巨大性能提升——Anthropic 的多 Agent 研究系统在内部评测中，比单 Agent Claude Opus 4 性能提升了 90.2%。</p>
 <h2 id="两个核心触发条件">两个核心触发条件</h2>
-<p>LangChain 在 <a href="https://blog.langchain.com/choosing-the-right-multi-agent-architecture/">Choosing the Right Multi-Agent Architecture</a> 这篇文章中总结了两个让多 Agent 成为必要选择的工程信号。</p>
+<p>LangChain 在 <a href="https://blog.langchain.com/choosing-the-right-multi-agent-architecture/" target="_blank" rel="noopener noreferrer">Choosing the Right Multi-Agent Architecture</a> 这篇文章中总结了两个让多 Agent 成为必要选择的工程信号。</p>
 <h3 id="信号一上下文管理挑战">信号一：上下文管理挑战</h3>
 <p>当多个能力领域的专业知识无法舒适地塞进单一 prompt 中时——你需要策略性地分发上下文，而不是把所有东西堆在一起。当 Agent 的上下文窗口接近满载时，模型在任务完成上的表现会显著下降，进入所谓的  dumb zone（迟钝区）。</p>
 <h3 id="信号二分布式开发需求">信号二：分布式开发需求</h3>
@@ -504,7 +504,7 @@ subagent_config = {
 }
 </code></pre>
 <p>Claude Code 中内置就有很多子代理（Explore、Plan、General-purpose），非常容易实现这种架构。</p>
-<p>在 Anthropic 的真实生产系统中，<a href="https://www.anthropic.com/engineering/multi-agent-research-system">Research</a> 功能采用的就是一种典型的 Sub-Agent 架构。</p>
+<p>在 Anthropic 的真实生产系统中，<a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer">Research</a> 功能采用的就是一种典型的 Sub-Agent 架构。</p>
 <p>Anthropic 的 Research 功能采用了经典的 Sub-Agent 模式：</p>
 <ol>
 <li>LeadResearcher（Claude Opus 4）分析查询、制定策略</li>
@@ -616,7 +616,7 @@ Router 分解：
 <p>其代价在于该模式通常是无状态的，无法充分利用历史对话上下文来减少重复计算；在需要连续对话的场景中，往往需要将 Router 作为一个工具嵌入到有状态的主 Agent 中，以在并行效率和对话连续性之间取得平衡。</p>
 <h3 id="性能成本可控性的量化对比">性能、成本、可控性的量化对比</h3>
 <p>简单任务中，Sub-Agent 模式有额外开销。多轮对话中，有状态模式效率优势明显。而在多领域查询中，上下文隔离的模式（Sub-Agent、Router）在 token 效率上优势显著——节省 40% 以上的 token 成本。</p>
-<p>Anthropic 在工程博客中公开了他们的<a href="https://www.anthropic.com/engineering/multi-agent-research-system">多 Agent 研究系统的完整设计</a>，其中也涉及到性能和成本的权衡。Anthropic 认为多 Agent 系统中的性能差异在很大程度上是可解释的，其中约 95% 的性能波动可以归因于三个因素：Token 使用量占据主导地位，其影响约为 80%；工具调用次数与模型选择共同贡献约 15%；其余因素的影响则相对有限。</p>
+<p>Anthropic 在工程博客中公开了他们的<a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer">多 Agent 研究系统的完整设计</a>，其中也涉及到性能和成本的权衡。Anthropic 认为多 Agent 系统中的性能差异在很大程度上是可解释的，其中约 95% 的性能波动可以归因于三个因素：Token 使用量占据主导地位，其影响约为 80%；工具调用次数与模型选择共同贡献约 15%；其余因素的影响则相对有限。</p>
 <p>一个关键发现是，选择更合适的模型（如 Claude Sonnet 4）所带来的性能提升，往往超过单纯将 token 预算翻倍的效果，这意味着在多 Agent 架构中，模型选型的重要性显著高于无节制地增加上下文规模。</p>
 <p>从“Token 经济学”的角度看，多 Agent 系统普遍存在约 15 倍的 token 成本放大效应，因此只适合用于高价值、高复杂度的任务；对于需要所有 Agent 共享完整上下文的场景、强耦合且高度顺序化的工作流、大多数难以并行拆解的编码任务，以及依赖 Agent 之间实时协调的系统，多 Agent 架构往往得不偿失，反而会引入不必要的成本和复杂度。</p>
 <p>同时，从可控性和工程调整的角度，Anthropic 也分享了它们在将多 Agent 系统推向生产时，遇到了四个关键挑战。</p>
@@ -666,8 +666,8 @@ Router 分解：
 <p>顺便提一句，开源社区里的 OpenClaw，在设计上走的是一条非常克制的路线：它并没有一开始就强调“多 Agent 协作”，而是把重心放在任务拆分、执行隔离和结果回收上。</p>
 <p><strong>如何让 AI Agent 更聪明，本质不是“写提示词”，而是“管理上下文（Context）”</strong>。</p>
 <ul>
-<li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a></li>
-<li><a href="https://claude.ai/public/artifacts/f498a4cc-4c45-481c-a6dd-8e1d196dadb0">https://claude.ai/public/artifacts/f498a4cc-4c45-481c-a6dd-8e1d196dadb0</a> - Context Engineering Guide</li>
+<li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener noreferrer">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a></li>
+<li><a href="https://claude.ai/public/artifacts/f498a4cc-4c45-481c-a6dd-8e1d196dadb0" target="_blank" rel="noopener noreferrer">https://claude.ai/public/artifacts/f498a4cc-4c45-481c-a6dd-8e1d196dadb0</a> - Context Engineering Guide</li>
 </ul>
 <h1 id="实战一构建只读型安全审计子代理">实战一：构建只读型安全审计子代理</h1>
 <p>权限边界是子代理最重要的工程价值之一。代码审查是一个完美的场景：审查者需要完整的读取能力来分析代码，但绝对不应该在审查过程中修改代码。</p>

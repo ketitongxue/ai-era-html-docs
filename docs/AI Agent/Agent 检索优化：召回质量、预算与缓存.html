@@ -172,7 +172,7 @@ evidence_type / matched_requirement
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">RRF(d) = Σ 1 / (k + rank_r(d))
          r ∈ R，且 d 出现在 r 中
 </code></pre>
-<p>没有出现在某一路的文档，该路贡献为零；<code>k</code> 为平滑常数。若需通道权重，可以尝试 <code>Σ w_r / (k + rank_r(d))</code>，但需明确这是加权扩展，并检查所用搜索引擎的实际接口支持。标准计算方式可参考 <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion">Elasticsearch RRF 文档</a>。</p>
+<p>没有出现在某一路的文档，该路贡献为零；<code>k</code> 为平滑常数。若需通道权重，可以尝试 <code>Σ w_r / (k + rank_r(d))</code>，但需明确这是加权扩展，并检查所用搜索引擎的实际接口支持。标准计算方式可参考 <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion" target="_blank" rel="noopener noreferrer">Elasticsearch RRF 文档</a>。</p>
 <p>RRF 不使用原始分数差距，因此也会丢失某些强弱信息；它无法发现召回阶段完全遗漏的证据，更不能证明排名靠前的文档事实正确。多路列表高度相关时，重复信号也可能被过度强化。</p>
 <p>融合后，可以让 Cross-Encoder 或其他重排方法重新判断问题与候选的相关性，再按明确业务规则组织证据。应关注直接支持程度、适用范围、版本、可信来源和新增信息量。权限等硬条件仍在排序之外，不是可被其他高分抵消的一项权重。</p>
 <p>最终选入工作集的结果，不必等于得分最高的前几段。如果问题需要“适用条件、操作方法、例外”三类证据，而前三段都在重复操作方法，就需要按证据覆盖选择互补结果。</p>
