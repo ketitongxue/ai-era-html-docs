@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIOps 模型训练和自动扩容</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../index.html#aiops">返回知识库 · AIOps</a></nav>
+<article>
+<h1 id="aiops-模型训练和自动扩容">AIOps 模型训练和自动扩容</h1>
+<h1 id="概述">概述</h1>
+<h2 id="架构设计">架构设计</h2>
+<p><img src="../../assets/aiops/aiops-autoscaling-architecture.jpg" alt=""></p>
+<h2 id="operator">Operator</h2>
+<p>从预测服务中获取推荐的副本数
+通过修改 deployment.Spec.Replicas 字段达到控制业务 Pod 副本数的目的
+每隔一段时间（30s）再次从预测服务中获取推荐副本数</p>
+<h2 id="其他与副本数存在关系的特征">其他与副本数存在关系的特征</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>特征</th>
+<th>特征关系</th>
+<th>备注</th>
+<th>算法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时间</td>
+<td>季节性</td>
+<td>明显的波峰波谷</td>
+<td>季节性算法（statsmodels、Prophet）</td>
+</tr>
+<tr>
+<td>QPS</td>
+<td>线性</td>
+<td>QPS越高，副本数越多</td>
+<td>线性回归</td>
+</tr>
+<tr>
+<td>响应时间（延迟</td>
+<td>非线性关系</td>
+<td></td>
+<td>支持向量回归（SVR）</td>
+</tr>
+<tr>
+<td>内存使用率</td>
+<td>非线性</td>
+<td></td>
+<td>随机森林、MLP</td>
+</tr>
+<tr>
+<td>CPU使用率</td>
+<td>非线性</td>
+<td></td>
+<td>决策树、随机森林</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="训练数据模拟一天">训练数据（模拟一天）</h2>
+<h2 id="使用的核心库pandas">使用的核心库：Pandas</h2>
+<p>Pandas
+主要功能包括数据清洗、数据转换、数据聚合、处理缺失值、数据筛选等
+常见操作：
+read_csv(): 从 CSV 文件读取数据。
+dropna(): 删除缺失值。
+groupby(): 数据分组操作。
+merge(): 合并数据集。</p>
+<h2 id="使用的核心库sklearn">使用的核心库：Sklearn</h2>
+<p>Sklearn
+是一个用于机器学习的库，提供了大量的算法和工具，用于数据预处理、模型训练、模型评估和模型选择
+常见功能：
+数据预处理：StandardScaler（标准化数据）、LabelEncoder（标签编码）
+模型训练：如 LinearRegression（线性回归）、RandomForestClassifier（随机森林分类器）
+模型评估：cross_val_score()（交叉验证）、accuracy_score()（准确率评估）</p>
+<h1 id="数据处理的基本步骤">数据处理的基本步骤</h1>
+<h2 id="数据载入">数据载入</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df = pd.read_csv(&quot;data.csv)
+</code></pre>
+<p>常见操作
+读取 QPS 列：<code>qps_column = df['QPS']</code>
+读取第二行：<code>second_row = df.iloc[1]</code>
+读取第二行，QPS 列的数据：<code>second_row_qps = df.loc[1, 'QPS']</code>
+筛选 QPS &gt; 10 的行：<code>filtered_rows = df[df['QPS'] &gt; 10]</code></p>
+<h2 id="时间格式的转化">时间格式的转化</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df[&quot;minutes&quot;] = (
+	pd.to_datetime(df[&quot;timestamp&quot;], format=&quot;%H:%M:%S&quot;).dt.Hour * 60 + pd.to_datetime(df[&quot;timestamp&quot;], format=&quot;%H:%M:%S&quot;).dt.minute
+)
+</code></pre>
+<p>将 timestamp 列转为时间格式，然后转换为“从午夜开始的分钟数”
+例如，00:10:00 会被转换为 10 分钟</p>
+<h2 id="捕捉时间的周期性">捕捉时间的周期性</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">df[&quot;sin_time&quot;] = np.sin(2 * np.pi * df[&quot;minutes&quot;] / 1440)
+df[&quot;cos_time&quot;] = np.cos(2 * np.pi * df[&quot;minutes&quot;] / 1440)
+</code></pre>
+<p>使用正弦和余弦函数，将时间转换为周期性特征
+1440 为一天的分钟数，通过周期函数让模型更好感知时间如何影响流量
+输出：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>
+</code></pre>
+<h2 id="为什么要转化为余弦正弦函数">为什么要转化为余弦、正弦函数？</h2>
+<p>将圆周等分成 4 个象限，分别对应 0 点、上午 6 点、中午 12 点、下午 6 点
+圆代表周期性时间循环，对于任意的时间都可以放在圆的某个点表示
+对于任何一个圆上的点，我们可以用 cos(t)、sin(t) 表示 X 和 Y 轴的坐标
+该坐标值就是该时间点的特征编码</p>
+<h2 id="其他特征的考虑">其他特征的考虑</h2>
+<p>为了提升准确性，可以给时间增加更多特征
+星期几
+节假日
+月份</p>
+<h1 id="模型训练与评估">模型训练与评估</h1>
+<h1 id="模型保存与托管">模型保存与托管</h1>
+<h1 id="operator-开发获取实时预测结果并扩容">Operator 开发：获取实时预测结果并扩容</h1>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux tcp连接状态之SYNC_RECV</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<h1 id="linux-tcp连接状态之sync_recv">Linux tcp连接状态之SYNC_RECV</h1>
+<p>1、按tcp/ip协议的描述，tcp三次握手过程，tcp的状态迁移如下所示：</p>
+<p>1）、客户端通过connect系统调用向处于LISTEN状态的服务端发送sync请求，客户端进入SYNC_SEND状态；</p>
+<p>2）、服务端收到sync报文后，向客户端发送sync+ack报文，服务端进入SYNC_RECV状态；</p>
+<p>3）、客户端收到sync+ack后，进入ESTABLISHED(建立)状态，并向服务端发送ack，服务端接收到ack后，进入ESTABLISHED状态。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">     (sys_connect)          sync
+   client（SYNC_SEND）   ----------&gt;    server（LISTEN）
+                           sync+ack
+   client（SYNC_SEND）   &lt;----------    server（SYNC_RECV）
+                            ack
+   client（ESTABLISHED） ----------&gt;    server（ESTABLISHED）
+</code></pre>
+<p>2、但Linux的实现跟这里的描述并非完全一致，在Linux里，服务端收到sync报文并向客户端发送sync+ack后，并没有将自己置位SYNC_RECV状态，而是申请了一个request_sock，并将request_sock挂到sock的半连接队列里，等收到客户端的ack时，再从半连接队列里找到request_sock，并将其置位ESTABLISHED，然后挂到全连接队列中。</p>
+<p>3、相关实现：</p>
+<p>client端：</p>
+<p>1）、client端调用connect系统调用发送sync报文，最终调用tcp_v4_connect，在tcp_v4_connect里通过tcp_set_state(sk, TCP_SYN_SENT)将sk状态置位SYNC_SNET；</p>
+<p>2）、client收到server的sync+ack后，将状态置为ESTABLISHED。</p>
+<p>tcp_v4_rcv</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code>tcp_v4_do_rcv
+
+    tcp_rcv_state_process
+
+        tcp_rcv_synsent_state_process
+
+            tcp_finish_connect
+
+                tcp_set_state(sk, TCP_ESTABLISHED)
+</code></pre>
+<p>server端：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">tcp_v4_rcv
+        tcp_v4_do_rcv
+                int tcp_v4_do_rcv(struct sock *sk, struct sk_buff *skb)
+                {
+                        //收到sync包时，状态为TCP_LISTEN，条件成立
+                        if (sk-&gt;sk_state == TCP_LISTEN) {
+                                //这里是从半连接队列的syn_table里找request_sock，
+                                //1、如果是sync报文，这里返回为空，跳转到tcp_rcv_state_process
+                                //在函数tcp_rcv_state_process里会创建一个新的request_sock，然后挂到半连接队列里
+                                //具体流程：tcp_rcv_state_process-&gt;tcp_v4_conn_request-&gt;tcp_conn_request-&gt;inet_csk_reqsk_queue_hash_add
+                                //2、如果是client的ack报文，则这里返回的nsk为第1步创建的request_sock，并且在tcp_v4_hnd_req-&gt;tcp_check_req里
+                                //将sk-&gt;sk_state状态置位SYNC_RECV，然后把request_sock从半连接队列里移除（tcp_check_req-&gt;inet_csk_reqsk_queue_removed）
+                                //具体流程：tcp_v4_hnd_req-&gt;tcp_check_req-&gt;tcp_v4_syn_recv_sock-&gt;tcp_create_openreq_child-&gt;inet_csk_clone_lock
+                                //（newsk-&gt;sk_state = TCP_SYN_RECV）
+                                struct sock *nsk = tcp_v4_hnd_req(sk, skb);
+                                if (!nsk)
+                                        goto discard;
+                                //ack时找到的request_sock与sk不是同一个，条件成立
+                                if (nsk != sk) {
+                                        sock_rps_save_rxhash(nsk, skb);
+                                        //该函数最终调用tcp_rcv_state_process，在tcp_rcv_state_process里判断sk-&gt;sk_state状态为SYNC_RECV，
+                                        //并且收到的是ack报文，然后将状态置位ESTABLISHED。
+                                        if (tcp_child_process(sk, nsk, skb)) {
+                                                rsk = nsk;
+                                                goto reset;
+                                        }
+                                        return 0;
+                                }
+                        } else
+                                sock_rps_save_rxhash(sk, skb);
+ 
+                        if (tcp_rcv_state_process(sk, skb, tcp_hdr(skb), skb-&gt;len)) {
+                                rsk = sk;
+                                goto reset;
+                        }
+                        return 0;
+                }
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

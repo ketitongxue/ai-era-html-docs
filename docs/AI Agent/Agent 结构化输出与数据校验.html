@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent 结构化输出与数据校验</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.article-meta { color:#536378;font-size:13px;margin:4px 0; }
+.toc { background:#f0f4f8;border:1px solid #ccd6e3;border-radius:8px;padding:16px 20px;margin:24px 0; }
+.toc summary { font-weight:600;cursor:pointer; }
+.toc ol { margin-bottom:0; }
+@media print { .breadcrumb,.toc { display:none; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 应用开发 · 整理于 2026-09-22</p>
+<h1 id="agent-结构化输出与数据校验">Agent 结构化输出与数据校验</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#1-先定义对象含义再选择输出机制">1. 先定义对象含义，再选择输出机制</a></li><li><a href="#2-三种约束方式分别保证什么">2. 三种约束方式分别保证什么</a></li><li><a href="#3-json-schema-的能力与服务端子集要分开">3. JSON Schema 的能力与服务端子集要分开</a></li><li><a href="#4-解析对象只是校验的开始">4. 解析对象只是校验的开始</a></li><li><a href="#5-用一份类型减少-schema-漂移">5. 用一份类型减少 Schema 漂移</a></li><li><a href="#6-反馈重试要修正可修正的错误">6. 反馈重试要修正可修正的错误</a></li><li><a href="#7-流式展示与最终提交分开">7. 流式展示与最终提交分开</a></li><li><a href="#8-验证的不只是解析成功率">8. 验证的不只是解析成功率</a></li><li><a href="#来源与延伸阅读">来源与延伸阅读</a></li></ol></details></nav>
+<p>模型返回一段 JSON，不代表程序可以立即相信它。JSON 可能缺字段、类型错误、被截断，也可能格式完全正确但数值来自猜测。Agent 要将结果用于路由、存库或工具调用，需要分别检查：响应是否完整、结构是否符合约定、字段是否满足业务规则、值是否有证据。</p>
+<p>本文把原生 API、类型转换与框架封装合在一处讲解。输入理解中如何保留“不确定”和“待澄清”，见<a href="Agent%20%E8%BE%93%E5%85%A5%E7%90%86%E8%A7%A3%E4%B8%8E%E6%84%8F%E5%9B%BE%E8%AF%86%E5%88%AB.html">输入理解与意图识别</a>；网络重试与流式连接见<a href="Agent%20%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%EF%BC%9A%E6%8E%A5%E5%8F%A3%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%8F%AF%E9%9D%A0%E6%80%A7.html">模型调用：接口、流式与可靠性</a>。</p>
+<blockquote>
+<p>整理来源：CodeCrush《大模型应用开发基础》第 08、24 篇及第 13 篇的 Schema 设计部分。原稿的三层约束与反馈重试合并为一条流程；补充缺失值、拒答、截断、Schema 子集、事实证据及流式边界。代码为教学示例，未调用真实模型或验证具体账号权限。官方资料复核日期：2026-09-22。</p>
+</blockquote>
+<h2 id="1-先定义对象含义再选择输出机制">1. 先定义对象含义，再选择输出机制</h2>
+<p>以报销信息抽取为例，<code>amount: 800</code> 不够明确：币种是什么，单位是元还是分，是申请金额还是批准金额？如果原文没有金额，应该输出 <code>null</code>、省略字段，还是拒绝整个请求？这些决定必须写进契约，而不能交给模型临场猜。</p>
+<p>一个适合后续校验的结果可以是：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-json">{
+  &quot;employee&quot;: &quot;张三&quot;,
+  &quot;city&quot;: &quot;杭州&quot;,
+  &quot;amount_cents&quot;: 80000,
+  &quot;currency&quot;: &quot;CNY&quot;,
+  &quot;category&quot;: &quot;lodging&quot;,
+  &quot;amount_evidence&quot;: &quot;住宿费 800 元&quot;
+}
+</code></pre>
+<p><code>amount_cents</code> 使用整数分，减少浮点金额歧义；<code>amount_evidence</code> 保留用于回查的原文。缺失值使用 <code>null</code>，缺失证据不自动转换成 0。“字段必填”与“字段值非空”是两件事：某些严格结构化输出要求键存在，但允许值为 <code>null</code>。</p>
+<p>原稿用字段描述代替类别枚举，例如“只能是住宿/交通/餐饮”。描述对模型有帮助，却不是类型约束。需要固定取值时，要使用 <code>enum</code>、Python <code>Literal</code> 或 Java 枚举；需要解释抽取口径时，才用 description。</p>
+<p>字段名与枚举值本身也是模型看到的说明：<code>amount_cents</code> 比 <code>value</code> 更明确，<code>lodging</code> 比没有定义的 <code>A</code> 更容易理解。英文标识符便于代码协作，但“英文一定更稳定”需要在目标模型上实测。<code>other</code> 表示已知但不属于列举类别，<code>unknown</code> 或 <code>null</code> 表示信息不足，两者不能互相代替。结构只保留业务需要的嵌套，不为了形式美观层层包装，也不把“超过三层必然不稳定”当作固定规律。</p>
+<h2 id="2-三种约束方式分别保证什么">2. 三种约束方式分别保证什么</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>模型如何得到约定</th>
+<th>可以依赖的能力</th>
+<th>应用仍要检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提示词约束</td>
+<td>在自然语言中给格式与示例</td>
+<td>尽力遵循，可覆盖较多模型</td>
+<td>语法、字段、类型、完整性、业务与证据</td>
+</tr>
+<tr>
+<td>JSON Mode</td>
+<td>开启 JSON 输出模式，提示词说明内容</td>
+<td>支持条件下约束 JSON 语法</td>
+<td>Schema、拒答/截断、业务与证据</td>
+</tr>
+<tr>
+<td>原生 Schema 约束</td>
+<td>通过接口字段传 Schema</td>
+<td>在模型支持的 Schema 子集内约束结构</td>
+<td>完成状态、业务与证据、版本兼容</td>
+</tr>
+</tbody>
+</table></div>
+<p>提示词约束适合低风险原型或不支持原生约束的模型，但不能代替程序校验。JSON Mode 也不关心你要的是 <code>name</code> 还是 <code>Name</code>。原生 Schema 能减少结构错误，但“输出符合形状”仍不等于“内容符合事实”。</p>
+<p>工具调用还提供另一种取得结构化参数的路径。框架可能用工具调用或厂商原生 Schema 实现同一个高级接口，因此不能仅看 <code>with_structured_output()</code> 的名字就假定它采用了某种机制。</p>
+<h3 id="一个可空可追溯的-schema">一个可空、可追溯的 Schema</h3>
+<p>下面只使用较常见的 Schema 结构。真实请求前仍要检查目标模型支持的关键字和嵌套深度，不支持时应明确报错或选择已验证的替代路径。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">EXPENSE_SCHEMA = {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+        &quot;employee&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;description&quot;: &quot;原文中的报销人姓名&quot;},
+        &quot;city&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;description&quot;: &quot;出差城市；没有则为 null&quot;},
+        &quot;amount_cents&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;description&quot;: &quot;申请金额，单位分；没有则为 null&quot;},
+        &quot;currency&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;description&quot;: &quot;原文明确的币种；不推测&quot;},
+        &quot;category&quot;: {
+            &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;],
+            &quot;enum&quot;: [&quot;lodging&quot;, &quot;transport&quot;, &quot;meals&quot;, &quot;other&quot;, None],
+        },
+        &quot;amount_evidence&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;description&quot;: &quot;金额所在的原文片段&quot;},
+    },
+    &quot;required&quot;: [&quot;employee&quot;, &quot;city&quot;, &quot;amount_cents&quot;, &quot;currency&quot;, &quot;category&quot;, &quot;amount_evidence&quot;],
+    &quot;additionalProperties&quot;: False,
+}
+</code></pre>
+<p>结构化输出参数并不跨接口通用。下面是 Chat Completions 的请求片段，<code>client</code>、<code>os</code> 和环境变量沿用<a href="Agent%20%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%EF%BC%9A%E6%8E%A5%E5%8F%A3%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%8F%AF%E9%9D%A0%E6%80%A7.html">模型调用篇</a>：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">raw_text = &quot;张三申请报销杭州住宿费 800 元，币种人民币。&quot;
+messages = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;只抽取报销信息。缺失字段填 null，不补造事实；保留金额原文。&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: raw_text},
+]
+response = client.chat.completions.create(
+    model=os.environ[&quot;LLM_MODEL&quot;],
+    messages=messages,
+    response_format={
+        &quot;type&quot;: &quot;json_schema&quot;,
+        &quot;json_schema&quot;: {&quot;name&quot;: &quot;expense_claim&quot;, &quot;strict&quot;: True, &quot;schema&quot;: EXPENSE_SCHEMA},
+    },
+)
+</code></pre>
+<p>Responses、Claude、Gemini 使用各自的字段形态，不能把这段 <code>response_format</code> 原样复制过去，也不能把 MIME 类型和 Schema 对象混成一个字段。模型是否支持、拒答怎样返回、哪些关键字受限，按<a href="https://developers.openai.com/api/docs/guides/structured-outputs">官方结构化输出文档</a>与目标 provider 文档确认。</p>
+<h2 id="3-json-schema-的能力与服务端子集要分开">3. JSON Schema 的能力与服务端子集要分开</h2>
+<p>原稿把“数组至少三个元素”“某字段有值时另一个字段必填”归为 Schema 无法表达，这是需要纠正的。完整 JSON Schema 提供 <code>minItems</code>、条件和依赖关键字；服务端结构化输出可能只实现其中一部分。见 <a href="https://json-schema.org/understanding-json-schema/reference/array">JSON Schema 数组约束</a>与<a href="https://json-schema.org/understanding-json-schema/reference/conditionals">条件约束</a>。</p>
+<p>因此要分三层：</p>
+<ol>
+<li><strong>完整 Schema 的表达能力</strong>：本地验证器支持哪些标准版本与关键字。</li>
+<li><strong>目标模型接受的 Schema 子集</strong>：请求会被拒绝、忽略约束，还是按约定执行。</li>
+<li><strong>Schema 外的业务和事实</strong>：金额是否对应真实票据、城市是否匹配订单、引用是否来自当前授权文档。</li>
+</ol>
+<p>即便跨字段规则可以写成 Schema，也可以保留在业务校验里，方便错误定位和版本管理。关键在于明确谁负责检查，而不是把所有规则都挤进提示词。</p>
+<h2 id="4-解析对象只是校验的开始">4. 解析对象只是校验的开始</h2>
+<p>下面用 Pydantic 2 定义本地契约，关闭额外字段并启用严格类型。普通反序列化器的默认行为可能进行类型转换，也可能忽略未知字段；不能笼统地说“反序列化会检测所有字段错误”。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from typing import Literal
+from pydantic import BaseModel, ConfigDict, Field
+
+class ExpenseClaim(BaseModel):
+    model_config = ConfigDict(extra=&quot;forbid&quot;, strict=True)
+
+    employee: str | None
+    city: str | None
+    amount_cents: int | None = Field(description=&quot;申请金额，单位分&quot;)
+    currency: str | None
+    category: Literal[&quot;lodging&quot;, &quot;transport&quot;, &quot;meals&quot;, &quot;other&quot;] | None
+    amount_evidence: str | None
+
+def validate_business(claim: ExpenseClaim, source_text: str) -&gt; None:
+    if claim.amount_cents is not None:
+        if claim.amount_cents &lt; 0:
+            raise ValueError(&quot;amount_cents: 申请金额不能为负&quot;)
+        if not claim.amount_evidence or claim.amount_evidence not in source_text:
+            raise ValueError(&quot;amount_evidence: 金额必须有可回查的原文片段&quot;)
+        if claim.currency is None:
+            raise ValueError(&quot;currency: 有金额时仍需确认币种&quot;)
+    elif claim.amount_evidence is not None:
+        raise ValueError(&quot;amount_evidence: 有金额证据但没有数值，需要澄清&quot;)
+</code></pre>
+<p>这只是最小业务校验：原文片段确实存在，并不证明 80000 分就是片段表达的金额。正式业务还要检查金额与币种的规范化结果，必要时用确定性解析器、订单台账或人工复核。证据子串匹配是一道检查，不能被包装成事实正确性的证明。</p>
+<p>读取模型响应时，先分流拒答、截断、工具调用、空结果，再尝试解析：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">def parse_complete_expense(response, source_text: str) -&gt; ExpenseClaim:
+    if not response.choices:
+        raise RuntimeError(&quot;响应没有候选结果&quot;)
+    choice = response.choices[0]
+    if getattr(choice.message, &quot;refusal&quot;, None):
+        raise RuntimeError(&quot;模型拒答，应由上层按拒答策略处理&quot;)
+    if choice.finish_reason != &quot;stop&quot;:
+        raise RuntimeError(f&quot;结果未完整结束：{choice.finish_reason}&quot;)
+    if not choice.message.content:
+        raise RuntimeError(&quot;结果为空&quot;)
+    claim = ExpenseClaim.model_validate_json(choice.message.content)
+    validate_business(claim, source_text)
+    return claim
+</code></pre>
+<p>Pydantic 的校验模式、字段约束和 JSON Schema 生成方法，可查<a href="https://docs.pydantic.dev/latest/concepts/strict_mode/">官方文档</a>。如果只做 JSON 字典而不转类型，也应选用本地 Schema 验证器，而不是只执行 <code>json.loads()</code>。</p>
+<h2 id="5-用一份类型减少-schema-漂移">5. 用一份类型减少 Schema 漂移</h2>
+<p>手写 Schema、业务类型和提示词三份定义容易不同步。用 Pydantic 或 Java record 生成 Schema，可以减少重复维护，但要检查生成结果是否适配目标服务；自定义业务校验函数不会自动变成服务端支持的 Schema。</p>
+<p>字段描述应写清楚单位、来源和缺失策略。字段顺序可以便于阅读和调试，但不能成为跨字段依赖正确性的保证。需要计算的总额、比例和日期差，优先让代码计算，不要期待调换字段顺序就能保证算对。</p>
+<h3 id="langchain声明机制保留原始响应">LangChain：声明机制，保留原始响应</h3>
+<p>假设 <code>model</code> 是已经配置好的目标聊天模型，下面显式请求 <code>json_schema</code>，用 Pydantic 类型解析，并保留原始响应与解析错误：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">structured_model = model.with_structured_output(
+    ExpenseClaim,
+    method=&quot;json_schema&quot;,
+    include_raw=True,
+)
+result = structured_model.invoke(
+    &quot;抽取报销信息；缺失值用 null，不推测币种，保留金额原文。\n&quot; + raw_text
+)
+if result[&quot;parsing_error&quot;] is not None or result[&quot;parsed&quot;] is None:
+    raise RuntimeError(&quot;结构化解析失败，需要进入受限修复或澄清流程&quot;)
+
+claim = result[&quot;parsed&quot;]
+validate_business(claim, raw_text)
+raw_message = result[&quot;raw&quot;]  # 用于检查结束状态、拒答、用量及调用标识
+</code></pre>
+<p>支持的 <code>method</code> 由 provider 决定。<code>json_mode</code> 只开启 JSON Mode，仍需在提示词给字段要求；使用 <code>TypedDict</code> 或原始 JSON Schema 时，也不能假定和 Pydantic 一样自动完成本地验证。更多细节见<a href="https://docs.langchain.com/oss/python/langchain/models">LangChain 模型结构化输出</a>。</p>
+<h3 id="spring-ai区分转换原生约束和反馈重试">Spring AI：区分转换、原生约束和反馈重试</h3>
+<p>以下片段按 Spring AI 2.0.1 文档中的 <code>.entity()</code> 扩展写法整理，假设 <code>chatClient</code> 已配置。Java 可空金额使用 <code>Long</code>，避免把缺失金额默认为基本类型 <code>long</code> 的零值；枚举提供真实类别约束。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-java">enum ExpenseCategory { lodging, transport, meals, other }
+
+record ExpenseClaim(
+        String employee,
+        String city,
+        @JsonPropertyDescription(&quot;申请金额，单位分；原文缺失时为 null&quot;) Long amountCents,
+        String currency,
+        ExpenseCategory category,
+        @JsonPropertyDescription(&quot;金额所在的原文片段；缺失时为 null&quot;) String amountEvidence) {}
+
+ExpenseClaim claim = chatClient.prompt()
+        .user(&quot;抽取报销信息，不补造缺失信息：&quot; + rawText)
+        .call()
+        .entity(ExpenseClaim.class, spec -&gt; spec
+                .useProviderStructuredOutput()
+                .validateSchema());
+</code></pre>
+<p>默认 <code>.entity()</code> 的类型转换、<code>useProviderStructuredOutput()</code> 的服务端约束与 <code>validateSchema()</code> 的反馈修复是不同能力；都不能替代业务事实校验。需要同时保留原始响应时可使用 <code>.responseEntity()</code>。开关依赖底层模型及转换器能力，接入时应验证实际发出的请求，而不是只检查编译通过。见 <a href="https://docs.spring.io/spring-ai/reference/api/structured-output.html">Spring AI 结构化输出</a>。</p>
+<h2 id="6-反馈重试要修正可修正的错误">6. 反馈重试要修正可修正的错误</h2>
+<p>结构错误可把字段路径和具体要求反馈给模型，例如 <code>amount_cents 必须是整数或 null</code>。事实缺失却不应通过“再试一次”逼模型补出一个值。原文没有城市时，正确动作通常是保留缺失或请求补充。</p>
+<p>把每次尝试分为三个阶段：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">取得完整响应 → 类型与业务校验 → 保存通过校验的对象
+                     ↓ 失败
+           可修正且还有预算？
+              是 → 附上有限错误信息，再生成
+              否 → 标记失败、澄清或转交复核
+</code></pre>
+<p>下面示例适用于完整文本已经取得、但校验未通过的场景。<code>call_complete_json</code> 必须由调用层实现：返回完整 JSON 文本，在网络失败、拒答或截断时抛出专门异常，而不是把这些状态混进校验修复。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">import json
+from pydantic import ValidationError
+
+def extract_with_repair(source_text, call_complete_json, max_repairs=2):
+    messages = [
+        {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: (
+            &quot;抽取报销信息，遵循给定 Schema；缺失值填 null，不补造事实。&quot;
+        )},
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: source_text},
+    ]
+    for attempt in range(max_repairs + 1):
+        raw = call_complete_json(messages, EXPENSE_SCHEMA)
+        try:
+            claim = ExpenseClaim.model_validate_json(raw)
+            validate_business(claim, source_text)
+            return claim
+        except ValidationError as exc:
+            errors = [{&quot;field&quot;: list(e[&quot;loc&quot;]), &quot;type&quot;: e[&quot;type&quot;]}
+                      for e in exc.errors(include_input=False)]
+        except ValueError as exc:
+            errors = [{&quot;field&quot;: &quot;business&quot;, &quot;message&quot;: str(exc)}]
+
+        if attempt == max_repairs:
+            raise ValueError(&quot;达到修复上限，结果未通过校验&quot;)
+        messages.extend([
+            {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: raw},
+            {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: (
+                &quot;上次校验失败：&quot; + json.dumps(errors, ensure_ascii=False)
+                + &quot;。依据原文修正，不得补造缺失事实。&quot;
+            )},
+        ])
+</code></pre>
+<p>这里没有用正则截取第一个 <code>{</code> 到最后一个 <code>}</code>：这种宽松修补会误吞多个对象、把围栏外文本藏起来，也无法可靠处理字符串里的括号。若产品需要容忍特定包装格式，应单独定义允许的格式并记录转换，不能悄悄把任意文本改成“成功 JSON”。</p>
+<p>修复还应共享总截止时间、最大 Token 和网络尝试预算。只修某个字段可以节省输出，但最终仍要重新校验整个对象，防止单字段修正破坏跨字段关系。向模型反馈的错误信息应精简，不能把栈信息、数据库内容或其他用户的数据全部回传。</p>
+<p>框架能力也有作用域：直接模型调用的 <code>with_structured_output()</code> 不等同于 Agent 的完整修复策略；LangChain 的 <code>create_agent</code> 配合 <code>ToolStrategy</code> 支持结构化错误反馈与重试，因此不能笼统地说“LangChain 没有自动修复”。参见<a href="https://docs.langchain.com/oss/python/langchain/structured-output">官方错误处理说明</a>。</p>
+<h2 id="7-流式展示与最终提交分开">7. 流式展示与最终提交分开</h2>
+<p>结构化输出和流式在原理上并不互斥。支持的接口可以传输结构化数据的增量；完整对象通常仍要等响应结束后才能通过全部验证。Spring AI 当前 <code>.entity()</code> 的完整对象接口只用于 <code>.call()</code>，这是接口范围，不能推广为所有模型与框架都不支持结构化流式。</p>
+<p>例如前端可以逐步显示识别到的城市与金额，但状态应为“提取中”；写数据库、执行支付或发起工具动作，要等待最终对象完成校验。即使前几个字段都看起来正确，后面的拒答、截断或跨字段错误仍可能使整条结果无效。OpenAI 的<a href="https://developers.openai.com/api/docs/guides/structured-outputs#streaming">结构化输出流式说明</a>展示了这一能力。</p>
+<p>工具参数的分块同理：显示“准备查询订单”可以提前，真正执行则需要调用 ID、完整参数、权限和业务前置条件都通过。执行约束见<a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行循环与工具选择</a>。</p>
+<h2 id="8-验证的不只是解析成功率">8. 验证的不只是解析成功率</h2>
+<p>保留一组小而稳定的失败样本，覆盖缺少字段、多余字段、数字字符串、非法枚举、<code>null</code>、负金额、币种缺失、虚构证据、原文确实缺失信息、截断、拒答和修复耗尽。对同一份 Schema，更换模型或版本后重新运行。</p>
+<p>指标至少分为：响应完整率、Schema 通过率、业务通过率、事实核对通过率、澄清率、修复次数、最终失败率、成本和延迟。不要用“JSON 解析成功率 99%”替代“业务正确率 99%”。</p>
+<p>记录 Prompt、Schema、类型和模型版本，确保失败可以重现。格式合规但内容错误的样本应进入评测集，而不是一直通过重试掩盖；评测流程见<a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">评估、反馈与可观测性</a>。</p>
+<h2 id="来源与延伸阅读">来源与延伸阅读</h2>
+<ul>
+<li>CodeCrush 原始笔记：<a href="https://www.codecrush.cn/lesson/355870834486673408">08 结构化输出与数据校验</a>、<a href="https://www.codecrush.cn/lesson/355873279312920576">13 提示词模板与 Schema 编写</a>、<a href="https://www.codecrush.cn/lesson/355877560757780480">24 结构化输出与数据转换</a>。第 13 篇的模板与组件化由提示词设计主题承接，本篇集中保留字段语义与 Schema 设计。</li>
+<li>标准与校验：<a href="https://json-schema.org/understanding-json-schema/reference/conditionals">JSON Schema 条件约束</a>、<a href="https://json-schema.org/understanding-json-schema/reference/array">数组约束</a>、<a href="https://docs.pydantic.dev/latest/concepts/strict_mode/">Pydantic 严格模式</a>。</li>
+<li>原生接口与框架：<a href="https://developers.openai.com/api/docs/guides/structured-outputs">OpenAI 结构化输出</a>、<a href="https://docs.spring.io/spring-ai/reference/api/structured-output.html">Spring AI 结构化输出</a>、<a href="https://docs.langchain.com/oss/python/langchain/structured-output">LangChain 结构化输出与错误处理</a>。</li>
+</ul>
+<p><a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%87%AA%E6%A3%80.html">返回 Agent 系统设计总览</a></p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

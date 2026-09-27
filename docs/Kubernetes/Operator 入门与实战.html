@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator 入门与实战</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../index.html#kubernetes">返回知识库 · Kubernetes</a></nav>
+<article>
+<h1 id="operator-入门与实战">Operator 入门与实战</h1>
+<h1 id="operator-概述">Operator 概述</h1>
+<h2 id="什么是-operator">什么是 Operator</h2>
+<p>Operator 是一种特殊的控制器（Controller），他能够把控制循环机制应用到自定义资源（CRD）的状态管理中。
+Operator = Controller + CRD</p>
+<p><img src="../../assets/kubernetes/operator-what-is-operator.jpg" alt=""></p>
+<h2 id="期望状态-vs-实际状态">期望状态 VS 实际状态</h2>
+<ul>
+<li>Spec 字段：期望状态</li>
+<li>Status 字段：实际状态</li>
+<li>Controller：借助控制循环，让期望状态和实际状态保持一致（仅用于 K8s 原生资源：Deployment、Statefulset 等）</li>
+</ul>
+<h2 id="crd">CRD</h2>
+<ul>
+<li>自定义资源，借助CustomResourceDefinition 来描述</li>
+<li>声明式扩展方式</li>
+<li>例如：定义一个定时伸缩 HPA CRD 资源（CronHPA）</li>
+</ul>
+<h2 id="operator-开发模式的好处">Operator 开发模式的好处</h2>
+<ul>
+<li>复用 Controller 的控制循环，无需自己编码实现</li>
+<li>复用 K8s 声明式的资源管理能力</li>
+<li>和 K8s API 原生集成，并能够使用 kubectl 对资源进行增删改查</li>
+<li>简化了有状态应用的开发和管理流程</li>
+<li>能够继承 K8s 的应用管理能力（自愈、滚动更新、自动重启等）</li>
+</ul>
+<h2 id="operator-的使用场景">Operator 的使用场景</h2>
+<p>自定义资源，例如定义数据库实例、云资源等
+自动化运维任务，如备份数据库
+CI/CD Workflow
+存储系统管理：Rook、Ceph 等</p>
+<h2 id="kubebuilder-vs-operator-sdk">Kubebuilder VS Operator SDK</h2>
+<ul>
+<li>Kubebuilder：K8s 官方提供的 Operator 开发框架，底层使用了 controller-runtime 和 controller-tools</li>
+<li>Operator SDK：底层使用了 Kubebuilder，但提供了额外的一些能力
+<ul>
+<li>Operator Lifecycle Manager：很容易打包和分发 Operator</li>
+<li>OperatorHub：Operator 发布中心，类似 Docker Hub</li>
+<li>Operator SDK scorecard：小工具，确保 Operator 开发过程的最佳实践</li>
+<li>除了使用 Golang 开发，还支持从 Ansible 和 Helm 创建 Operator</li>
+</ul>
+</li>
+</ul>
+<h2 id="kubebuilder-架构">Kubebuilder 架构</h2>
+<ul>
+<li>Manager：初始化 Controller</li>
+<li>Controller：具备 Cache、队列和失败重试能力</li>
+<li>Reconciler：只需实现这部分业务逻辑</li>
+<li>Client：不直接使用</li>
+<li>Cache：不直接使用</li>
+<li>Webhook：编写 AdmissionWebHook 使用</li>
+</ul>
+<h2 id="reconcile-架构">Reconcile 架构</h2>
+<ul>
+<li>触发 Reconcile 的过程实际上是从工作队列取获取元素的过程</li>
+<li>根据 Reconcile 的业务逻辑执行结果，分几种情况
+<ul>
+<li>执行成功，无需重试</li>
+<li>执行错误，需要重试</li>
+<li>执行成功，因其他原因需要重试</li>
+<li>其他原因需要等待一段时间后重试</li>
+</ul>
+</li>
+</ul>
+<h2 id="reconcile-重试">Reconcile 重试</h2>
+<ul>
+<li>成功，无需重试：return ctrl.Result{}, nil</li>
+<li>失败，需要重试：return ctrl.Result{}, err</li>
+<li>成功，其他原因需要重试：return ctrl.Result{Requeue: true}, nil</li>
+<li>其他原因需要等待一段时间后重试：return ctrl.Result{RequeueAfter: 5 * time.Second}, nil</li>
+</ul>
+<h2 id="controller-架构">Controller 架构</h2>
+<ul>
+<li>ProcessNextWorkImen()：从工作队列里获取下一个元素</li>
+<li>ReconcileHandler()：调用 Reconcile 方法，并根据返回结果控制元素从队列里删除（业务执行成功），或者重新入队（业务执行失败）</li>
+</ul>
+<h2 id="controller-核心源码">Controller 核心源码</h2>
+<p>使用 RateLimit Queue 来实现工作队列，类似于之前我们在 Client-go 里实现工作队列</p>
+<h1 id="kubebuilder-实战一实现类似-kubevela-application-定义">Kubebuilder 实战一：实现类似 KubeVela Application 定义</h1>
+<h2 id="本地创建集群">本地创建集群</h2>
+<ul>
+<li>使用 Kind 创建本地集群</li>
+<li>https://kind.sigs.k8s.io/docs/user/quick-start/
+<ul>
+<li>kind create cluster</li>
+</ul>
+</li>
+<li>安装 kubebuilder：https://book.kubebuilder.io/quick-start#installation</li>
+</ul>
+<h2 id="crd-设计">CRD 设计</h2>
+<p>实现使用一个 CRD 生成 Deployment、Service、Ingress 对象</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-yaml">Group: application.aiops.com
+Version: v1
+Kind: Application
+</code></pre>
+<h2 id="步骤">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir application &amp;&amp; cd application
+go mod init github.com/lyzhang1999/application
+kubebuilder init --domain=aiops.com
+kubebuilder create api --group application --version v1 --kind Application
+完善 cronhpa/api/v1/application_types.go
+修改 ApplicationSpec
+生成 CRD：make manifests，查看 config/crd/bases/application.aiops.com_applications.yaml 文件
+编写 internal/controller/application_controller.go Reconcile 业务逻辑
+将 CRD 安装到集群：make install
+运行 Operator：make run
+部署示例：kubectl apply -f config/samples/application_v1_application.yaml
+</code></pre>
+<h2 id="效果">效果</h2>
+<p>创建 Application 对象，自动创建 Deployment、Service、Ingress 对象
+删除 Application 对象，自动删除 Deployment、Service、Ingress 对象
+这是通过设置 OwnerReference 自动实现的，Reconcile 内并没有写删除资源逻辑</p>
+<h2 id="kubebuilder-project-layout">Kubebuilder Project Layout</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">/cmd：Operator 主程序入口，当执行 kubebuilder init 时生成
+/api：API 资源定义，用户需要修改 *_types.go 文件来实现自定义 CRD，其他文件为自动生成。当执行 kubebuilder create api 时生成
+/internal/controller：控制器，用户需要修改 *_controller.go 文件来实现自定义 Reconcile 逻辑，当执行 kubebuilder create api 时生成
+/config：CRD 相关对象，自动生成
+	/config/crd
+	/config/rbac
+	/config/sample
+Makefile：自动生成，包含了构建、测试、运行和部署控制器
+</code></pre>
+<h1 id="kubebuilder-实战二实现阿里云定时弹性伸缩器">Kubebuilder 实战二：实现阿里云定时弹性伸缩器</h1>
+<h2 id="crd-设计-1">CRD 设计</h2>
+<p>实现定时伸缩
+Group: autoscaling.aiops.com
+Version: v1
+Kind: CronHPA</p>
+<h2 id="步骤-1">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir cronhpa &amp;&amp; cd cronhpa
+go mod init github.com/lyzhang1999/cronhpa
+kubebuilder init --domain=aiops.com
+kubebuilder create api --group autoscaling --version v1 --kind CronHPA
+完善 module_8/cronhpa/api/v1/cronhpa_types.go
+增加结构体
+CronHPA Struct 增加 printcolumn 注释
+生成 CRD：make manifests，查看 config/crd/bases/autoscaling.aiops.com_cronhpas.yaml 文件
+编写 internal/controller/cronhpa_controller.go Reconcile 业务逻辑
+将 CRD 安装到集群：make install
+运行 Operator：make run
+部署示例：kubectl apply -f config/samples/autoscaling_v1_cronhpa.yaml
+</code></pre>
+<h2 id="如何打包和部署-operator">如何打包和部署 Operator</h2>
+<p>设置环境变量：export IMG=lyzhang1999/cronhpa-operator:v0.0.1
+构建和推送：make docker-build docker-push
+生成 Operator Deploy 文件：make build-installer
+使用 dist/install.yaml 即可在任何的 K8s 集群安装</p>
+<h1 id="operator-sdk-实战一基于-helm-开发-operator">Operator SDK 实战一：基于 Helm 开发 Operator</h1>
+<h2 id="安装-operator-sdk-cli">安装 Operator SDK CLI</h2>
+<p>https://sdk.operatorframework.io/docs/installation/</p>
+<h2 id="crd-设计-2">CRD 设计</h2>
+<p>引用 Helm Chart values.yaml 的内容作为 CRD Spec 配置内容
+CRD 出现变化时，自动处理变更（使用新的安装参数重新安装）</p>
+<h2 id="步骤-2">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir redis-operator &amp;&amp; cd redis-operator
+go mod init github.com/lyzhang1999/redis-operator
+operator-sdk init --domain aiops.com --plugins helm
+operator-sdk create api --group app --version v1 --kind Redis --helm-chart-repo
+https://charts.bitnami.com/bitnami --helm-chart redis
+报错，更新 helm 依赖：cd helm-charts/redis &amp;&amp; helm dependencies build
+返回根目录，重新创建 operator-sdk create api --group app --version v1 --kind Redis --helm-chart ./helmcharts/redis
+构建并推送镜像：make docker-build docker-push IMG=&quot;lyzhang1999/redis-operator:v0.0.1&quot;
+部署 Operator：make deploy IMG=&quot;lyzhang1999/redis-operator:v0.0.1&quot;
+部署 CRD：kubectl apply -f config/samples/app_v1_redis.yaml
+报错，解决 Service account 权限问题：kubectl create clusterrolebinding redis-operator-cluster-admin \
+	--serviceaccount=redis-operator-system:redis-operator-controller-manager \
+	--clusterrole=cluster-admin
+删除 Operator Pod，重新拉起后可见 Redis
+</code></pre>
+<h1 id="operator-sdk-olm">Operator SDK OLM</h1>
+<h2 id="operator-lifecycle-manager-olm">Operator Lifecycle Manager (OLM)</h2>
+<p>OLM 是用于管理 Operator 生命周期的工具
+可以实现将 Operator 整体打包，并生成软件部署清单（bundles）
+很容易安装、卸载、升级 Operator
+安装：operator-sdk olm install</p>
+<h2 id="olm-使用">OLM 使用</h2>
+<ul>
+<li>设置环境变量
+<ul>
+<li>export IMG=docker.io/lyzhang1999/redis-operator:v0.0.1 // 存储镜像的位置</li>
+<li>export BUNDLE_IMG=docker.io/lyzhang1999/redis-operator-bundle:v0.0.1 // 存储软件包的位置</li>
+</ul>
+</li>
+<li>创建软件包：make bundle
+<ul>
+<li>多平台构建可以用 docker buildx build --push --platform linux/amd64 --tag $IMG .</li>
+</ul>
+</li>
+<li>推送软件包：make bundle-build bundle-push</li>
+<li>验证软件包：operator-sdk bundle validate $BUNDLE_IMG</li>
+<li>安装 Operator（软件包的方式）：operator-sdk run bundle $BUNDLE_IMG</li>
+</ul>
+<h1 id="最佳实践">最佳实践</h1>
+<ul>
+<li>Reconcile 不应该关注具体事件（创建、更新、删除），更不应该针对不同事件使用不同逻辑
+<ul>
+<li>设计一个幂等的 Reconcile 是第一要素（事件无关）</li>
+</ul>
+</li>
+<li>幂等的 Reconcile
+<ul>
+<li>无论运行多少次，结果都是一样的，因为事件可能会被重复触发</li>
+</ul>
+</li>
+<li>简化 Reconcile 逻辑
+<ul>
+<li>只关注期望状态和当前状态 Diff，执行业务逻辑</li>
+</ul>
+</li>
+</ul>
+<h2 id="如何对-operator-进行端到端测试e2e">如何对 Operator 进行端到端测试(E2E)？</h2>
+<ul>
+<li>借助 envtest.Environment Mock 一个 K8s API Server</li>
+<li>安装 setup-event 配置 envtest：go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest</li>
+<li>运行：setup-envtest use 1.28
+<ul>
+<li>将输出 envtest 二进制文件的目录，例如
+<ul>
+<li>/Users/wangwei/Library/Application Support/io.kubebuilder.envtest/k8s/1.28.3-darwin-arm64</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>创建软连接
+<ul>
+<li>sudo mkdir /usr/local/kubebuilder</li>
+<li>sudo ln -s /path/to/kubebuilder-envtest/k8s/1.23.5-linux-amd64 /usr/local/kubebuilder/bin</li>
+</ul>
+</li>
+<li>编写 E2E 测试文件：module_8/application/test/e2e/cluster.go</li>
+<li>启动测试：make test-e2e</li>
+</ul>
+<h2 id="测试结果">测试结果</h2>
+<p>注意：envtest K8s 环境没有真实的控制器，不会有真实的工作负载
+仅用来测试 Operator CRD 的创建、Status 更新等逻辑</p>
+<h1 id="实战一开发-operator-1-调度-gpu-竞价实例资源池">实战一：开发 Operator 1 调度 GPU 竞价实例资源池</h1>
+<h2 id="竞价实例价格优势">竞价实例价格优势</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>GN7.2XLARGE32</th>
+<th>按量计费</th>
+<th>竞价实例（参考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8C32G, GPU T4-16G</td>
+<td>8.68/H</td>
+<td>1.736/H</td>
+</tr>
+<tr>
+<td>系统盘（50G 云盘）</td>
+<td>0.02</td>
+<td>0.02</td>
+</tr>
+<tr>
+<td>宽带（1Mbps 按宽带计费）</td>
+<td>0.06</td>
+<td>0.06</td>
+</tr>
+<tr>
+<td>收费合计</td>
+<td>8.76</td>
+<td>1.816（8 倍）</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="gpu-竞价实例">GPU 竞价实例</h2>
+<p>https://cloud.tencent.com/document/product/213/17816</p>
+<h2 id="维持-gpu-资源池">维持 GPU 资源池</h2>
+<h2 id="本地创建集群-1">本地创建集群</h2>
+<ul>
+<li>使用 Kind 创建本地集群</li>
+<li>https://kind.sigs.k8s.io/docs/user/quick-start/
+<ul>
+<li>kind create cluster</li>
+</ul>
+</li>
+<li>安装 kubebuilder：https://book.kubebuilder.io/quick-start#installation</li>
+</ul>
+<h2 id="crd-设计-3">CRD 设计</h2>
+<p>Group: devops.geektime.devopscamp.gk/v1
+Version: v1
+Kind: SpotPool
+通过 minimum 和 maximum 参数来维持资源池GPU 实例数量</p>
+<h2 id="技术细节">技术细节</h2>
+<ul>
+<li>接入腾讯云 SDK 实现创建竞价实例
+<ul>
+<li>https://cloud.tencent.com/document/sdk/Go</li>
+</ul>
+</li>
+<li>借助 Operator RequeueAfter 实现定时检查资源池实例数量是否满足预期</li>
+</ul>
+<h2 id="步骤-3">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir spotpool &amp;&amp; cd spotpool
+go mod init github.com/lyzhang1999/spotpool
+kubebuilder init --domain=devopscamp.gk
+kubebuilder create api --group devops.geektime --version v1 --kind Spotpool
+完善 spotpool/api/v1/spotpool_types.go
+	修改 SpotpoolSpec
+生成 CRD：make manifests，查看 config/crd/bases/devops.geektime.devopscamp.gk_spotpools.yaml 文件
+编写 internal/controller/spotpool_controller.go Reconcile 业务逻辑
+将 CRD 安装到集群：make install
+运行 Operator：make run
+编辑 sample 并部署：kubectl apply -f config/samples/devops.geektime_v1_spotpool.yaml
+</code></pre>
+<h1 id="实战二operator-实现大模型私有部署kong-api--多-gpu-负载均衡">实战二：Operator 实现大模型私有部署（Kong API + 多 GPU 负载均衡）</h1>
+<h2 id="ollama">Ollama</h2>
+<ul>
+<li>借助 Ollama 私有部署大模型</li>
+<li>/api/chat 接口兼容 OpenAI 数据结构</li>
+<li>单实例推理较慢，借助网关实现多 Ollama 实例负载均衡</li>
+<li>网关选型：Kong、Nginx 等</li>
+</ul>
+<h2 id="ollama-多实例负载均衡部署">Ollama 多实例负载均衡部署</h2>
+<h2 id="新-gpu-实例初始化问题">新 GPU 实例初始化问题</h2>
+<p>新实例初始化
+下载 Ollama 及其依赖
+下载模型
+启动 Ollama 服务：ollama serve
+使用自定义虚拟机镜像代替启动脚本初始化</p>
+<h2 id="ollama-自启动问题">Ollama 自启动问题</h2>
+<ul>
+<li>Service 方式部署，实现自启动</li>
+<li>创建 /etc/systemd/system/ollama.service</li>
+<li>启动服务
+<ul>
+<li>sudo systemctl daemon-reload</li>
+<li>sudo systemctl enable ollama</li>
+</ul>
+</li>
+<li>将配置好的虚拟机制作自定义镜像，拉起新的 GPU 实例时指定该镜像 ID 即可</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">[Unit] 
+Description=Ollama Service	#描述
+After=network-online.target	#依赖
+
+[Service]
+ExecStart=/usr/bin/ollama serve
+User=ollama
+Group=ollama
+Restart=always
+RestartSec=3
+Environment=&quot;PATH=$PATH&quot;
+
+[Install]
+WantedBy=default.target
+</code></pre>
+<h2 id="步骤制作-ollama-镜像">步骤：制作 Ollama 镜像</h2>
+<ul>
+<li>IaC 创建虚拟机</li>
+<li>执行 Shell 脚本安装 Ollama</li>
+<li>创建 Service，并启动</li>
+<li>预加载模型</li>
+<li>关机，制作自定义镜像，得到镜像 ID</li>
+</ul>
+<h2 id="步骤部署-kong-网关">步骤：部署 Kong 网关</h2>
+<ul>
+<li>IaC 创建虚拟机</li>
+<li>安装 Docker</li>
+<li>修改 Kong admin_listen 和 admin_gui_listen 配置，监听在 0.0.0.0 端口
+<ul>
+<li>kong/docker-compose/docker-compose.yaml</li>
+<li>暴露 API，便于 Operator 控制</li>
+</ul>
+</li>
+<li>以 Docker Compose 方式启动 Kong Gateway</li>
+</ul>
+<h2 id="构建-operator-步骤">构建 Operator 步骤</h2>
+<p>基于 demo_1 继续完善
+CRD 增加 kongGatewayIP，便于 Operator 请求 Kong API 控制动态负载均衡列表
+修改 Reconcile，实现 GPU 实例和 Kong 负载均衡同步</p>
+<h2 id="效果-1">效果</h2>
+<p>当请求 Kong 网关时，流量被转发到多台 GPU 实例进行推理
+实现大规模 LLM 私有部署和负载均衡</p>
+<h1 id="实战三开发基于-llm-的日志流监测-operator">实战三：开发基于 LLM 的日志流监测 Operator</h1>
+<h2 id="logpilotllm-日志流检测-operator">LogPilot：LLM 日志流检测 Operator</h2>
+<ul>
+<li>从 Loki 获取错误日志</li>
+<li>将日志发送至大模型并获取建议</li>
+<li>将严重的问题发送至飞书通知</li>
+</ul>
+<h2 id="crd-设计-4">CRD 设计</h2>
+<ul>
+<li>Group: log.aiops.com</li>
+<li>Version: v1</li>
+<li>Kind: LogPilot</li>
+<li>从指定的 Loki URL 获取日志</li>
+<li>将日志发送至指定的模型服务商（商业模型或自托管模型）</li>
+</ul>
+<h2 id="步骤-4">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir logpilot &amp;&amp; cd logpilot
+go mod init github.com/lyzhang1999/llm-log-operator
+kubebuilder init --domain=aiops.com
+kubebuilder create api --group log --version v1 --kind LogPilot
+修改：api/v1/logpilot_types.go LogPilotSpec
+修改：internal/controller/logpilot_controller.go 增加相关业务逻辑
+拉起 Prometheus Stack，获得 Loki IP
+修改 config/samples/log_v1_logpilot.yaml 并部署
+</code></pre>
+<h1 id="实战四利用-ragflow-实现基于运维专家知识库故障排查-operator">实战四：利用 RAGflow 实现基于运维专家知识库故障排查 Operator</h1>
+<h2 id="架构设计">架构设计</h2>
+<ul>
+<li>直接获取 Pod 日志</li>
+<li>将日志发送至 RagFlow 基于内部运维专家知识库获取解决方案</li>
+<li>将消息发送至飞书</li>
+</ul>
+<h2 id="crd-设计-5">CRD 设计</h2>
+<p>Group: log.aiops.com
+Version: v1
+Kind: RagLogPilot
+获取命名空间下所有 Pod 的日志
+将日志发送至 RagFlow API 获取解决方案</p>
+<h2 id="ragflow-核心-api">RagFlow 核心 API</h2>
+<ul>
+<li>创建对话
+<ul>
+<li>GET /api/new_conversation?user_id=xxx</li>
+<li>data.id = conversation_id</li>
+</ul>
+</li>
+<li>基于运维知识库获取回复
+<ul>
+<li>POST /api/completion</li>
+<li>conversation_id、messages、stream=false</li>
+<li>回复：data.answer</li>
+</ul>
+</li>
+</ul>
+<h2 id="步骤-5">步骤</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-bash">mkdir raglogpilot &amp;&amp; cd raglogpilot
+go mod init github.com/lyzhang1999/rag-log-operator
+kubebuilder init --domain=aiops.com
+kubebuilder create api --group log --version v1 --kind RagLogPilot
+修改：api/v1/raglogpilot_types.go RagLogPilotSpec
+修改：internal/controller/raglogpilot_controller.go 增加相关业务逻辑
+拉起 RagFlow 并创建内部运维知识库
+修改 config/samples/log_v1_raglogpilot.yaml 并部署
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

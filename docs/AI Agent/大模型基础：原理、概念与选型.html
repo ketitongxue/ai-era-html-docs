@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大模型基础：原理、概念与选型</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+
+.breadcrumb { display:inline-block;margin-bottom:12px;font-size:14px; }
+.article-meta { color:#536378;font-size:13px;margin:4px 0; }
+.toc { background:#f0f4f8;border:1px solid #ccd6e3;border-radius:8px;padding:16px 20px;margin:24px 0; }
+.toc summary { font-weight:600;cursor:pointer; }
+.toc ol { margin-bottom:0; }
+@media print { .breadcrumb,.toc { display:none; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<article>
+<a class="breadcrumb" href="../../index.html">← 返回知识目录</a>
+<p class="article-meta">AI Agent · 基础参考 · 整理于 2026-09-22</p>
+<h1 id="大模型基础原理概念与选型">大模型基础：原理、概念与选型</h1>
+<nav class="toc" aria-label="本文目录"><details open><summary>本文目录</summary><ol><li><a href="#从人工智能到大模型几种概念的关系">从人工智能到大模型：几种概念的关系</a></li><li><a href="#token向量和参数分别是什么">Token、向量和参数分别是什么</a></li><li><a href="#预训练根据前缀学习下一项的分布">预训练：根据前缀学习下一项的分布</a></li><li><a href="#注意力qkv-如何组织上下文">注意力：Q、K、V 如何组织上下文</a></li><li><a href="#生成kv-cache-与上下文窗口">生成、KV Cache 与上下文窗口</a></li><li><a href="#sft偏好训练与推理能力">SFT、偏好训练与推理能力</a></li><li><a href="#参数规模moe-与部署预算">参数规模、MoE 与部署预算</a></li><li><a href="#模型选型用一张可复查的决策表">模型选型：用一张可复查的决策表</a></li><li><a href="#与知识库其他文章的分工">与知识库其他文章的分工</a></li><li><a href="#来源与整理说明">来源与整理说明</a></li></ol></details></nav>
+<p>应用开发者需要理解模型怎样处理信息，以及这些机制会给工程带来什么限制。本文将《大模型应用开发基础》第 01—04 课合并为一份基础参考：发展脉络只讲一次，原理与术语放在同一条解释链上，选型保留可复用的方法。具体型号、价格和产品能力应在采用时核对，不把原稿中的时点对比表作为当前事实。</p>
+<h2 id="从人工智能到大模型几种概念的关系">从人工智能到大模型：几种概念的关系</h2>
+<p>人工智能是一个宽泛领域，机器学习是其中一类从数据学习规律的方法，深度学习又是机器学习的一类方法。它们不是每隔几年就彻底替换上一代的产品版本。规则系统、传统统计模型、神经网络仍可在同一个应用中协作。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>主要做法</th>
+<th>应用开发时的直觉</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>规则系统</td>
+<td>人明确编写条件和动作</td>
+<td>已知规则必须稳定执行时，代码常比生成更合适</td>
+</tr>
+<tr>
+<td>机器学习</td>
+<td>从样本中学习映射或分布</td>
+<td>垃圾邮件分类可从有标签邮件学习；机器学习也包含无监督和强化学习</td>
+</tr>
+<tr>
+<td>深度学习</td>
+<td>用多层神经网络学习表示</td>
+<td>减少部分手工特征设计，不代表无需清洗数据或设计任务</td>
+</tr>
+<tr>
+<td>生成式 AI</td>
+<td>学习分布并生成文本、图像、音频等内容</td>
+<td>生成与分类是任务差异，不能把所有深度学习等同于分类</td>
+</tr>
+<tr>
+<td>大语言模型</td>
+<td>主要围绕语言进行训练和生成</td>
+<td>同一个模型可处理多个任务，能力仍需按业务验证</td>
+</tr>
+<tr>
+<td>多模态模型</td>
+<td>处理一种以上的信息形式</td>
+<td>支持图像输入，不自动意味着支持图像输出</td>
+</tr>
+<tr>
+<td>Agent 应用</td>
+<td>让模型参与下一步动作选择，由运行时执行和验证</td>
+<td>模型、工具、状态和控制逻辑共同决定实际效果</td>
+</tr>
+</tbody>
+</table></div>
+<p>2017 年的 Transformer 论文是理解现代语言模型的重要起点。它以注意力机制组织序列计算；今天的应用不必实现训练算法，也应知道“训练学到的参数”和“本次请求提供的信息”承担不同职责。<a href="https://arxiv.org/abs/1706.03762">Transformer 原始论文</a></p>
+<p>课程中的产品案例用于说明从对话走向工具执行的变化，不构成完整的发展史。Agent 的循环、停止条件和工具边界已在<a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%87%AA%E6%A3%80.html">系统设计总览</a>与<a href="Agent%20%E6%89%A7%E8%A1%8C%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9.html">执行循环</a>展开，这里不再重复。</p>
+<h2 id="token向量和参数分别是什么">Token、向量和参数分别是什么</h2>
+<p><strong>Token 是分词器输出的离散单位，Token ID 是它在词表中的编号。</strong> 它可能对应一个词、子词、字符或字节片段，不能把“一个字”直接等同于“一个 Token”。BPE 是常见分词方法之一，但并非所有分词器都使用同一种算法；字节级 BPE 也只是其中一种实现。<a href="https://huggingface.co/learn/llm-course/en/chapter6/5">Hugging Face 分词教程</a></p>
+<p>同一段中文在不同分词器下长度可能不同。字符数估算只适合粗略预算；要防止请求超长，应使用目标模型的计数工具或服务端用量反馈，并计入消息格式、工具定义和多模态输入。不要依据一个“每字几 Token”的固定常数安排生产容量。</p>
+<p><strong>向量是连续数值表示。</strong> 语言模型通常先把 Token ID 映射为向量，再加入位置信息并逐层计算。向量的单个维度一般不能直接解释成某个明确含义。检索中的文本 Embedding 则把一段文本映射到可比较的表示，两者相关，却不能把语言模型的内部词向量直接当作现成的检索服务；检索选型见<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计与分块</a>。</p>
+<p><strong>参数是训练过程中调整的数值。</strong> 模型在普通推理时利用这些参数计算结果；本次对话提供新资料，通常是在改变输入上下文，并没有因此训练出一套新权重。</p>
+<p>下面用教学词表说明两次转换，不代表任何真实模型的分词结果：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">文本：我 爱 吃 苹果
+Token ID：[0, 2, 4, 5]
+表示：每个 ID 查表得到一个向量，再进入网络计算
+
+词表：[我, 你, 爱, 恨, 吃, 苹果, 米饭, 苦瓜, &lt;END&gt;]
+</code></pre>
+<h2 id="预训练根据前缀学习下一项的分布">预训练：根据前缀学习下一项的分布</h2>
+<p>以自回归语言模型为例，训练样本可从文本构造：给前缀，预测接下来的 Token。以“我 爱 吃 苹果”为例，前缀“我 爱 吃”的目标是“苹果”。模型为词表中的候选给出概率，损失函数惩罚目标项概率过低的情况。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">单个位置的交叉熵：loss = -ln P(目标 Token | 前缀)
+若目标概率为 0.10，loss ≈ 2.303
+若目标概率为 0.90，loss ≈ 0.105
+</code></pre>
+<p>这些数值只解释损失的方向。真实训练会聚合大量位置和样本，使用梯度更新参数，同时在未参与训练的数据上检查泛化。目标不是保证“所有下一词都猜对”，也不是把训练集损失压到零就完成了学习。</p>
+<p>参数可以学习语言和事实的统计规律，也可能记住某些训练片段，但这不等于一个能按来源和版本查询的数据库。需要最新制度、客户权限或准确引用时，应从外部系统取证。文本生成看起来流畅，并不能证明事实正确。</p>
+<h2 id="注意力qkv-如何组织上下文">注意力：Q、K、V 如何组织上下文</h2>
+<p>在一个简化的注意力层中，输入表示通过三个学习到的投影得到 Q、K、V。Q 与 K 的匹配分数经过缩放、掩码和归一化，形成权重，再对 V 加权求和。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">Q = XWq，K = XWk，V = XWv
+Attention(Q, K, V) = softmax(QKᵀ / √d_k + mask) V
+</code></pre>
+<p>其中 d_k 表示每个注意力头中 Q、K 的向量维度。可以把 Q 理解为“当前需要什么信息”，K 为“各位置怎样被匹配”，V 为“被汇总的信息”；这是帮助理解的类比，网络中并没有写着这些中文标签。因果语言模型会用掩码阻止当前位置看到尚未生成的未来 Token。结果是新的隐藏表示，不是把某个词原来的 V 直接改写成答案。<a href="https://arxiv.org/html/1706.03762v7">注意力公式与因果掩码</a></p>
+<p>注意力参与训练和推理；区别在于普通推理通常不更新权重。注意力权重也不是事实证据、完整推理轨迹或权限判断，不能用它替代引用与校验。</p>
+<h2 id="生成kv-cache-与上下文窗口">生成、KV Cache 与上下文窗口</h2>
+<p>生成时，模型根据当前输入和已生成内容计算下一个 Token 的分布；解码策略选择下一项，直到结束标记、长度限制或外部停止条件触发。温度、Top P 和最大输出长度如何影响调用，集中在<a href="Agent%20%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%EF%BC%9A%E6%8E%A5%E5%8F%A3%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%8F%AF%E9%9D%A0%E6%80%A7.html">模型调用</a>中说明。</p>
+<p>KV Cache 保存已处理位置的 Key、Value，生成后续 Token 时复用它们，避免每步重算整段历史的这部分表示。对标准稠密注意力，可区分初始上下文处理（prefill）与逐 Token 生成（decode）；不能把“单个新 Token 对已有前缀做注意力”一概说成每步都重新完成整段平方规模计算。更长的上下文仍会增加缓存容量和访问成本。<a href="https://huggingface.co/docs/transformers/en/cache_explanation">Transformers 缓存说明</a></p>
+<p><strong>上下文窗口是本次调用可使用的信息容量限制，不等于长期记忆。</strong> 输入、预留输出、推理 Token 和工具消息如何计入限制，要以目标接口为准。有些 API 提供服务端会话状态，有些由调用方每次传入历史；无论保存在哪一端，应用仍要控制保留内容、权限和预算。</p>
+<p>工程上可先按下面的关系留出空间，再用实际响应校准：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">可装配输入预算 ≈ 目标上下文上限 - 预留输出 - 协议及工具开销 - 安全余量
+</code></pre>
+<p>“可装下”与“能可靠利用”是两回事。长上下文研究曾发现证据位置会影响结果；这不是所有新模型在所有任务中的固定规律，而是提醒我们用真实任务检验不同长度与证据位置。仅能找回一句“针”，也不能证明多文档推理正确。<a href="https://arxiv.org/abs/2307.03172">Lost in the Middle</a></p>
+<p>截断、摘要、事实保留和历史召回的取舍，统一见<a href="Agent%20%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E6%8E%92%E4%B8%8E%E8%AE%B0%E5%BF%86%E5%8F%AC%E5%9B%9E.html">上下文编排与记忆召回</a>。</p>
+<h2 id="sft偏好训练与推理能力">SFT、偏好训练与推理能力</h2>
+<p>预训练学到的续写能力可以通过后训练更好地服务于指令任务。SFT 使用期望回答的示范数据训练模型；经典 RLHF 流程先收集回答偏好，训练奖励模型，再用强化学习优化生成策略。它们是常见做法，不代表所有模型都必须使用同一条管线，也不保证消除错误。<a href="https://arxiv.org/abs/2203.02155">InstructGPT 论文</a></p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>阶段或机制</th>
+<th>主要改变</th>
+<th>不应推导出的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>预训练</td>
+<td>从大量数据学习表示与预测规律</td>
+<td>训练语料出现过的事实都能准确回答</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>学习任务示范与回答方式</td>
+<td>会按格式回答就一定事实正确</td>
+</tr>
+<tr>
+<td>偏好训练</td>
+<td>按偏好或奖励信号优化行为</td>
+<td>奖励高等于满足所有用户目标</td>
+</tr>
+<tr>
+<td>推理时计算</td>
+<td>在回答前或过程中投入更多计算</td>
+<td>花更长时间就一定得到更好答案</td>
+</tr>
+</tbody>
+</table></div>
+<p>界面显示的“思考”可能是解释、摘要或部分中间结果，不能直接当作完整内部计算记录，也不能把“展示思维链”作为推理模型的定义。应用应检查最终结果和可验证的中间产物，例如数学计算、代码测试、证据引用。</p>
+<p>以“9.11 与 9.9 哪个大”为教学例子，先确定比较的是十进制数还是版本号；十进制数可交给确定性计算，版本号按版本规则比较。任务含义不明确时，多花推理预算不能替代澄清。模型选择应在业务样本上比较质量、成本与延迟，而非一律启用最高计算档位。</p>
+<p>知识截止日期只是供应商对模型知识范围的说明，不是“此前全都知道、此后一概不知道”的分界线。新资料可通过上下文、检索或工具提供；模型自报的版本与截止日期也不能替代部署配置和官方说明。</p>
+<h2 id="参数规模moe-与部署预算">参数规模、MoE 与部署预算</h2>
+<p>参数量中的 B 表示十亿。按每个权重 2 字节的简化条件，7B 权重约为 14 GB、32B 约为 64 GB。<strong>这只是权重存储估算，不是完整部署显存需求。</strong> KV Cache、激活、运行时工作区、量化元数据、并发和通信都会增加或改变开销。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">权重存储粗估 = 参数数量 × 每个权重的存储字节数
+</code></pre>
+<p>MoE 用路由机制让每个 Token 只经过部分专家。总参数量与存储相关，激活参数量可帮助估计部分计算量，但不能单独决定质量或速度；路由、共享层、访存和跨设备通信同样重要。未激活的专家也未必能从部署预算中简单扣掉。<a href="https://huggingface.co/blog/moe">MoE 机制说明</a></p>
+<p>如果只调用托管 API，更直接的指标是业务质量、真实端到端延迟、并发配额和单次成功任务成本。参数量可以帮助理解模型结构，却不能代替这些测量。</p>
+<h2 id="模型选型用一张可复查的决策表">模型选型：用一张可复查的决策表</h2>
+<p>原稿的型号与价格表只反映原稿声称的时点。本次整理不沿用未经逐项验证的“最新、最强、统一价格”等结论，改用下列记录表。每次评估记录具体模型 ID、接口、地域、日期和所用数据集版本。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>必须核对的内容</th>
+<th>验证方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务质量</td>
+<td>抽取、问答、工具选择、复杂推理分别表现如何</td>
+<td>固定业务样本和评分标准，按任务类别比较</td>
+</tr>
+<tr>
+<td>输入与输出模态</td>
+<td>图片、音频、视频、文件分别能接收或生成什么</td>
+<td>用实际端点提交代表性样本，检查返回格式</td>
+</tr>
+<tr>
+<td>有效上下文</td>
+<td>最大输入、最大输出、证据位置、跨文档关联</td>
+<td>长度分桶，加入冲突和多证据样本</td>
+</tr>
+<tr>
+<td>接口能力</td>
+<td>结构化输出、工具调用、流式、批处理是否兼容</td>
+<td>检查具体模型与端点组合，执行小规模验证</td>
+</tr>
+<tr>
+<td>版本管理</td>
+<td>别名是否移动、是否有快照、何时停服</td>
+<td>保存变更记录，升级先回归，再逐步切流</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>配额、超时、重试、服务稳定性</td>
+<td>观察首 Token、总耗时和成功率的分布</td>
+</tr>
+<tr>
+<td>总成本</td>
+<td>输入、输出、缓存、工具、失败重试、离线索引</td>
+<td>统计每个成功业务任务的完整调用链</td>
+</tr>
+<tr>
+<td>部署与数据</td>
+<td>数据去向、保留方式、许可、网络及运维条件</td>
+<td>检查所选产品配置与协议，按实际负载压测</td>
+</tr>
+</tbody>
+</table></div>
+<p>多模态需求要拆成能力矩阵。例如售后助手要读零件照片、接收语音并生成标注图，需分别检查图像理解、语音输入和图像输出；可以由一个或多个模型实现，不能根据“原生多模态”宣传语断定整条链路都可用。</p>
+<p>别名可能随供应商策略变化，快照也可能停服。供应商提供可固定版本时，可固定版本并安排升级回归；无法固定时记录响应中的实际版本信息、监测行为变化。回滚依赖旧版本仍可调用，不能把它当作永久保证。</p>
+<p>下面仅为成本核算的假设练习，单位和价格均为教学输入，非任何厂商报价：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">输入 2,000 Token，假设单价 2 元 / 百万 Token
+输出   500 Token，假设单价 8 元 / 百万 Token
+本次模型成本 = 2,000 / 1,000,000 × 2 + 500 / 1,000,000 × 8
+             = 0.008 元
+若失败后完整重试一次，且两次均按上述用量计费，则累计 0.016 元
+</code></pre>
+<p>有缓存、阶梯价、推理计费或工具收费时，按真实账单拆分，避免把已包含的推理 Token 重复加算。上线决策可比较“每个成功任务的成本”，并同时报告失败率，防止少做工作看起来反而便宜。</p>
+<p>部署可在供应商 API、第三方托管和自建之间选择。开放权重不自动等于公开完整训练数据、任意用途许可或低运行成本；每个模型都需单独核对。自建需要评估硬件、利用率、运维、版本升级和高可用，不能只比较一次购卡价格与一次 API 单价。</p>
+<h2 id="与知识库其他文章的分工">与知识库其他文章的分工</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>
+<thead>
+<tr>
+<th>接下来要解决的问题</th>
+<th>对应文章</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接入模型、流式展示、超时与重试</td>
+<td><a href="Agent%20%E6%A8%A1%E5%9E%8B%E8%B0%83%E7%94%A8%EF%BC%9A%E6%8E%A5%E5%8F%A3%E3%80%81%E6%B5%81%E5%BC%8F%E4%B8%8E%E5%8F%AF%E9%9D%A0%E6%80%A7.html">模型调用：接口、流式与可靠性</a></td>
+</tr>
+<tr>
+<td>组织规则、示例、模板与版本</td>
+<td><a href="Agent%20%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%AE%BE%E8%AE%A1%E4%B8%8E%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86.html">提示词设计与版本管理</a></td>
+</tr>
+<tr>
+<td>让输出进入业务程序</td>
+<td><a href="Agent%20%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C.html">结构化输出与数据校验</a></td>
+</tr>
+<tr>
+<td>让模型使用有来源的外部资料</td>
+<td><a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计：数据组织与分块</a></td>
+</tr>
+<tr>
+<td>设计 Agent 的运行与验证机制</td>
+<td><a href="Agent%20%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E4%B8%8E%E9%A1%B9%E7%9B%AE%E8%87%AA%E6%A3%80.html">系统设计：核心环节与项目自检</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="来源与整理说明">来源与整理说明</h2>
+<p>本篇依据本地保存的 CodeCrush《大模型应用开发基础》四篇笔记重组，合并重复的模型／应用／Agent 定义，保留教学例子并修正过度简化的推理复杂度、分词、MoE 与选型表述。文中概算和任务案例均为教学示意，不是训练实验或生产基准。</p>
+<ul>
+<li><a href="https://www.codecrush.cn/lesson/355716679931527168">01 · 人工智能到大模型发展历史</a></li>
+<li><a href="https://www.codecrush.cn/lesson/355866857414066176">02 · 大模型中的一些常识概念</a></li>
+<li><a href="https://www.codecrush.cn/lesson/355867586795143168">03 · 你需要了解的大模型原理</a></li>
+<li><a href="https://www.codecrush.cn/lesson/355867913925689344">04 · 市面常见模型的介绍和对比</a></li>
+</ul>
+<p>整理日期：2026-09-22。原稿中的产品发布故事、规模猜测与未重新核验的报价未作为本文结论保留；原始笔记另行保存，便于回溯。</p>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

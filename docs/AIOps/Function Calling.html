@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Function Calling</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../index.html#aiops">返回知识库 · AIOps</a></nav>
+<article>
+<h1 id="function-calling">Function Calling</h1>
+<h1 id="概述">概述</h1>
+<p><code>functions</code> 是 Chat Completion API 中的可选参数，用于提供函数定义。其目的是使 GPT 模型能够生成符合所提供定义的函数参数。请注意，API不会实际执行任何函数调用。开发人员需要使用GPT 模型输出来执行函数调用。</p>
+<p>如果提供了<code>functions</code>参数，默认情况下，GPT 模型将决定在何时适当地使用其中一个函数。</p>
+<p>可以通过将<code>function_call</code>参数设置为<code>{&quot;name&quot;: &quot;&lt;insert-function-name&gt;&quot;}</code>来强制 API 使用指定函数。</p>
+<p>同时，也支持通过将<code>function_call</code>参数设置为<code>&quot;none&quot;</code>来强制API不使用任何函数。</p>
+<p>如果使用了某个函数，则响应中的输出将包含<code>&quot;finish_reason&quot;: &quot;function_call&quot;</code>，以及一个具有该函数名称和生成的函数参数的<code>function_call</code>对象。</p>
+<h1 id="核心代码">核心代码</h1>
+<p><img src="../../assets/aiops/Uly4bDPIZo6gV1xxI3ict5r1nvc.png" alt=""></p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">tools = [
+    {
+        &quot;type&quot;: &quot;function&quot;,
+        &quot;function&quot;: {
+            &quot;name&quot;: &quot;analyze_loki_log&quot;,
+            &quot;description&quot;: &quot;从 Loki 获取日志&quot;,
+            &quot;parameters&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {
+                    &quot;query_str&quot;: {
+                        &quot;type&quot;: &quot;string&quot;,
+                        &quot;description&quot;: 'Loki 查询字符串，例如：{app=&quot;grafana&quot;} |= &quot;Error&quot;',
+                    },
+                },
+            },
+            &quot;required&quot;: [&quot;query_str&quot;],
+        },
+    }
+]
+
+response = client.chat.completions.create(
+    model=&quot;gpt-4o&quot;,
+    messages=messages,
+    tools=tools,
+    tool_choice=&quot;auto&quot;,
+)
+</code></pre>
+<p>作用：</p>
+<ul>
+<li>ChatGPT 选择合适函数来完成任务</li>
+<li>从语义解析函数所需的参数</li>
+<li>实现大模型和程序的连接</li>
+</ul>
+<p>入参： Tools 列表（函数）、功能描述、函数入参</p>
+<p>Tools 列表（函数）、功能描述、函数入参</p>
+<p>使用场景： 任何需要通过和外部系统交互的功能 ChatOps</p>
+<ul>
+<li>任何需要通过和外部系统交互的功能</li>
+<li>ChatOps</li>
+</ul>
+<p>扩展时只需要扩展 function List</p>
+<h1 id="示例-1">示例 1</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">pip install openai
+</code></pre>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Python">from openai import OpenAI
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+chatgpt_api_key = os.getenv('CHATGPT_API_KEY')
+
+client = OpenAI(
+    api_key = chatgpt_api_key,
+)
+
+query = &quot;查看 app=grafana 且关键字包含 Error 的日志&quot;
+
+messages = [
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;content&quot;: &quot;你是一个 Loki 日志分析助手，你可以帮助用户分析 Loki 日志，你可以调用多个函数来帮助用户完成任务，并最终尝试分析错误产生的原因&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: query,
+    },
+]
+tools = [
+    {
+        &quot;type&quot;: &quot;function&quot;,
+        &quot;function&quot;: {
+            &quot;name&quot;: &quot;analyze_loki_log&quot;,
+            &quot;description&quot;: &quot;从 Loki 获取日志&quot;,
+            &quot;parameters&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {
+                    &quot;query_str&quot;: {
+                        &quot;type&quot;: &quot;string&quot;,
+                        &quot;description&quot;: 'Loki 查询字符串，例如：{app=&quot;grafana&quot;} |= &quot;Error&quot;',
+                    },
+                },
+                &quot;required&quot;: [&quot;query_str&quot;],
+            },
+        },
+    }
+    # 如果有多个 tools，可以继续定义
+]
+
+response = client.chat.completions.create(
+    model=&quot;gpt-4o&quot;,
+    messages=messages,
+    tools=tools,
+    tool_choice=&quot;auto&quot;,
+)
+response_message = response.choices[0].message
+tool_calls = response_message.tool_calls
+
+print(&quot;\nChatGPT want to call function: &quot;, tool_calls)
+</code></pre>
+<h1 id="示例-2">示例 2</h1>
+<p>查询天气</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from dotenv import load_dotenv
+from openai import OpenAI
+import os
+from tenacity import retry, wait_random_exponential, stop_after_attempt
+
+# 加载环境变量
+load_dotenv()
+chatgpt_api_key = os.getenv('CHATGPT_API_KEY')
+
+client = OpenAI(
+    api_key=chatgpt_api_key
+)
+
+# 定义一个空列表messages，用于存储聊天的内容
+messages = []
+
+# 使用append方法向messages列表添加一条系统角色的消息
+messages.append({
+    &quot;role&quot;: &quot;system&quot;,  # 消息的角色是&quot;system&quot;
+    &quot;content&quot;: &quot;Don't make assumptions about what values to plug into functions. Ask for clarification if a user request is ambiguous.&quot;  # 消息的内容
+})
+
+# 向messages列表添加一条用户角色的消息,演示无法调用，生成提示信息
+# messages.append({
+#     &quot;role&quot;: &quot;user&quot;,  # 消息的角色是&quot;user&quot;
+#     &quot;content&quot;: &quot;What's the weather like today&quot;  # 用户询问今天的天气情况
+# })
+
+# 正常调用工具
+# messages.append({
+#     &quot;role&quot;: &quot;user&quot;,  # 消息的角色是&quot;user&quot;
+#     &quot;content&quot;: &quot;what is the weather going to be like in Shanghai today&quot;
+# })
+
+# 测试第二个工具的调用
+messages.append({
+    &quot;role&quot;: &quot;user&quot;,  # 消息的角色是&quot;user&quot;
+    &quot;content&quot;: &quot;what is the weather going to be like in Shanghai, China over the next 5 days&quot;
+})
+
+# 定义一个名为functions的列表，其中包含两个字典，这两个字典分别定义了两个功能的相关参数
+# 第一个字典定义了一个名为&quot;get_current_weather&quot;的功能
+tools = [
+    {
+        &quot;type&quot; : &quot;function&quot;,
+        &quot;function&quot; : {
+            &quot;name&quot;: &quot;get_current_weather&quot;,  # 功能的名称
+            &quot;description&quot;: &quot;Get the current weather&quot;,  # 功能的描述
+            &quot;parameters&quot;: {  # 定义该功能需要的参数
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {  # 参数的属性
+                    &quot;location&quot;: {  # 地点参数
+                        &quot;type&quot;: &quot;string&quot;,  # 参数类型为字符串
+                        &quot;description&quot;: &quot;The city and state, e.g. San Francisco, CA&quot;,  # 参数的描述
+                    },
+                    &quot;format&quot;: {  # 温度单位参数
+                        &quot;type&quot;: &quot;string&quot;,  # 参数类型为字符串
+                        &quot;enum&quot;: [&quot;celsius&quot;, &quot;fahrenheit&quot;],  # 参数的取值范围
+                        &quot;description&quot;: &quot;The temperature unit to use. Infer this from the users location.&quot;,  # 参数的描述
+                    },
+                },
+                &quot;required&quot;: [&quot;location&quot;, &quot;format&quot;],  # 该功能需要的必要参数
+            },
+        }
+    },
+    # 第二个字典定义了一个名为&quot;get_n_day_weather_forecast&quot;的功能
+    {
+        &quot;type&quot; : &quot;function&quot;,
+        &quot;function&quot; : {
+            &quot;name&quot;: &quot;get_n_day_weather_forecast&quot;,  # 功能的名称
+            &quot;description&quot;: &quot;Get an N-day weather forecast&quot;,  # 功能的描述
+            &quot;parameters&quot;: {  # 定义该功能需要的参数
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {  # 参数的属性
+                    &quot;location&quot;: {  # 地点参数
+                        &quot;type&quot;: &quot;string&quot;,  # 参数类型为字符串
+                        &quot;description&quot;: &quot;The city and state, e.g. San Francisco, CA&quot;,  # 参数的描述
+                    },
+                    &quot;format&quot;: {  # 温度单位参数
+                        &quot;type&quot;: &quot;string&quot;,  # 参数类型为字符串
+                        &quot;enum&quot;: [&quot;celsius&quot;, &quot;fahrenheit&quot;],  # 参数的取值范围
+                        &quot;description&quot;: &quot;The temperature unit to use. Infer this from the users location.&quot;,  # 参数的描述
+                    },
+                    &quot;num_days&quot;: {  # 预测天数参数
+                        &quot;type&quot;: &quot;integer&quot;,  # 参数类型为整数
+                        &quot;description&quot;: &quot;The number of days to forecast&quot;,  # 参数的描述
+                    }
+                },
+                &quot;required&quot;: [&quot;location&quot;, &quot;format&quot;, &quot;num_days&quot;]  # 该功能需要的必要参数
+            },
+        }
+        
+    },
+]
+
+response = client.chat.completions.create(
+    model=&quot;gpt-4o&quot;,
+    messages=messages,
+    tools=tools,
+    tool_choice=&quot;auto&quot;,
+)
+
+response_message = response.choices[0].message
+
+if response_message.content == None:
+    tool_calls = response_message.tool_calls
+    print(&quot;\nChatGPT want to call function: &quot;, tool_calls)
+    for tool_call in tool_calls:
+        print(f&quot;return function name:{tool_call.function.name},return function arguments:{tool_call.function.arguments}&quot;)
+else:
+    print(f&quot;response_message:{response_message.content}&quot;)
+</code></pre>
+<h1 id="示例-3-如何实际执行一个function">示例 3 如何实际执行一个function</h1>
+<p>test_sqlite.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">import sqlite3
+
+conn = sqlite3.connect(&quot;/Users/keti/Documents/aiops/aiops_Learning/functioncalling/data/chinook.db&quot;)
+# print(&quot;Opened database successfully&quot;)
+
+def get_table_names(conn):
+    &quot;&quot;&quot;返回一个包含所有表名的列表&quot;&quot;&quot;
+    table_names = []  # 创建一个空的表名列表
+    # 执行SQL查询，获取数据库中所有表的名字
+    tables = conn.execute(&quot;SELECT name FROM sqlite_master WHERE type='table';&quot;)
+    # 遍历查询结果，并将每个表名添加到列表中
+    for table in tables.fetchall():
+        table_names.append(table[0])
+    return table_names  # 返回表名列表
+
+def get_column_names(conn, table_name):
+    &quot;&quot;&quot;返回一个给定表的所有列名的列表&quot;&quot;&quot;
+    column_names = []  # 创建一个空的列名列表
+    # 执行SQL查询，获取表的所有列的信息
+    columns = conn.execute(f&quot;PRAGMA table_info('{table_name}');&quot;).fetchall()
+    # 遍历查询结果，并将每个列名添加到列表中
+    for col in columns:
+        column_names.append(col[1])
+    return column_names  # 返回列名列表
+
+def get_database_info(conn):
+    &quot;&quot;&quot;返回一个字典列表，每个字典包含一个表的名字和列信息&quot;&quot;&quot;
+    table_dicts = []  # 创建一个空的字典列表
+    # 遍历数据库中的所有表
+    for table_name in get_table_names(conn):
+        columns_names = get_column_names(conn, table_name)  # 获取当前表的所有列名
+        # 将表名和列名信息作为一个字典添加到列表中
+        table_dicts.append({&quot;table_name&quot;: table_name, &quot;column_names&quot;: columns_names})
+    return table_dicts  # 返回字典列表
+
+# 获取数据库信息，并存储为字典列表
+database_schema_dict = get_database_info(conn)
+
+# 将数据库信息转换为字符串格式，方便后续使用
+database_schema_string = &quot;\n&quot;.join(
+    [
+        f&quot;Table: {table['table_name']}\nColumns: {', '.join(table['column_names'])}&quot;
+        for table in database_schema_dict
+    ]
+)
+
+# print(database_schema_string)
+</code></pre>
+<p>sql.py</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-python">from dotenv import load_dotenv
+from openai import OpenAI
+import os
+from tenacity import retry, wait_random_exponential, stop_after_attempt
+import sqlite3
+import test_sqlite
+import json
+
+# 加载环境变量
+load_dotenv()
+chatgpt_api_key = os.getenv('CHATGPT_API_KEY')
+
+client = OpenAI(
+    api_key=chatgpt_api_key
+)
+
+# 定义一个空列表messages，用于存储聊天的内容
+messages = []
+
+# 使用append方法向messages列表添加一条系统角色的消息
+messages.append(
+    {
+        &quot;role&quot;: &quot;system&quot;, 
+        &quot;content&quot;: &quot;Answer user questions by generating SQL queries against the Chinook Music Database.&quot;
+    }
+)
+
+messages.append(
+    {
+        &quot;role&quot;: &quot;user&quot;, 
+        &quot;content&quot;: &quot;Hi, who are the top 5 artists by number of tracks?&quot;
+    }
+)
+
+# 获取数据库信息，并存储为字典列表
+conn = sqlite3.connect(&quot;/Users/keti/Documents/aiops/aiops_Learning/functioncalling/data/chinook.db&quot;)
+database_schema_dict = test_sqlite.get_database_info(conn)
+
+# 将数据库信息转换为字符串格式，方便后续使用
+database_schema_string = &quot;\n&quot;.join(
+    [
+        f&quot;Table: {table['table_name']}\nColumns: {', '.join(table['column_names'])}&quot;
+        for table in database_schema_dict
+    ]
+)
+
+tools = [
+    {
+        &quot;type&quot; : &quot;function&quot;,
+        &quot;function&quot; : {
+            &quot;name&quot;: &quot;ask_database&quot;,
+            &quot;description&quot;: &quot;Use this function to answer user questions about music. Output should be a fully formed SQL query.&quot;,
+            &quot;parameters&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {
+                    &quot;query&quot;: {
+                        &quot;type&quot;: &quot;string&quot;,
+                        &quot;description&quot;: f&quot;&quot;&quot;
+                            SQL query extracting info to answer the user's question.
+                            SQL should be written using this database schema:
+                            {database_schema_string}
+                            The query should be returned in plain text, not in JSON.
+                            &quot;&quot;&quot;,
+                    }
+                }
+            }
+        }
+    }
+]
+
+def ask_database(conn, query):
+    &quot;&quot;&quot;使用 query 来查询 SQLite 数据库的函数。&quot;&quot;&quot;
+    try:
+        results = str(conn.execute(query).fetchall())  # 执行查询，并将结果转换为字符串
+    except Exception as e:  # 如果查询失败，捕获异常并返回错误信息
+        results = f&quot;query failed with error: {e}&quot;
+    return results  # 返回查询结果
+
+def execute_function_call(message):
+    &quot;&quot;&quot;执行函数调用&quot;&quot;&quot;
+    # 判断功能调用的名称是否为 &quot;ask_database&quot;
+    if tool_call.function.name == &quot;ask_database&quot;:
+        # 如果是，则获取功能调用的参数，这里是 SQL 查询
+        query = json.loads(message.function.arguments)[&quot;query&quot;]
+        # 使用 ask_database 函数执行查询，并获取结果
+        results = ask_database(conn, query)
+    else:
+        # 如果功能调用的名称不是 &quot;ask_database&quot;，则返回错误信息
+        results = f&quot;Error: function {message.function.arguments} does not exist&quot;
+    return results  # 返回结果
+
+response = client.chat.completions.create(
+    model=&quot;gpt-4o&quot;,
+    messages=messages,
+    tools=tools,
+    tool_choice=&quot;auto&quot;,
+)
+
+response_message = response.choices[0].message
+
+if response_message.content == None:
+    tool_calls = response_message.tool_calls
+    # print(&quot;\nChatGPT want to call function: &quot;, tool_calls)
+    for tool_call in tool_calls:
+        # print(f&quot;\nreturn function name:{tool_call.function.name},\nreturn function arguments:{tool_call.function.arguments}&quot;)
+        results = execute_function_call(tool_call)
+        messages.append({&quot;role&quot;: &quot;function&quot;, &quot;name&quot;: tool_call.function.name, &quot;content&quot;: results})
+    print(messages)
+else:
+    print(f&quot;response_message:{response_message.content}&quot;)
+
+# 使用 pretty_print_conversation 函数打印对话
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

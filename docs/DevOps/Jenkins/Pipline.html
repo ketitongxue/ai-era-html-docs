@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipline</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #252b36;
+  --link: #265abf;
+  --paper: #fffdf7;
+  --line: #ccd6e3;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: #faf8f1;
+  color: var(--ink);
+  font: 16px/1.85 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main { width: min(980px, 100%); margin: auto; padding: 32px 28px 72px; }
+article { min-width: 0; }
+a { color: var(--link); text-underline-offset: 4px; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+.skip-link { position: absolute; top: -100px; left: 12px; padding: 10px 16px; background: var(--paper); z-index: 1; }
+.skip-link:focus { top: 12px; }
+h1, h2, h3, h4, h5, h6 { line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 24px; }
+h1 { margin: 20px 0 28px; font-size: clamp(28px, 5vw, 40px); }
+h2 { margin: 42px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 25px; }
+h3 { margin-top: 28px; font-size: 21px; }
+h4 { font-size: 18px; }
+h5, h6 { font-size: 16px; }
+p, li, td, th, a { overflow-wrap: anywhere; }
+p { margin: 16px 0; }
+li { margin: 7px 0; }
+ul, ol { padding-left: 28px; }
+li > p { margin: 8px 0; }
+blockquote { margin: 22px 0; border-left: 3px solid #7ea2cd; padding: 4px 20px; background: #f0f4f8; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+/* 代码块：esther-design-system 5A「代码面板 · macOS 窗口」，全站统一规范 */
+pre {
+  position: relative;
+  margin: 26px 0;
+  border-radius: 12px;
+  background: #1a1b26;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  tab-size: 2;
+}
+pre::before {
+  content: "";
+  display: block;
+  height: 36px;
+  background-color: #2d2d3a;
+  background-image: radial-gradient(circle at 22px 18px, #ff5f56 6px, transparent 6.5px),
+    radial-gradient(circle at 40px 18px, #ffbd2e 6px, transparent 6.5px),
+    radial-gradient(circle at 58px 18px, #27c93f 6px, transparent 6.5px);
+  background-repeat: no-repeat;
+}
+pre[data-lang]::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #868cbb;
+  pointer-events: none;
+}
+code { font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 22px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a9b1d6;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+:not(pre) > code { background: #e9eef5; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre .cm { color: #565f89; }
+pre .st { color: #9ece6a; }
+pre .kw { color: #bb9af7; }
+img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 22px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 14px; line-height: 1.7; }
+th, td { min-width: 105px; padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+th { background: #eaf0f7; }
+@media (max-width: 600px) {
+  main { padding: 20px 16px 40px; }
+  h2 { font-size: 22px; }
+  pre code { padding: 16px 18px; }
+  ul, ol { padding-left: 24px; }
+  blockquote { padding: 4px 14px; }
+}
+@media print {
+  body { background: #fff; }
+  main { width: 100%; padding: 0; }
+  .skip-link { display: none; }
+  pre { white-space: pre-wrap; box-shadow: none; }
+  pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow: visible; }
+  th, td { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到正文</a>
+<main id="main-content" tabindex="-1">
+<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<article>
+<h1 id="pipline">Pipline</h1>
+<h1 id="pipline-简介">Pipline 简介</h1>
+<ul>
+<li>
+<p>pipline 运行在 jenkins 2.X 版本的核心插件，Pipline就是一套运行于Jenkins上的工作流框架，将原本独立运行于单个或者多个节点的任务连接起来，实现单个任务难以完成的复杂发布流程，从而实现单个任务很难实现的复杂流程编排和任务可视化。</p>
+</li>
+<li>
+<p>流水线的优势：</p>
+<ul>
+<li>可持续性：jenkins的重启或者中断后不影响已经执行的Pipline Job</li>
+<li>支持暂停：pipline可以选择停止并等待人工输入或批准后再继续执行。</li>
+<li>可扩展性：通过groovy的编程更容易的扩展插件。</li>
+<li>并行执行：通过groovy脚本可以实现step，stage间的并行执行,提高构建效率。</li>
+</ul>
+</li>
+<li>
+<p>流水线的分类及对比：</p>
+<ul>
+<li>
+<p>pipline流水线分为脚本式流水线与声明式流水线</p>
+<ul>
+<li>1.语法差异，声明式的在pipline {}块中定义，脚本式直接以node开始</li>
+<li>2.脚本式的在一台节点执行所有操作，而声明式可以将不同的节点定义到不同的节点执行。</li>
+<li>3.声明式比脚本式的写法更复杂，但功能更强大</li>
+<li>4.目前主要使用声明式较多</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="../../../assets/devops/W6o6bASDqo3rE1xsdMKcjGCCn8e.jpg" alt=""></p>
+<p><img src="../../../assets/devops/OhlcbPw2voFsYoxYv2Ncx0monvf.jpg" alt=""></p>
+<h1 id="pipline-语法简介">pipline 语法简介：</h1>
+<ul>
+<li>流水线过程定义在 Pipeline{}块中，在 Pipeline 块定义了整个流水线中完成的所有的操作。</li>
+<li>Stage：阶段，一个pipline可以划分为若干个stage，每个stage都是一个操作阶段，比如代码clone、代码编译、代码测试和代码部署，阶段是一个逻辑分组，在pipline中可以实现跨多个node执行不同的stage。</li>
+<li>Step：步骤，step是jenkins pipline最基本的操作单元，一个stage中可以有多个step，例如在代码clone的stage中需要定义代码clone的step、在代码编译stage需要定义代码编译的step。</li>
+<li>Node：jenkins工作节点，可以是jenkins master也可以是jenkins slave，node是执行step的具体服务器。</li>
+</ul>
+<h1 id="pipline-语法-指定节点">pipline 语法-指定节点：</h1>
+<ul>
+<li>
+<p>基于agent指令选择jenkins节点：</p>
+<ul>
+<li>any：可以在任何可用的节点执行，有jenkins自动分配</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+}
+</code></pre>
+<ul>
+<li>none：表示pipline脚本没有定义在默认执行的jenkins节点，需要在后续的每一个stage中单独定义节点</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent none
+    stages {
+        stage('代码clone') {
+            agent any
+            steps {
+                sh 'echo 代码clone'
+            }
+        }
+        stage('代码部署') {
+            agent any
+            steps {
+                sh 'echo 代码部署'
+            }
+        }
+    }
+}
+</code></pre>
+</li>
+</ul>
+<p><img src="../../../assets/devops/I5QIbo7lroVv5wxijkAcAXVRnQd.jpg" alt=""></p>
+<ul>
+<li>
+<p>基于agent指令选择jenkins节点：</p>
+<ul>
+<li>label：通过标签指定在指定的节点执行从操作：</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    // agent any // 全局必须带有agent, 表明此pipeline执行节点
+    agent { label 'jenkins-node1' } // 基于label指定具体执行的步骤节点，非必须
+    stages {
+        stage(&quot;代码clone&quot;) {
+            // #agent { label 'master' } // 基于label指定具体执行的步骤节点，非必须
+            steps {
+                sh &quot;cd /var/lib/jenkins/workspace/pipline-test1 &amp;&amp; rm -rf ./*&quot;
+                git branch: 'main', credentialsId: '9de167f4-0359-467d-85ba-acabd48c0f23', url: 'git@172.31.5.101:magedu/app1.git'
+                echo &quot;代码 clone完成&quot;
+            }
+        }
+        stage(&quot;代码构建&quot;) {
+            // #agent { label 'master' } // 基于label指定具体执行的步骤节点，非必须
+            steps {
+                sh &quot;cd /var/lib/jenkins/workspace/pipline-linux40-app1-develop &amp;&amp; tar czvf linux40.tar.gz ./*&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>
+<p>基于 agent 指令选择 jenkins 节点：</p>
+<ul>
+<li>node：和 label 的功能类似都是用于指定节点，区别是node可以额外设置一些参数配置，比如设置customWorkspace(设置当前stage的自定义工作目录)</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent none
+    stages {
+        stage('代码clone') {
+            agent {
+                node {
+                    label 'jenkins-master'
+                    customWorkspace &quot;/data/gitdata/magedu&quot;
+                }
+            }
+            steps {
+                sh &quot;echo 代码clone&quot;
+            }
+        }
+        stage('代码部署') {
+            agent {
+                node {
+                    label 'jenkins-master'
+                    customWorkspace &quot;/data/gitdata/magedu&quot;
+                }
+            }
+            steps {
+                sh &quot;echo 代码部署&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p><img src="../../../assets/devops/DH7Ub7VSGoP9p9xHGpXcPIghnwv.jpg" alt=""></p>
+<h1 id="基于-input-实现交互式操作">基于 input 实现交互式操作：</h1>
+<ul>
+<li>
+<p>Input 指令可以在流水线中实现必要的交互式操作，比如选择要部署的环境、是否向后继续执行任务等。</p>
+</li>
+<li>
+<p>input配置简介：</p>
+<ul>
+<li>message：必选，在input界面的提示信息，比如：“是否继续？”等，内容可自定义。</li>
+<li>id：可选，input 的标识符，默认为 stage 的名称。</li>
+<li>ok：可选，确认按钮的显示信息，比如可以是“确定”、“允许”等 自定义内容，默认继续为Proceed 、取消为 Abort。</li>
+<li>submitter：可选，允许提交 input 操作的用户或组的名称，如果为空，任何登录用户均可提交 input。</li>
+<li>parameters：提供一个参数列表供 input 使用。</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    stages {
+        stage('交互测试') {
+            input {
+                message &quot;是否继续部署?&quot;
+                ok &quot;继续部署&quot;
+                submitter &quot;jenkinsadmin&quot;
+            }
+            steps {
+                echo &quot;Hello jenkins!&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p><img src="../../../assets/devops/Qw1zbTGzOoYqEpxIi37cKy5snmh.jpg" alt=""></p>
+<h1 id="jenkins通知机制在声明式pipeline中使用post">Jenkins通知机制，在声明式Pipeline中使用post；</h1>
+<h2 id="post指令">post指令：</h2>
+<ul>
+<li>
+<p>post一般用于pipline流水线执行后的进一步处理，比如错误通知等，post可以针对流水线不同的执行结果做出不同的处理，比如执行成功做什么处理、执行失败做什么处理等。</p>
+</li>
+<li>
+<p>post条件简介：</p>
+<ul>
+<li>
+<p>Post 可以定义在 Pipeline 或 stage 中，目前支持以下条件：</p>
+<ul>
+<li>always：无论Pipeline或stage的最后是执行成功还是失败,都执行post中定义的指令。</li>
+<li>changed：只有当前Pipeline或stage的完成状态与它之前的运行不同时,比如从成功转换为失败、或从失败转换为成功,才执行post中定义的指令。</li>
+<li>fixed：当本次Pipeline或stage成功,且上一次构建是失败或不稳定时,就执行post中定义的指令,从失败转换为成功。</li>
+<li>regression：当本次Pipeline或stage的状态为失败、不稳定或终止,且上一次构建的状态为成功时,就执行post中定义的指令,从成功转换为失败。</li>
+<li>failure：只有当前Pipeline或stage的完成状态为失败(failure),才允许在post部分运行该步骤,而且通常这时在Web界面中显示为红色。</li>
+<li>success：当前执行状态为成功(success),执行post步骤,通常在Web界面中显示为蓝色或绿色。</li>
+<li>unstable：当前状态为不稳定(unstable),执行post步骤,通常原因是由于测试失败或代码违规等造成,而且会在Web界面中显示为黄色。</li>
+<li>aborted：当前状态为终止(aborted),执行该post步骤,通常由于流水线被手动终止触发,这时在在Web界面中显示为灰色。</li>
+<li>unsuccessful：当前状态只要不是success时,执行该post步骤；</li>
+<li>cleanup：无论pipeline或stage的完成状态如何,都允许运行该post中定义的指令,和always的区别在于cleanup会在post其它条件执行之后执行(最后执行cleanup)。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="post发送邮件通知示例">post发送邮件通知示例：</h2>
+<p>pipline-job-test9 演示在这执行异常后post阶段的操作，cleanup会晚于always执行，发送邮件需要提前配置好 jenkins的邮件通知配置：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    stages {
+        stage('post测试-代码clone阶段') {
+            steps {
+                sh 'echo git clone'
+                sh 'cd /data/xxx' // 此步骤会执行失败，用于验证构建失败的邮件通知
+            }
+            post {
+                cleanup {
+                    echo &quot;post cleanup--&gt;测试是否执行&quot;
+                }
+                always {
+                    echo &quot;post always&quot;
+                }
+                aborted {
+                    echo &quot;post aborted&quot;
+                }
+                success {
+                    script {
+                        mail to: '2973707860@qq.com',
+                            subject: &quot;Pipeline Name: ${currentBuild.fullDisplayName}&quot;,
+                            body: &quot;${env.JOB_NAME} - Build Number - ${env.BUILD_NUMBER} - 构建成功!\n点击链接 ${env.BUILD_URL} 查看详情&quot;
+                    }
+                }
+                failure {
+                    script {
+                        mail to: '2973707860@qq.com',
+                            subject: &quot;Pipeline Name: ${currentBuild.fullDisplayName}&quot;,
+                            body: &quot;${env.JOB_NAME} - Build Number - ${env.BUILD_NUMBER} - 构建失败!\n点击链接 ${env.BUILD_URL} 查看详情&quot;
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h1 id="声明式pipline快速入门">声明式Pipline快速入门</h1>
+<h2 id="pipline环境变量">pipline环境变量：</h2>
+<p>基于environment传递环境变量：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    environment { // 全局的变量，在当前pipeline所有的stage中都会生效
+        NAME = 'user1'
+        PASSWD = '123456'
+    }
+    stages {
+        stage('环境变量stage1') {
+            environment { // 定义在stage中的变量只会在当前stage生效，其他的stage不会生效
+                GIT_SERVER = 'git@172.31.5.101:magedu/app1.git'
+            }
+            steps {
+                sh &quot;&quot;&quot;
+                    echo '$NAME'
+                    echo '$PASSWD'
+                    echo '$GIT_SERVER'
+                &quot;&quot;&quot;
+            }
+        }
+        stage('环境变量stage2') {
+            steps {
+                sh &quot;&quot;&quot;
+                    echo '$NAME'
+                    echo '$PASSWD'
+                &quot;&quot;&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="pipline参数简介">pipline参数简介：</h2>
+<ul>
+<li>
+<p>基于parameters给step传递参数：</p>
+<ul>
+<li>可以基于parameters自定义参数，参数用于在执行pipline流水线的时候传递给step进行使用，比如传递选项参数、gitlab的分支、镜像仓库、镜像tag等信息。</li>
+</ul>
+</li>
+<li>
+<p>parameters简介：</p>
+<ul>
+<li>string： #字符串类型参数，可以传递账户名、密码等参数</li>
+<li>text： #文本型参数，一般用于定义多行文本内容的变量。</li>
+<li>booleanParam：#布尔型参数</li>
+<li>choice：#选择型参数，一般用于给定几个可选的值，然后选择其中一个进行赋值使用</li>
+<li>password： #密码型变量，一般用于定义敏感型变量，在 Jenkins 控制台会输出为*隐藏密码</li>
+</ul>
+</li>
+</ul>
+<h2 id="pipline参数示例">pipline参数示例：</h2>
+<p>示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'develop', description: '分支选择') // 字符串参数，会配置在jenkins的参数化构建过程中
+        choice(name: 'DEPLOY_ENV', choices: ['develop', 'production'], description: '部署环境选择') // 选项参数，会配置在jenkins的参数化构建过程中
+    }
+    stages {
+        stage('测试参数1') {
+            steps {
+                sh &quot;echo $BRANCH&quot;
+            }
+        }
+        stage('测试参数2') {
+            steps {
+                sh &quot;echo $DEPLOY_ENV&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p><img src="../../../assets/devops/BHtdbM5miotOPCxVH2WcSbC5nho.jpg" alt=""></p>
+<h2 id="pipline-if-指令">pipline if 指令：</h2>
+<p>基于 if 指令实现流程判断：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    environment {
+        // 代码仓库变量
+        def BRANCH_NAME = 'main'
+    }
+    stages {
+        stage('if指令测试') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo '我是master'
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo '我是develop'
+                    } else {
+                        echo '我是默认的'
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p><img src="../../../assets/devops/UdFebv1fFoX8kIxGWazcd0ronYc.jpg" alt=""></p>
+<h2 id="options选项配置参数简介">options选项配置参数简介：</h2>
+<ul>
+<li>buildDiscarder(logRotator(numToKeepStr: '5')) //保留5个历史构建版本</li>
+<li>timeout(time: 5, unit: 'MINUTES') //定义任务执行超时时间1小时，如果不加unit参数默认时间单位为分钟，支持NANOSECONDS，MICROSECONDS，MILLISECONDS，SECONDS，MINUTES，HOURS，DAYS</li>
+<li>timestamps() //在控制台显示命令执行的时间，格式为10:58:39</li>
+<li>retry(2) //流水线构建失败后重试次数为2次</li>
+</ul>
+<h2 id="options选项配置参数示例">options选项配置参数示例：</h2>
+<p>示例：</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Plain">pipeline {
+    agent any
+    environment { // 全局的变量，在当前pipeline所有的stage中都会生效
+        NAME = 'user1'
+        PASSWD = '123456'
+    }
+    options { // 定义pipeline参数
+        buildDiscarder(logRotator(numToKeepStr: '5')) // 保留5个历史构建版本
+        timeout(time: 5, unit: 'MINUTES') // 定义任务执行超时时间5分钟，如果不加unit参数默认时间单位为分钟，支持NANOSECONDS，MICROSECONDS，MILLISECONDS，SECONDS，MINUTES，HOURS，DAYS
+        timestamps() // 在控制台显示命令执行的时间，格式为10:58:39
+        retry(2) // 流水线构建失败后重试次数为2次
+    }
+    stages {
+        stage('代码clone') {
+            environment { // 定义在stage中的变量只会在当前stage生效，其他的stage不会生效
+                GIT_SERVER = 'git@172.31.5.101:magedu/app1.git'
+            }
+            steps {
+                sh &quot;&quot;&quot;
+                    echo '代码clone'
+                &quot;&quot;&quot;
+            }
+        }
+    }
+}
+</code></pre>
+</article>
+</main>
+<script>
+/* 轻量代码高亮：注释(# 或行内 //)变暗、字符串变绿、常见关键字变紫（Tokyo Night 配色），
+   并把 <code> 的 language-* 类映射为窗口标题栏的 data-lang 标签（text/plain 类不显示）。 */
+(function () {
+  var KW = "const|let|var|function|return|await|async|import|from|export|new|if|else|for|while|def|class|true|false|null|undefined";
+  document.querySelectorAll("pre>code").forEach(function (c) {
+    var lm = c.className.match(/language-([\w#+.-]+)/);
+    if (lm && !/^(text|plaintext|txt|plain)$/i.test(lm[1])) c.parentElement.setAttribute("data-lang", lm[1]);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), texts = [], node;
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (t) {
+      var s = t.nodeValue;
+      if (!s || !/[#'"]/.test(s)) return;
+      var re = new RegExp('("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')|\\b(' + KW + ')\\b|((#|//)[^\\n]*)', 'g');
+      var frag = document.createDocumentFragment(), last = 0, m;
+      while ((m = re.exec(s))) {
+        var cls = m[1] ? "st" : (m[2] ? "kw" : null);
+        if (!cls) {
+          var prev = m.index > 0 ? s.charAt(m.index - 1) : " ";
+          if (/\s/.test(prev)) cls = "cm";
+          else { re.lastIndex = m.index + 1; continue; }
+        }
+        if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var el = document.createElement("span");
+        el.className = cls;
+        el.textContent = m[0];
+        frag.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (!last) return;
+      if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  });
+})();
+</script>
+</body>
+</html>

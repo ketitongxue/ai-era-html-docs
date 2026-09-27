@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ai-era-knowledge",
+  "compatibility_date": "2026-09-22",
+  "assets": {
+    "directory": "./_site",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    {
+      "pattern": "knowledge.juzxailab.com",
+      "custom_domain": true
+    }
+  ]
+}
