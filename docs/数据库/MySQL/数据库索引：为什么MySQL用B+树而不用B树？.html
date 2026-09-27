@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="数据库索引为什么mysql用b树而不用b树">数据库索引：为什么MySQL用B+树而不用B树？</h1>
 <h1 id="索引">索引</h1>
@@ -136,7 +136,7 @@ th { background: #eaf0f7; }
 <li><strong>叶子存放了数据</strong>，而非叶子节点只是存放了关键字。</li>
 <li><strong>叶子节点被链表串联起来了。</strong></li>
 </ul>
-<p><img src="../../../../../assets/devops-notes/TwCEb2xqioYI5OxRSNLc9bAkn7g.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/TwCEb2xqioYI5OxRSNLc9bAkn7g.png" alt=""></p>
 <p>一棵 B+ 树就像是一个部门。部门分成管理人员（非叶子节点）和基层员工（叶子节点），而管理人员只是负责传达命令（只放索引关键字），具体的事务（存放数据）都是由基层员工来执行的。</p>
 <p>基层员工之间为了合作顺畅，私底下互相都有联系，对应到 B+ 树上就是叶子节点被链表连在一起。</p>
 <p>B+ 树用于数据库索引有 3 大优势。</p>
@@ -161,14 +161,14 @@ th { background: #eaf0f7; }
 <h3 id="聚簇索引和非聚簇索引">聚簇索引和非聚簇索引</h3>
 <p>如果索引叶子节点存储的是数据行，那么它就是聚簇索引，否则就是非聚簇索引。</p>
 <p>简单来说，某个数据表本身你就可以看作是一棵使用主键搭建起来 B+ 树，这棵树的叶子节点放着表的所有行。而其他索引也是 B+ 树，不同的是它们的叶子节点存放的是主键。</p>
-<p><img src="../../../../../assets/devops-notes/BHxYbHpV7oj99NxSHRRclJ5nnYf.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/BHxYbHpV7oj99NxSHRRclJ5nnYf.png" alt=""></p>
 <p>有了这种区分，你就能理解所谓的<strong>回表</strong>了。如果你查询一张表，用到了索引，那么数据库就会先在索引里面找到主键，然后再根据主键去聚簇索引中查找，最终找出数据。</p>
-<p><img src="../../../../../assets/devops-notes/Y9b4bpNJCo0kevx7q7RcjZvenlb.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/Y9b4bpNJCo0kevx7q7RcjZvenlb.png" alt=""></p>
 <p>如图所示，查询的时候先沿着绿色的线条在非聚簇索引中找到主键。然后拿着主键再去下面沿着黄色的线条找到数据行。这个数据行存放在磁盘里，所以触发磁盘 IO 之后能够读取出来。磁盘 IO 是非常慢的，因此回表性能极差，你在实践中要尽可能避免回表。</p>
 <h3 id="覆盖索引">覆盖索引</h3>
 <p>如果你查询的列全部都在某个索引里面，那么数据库可以直接把索引存储的这些列的值给你，而不必回表。</p>
 <p>比如说你有一个用户表 user_tab，在上面的 id 和 name 两列上创建了一个组合索引 &lt;id, name&gt;，那么对于这个查询来说 SELECT id, name FROM user_tab WHERE id = 123, SELECT 关键字后面的 id 和 name 两列都在这个索引里，那么就可以直接用索引的数据，不必回表查询了。</p>
-<p><img src="../../../../../assets/devops-notes/OPxHbIj0EoZKwMxUvW0cFlran9c.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/OPxHbIj0EoZKwMxUvW0cFlran9c.png" alt=""></p>
 <p>那么，<strong>这个索引在这个查询下就是一个覆盖索引</strong>。所以覆盖索引并不是一个独立的索引，而是某个索引相对于某个查询而言的。</p>
 <p>针对这个特性，优化 SQL 性能里面有两种常见的说法。</p>
 <ol>
@@ -178,7 +178,7 @@ th { background: #eaf0f7; }
 <p>这两种说法本质上都是为了避免回表。</p>
 <h3 id="索引的最左匹配原则">索引的最左匹配原则</h3>
 <p>索引在查询中是按照最左匹配原则来使用的，细究起来这个原则还是有点难以理解。我用一个例子来给你解释最左匹配原则的运行机制。比如说你创建了一个在 A、B、C 三个列上的组合索引 &lt;A, B, C&gt;。我用一个表格来展示一下索引列的值的关系。</p>
-<p><img src="../../../../../assets/devops-notes/GamobgolloW5YRxguT5cSVK2n0e.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/GamobgolloW5YRxguT5cSVK2n0e.png" alt=""></p>
 <p>我们可以看到：A 是绝对有序的；在 A 确定的情况下，B 是有序的；在 A 和 B 都确定的情况下，C 是有序的。</p>
 <p>那么反过来说：</p>
 <ul>

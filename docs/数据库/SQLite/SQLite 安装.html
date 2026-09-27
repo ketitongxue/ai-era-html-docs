@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MySQL</title>
+<title>SQLite 安装</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,17 +119,43 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="mysql">MySQL</h1>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/MySQL%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F.html">MySQL从入门到入土</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88MySQL%E7%94%A8B%2B%E6%A0%91%E8%80%8C%E4%B8%8D%E7%94%A8B%E6%A0%91%EF%BC%9F.html">数据库索引：为什么MySQL用B+树而不用B树？</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/SQL%E4%BC%98%E5%8C%96%EF%BC%9A%E5%A6%82%E4%BD%95%E5%8F%91%E7%8E%B0SQL%E4%B8%AD%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9F.html">SQL优化：如何发现SQL中的问题？</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81.html">数据库锁</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/MVCC%E5%8D%8F%E8%AE%AE%EF%BC%9AMySQL%20%E5%9C%A8%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE%E7%9A%84%E6%97%B6%E5%80%99%EF%BC%8C%E8%BF%98%E8%83%BD%E4%B8%8D%E8%83%BD%E8%AF%BB%E5%88%B0%E8%BF%99%E6%9D%A1%E6%95%B0%E6%8D%AE%EF%BC%9F.html">MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1%EF%BC%9A%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E4%BA%86%EF%BC%8C%E4%BD%A0%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B0%B1%E4%B8%80%E5%AE%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E5%90%97%EF%BC%9F.html">数据库事务：事务提交了，你的数据就一定不会丢吗？</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%8D%E5%81%9C%E6%9C%BA%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E4%BF%9D%E8%AF%81%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F.html">数据迁移：如何在不停机的情况下保证迁移数据的一致性？</a></p>
-<p><a href="https://f1cuh8dlts.feishu.cn/wiki/AHvVwfJknimNwXkNc5bcnOr5nQb">分库分表主键生成：如何设计一个主键生成算法？</a></p>
+<h1 id="sqlite-安装">SQLite 安装</h1>
+<h2 id="在-windows-上安装-sqlite">在 Windows 上安装 SQLite</h2>
+<ul>
+<li>请访问 <a href="http://www.sqlite.org/download.html">SQLite 下载页面</a>，从 Windows 区下载预编译的二进制文件。</li>
+<li>您需要下载 **sqlite-tools-win32-*.zip** 和 **sqlite-dll-win32-*.zip** 压缩文件。</li>
+<li>创建文件夹 C:\sqlite，并在此文件夹下解压上面两个压缩文件，将得到 sqlite3.def、sqlite3.dll 和 sqlite3.exe 文件。</li>
+<li>添加 C:\sqlite 到 PATH 环境变量，最后在命令提示符下，使用 **sqlite3** 命令，将显示如下结果。</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">C:\Users\keti&gt;sqlite3
+SQLite version 3.46.1 2024-08-13 09:16:08 (UTF-16 console I/O)
+Enter &quot;.help&quot; for usage hints.
+Connected to a transient in-memory database.
+Use &quot;.open FILENAME&quot; to reopen on a persistent database.
+sqlite&gt;
+</code></pre>
+<h2 id="在-linux-上安装-sqlite">在 Linux 上安装 SQLite</h2>
+<p>目前，几乎所有版本的 Linux 操作系统都附带 SQLite。所以，只要使用下面的命令来检查您的机器上是否已经安装了 SQLite。</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">keti@devops:~$ sqlite3
+SQLite version 3.41.2 2023-03-22 11:56:21
+Enter &quot;.help&quot; for usage hints.
+Connected to a transient in-memory database.
+Use &quot;.open FILENAME&quot; to reopen on a persistent database.
+sqlite&gt;
+</code></pre>
+<p>如果没有看到上面的结果，那么就意味着没有在 Linux 机器上安装 SQLite。因此，让我们按照下面的步骤安装 SQLite：</p>
+<ul>
+<li>请访问 <a href="http://www.sqlite.org/download.html">SQLite 下载页面</a>，从源代码区下载 **sqlite-autoconf-*.tar.gz**。</li>
+<li>步骤如下：</li>
+</ul>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ tar xvzf sqlite-autoconf-3470100.tar.gz
+$ cd sqlite-autoconf-3470100
+$ ./configure --prefix=/usr/local
+$ make
+$ make install
+</code></pre>
 </article>
 </main>
 <script>

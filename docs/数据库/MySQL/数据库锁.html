@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="数据库锁">数据库锁</h1>
 <h1 id="锁与索引">锁与索引</h1>
@@ -129,7 +129,7 @@ th { background: #eaf0f7; }
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-SQL">SELECT * FROM your_tab WHERE id = 15 FOR UPDATE
 </code></pre>
 <p>id = 15 的值根本不存在，那么怎么锁？InnoDB 引擎会利用最接近 15 的相邻的两个节点，构造一个临键锁。</p>
-<p><img src="../../../../../assets/devops-notes/KLvFbIyi4o53VzxRhwScYcecnuf.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/KLvFbIyi4o53VzxRhwScYcecnuf.png" alt=""></p>
 <p>此时如果别的事务想要插入一个 id=15 的记录，就不会成功。</p>
 <p>那么范围查询呢？也是利用索引上的数据，构造一个恰好能够装下这个范围的临键锁。例如：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-SQL">SELECT * FROM your_tab WHERE id &gt; 33 FOR UPDATE
@@ -138,7 +138,7 @@ th { background: #eaf0f7; }
 <p>因此，我们得出了一个结论：<strong>锁和索引密切相关。</strong></p>
 <h1 id="释放锁时机">释放锁时机</h1>
 <p>大部分人在学习锁的时候有一个误区，就是认为锁是在语句执行完毕之后就立刻释放掉的。其实并不是，它是在整个事务结束之后才释放的。换句话来说，当一个事务内部给数据加上锁之后，<strong>只有在执行 Rollback 或者 Commit 的时候，锁才会被释放掉</strong>。</p>
-<p><img src="../../../../../assets/devops-notes/U1LabIQ5fowSCdxJpXVcnVU8nad.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/U1LabIQ5fowSCdxJpXVcnVU8nad.png" alt=""></p>
 <h1 id="乐观锁与悲观锁">乐观锁与悲观锁</h1>
 <p>乐观锁和悲观锁实际上是一种逻辑概念，它们是并发控制中常用的两种锁机制。</p>
 <p>乐观锁是直到要修改数据的时候，才检测数据是否已经被别人修改过。</p>
@@ -149,7 +149,7 @@ th { background: #eaf0f7; }
 UPDATE your_tab SET a = 3, b = 4 WHERE id = 1 AND a =1
 </code></pre>
 <p>在上面的这个语句里面，预期数据库中 a 的值为 1 才会进行更新。如果此时数据库中的值已经被修改了，那么这个 UPDATE 语句就会失败。业务方通过检测受影响的行数是否为 0，来判断更新是否成功。</p>
-<p><img src="../../../../../assets/devops-notes/Fkv5bd9ysoAzb4xLZFLcy3rqnGg.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/Fkv5bd9ysoAzb4xLZFLcy3rqnGg.png" alt=""></p>
 <p>悲观锁是指在写入数据时直接加锁。还拿上面这个例子来说吧，就是从最开始的 SELECT 语句就直接加上了锁。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">SELECT * FROM your_tab WHERE id = 1 FOR UPDATE; // 在这里拿到了 a = 1
 // 一大堆的业务操作
@@ -165,7 +165,7 @@ UPDATE your_tab SET a = 3, b = 4 WHERE id = 1
 <p>共享锁和排它锁是在互斥的角度上看待锁的。</p>
 <p>共享锁是指一个线程加锁之后，其他线程还是可以继续加同类型的锁。</p>
 <p>排它锁是指一个线程加锁之后，其他线程就不能再加锁了。</p>
-<p><img src="../../../../../assets/devops-notes/IY8db8dnnoXtRPx4yq7c7RAWn0e.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/IY8db8dnnoXtRPx4yq7c7RAWn0e.png" alt=""></p>
 <p>这两个概念非常接近读锁和写锁。因为读锁本身就是共享的，而写锁就是排它的。</p>
 <h3 id="意向锁">意向锁</h3>
 <p>意向锁相当于一个信号，就是告诉别人我要加锁了，所以意向锁并不是一个真正物理意义上的锁。</p>
@@ -181,7 +181,7 @@ UPDATE your_tab SET a = 3, b = 4 WHERE id = 1
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">SELECT * FROM your_tab WHERE id = 31 FOR UPDATE
 </code></pre>
 <p>在你使用了主键作为查询条件，并且是相等条件下，将只命中一条记录。这一条记录就会被加上记录锁。</p>
-<p><img src="../../../../../assets/devops-notes/F4mbbHMAboP5GVxwWjjcB4QHnkf.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/F4mbbHMAboP5GVxwWjjcB4QHnkf.png" alt=""></p>
 <p>但是如果查询条件没有命中任何记录，那么就不会使用记录锁，而是使用间隙锁。又或者你使用了唯一索引作为条件，比如说在 user 表里面在列 email 上有一个唯一索引。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">SELECT * FROM your_tab WHERE email='your_email' FOR UPDATE
 </code></pre>
@@ -195,7 +195,7 @@ UPDATE your_tab SET a = 3, b = 4 WHERE id = 1
 <p>间隙锁会锁住 (50，100) 之间的数据，而 50 和 100 本身会被记录锁锁住。类似地，&lt;= 这种查询你也可以认为 = 的那个值会被记录锁锁住。</p>
 <p>如果你的表里面没有 50，那么数据库就会一直向左，找到第一个存在的数据，比如说 40；如果你的表里面没有 100，那么数据库就会一直向右，找到第一个存在的数据，比如说 120。那么使用的间隙锁就是 (40，120)。如果此时有人想要插入一个主键为 70 的行，是无法插入的，它需要等这个 SELECT 语句释放掉间隙锁。</p>
 <p>间隙锁我们一般都说两边都是开的，即端点是没有被间隙锁锁住的。<strong>记录锁和记录锁是排它的，但是间隙锁和间隙锁不是排它的</strong>。也就是说两个间隙锁之间即便重叠了，也还是可以加锁成功的。</p>
-<p><img src="../../../../../assets/devops-notes/YQtsbS6kMohuUhxXOUxcRAp0nuc.webp" alt=""></p>
+<p><img src="../../../assets/devops-notes/YQtsbS6kMohuUhxXOUxcRAp0nuc.webp" alt=""></p>
 <h4 id="临键锁">临键锁</h4>
 <p>临键锁（Next-Key Locks）是很独特的一种锁，直观上来说可以看做是一个记录锁和间隙锁的组合。也就是说<strong>临键锁不仅仅是会用记录锁锁住命中的记录，也会用间隙锁锁住记录之间的空隙</strong>。临键锁和数据库隔离级别的联系最为紧密，它可以解决在可重复读隔离级别之下的幻读问题。</p>
 <p>间隙锁是左开右开，而临键锁是<strong>左开右闭</strong>。还是用前面的例子来说明。如果 id 只有（1，4，7）三条记录，那么临键锁就将（1，4]锁住。</p>
@@ -206,7 +206,7 @@ UPDATE your_tab SET a = 3, b = 4 WHERE id = 1
 <li><strong>右边缺省间隙锁</strong>。例如你的值只有（1，4，7）三个，但是你查询的条件是 WHERE id &lt; 5，那么加的其实是间隙锁，因为 7 本身不在你的条件范围内。</li>
 <li><strong>等值查询记录锁</strong>。这个其实针对的是主键和唯一索引，普通索引只适用上面两条。</li>
 </ul>
-<p><img src="../../../../../assets/devops-notes/As9GbgDDNoJY2AxlkgHckeNEnUp.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/As9GbgDDNoJY2AxlkgHckeNEnUp.png" alt=""></p>
 <h2 id="面试准备">面试准备</h2>
 <p>为了更好地面试锁，你需要在公司内部收集一些信息。</p>
 <ul>
@@ -272,7 +272,7 @@ UPDATE your_tab SET a = 3, b = 4 WHERE id = 1
 <p>不过这个方案说起来还是太简单，我们需要一些更复杂的方案来打动面试官。那么接下来我再给你提供两个稍微复杂一些的方案：临键锁引发的死锁和弃用悲观锁。</p>
 <h3 id="临键锁引发的死锁">临键锁引发的死锁</h3>
 <p>在一个业务中，有一个场景是先从数据库中查询数据并锁住。如果这个数据不存在，那么就需要执行一段逻辑，计算出一个数据，然后插入。如果已经有数据了，那么就将原始的数据取出来，再利用这个数据执行一段逻辑，计算出来一个结果，执行更新。</p>
-<p><img src="../../../../../assets/devops-notes/VpIJbWit8oNtQPxTTejcirWZnNh.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/VpIJbWit8oNtQPxTTejcirWZnNh.png" alt=""></p>
 <p>因为两段运算逻辑不同，所以不能简单地使用 INSERT ON DUPLICATE 的语句来取代。</p>
 <p>只看没有数据的逻辑，在计算之后插入新数据，如果用伪代码来描述，就是下面这样的。</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">BEGIN;
@@ -283,12 +283,12 @@ COMMIT;
 </code></pre>
 <p>看起来是不是没有任何问题？实际上，这个地方会引起<strong>死锁</strong>。</p>
 <p>假设说现在数据库中 ID 最大的值是 78。那么如果两个业务进来，同时执行这个逻辑。一个准备插入 id=79 的数据，一个准备插入 id = 80 的数据。如果它们的执行时序如下图，那么你就会得到一个死锁错误。</p>
-<p><img src="../../../../../assets/devops-notes/EIvcbOwIjowDc7x1Fn9cwuB1nc8.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/EIvcbOwIjowDc7x1Fn9cwuB1nc8.png" alt=""></p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-sql">[40001][1213] Deadlock found when trying to get lock; try restarting transaction
 </code></pre>
 <p>造成死锁的原因也很简单。在线程 1 执行 SELECT FOR UPDATE 的时候，因为 id=79 的数据不存在，所以实际上数据库会产生一个 (78，supremum] 的临键锁。类似地，线程 2 也会产生一个 (78，supremum] 临键锁。</p>
 <p>当线程 1 想要执行插入的时候，它想要获得 id = 79 的行锁。当线程 2 想要执行插入的时候，它想要获得 id = 80 的行锁，这个时候就会出现死锁。因为线程 1 和线程 2 同时还在等着对方释放掉持有的间隙锁。</p>
-<p><img src="../../../../../assets/devops-notes/XkgXbt0W5o10AQx1MuAcofeSniz.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/XkgXbt0W5o10AQx1MuAcofeSniz.png" alt=""></p>
 <p>从理论上来说，解决方案有三种。</p>
 <ul>
 <li>不管有没有数据，先插入一个默认的数据。如果没有数据，那么会插入成功；如果有数据，那么会出现主键冲突或者唯一索引冲突，插入失败。那么在插入成功的时候，执行以前数据不存在的逻辑，但是因为此时数据库中有数据，所以不会使用间隙锁，而是使用行锁，从而规避了死锁问题。</li>
@@ -340,7 +340,7 @@ Commit()
 <h2 id="面试思路总结">面试思路总结</h2>
 <p>这节课我们学习了面试中的重难点问题——锁，锁与索引的关系十分密切，可以说锁是借助索引来实现的。锁的形式五花八门，有乐观锁、悲观锁、行锁、表锁、共享锁、排它锁、意向锁、记录锁、间隙锁和临键锁等多种类型，它们各有用途，这里你要注意分辨它们各自的能力，学会分析什么场景下使用哪一种锁。</p>
 <p>此外，我还提供了两个比较复杂的亮点方案：<strong>临键锁引发的死锁、弃用悲观锁</strong>。你在实际面试中可以考虑替换为自己的案例。</p>
-<p><img src="../../../../../assets/devops-notes/Ihd9bhfWXocZ1Lx4OdVcU8nKnCB.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/Ihd9bhfWXocZ1Lx4OdVcU8nKnCB.png" alt=""></p>
 </article>
 </main>
 <script>

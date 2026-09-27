@@ -8,3 +8,9 @@
 /docs/GitOps.html /docs/GitOps/GitOps.html 301
 /docs/Kubernetes/%E9%9B%86%E7%BE%A4%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%83%A8%E7%BD%B2/* /docs/Kubernetes%20%E9%9B%86%E7%BE%A4%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%83%A8%E7%BD%B2/:splat 301
 /docs/Kubernetes/Operator%20%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98%EF%BC%88%E6%9C%AA%E5%AE%8C%E6%88%90%EF%BC%89.html /docs/Kubernetes/Operator%20%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98.html 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93.html /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/%E6%95%B0%E6%8D%AE%E5%BA%93.html 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/Mongo.html /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/Mongo.html 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL.html /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL.html 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/* /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/:splat 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite.html /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite.html 301
+/docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/* /docs/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/:splat 301

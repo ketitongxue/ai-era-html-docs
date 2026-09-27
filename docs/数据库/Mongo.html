@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SQLite 安装</title>
+<title>Mongo</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,42 +119,19 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="sqlite-安装">SQLite 安装</h1>
-<h2 id="在-windows-上安装-sqlite">在 Windows 上安装 SQLite</h2>
-<ul>
-<li>请访问 <a href="http://www.sqlite.org/download.html">SQLite 下载页面</a>，从 Windows 区下载预编译的二进制文件。</li>
-<li>您需要下载 **sqlite-tools-win32-*.zip** 和 **sqlite-dll-win32-*.zip** 压缩文件。</li>
-<li>创建文件夹 C:\sqlite，并在此文件夹下解压上面两个压缩文件，将得到 sqlite3.def、sqlite3.dll 和 sqlite3.exe 文件。</li>
-<li>添加 C:\sqlite 到 PATH 环境变量，最后在命令提示符下，使用 **sqlite3** 命令，将显示如下结果。</li>
-</ul>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">C:\Users\keti&gt;sqlite3
-SQLite version 3.46.1 2024-08-13 09:16:08 (UTF-16 console I/O)
-Enter &quot;.help&quot; for usage hints.
-Connected to a transient in-memory database.
-Use &quot;.open FILENAME&quot; to reopen on a persistent database.
-sqlite&gt;
-</code></pre>
-<h2 id="在-linux-上安装-sqlite">在 Linux 上安装 SQLite</h2>
-<p>目前，几乎所有版本的 Linux 操作系统都附带 SQLite。所以，只要使用下面的命令来检查您的机器上是否已经安装了 SQLite。</p>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">keti@devops:~$ sqlite3
-SQLite version 3.41.2 2023-03-22 11:56:21
-Enter &quot;.help&quot; for usage hints.
-Connected to a transient in-memory database.
-Use &quot;.open FILENAME&quot; to reopen on a persistent database.
-sqlite&gt;
-</code></pre>
-<p>如果没有看到上面的结果，那么就意味着没有在 Linux 机器上安装 SQLite。因此，让我们按照下面的步骤安装 SQLite：</p>
-<ul>
-<li>请访问 <a href="http://www.sqlite.org/download.html">SQLite 下载页面</a>，从源代码区下载 **sqlite-autoconf-*.tar.gz**。</li>
-<li>步骤如下：</li>
-</ul>
-<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">$ tar xvzf sqlite-autoconf-3470100.tar.gz
-$ cd sqlite-autoconf-3470100
-$ ./configure --prefix=/usr/local
-$ make
-$ make install
+<h1 id="mongo">Mongo</h1>
+<h1 id="mongo-命令行操作">mongo 命令行操作</h1>
+<p>MongoDB 查看集合中所有的数据</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">使用 mongo -u cloud -p cloud123! 命令连接mongo服务端
+输入show dbs 命令，查看数据库
+进入要使用的数据库，命令：use 数据库名字
+查看该数据库中的集合，命令：show collections
+查看里面所有的数据，命令：db.集合名字.find()
+使用 'it' 查看更多
+
+按条件查看数据，命令：db.集合名字.find({ &quot;_id&quot;: &quot;apples&quot; })
 </code></pre>
 </article>
 </main>
