@@ -119,20 +119,20 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="整型">整型</h1>
 <p>Go语言的整型，主要用来表示现实世界中整型数量，比如：人的年龄、班级人数等。它可以分为 <strong>平台无关整型</strong> 和 <strong>平台相关整型</strong> 这两种，它们的区别主要就在，这些整数类型在不同CPU架构或操作系统下面，它们的长度是否是一致的。</p>
 <p>我们先来看 <strong>平台无关整型</strong>，它们在任何CPU架构或任何操作系统下面，长度都是固定不变的。我在下面这张表中总结了Go提供的平台无关整型：</p>
-<p><img src="../../../assets/devops-notes/CzdbbXXP7oyp1lxeiG3cZEvTnzb.png" alt=""></p>
+<p><img src="../../assets/devops-notes/CzdbbXXP7oyp1lxeiG3cZEvTnzb.png" alt=""></p>
 <p>你可以看到，这些平台无关的整型也可以分成两类：有符号整型（int8 int64）和无符号整型（uint8 uint64）。两者的本质差别在于最高二进制位（bit位）是否被解释为符号位，这点会影响到无符号整型与有符号整型的取值范围。</p>
 <p>我们以下图中的这个8比特（一个字节）的整型值为例，当它被解释为无符号整型uint8时，和它被解释为有符号整型int8时表示的值是不同的：</p>
-<p><img src="../../../assets/devops-notes/HW22bpljWopFc1x6836czx5SnGc.png" alt=""></p>
+<p><img src="../../assets/devops-notes/HW22bpljWopFc1x6836czx5SnGc.png" alt=""></p>
 <p>在同样的比特位表示下，当最高比特位被解释为符号位时，它代表一个有符号整型（int8），它表示的值为 -127；当最高比特位不被解释为符号位时，它代表一个无符号整型(uint8)，它表示的值为129。</p>
 <p>这里你可能就会问了：即便最高比特位被解释为符号位，上面的有符号整型所表示值也应该为-1啊，怎么会是 -127 呢？</p>
 <p>这是因为 Go 采用 <strong>2 的补码</strong>（Two’s Complement）作为整型的比特位编码方法。因此，我们不能简单地将最高比特位看成负号，把其余比特位表示的值看成负号后面的数值。Go的补码是通过原码逐位取反后再加1得到的。</p>
 <p>与平台无关整型对应的就是平台相关整型，它们的长度会根据运行平台的改变而改变。Go语言原生提供了三个 平台相关整型，它们是int、uint与uintptr，我同样也列了一张表：</p>
-<p><img src="../../../assets/devops-notes/MhSHbRsWRoOm9wxRILaczV3pnrd.png" alt=""></p>
+<p><img src="../../assets/devops-notes/MhSHbRsWRoOm9wxRILaczV3pnrd.png" alt=""></p>
 <p>在这里我们要特别注意一点，由于这三个类型的长度是平台相关的，所以我们 在编写有移植性要求的代码时，千万不要强依赖这些类型的长度。如果你不知道这三个类型在目标运行平台上的长度，可以通过unsafe包提供的SizeOf函数来获取，比如在x86-64平台上，它们的长度均为8：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-go">var a, b = int(5), uint(6)
 var p uintptr = 0x12345678

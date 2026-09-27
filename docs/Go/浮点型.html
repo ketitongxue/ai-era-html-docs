@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="浮点型">浮点型</h1>
 <p>和使用广泛的整型相比，浮点型的使用场景就相对聚焦了，主要集中在科学数值计算、图形图像处理和仿真、多媒体游戏以及人工智能等领域。我们这一部分对于浮点型的学习，主要是讲解Go语言中浮点类型在内存中的表示方法，这可以帮你建立应用浮点类型的理论基础。</p>
@@ -133,7 +133,7 @@ th { background: #eaf0f7; }
 <p>浮点数在内存中的二进制表示（Bit Representation）要比整型复杂得多，IEEE 754规范给出了在内存中存储和表示一个浮点数的标准形式，如下：</p>
 <p>&lt;sheet sheet-id=&quot;FKllrP&quot; token=&quot;QYbJsKyC8hSmaGtfGpuckE8Fnzf&quot;&gt;&lt;/sheet&gt;</p>
 <p>我们看到浮点数在内存中的二进制表示分三个部分：符号位、阶码（即经过换算的指数），以及尾数。这样表示的一个浮点数，它的值等于：</p>
-<p><img src="../../../assets/devops-notes/B3GObSjqWonduCxk3bYcQVNSn0f.png" alt=""></p>
+<p><img src="../../assets/devops-notes/B3GObSjqWonduCxk3bYcQVNSn0f.png" alt=""></p>
 <p>其中浮点值的符号由符号位决定：当符号位为1时，浮点值为负值；当符号位为0时，浮点值为正值。公式中offset被称为阶码偏移值，这个我们待会再讲。</p>
 <p><strong>我们首先来看单精度（float32）与双精度（float64）浮点数在阶码和尾数上的不同。</strong> 这两种浮点数的阶码与尾数所使用的位数是不一样的，你可以看下IEEE 754标准中单精度和双精度浮点数的各个部分的长度规定：</p>
 <div class="table-scroll" tabindex="0" role="region" aria-label="表格"><table>

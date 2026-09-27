@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Go mod</title>
+<title>包和文件</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,9 +119,14 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="go-mod">Go mod</h1>
+<h1 id="包和文件">包和文件</h1>
+<p>在Go语言中包的作用和其他语言中的库或模块作用类似，用于支持模块化、封装、编译隔离和重用。一个包的源代码保存在一个或多个以.go结尾的文件中，它所在目录名的尾部就是包的导入路径</p>
+<p>包让我们可以通过控制变量在包外面的可见性或导出情况来隐藏信息。在Go里，通过一条简单的规则来管理标识符是否对外可见：导出的标识符以大写字母开头。</p>
+<h1 id="导入">导入</h1>
+<p>在Go程序里，每一个包通过称为导入路径(import path)的唯一字符串来标识。</p>
+<h1 id="包初始化">包初始化</h1>
 </article>
 </main>
 <script>

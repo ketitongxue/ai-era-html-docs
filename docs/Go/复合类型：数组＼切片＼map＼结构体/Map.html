@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#go">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="map">Map</h1>
 <p>散列表是设计精妙、用途广泛的数据结构之一。它是一个拥有键值对元素的无序集合。在这个集合中，键的值是唯一的，键对应的值可以通过键来获取、更新或移除。无论这个散列表有多大，这些操作基本上是通过常量时间的键比较就可以完成。</p>
@@ -357,7 +357,7 @@ v, ok := m[&quot;key&quot;]  → v, ok := runtime.mapaccess2(maptype, m, &quot;k
 delete(m, &quot;key&quot;)   → runtime.mapdelete(maptype, m, “key”)
 </code></pre>
 <p>这是map类型在Go运行时层实现的示意图：</p>
-<p><img src="../../../../assets/devops-notes/N5RfbcRSgoO3c1xKPmLcvGh9n7d.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/N5RfbcRSgoO3c1xKPmLcvGh9n7d.png" alt=""></p>
 <p>我们可以看到，和切片的运行时表示图相比，map的实现示意图显然要复杂得多。接下来，我们结合这张图来简要描述一下map在运行时层的实现原理。我们重点讲解一下一个map变量在初始状态、进行键值对操作后，以及在并发场景下的Go运行时层的实现原理。</p>
 <h3 id="初始状态">初始状态</h3>
 <p>从图中我们可以看到，与语法层面 map 类型变量（m）一一对应的是*runtime.hmap 的实例，即runtime.hmap类型的指针，也就是我们前面在讲解 map 类型变量传递开销时提到的 <strong>map 类型的描述符</strong>。hmap 类型是 map 类型的头部结构（header），它存储了后续 map 类型操作所需的所有信息，包括：</p>
@@ -369,7 +369,7 @@ delete(m, &quot;key&quot;)   → runtime.mapdelete(maptype, m, “key”)
 <li><strong>tophash区域</strong></li>
 </ul>
 <p>当我们向map插入一条数据，或者是从map按key查询数据的时候，运行时都会使用哈希函数对key做哈希运算，并获得一个哈希值（hashcode）。这个hashcode非常关键，运行时会把hashcode“一分为二”来看待，其中低位区的值用于选定bucket，高位区的值用于在某个bucket中确定key的位置。我把这一过程整理成了下面这张示意图，你理解起来可以更直观：</p>
-<p><img src="../../../../assets/devops-notes/MWalbgjX9oVSikxCpNGcyshFnre.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/MWalbgjX9oVSikxCpNGcyshFnre.png" alt=""></p>
 <p>因此，每个bucket的tophash区域其实是用来快速定位key位置的，这样就避免了逐个key进行比较这种代价较大的操作。尤其是当key是size较大的字符串类型时，好处就更突出了。这是一种以空间换时间的思路。</p>
 <ul>
 <li><strong>key存储区域</strong></li>
@@ -421,7 +421,7 @@ func mapassign(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer {
 </code></pre>
 <p>这两方面原因导致的扩容，在运行时的操作其实是不一样的。如果是因为overflow bucket过多导致的“扩容”，实际上运行时会新建一个和现有规模一样的bucket数组，然后在assign和delete时做排空和迁移。</p>
 <p>如果是因为当前数据数量超出LoadFactor指定水位而进行的扩容，那么运行时会建立一个 <strong>两倍于现有规模的bucket数组</strong>，但真正的排空和迁移工作也是在assign和delete时逐步进行的。原bucket数组会挂在hmap的oldbuckets指针下面，直到原buckets数组中所有数据都迁移到新数组后，原buckets数组才会被释放。你可以结合下面的map扩容示意图来理解这个过程，这会让你理解得更深刻一些：</p>
-<p><img src="../../../../assets/devops-notes/UqM0bdokEok9vyxdL6PcoiBBn5e.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/UqM0bdokEok9vyxdL6PcoiBBn5e.png" alt=""></p>
 <h3 id="map与并发">map与并发</h3>
 <p>接着我们来看一下map和并发。从上面的实现原理来看，充当map描述符角色的hmap实例自身是有状态的（hmap.flags），而且对状态的读写是没有并发保护的。所以说map实例不是并发写安全的，也不支持并发读写。如果我们对map实例进行并发读写，程序运行时就会抛出异常。你可以看看下面这个并发读写map的例子：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-Go">package main
