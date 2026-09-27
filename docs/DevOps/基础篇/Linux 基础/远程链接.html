@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>代码管理，版本控制系统</title>
+<title>远程链接</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,34 +119,40 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="代码管理版本控制系统">代码管理，版本控制系统</h1>
-<p>版本控制系统简介：</p>
-<ul>
-<li>
-<p>集中式版本控制系统:</p>
-<ul>
-<li>任何的代码提交都要连接到版本控制服务器。</li>
-<li>数十几上百名研发人员同时进行代码提交和下载的时候服务器的网络和磁盘 I/O 都是瓶颈。</li>
-<li>在公司以外的环境需要先拨通VPN才能访问服务器提交代码。</li>
-<li>SVN 和 CVS 都是集中式版本控制系统。</li>
-</ul>
-</li>
-<li>
-<p>分布式版本控制系统：</p>
-<ul>
-<li>没有网络依赖,开发人员不需要连接到版本控服务器(中央服务器),也可以在本地任意提交与回滚代码。</li>
-<li>在代码确认无误后再一次性提交到中央仓库。</li>
-<li>大幅降低中央服务器的负载。</li>
-<li>github 和 gitlab 都是分布式版本控制系统</li>
-</ul>
-</li>
-</ul>
-<p><img src="../../assets/devops-notes/P7qDbkCEmoGntzxeyEEcsVVXnOf.png" alt=""></p>
-<h1 id="gitlab">Gitlab</h1>
-<p><a href="../../docs/DevOps/%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%EF%BC%8C%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F/Gitlab.html">Gitlab</a></p>
-<p><a href="../../docs/DevOps/%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%EF%BC%8C%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F/Git.html">Git</a></p>
+<h1 id="远程登陆">远程登陆</h1>
+<h2 id="安装-sshd">安装 sshd</h2>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">apt install openssh-server
+</code></pre>
+<h2 id="ubuntu-允许使用-root-远程登陆">ubuntu 允许使用 root 远程登陆</h2>
+<ol>
+<li>设置 root 密码</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">sudo passwd
+</code></pre>
+<ol>
+<li>修改配置文件<code>/etc/ssh/sshd_config</code></li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">#PermitRootLogin prohibit-password
+PermitRootLogin yes
+</code></pre>
+<ol>
+<li>重启 sshd</li>
+</ol>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">service sshd restart
+</code></pre>
+<h1 id="ssh-配置免密登录">ssh 配置免密登录</h1>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">sed -i 's/PubkeyAuthentication no/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/^#\s*\(AuthorizedKeysFile\s\+.*\)/\1/' /etc/ssh/sshd_config
+systemctl restart sshd
+</code></pre>
+<p>生成密钥并同步至目标机器</p>
+<pre tabindex="0" role="region" aria-label="代码块"><code class="language-Bash">ssh-keygen -t rsa
+ssh-copy-id root@目标主机 IP
+</code></pre>
+<p>添加完节点信任关系之后，最好手动执行 <code>ssh root@目标主机 IP</code> 命令测试下是否可以无密码登录，防止因为 sshd 配置的原因，引起的无密码登录失败。</p>
 </article>
 </main>
 <script>
