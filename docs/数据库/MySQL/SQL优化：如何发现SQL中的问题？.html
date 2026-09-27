@@ -119,7 +119,7 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
 <h1 id="sql优化如何发现sql中的问题">SQL优化：如何发现SQL中的问题？</h1>
 <h2 id="前置知识">前置知识</h2>
@@ -139,7 +139,7 @@ th { background: #eaf0f7; }
 <p>如果想要知道你优化后的效果，就需要掌握一个工具，就是 EXPLAIN 命令。</p>
 <h3 id="explain-命令">EXPLAIN 命令</h3>
 <p>应该说，每一个后端研发都应该掌握 EXPLAIN 命令。EXPALIN 命令的大概用法是 EXPLAIN your_sql，然后数据库就会返回一个执行计划。</p>
-<p><img src="../../../../../assets/devops-notes/OpoHbpKTQoZvZUxJZ1xcksebnTb.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/OpoHbpKTQoZvZUxJZ1xcksebnTb.png" alt=""></p>
 <p>执行计划有很多字段，我把最关键的地方列出来，你在面试的时候只需要记住这几个就可以了。</p>
 <ol>
 <li><strong>type</strong>：指的是查询到所需行的方式，从好到坏依次是 system &gt; const &gt; eq_ref &gt; ref &gt; range &gt; index &gt; ALL。</li>
@@ -159,7 +159,7 @@ th { background: #eaf0f7; }
 </ol>
 <p>在实践中，没有必要将这些东西都死记硬背下来。等你要解读 EXPLAIN 的返回结果的时候，再去搜索一下就行了。</p>
 <p>一般优化 SQL 都是在 <strong>EXPLAIN 查看执行计划、尝试优化</strong>两个步骤之间循环往复，直到发现 SQL 性能达标。</p>
-<p><img src="../../../../../assets/devops-notes/XqcXbfTBSosD8wxffOVcoh7pn1d.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/XqcXbfTBSosD8wxffOVcoh7pn1d.png" alt=""></p>
 <h3 id="选择索引列">选择索引列</h3>
 <p>设计索引的时候，列的选择非常关键，但是目前来说并没有特别统一的说法。你可以参考以下规则。</p>
 <ul>
@@ -234,7 +234,7 @@ th { background: #eaf0f7; }
 <p>如果用户的数据比较多，那么这个语句执行的速度还是比较慢的。后来我们做了一个比较简单的优化，就是用 uid 和 update_time 创建一个新的索引。从数据库原理上说，在 uid 确认之后，索引内的 update_time 本身就是有序的，所以避免了数据库再次排序的消耗。这样一个优化之后，查询时间从秒级降到了数十毫秒。</p>
 </blockquote>
 <p>这种优化在现实中非常容易遇到。它的底层原理就是<strong>索引本身就是有序的</strong>。如果用表格来形容 &lt;uid, update_time&gt; 这个索引的数据组织形式，那么看起来大概是这样的。</p>
-<p><img src="../../../../../assets/devops-notes/I2a9bCpm5oWCsxxSZ8ucgxyRnRf.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/I2a9bCpm5oWCsxxSZ8ucgxyRnRf.png" alt=""></p>
 <p>所以在 uid 确定之后，数据库可以直接按照 update_time 在索引中的顺序来返回结果。在优化前，数据库就只能自己将对应 uid 的数据都读过来之后再次进行排序。优化后则是省了一次排序过程。</p>
 <p>最后你也可以总结一下。</p>
 <blockquote>
@@ -253,7 +253,7 @@ th { background: #eaf0f7; }
 <p>这本质上是一个分布式事务的问题。主要思路有两个：</p>
 <p>如果数据短时间不一致但是业务可以接受的话，那么就可以考虑异步刷新 Redis 上的总数。</p>
 <p>使用 Canal 之类的工具监听 MySQL binlog，然后刷新 Redis 上的总数。</p>
-<p><img src="../../../../../assets/devops-notes/J2p1bpNSDobV5vxcAD8c6ocFnBb.png" alt=""></p>
+<p><img src="../../../assets/devops-notes/J2p1bpNSDobV5vxcAD8c6ocFnBb.png" alt=""></p>
 <h3 id="索引提示优化">索引提示优化</h3>
 <p>在上一节课我讲到了 FORCE INDEX、USE INDEX 和 IGNORE INDEX 三个索引提示，当然我也强调了这个不是什么好的实践，尽量少用。</p>
 <p>但是在实际工作中有些时候数据库的执行就很奇怪，要么不用索引，要么用了错误的索引，那么在这种情况下你就可以考虑使用这些索引提示来纠正数据库的行为。</p>

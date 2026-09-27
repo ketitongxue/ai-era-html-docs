@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SQLite</title>
+<title>MySQL</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,13 +119,17 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../index.html#database">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="sqlite">SQLite</h1>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/SQLite%20%E7%AE%80%E4%BB%8B.html">SQLite 简介</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/SQLite%20%E5%AE%89%E8%A3%85.html">SQLite 安装</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/SQLite%20%E5%91%BD%E4%BB%A4.html">SQLite 命令</a></p>
-<p><a href="../../../../docs/DevOps/%E5%9F%BA%E7%A1%80%E7%AF%87/%E6%95%B0%E6%8D%AE%E5%BA%93/SQLite/SQLite%20%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8.html">SQLite 基础使用</a></p>
+<h1 id="mysql">MySQL</h1>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/MySQL%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F.html">MySQL从入门到入土</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88MySQL%E7%94%A8B%2B%E6%A0%91%E8%80%8C%E4%B8%8D%E7%94%A8B%E6%A0%91%EF%BC%9F.html">数据库索引：为什么MySQL用B+树而不用B树？</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/SQL%E4%BC%98%E5%8C%96%EF%BC%9A%E5%A6%82%E4%BD%95%E5%8F%91%E7%8E%B0SQL%E4%B8%AD%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9F.html">SQL优化：如何发现SQL中的问题？</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81.html">数据库锁</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/MVCC%E5%8D%8F%E8%AE%AE%EF%BC%9AMySQL%20%E5%9C%A8%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE%E7%9A%84%E6%97%B6%E5%80%99%EF%BC%8C%E8%BF%98%E8%83%BD%E4%B8%8D%E8%83%BD%E8%AF%BB%E5%88%B0%E8%BF%99%E6%9D%A1%E6%95%B0%E6%8D%AE%EF%BC%9F.html">MVCC协议：MySQL 在修改数据的时候，还能不能读到这条数据？</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1%EF%BC%9A%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E4%BA%86%EF%BC%8C%E4%BD%A0%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B0%B1%E4%B8%80%E5%AE%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E5%90%97%EF%BC%9F.html">数据库事务：事务提交了，你的数据就一定不会丢吗？</a></p>
+<p><a href="../../docs/%E6%95%B0%E6%8D%AE%E5%BA%93/MySQL/%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%8D%E5%81%9C%E6%9C%BA%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E4%BF%9D%E8%AF%81%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F.html">数据迁移：如何在不停机的情况下保证迁移数据的一致性？</a></p>
+<p><a href="https://f1cuh8dlts.feishu.cn/wiki/AHvVwfJknimNwXkNc5bcnOr5nQb">分库分表主键生成：如何设计一个主键生成算法？</a></p>
 </article>
 </main>
 <script>
