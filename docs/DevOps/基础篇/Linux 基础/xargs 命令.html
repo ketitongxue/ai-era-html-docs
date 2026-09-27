@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>代码管理，版本控制系统</title>
+<title>xargs 命令</title>
 <style>
 :root {
   color-scheme: light;
@@ -119,34 +119,67 @@ th { background: #eaf0f7; }
 <body>
 <a class="skip-link" href="#main-content">跳到正文</a>
 <main id="main-content" tabindex="-1">
-<nav aria-label="文章导航"><a href="../../index.html#devops">返回知识库 · DevOps</a></nav>
+<nav aria-label="文章导航"><a href="../../../../index.html#devops">返回知识库 · DevOps</a></nav>
 <article>
-<h1 id="代码管理版本控制系统">代码管理，版本控制系统</h1>
-<p>版本控制系统简介：</p>
+<h1 id="xargs-命令">xargs 命令</h1>
+<p>xargs（英文全拼： eXtended ARGuments）是给命令传递参数的一个过滤器，也是组合多个命令的一个工具。</p>
+<p>xargs 可以将管道或标准输入（stdin）数据转换成命令行参数，也能够从文件的输出中读取数据。</p>
+<p>xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行。</p>
+<p>xargs 默认的命令是 echo，这意味着通过管道传递给 xargs 的输入将会包含换行和空白，不过通过 xargs 的处理，换行和空白将被空格取代。</p>
+<p>xargs 是一个强有力的命令，它能够捕获一个命令的输出，然后传递给另外一个命令。</p>
+<p>之所以能用到这个命令，关键是由于很多命令不支持|管道来传递参数，而日常工作中有有这个必要，所以就有了 xargs 命令，例如：</p>
+<p>find /sbin -perm +700 |ls -l       #这个命令是错误的 find /sbin -perm +700 |xargs ls -l   #这样才是正确的</p>
+<p>xargs 一般是和管道一起使用。</p>
+<p><strong>命令格式：</strong></p>
+<p>somecommand |xargs -item  command</p>
+<p><strong>参数：</strong></p>
 <ul>
-<li>
-<p>集中式版本控制系统:</p>
-<ul>
-<li>任何的代码提交都要连接到版本控制服务器。</li>
-<li>数十几上百名研发人员同时进行代码提交和下载的时候服务器的网络和磁盘 I/O 都是瓶颈。</li>
-<li>在公司以外的环境需要先拨通VPN才能访问服务器提交代码。</li>
-<li>SVN 和 CVS 都是集中式版本控制系统。</li>
+<li>-a file 从文件中读入作为 stdin</li>
+<li>-e flag ，注意有的时候可能会是-E，flag必须是一个以空格分隔的标志，当xargs分析到含有flag这个标志的时候就停止。</li>
+<li>-p 当每次执行一个argument的时候询问一次用户。</li>
+<li>-n num 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。</li>
+<li>-t 表示先打印命令，然后再执行。</li>
+<li>-i 或者是-I，这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}，可以用 {} 代替。</li>
+<li>-r no-run-if-empty 当xargs的输入为空的时候则停止xargs，不用再去执行了。</li>
+<li>-s num 命令行的最大字符数，指的是 xargs 后面那个命令的最大命令行字符数。</li>
+<li>-L num 从标准输入一次读取 num 行送给 command 命令。</li>
+<li>-l 同 -L。</li>
+<li>-d delim 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符。</li>
+<li>-x exit的意思，主要是配合-s使用。。</li>
+<li>-P 修改最大的进程数，默认是1，为0时候为as many as it can ，这个例子我没有想到，应该平时都用不到的吧。</li>
 </ul>
-</li>
-<li>
-<p>分布式版本控制系统：</p>
-<ul>
-<li>没有网络依赖,开发人员不需要连接到版本控服务器(中央服务器),也可以在本地任意提交与回滚代码。</li>
-<li>在代码确认无误后再一次性提交到中央仓库。</li>
-<li>大幅降低中央服务器的负载。</li>
-<li>github 和 gitlab 都是分布式版本控制系统</li>
-</ul>
-</li>
-</ul>
-<p><img src="../../assets/devops-notes/P7qDbkCEmoGntzxeyEEcsVVXnOf.png" alt=""></p>
-<h1 id="gitlab">Gitlab</h1>
-<p><a href="../../docs/DevOps/%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%EF%BC%8C%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F/Gitlab.html">Gitlab</a></p>
-<p><a href="../../docs/DevOps/%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%EF%BC%8C%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%B3%BB%E7%BB%9F/Git.html">Git</a></p>
+<h3 id="实例"><strong>实例</strong></h3>
+<p>xargs 用作替换工具，读取输入数据重新格式化后输出。</p>
+<p>定义一个测试文件，内有多行文本数据：</p>
+<p>\# cat test.txt a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>多行输入单行输出：</p>
+<p>\# cat test.txt | xargs a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>-n 选项多行输出：</p>
+<p>\# cat test.txt | xargs -n3 a b c d e f g h i j k l m n o p q r s t u v w x y z</p>
+<p>-d 选项可以自定义一个定界符：</p>
+<p>\# echo &quot;nameXnameXnameXname&quot; | xargs -dX name name name name</p>
+<p>结合 -n 选项使用：</p>
+<p>\# echo &quot;nameXnameXnameXname&quot; | xargs -dX -n2 name name name name</p>
+<p>读取 stdin，将格式化后的参数传递给命令</p>
+<p>假设一个命令为 sk.sh 和一个保存参数的文件 arg.txt：</p>
+<p>\#!/bin/bash #sk.sh命令内容，打印出所有参数。 echo $*</p>
+<p>arg.txt文件内容：</p>
+<p>\# cat arg.txt aaa bbb ccc</p>
+<p>xargs 的一个选项 -I，使用 -I 指定一个替换字符串 {}，这个字符串在 xargs 扩展时会被替换掉，当 -I 与 xargs 结合使用，每一个参数命令都会被执行一次：</p>
+<p>\# cat arg.txt | xargs -I {} ./sk.sh -p {} -l -p aaa -l -p bbb -l -p ccc -l</p>
+<p>复制所有图片文件到 /data/images 目录下：</p>
+<p>ls *.jpg | xargs -n1 -I {} cp {} /data/images</p>
+<p>xargs 结合 find 使用</p>
+<p>用 rm 删除太多的文件时候，可能得到一个错误信息： <strong>/bin/rm Argument list too long.</strong>  用 xargs 去避免这个问题：</p>
+<p>find . -type f -name &quot;*.log&quot; -print0 | xargs -0 rm -f</p>
+<p>xargs -0 将 \0 作为定界符。</p>
+<p>统计一个源代码目录中所有 php 文件的行数：</p>
+<p>find . -type f -name &quot;*.php&quot; -print0 | xargs -0 wc -l</p>
+<p>查找所有的 jpg 文件，并且压缩它们：</p>
+<p>find . -type f -name &quot;*.jpg&quot; -print | xargs tar -czvf images.tar.gz</p>
+<p>xargs 其他应用</p>
+<p>假如你有一个文件包含了很多你希望下载的 URL，你能够使用 xargs下载所有链接：</p>
+<p>\# cat url-list.txt | xargs wget -c</p>
 </article>
 </main>
 <script>
