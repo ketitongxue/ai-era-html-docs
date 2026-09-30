@@ -20,3 +20,8 @@
 /docs/DevOps/Python/* /docs/Python/:splat 301
 /docs/DevOps/Go.html /docs/Go/Go.html 301
 /docs/DevOps/Go/* /docs/Go/:splat 301
+/docs/AIOps/RAG.html /docs/RAG/RAG.html 301
+/docs/AIOps/Graph%20RAG.html /docs/RAG/Graph%20RAG.html 301
+/docs/AI%20Agent/Spring%20AI%20%E4%B8%8E%20LangChain%EF%BC%9ARAG%20%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0.html /docs/RAG/Spring%20AI%20%E4%B8%8E%20LangChain%EF%BC%9ARAG%20%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0.html 301
+/docs/AI%20Agent/Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html /docs/RAG/Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html 301
+/docs/AI%20Agent/Agent%20%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%EF%BC%9A%E5%8F%AC%E5%9B%9E%E8%B4%A8%E9%87%8F%E3%80%81%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BC%93%E5%AD%98.html /docs/RAG/Agent%20%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%EF%BC%9A%E5%8F%AC%E5%9B%9E%E8%B4%A8%E9%87%8F%E3%80%81%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BC%93%E5%AD%98.html 301

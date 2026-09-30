@@ -333,7 +333,7 @@ NDCG_A = 1；NDCG_B ≈ 0.620
 </code></pre>
 <p>如果采用另一种常见增益 <code>2^rel - 1</code>，同一例子的分数就会变化。评测必须记录增益、K、没有相关证据时的处理方式，并将框架指标定义和自定义指标区分开。普通 Precision@K 不应直接冒充某个评测库的 Context Precision。</p>
 <p>权限也参与检索质量：只在生成前删除越权 Top-K，可能剩下很少授权结果，并且已经把机密片段送给了外部重排服务。权限条件应由可信服务端构造并下推所有召回通道，再校验返回数据。下推是访问边界要求，不等于所有数据库都会在 ANN 扫描前完成物理过滤；必要时调整索引、扫描预算或分区，并保留权限范围内的召回回归测试。</p>
-<p>本节整理自 CodeCrush <a href="https://www.codecrush.cn/lesson/355875401970483200">18：提升检索质量的关键手段</a>、<a href="https://www.codecrush.cn/lesson/355876144618143744">20：RAG 评测与数据权限</a>。数值均为可手算的教学例子，生成侧指标集中在 <a href="Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">Agent 评估、反馈与可观测性</a>。</p>
+<p>本节整理自 CodeCrush <a href="https://www.codecrush.cn/lesson/355875401970483200">18：提升检索质量的关键手段</a>、<a href="https://www.codecrush.cn/lesson/355876144618143744">20：RAG 评测与数据权限</a>。数值均为可手算的教学例子，生成侧指标集中在 <a href="../AI%20Agent/Agent%20%E8%AF%84%E4%BC%B0%E3%80%81%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7.html">Agent 评估、反馈与可观测性</a>。</p>
 
 </article>
 </main>

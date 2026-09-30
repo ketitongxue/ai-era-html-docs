@@ -185,7 +185,7 @@ th { background: #eaf0f7; }
 <h2 id="token向量和参数分别是什么">Token、向量和参数分别是什么</h2>
 <p><strong>Token 是分词器输出的离散单位，Token ID 是它在词表中的编号。</strong> 它可能对应一个词、子词、字符或字节片段，不能把“一个字”直接等同于“一个 Token”。BPE 是常见分词方法之一，但并非所有分词器都使用同一种算法；字节级 BPE 也只是其中一种实现。<a href="https://huggingface.co/learn/llm-course/en/chapter6/5">Hugging Face 分词教程</a></p>
 <p>同一段中文在不同分词器下长度可能不同。字符数估算只适合粗略预算；要防止请求超长，应使用目标模型的计数工具或服务端用量反馈，并计入消息格式、工具定义和多模态输入。不要依据一个“每字几 Token”的固定常数安排生产容量。</p>
-<p><strong>向量是连续数值表示。</strong> 语言模型通常先把 Token ID 映射为向量，再加入位置信息并逐层计算。向量的单个维度一般不能直接解释成某个明确含义。检索中的文本 Embedding 则把一段文本映射到可比较的表示，两者相关，却不能把语言模型的内部词向量直接当作现成的检索服务；检索选型见<a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计与分块</a>。</p>
+<p><strong>向量是连续数值表示。</strong> 语言模型通常先把 Token ID 映射为向量，再加入位置信息并逐层计算。向量的单个维度一般不能直接解释成某个明确含义。检索中的文本 Embedding 则把一段文本映射到可比较的表示，两者相关，却不能把语言模型的内部词向量直接当作现成的检索服务；检索选型见<a href="../RAG/Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计与分块</a>。</p>
 <p><strong>参数是训练过程中调整的数值。</strong> 模型在普通推理时利用这些参数计算结果；本次对话提供新资料，通常是在改变输入上下文，并没有因此训练出一套新权重。</p>
 <p>下面用教学词表说明两次转换，不代表任何真实模型的分词结果：</p>
 <pre tabindex="0" role="region" aria-label="代码块"><code class="language-text">文本：我 爱 吃 苹果
@@ -347,7 +347,7 @@ Attention(Q, K, V) = softmax(QKᵀ / √d_k + mask) V
 </tr>
 <tr>
 <td>让模型使用有来源的外部资料</td>
-<td><a href="Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计：数据组织与分块</a></td>
+<td><a href="../RAG/Agent%20%E6%A3%80%E7%B4%A2%E8%AE%BE%E8%AE%A1%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E5%88%86%E5%9D%97.html">检索设计：数据组织与分块</a></td>
 </tr>
 <tr>
 <td>设计 Agent 的运行与验证机制</td>
